@@ -1,0 +1,338 @@
+In this document we explain how to run the program and we give a lengthy
+explanation on the different aspects
+
+-------------------------------------------------------------------------------
+CONFIGURATION FILE:
+-------------------------------------------------------------------------------
+
+A configuration file is a very important part of the input. Is a text file that
+represent information regarding your experiment. Each row of the configuration
+file will produce a different analysis. Typically, each row is a Gene ID with
+a barcode, two files where we can find the forward and reverse sequences, and
+a amplicon.
+
+In /AmpliCan/res/Cas9_toy/run11.conf you have an informative example of a
+configuration file.
+
+The file extension for the configuration file is irrelevant for the program as
+long as it can be read in columns divided by tabs. We recommend a format that
+is also human readable. If you have *.xlsx or *.ods or *.gnumeric or any other
+spreed sheet format, you can copy paste that directly into an *.txt file.
+
+In /AmpliCan/doc/config_file_column_relationship.png you have a summarizing
+diagram with the relationship of the important columns.
+
+The configuration file must NOT have titles in its columns. The first row must
+be a row with data starting with the Gene ID.
+
+The configuration file must have the following columns in this order:
+
+    ID:                         (String) A gene ID that is unique for each row.
+
+    Barcode:                    (String) A barcode ID.
+
+    Name of file forward reads: (String) A relative or absolute path to the
+                                file where you can find the forward file. Note
+                                that this must be in Fastq format. You can give
+                                a compresed file or uncompresed.
+
+    Name of file reverse reads: (String) Same concept as for forward, but in
+                                here you have the file with the reverse
+                                sequences.
+
+    Group/Experiment:           (String) A significative with your group, or
+                                experiment type. This information is irrelevant
+                                for the analysis, so effectively it doesn't
+                                matter what you write here as long as is not NA
+                                or NULL.
+
+    Guided RNA used:            (String) A sequence with your guided RNA. The
+                                program will prompt you warnings if this string
+                                cannot be found in the amplicon or in each of
+                                the sequences for either forward or reverse.
+
+    Forward Primer:             (String) A sequence with the forward primer.
+
+    Reverse Primer:             (String) A sequence with the reverse primer.
+
+    Strand:                     (Integer) A number that indicates if your
+                                guided RNA is reverse and complemented or not.
+                                This just influence on how the Guided RNA is
+				handdle, so if you are unsure, the worst thing
+                                that would happen is that you will get warnings
+                                because the target couldn't be found.
+
+   Amplicon sequence:           (String) A sequence with the amplicon. In here
+                                you must define your "Alignment position". This
+                                is done ussing uppercases in the amplicon. You
+                                can use as many uppercases you want, including
+                                zero, or the whole amplicon. Please note that
+                                each group of sequential uppercases will be use
+                                as a alignment position for the analysis.
+
+
+-------------------------------------------------------------------------------
+THE RESULT FOLDER:
+-------------------------------------------------------------------------------
+
+You need to run four scripts to complete the program. The first script makes
+the alignments. The second one runs an analysis based on the alignments. The
+third one make the plots for that analysis and the last one generate an HTML
+document to display everything. In the next section we will talk more in detail
+about each one of the script. Meanwhile, lets talk for a moment how the results
+are organized.
+
+The first thing you will run is the alignment script. You need to select the
+folder where you want your alignments results to be. Lets call that folder you
+choose /myResultsFolder. This folder need to exist before you run the program.
+
+Inside /myResultsFolder the alignments results will appear. Every time you run
+the alignment script, a folder with a timestamp will be created. The format of
+this folder will be:
+
+/myResultsFolder/run_YYYYMMDDHHmmSS_NameOfTheConfigFile
+
+Inside there you will find one folder and two files.
+
+The folder is call NameOfTheConfigFile_alignments. The files are call
+"alignmentLog.txt" and "MasterLog.txt". Lets start explaining these two files.
+
+alignmentLog.txt contain all the warnings that the program found making the
+alignments. These are events that doesn't prevent us to run the program, but
+the designer of the experiment can be interested to read about. Here is a
+example of the output:
+
+Couldn't find the target RNA:
+GGGGCGGCACTTCAGGGCAGTGG
+In amplicon:
+gcctgtgtcgtctcccttatgatgtcacccgattcatgattgagtgtGATgtttgtcaggactggtttcatggcaggtgaggttgcaaaatttttaaatgactgttaaaagctaaatcttgtacttcttatgaatgtgttttttgtgaatgtaataatatatgttttttctttttgtgtagttgtgttggtgtggaggagga
+For ID and barcode:
+phf8_1 1
+Which bellongs to the config file located in:
+/Home/.../res/Cas9_toy/run11.conf
+
+This example indicates that the target RNA given in the row specify by phf8_1
+is not contain in the amplicon. This could be done on porpouse, or this could
+be something suspicious to take care.
+
+MasterLog.txt contain all the errors about why the program couldn't run. For
+example if you have duplicate IDs, if a barcode have more than one assigned
+fastq file for the forward sequence and so on. In case that everything is fine
+you won't find any error messages. In any case, you will find a register
+containing the different variables that you selected to run the program. This
+is an example of the output:
+
+Total Processors:       1
+Skip Bad Nucleotides:   TRUE
+Average Quality:        0
+Minimum Quality:        0
+Write Alignments Mode:  2
+Scoring Matrix:         NUC44
+Gap Opening:            50
+Gap Extension:          0
+Gap Ending:             FALSE
+Far Indels:             TRUE
+
+Now lets explain the NameOfTheConfigFile_alignments folder:
+
+/results/run_XYZ/NameOfTheConfigFile_alignments/GENE_BARCODE
+
+Inside NameOfTheConfigFile_alignments you will find many many folders. One for
+each of the rows specify in the configuration file. These folders follows a
+patter in their name. They start with the gene ID, then a "_" and then the
+barcode specify for that gene ID in the config file.
+
+For this row you need the forward and reverse sequence files. Some of them will
+be assigned to this experiment; that depends on the primers. But lets say that
+we have 1000 unique sequences in our experiment. During the process, those
+sequences will be found and give an unique integer identifier to all of them.
+Those assigned sequences can be found on a file name GENE_BARCODE_uniques.txt.
+
+In the unique.txt file you will find many rows. Each row start with the unique
+ID for each of the sequence. You will also find the following columns:
+
+    Total: How many times is this sequence repeated in the original fastq file.
+    Frequency: The previous value divided by the sumation of the whole column.
+    Forward: A copy of the forward sequence.
+    Reverse: A copy of the reverse sequence.
+    Forward_Deletions_String: A summary string with the insertions and
+                              deletions for the forward sequence if you align
+                              it with the amplicon. Lets see an example:
+
+                              @0@!@2@47,53*158,202*
+
+                              This means:
+                              0 insertions
+                              2 deletions
+                                -- From 47 to 53
+                                -- From 158 to 202
+
+                              In here, the deletions are given respect the
+                              alignment coordinates. Remember that the
+                              alignment length can vary depending of how many
+                              gaps we find.
+
+
+    Reverse_Deletions_String: Same concept but for the reverse sequence.
+    Forward_Deletions_Genome_Coordinates_String: Same concept, however in here,
+                                                 we measure from respect the
+                                                 amplicon coordinates. Not the
+                                                 alignment coordinates. Lets
+                                                 see an example about this:
+
+GGTTGCAAAATTTTTAAATGACTGTTAAAAGCTAAATCTTGTA---CTTATGAATGTGTTTTTTGTGAATGTAATAATAT
+|||||||||||||||||||||||||||||||||||||||||||   ||||||||||||||||||||||||||||||||||    
+ggttgcaaaatttttaaat----gttaaaagctaaatcttgtacttcttatgaatgtgttttttgtgaatgtaataatat
+
+In here we notice that there is a deletion gap from 44 to 46 both included.
+
+This is done from the alignment point of view. However, we can see that there
+is an insertion on the subject of the alignment. What is the deletion respect
+the subject?
+
+The deletion respect subject coordinates is from 41 to 43. The amplicon is
+always use as the subject for the alignments. And the amplicon length is always
+constant. Is very interesting, for later, to keep track of this variations.
+
+
+    Reverse_Deletions_Genome_Coordinates_String: Same concept but for the
+                                                 reverse sequences.
+    Forward_Alignment_Length: The length of the forward alignment.
+    Reverse_Alignment_Length: The length of the reverse alignment.
+    Alignment: The alignment file where you can find the alignments. This file
+               may not exist if the user chooses not to have all the individual
+               alignments in different files. We do not recommen have thousands
+               of files with individual alignments. However, you may choose to
+               have all alignments in a single file. In order to find your
+               alignment very quickly, look for this string in that file. The
+               alignment that follows, is the one you are looking for.
+    Forward_Alignment_Positions: The coordinates for the alignment position in
+                                 the forward alignment. This represent the
+                                 first uppercase letter for each AP.
+    Reverse_Alignment_Positions: Same concept, but for the reverse sequence.
+    Forward_Wide_Position: The length of each AP in the forward sequence.
+    Reverse_Wide_Position: Same concept, but for the reverse sequence.
+    Target_Forward_Found: Did we found the target RNA in the forward sequence?
+    Target_Reverse_Found: Did we found the target RNA in the reverse sequence?
+    Deletions_Forward: How many deletions we found in the forward sequence.
+    Deletions_Reverse: How many deletions we found in the reverse sequence.
+
+
+
+Inside this folder you will find your alignments in three different format:
+
+
+alignments.txt -- On top of this file you will find the amplicon. 
+
+verbose.txt -- All the alignments are written in the same file.
+
+
+
+
+
+unassigned_sequences
+
+		You will find many folders named with a combination of gene and
+	barcode. Each one of these is a line in the original configuration file
+
+	/results/run_XYZ/Config_File/GENE_BARCODE/GENE_BARCODE_uniques.txt
+
+		A very verbose table with all the result for each of the unique
+	combination of forward and reverse sequences.
+	
+	/results/run_XYZ/Config_File/GENE_BARCODE/GENE_BARCODE_summary.txt
+
+		The same table than before, but in this case, only rows which
+	were assigned to the experiment (matching forward and reverse primers)
+	and a selection of relevant columns.
+
+	/results/run_XYZ/Config_File/GENE_BARCODE/GENE_BARCODE_ubersummary.txt
+
+		The same table than summary.txt, but with only one row. Each of
+	the columns is the result of summation of the same column in the
+	summary.txt table. (TODO: This should go to the config_result.txt)
+
+	/results/run_XYZ/Config_File/GENE_BARCODE/alignments
+
+		The colection of all the alignments. In the verbose table
+	uniques.txt you have an ID for each row. Each alignment corresponde to
+	the sequence in that row. Only sequences assigned to the experiment
+	are aligned. And you can also find the alignment by looking at the
+	column "alignment". If it is equal to NULL, we have no alignment for
+	that, but if you find the name of a file, that is the file that you
+	are looking for inside /alignments.
+
+		Each alignment file has the following name format:
+	<ID> @ <FASTQ header until X and Y coordinates> .txt
+
+		In the file you will find verbose information about the forward
+	sequence align to the amplicon first, and the reverse sequence align to
+	the amplicon second. (TODO: Add the insertions and mismatches info
+	once we defined what we want from those)
+
+	/results/run_XYZ/Config_File/GENE_BARCODE/alignments/master.txt
+
+		This is a overview file where you can find the ID of each
+	alignment with a mark that indicates whether that pair has valid
+	deletions (PASS). The file also have the amplicon on the top and for
+	each of the IDs a pair of string with the forward and reverse alignment
+	for that ID.
+	
+	
+
+HOW TO RUN THE SCRIPT?
+
+	On your terminal, navigate to the ampliCan.R file located in
+/ampliCan/src/R. Once there, run "Rscript ampliCan.R" on the terminal and the
+program will run on its own.
+
+DO I HAVE TO INSTALL PACKAGES?
+
+	The script uses R.utils for unzipping files, plyr/dplyr to find uniques
+sequences, Rcpp to run the alignments, and doParallel for parallel code. If you
+have that installed already then you are good to go. If not; in /libraries you
+have a script to install all the packages automatically called installAll.R ,
+you just need to run it with "Rscript installAll.R".
+
+WHERE DO I PLACE MY READS?
+
+	Inside ampliCan/src/R/data, you can put as many reads folders as you
+like. Each must have a configuration file.
+
+WHAT IS THE FORMAT OF THE CONFIGURATION FILE?
+
+	The configuration file should be named with the string "conf". It
+should be only one config file per read folder. Inside of the configuration
+file, each experiment has associated a file with the forward reads and a file
+with the reverse reads. Please take a look at our example in /res/Cas9_toy. You
+can find an example config file there.
+
+WHERE ARE THE RESULTS?
+
+	In /ampliCan/src/R/results. You will find a folder named run_XYZ where
+XYZ is the timestamp when you started the script. Inside that folder, you will
+find a folder for each read folder that you placed on ../data.
+
+HOW ARE YOU MAKING THE ALIGNMENTS?
+
+	A slightly modified version of Gotoh:
+
+	An improved algorithm for matching biological sequences
+	O Gotoh - Journal of molecular biology, 1982
+
+
+WHAT DO NOT WORK AT THE MOMENT?
+
+	Parallel code. Right now there is only one core working. Also
+insertions statistics; the criteria for when an insertion is valid is not fully
+defined at the moment. Visualization is currently under development too.
+
+WHERE CAN I GET THE LAST VERSION OF CODE?
+
+	https://bitbucket.org/valenlab/amplican/
+
+I FOUND A BUG AND I WANT TO SEND DEATH THREATS TO THE DEVELOPER, WHERE CAN I?
+
+	https://bitbucket.org/valenlab/amplican/
+
+

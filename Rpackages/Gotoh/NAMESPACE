@@ -1,0 +1,5 @@
+useDynLib(Gotoh)
+exportPattern("^[[:alpha:]]+")
+importFrom(Rcpp, evalCpp)
+importFrom(Rcpp, sourceCpp)
+

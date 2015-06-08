@@ -1,0 +1,16 @@
+{
+    "contents" : "\\name{Gotoh-package}\n\\alias{Gotoh-package}\n\\alias{Gotoh}\n\\docType{package}\n\\title{\nC++ wrapper for R which does alignments using Gotoh algorithm.\n}\n\\description{\nImplement a Gotoh approach to sequence alignment. The Gotoh algorithm was first\npublished by Osamu Gotoh in 1982; for more information please refer to:\n<doi:10.1016/0022-2836(82)90398-9>\nWe are using 'Rcpp', which decrease greatly the CPU time with respect other\nalignment implementations. This was done in aneffort to speed up the\ncalculations for the project AmpliCan. The improvement we got compared with\n'DECIPHER' is in between 300x and 500x many fold for sequences between 100 to\n200 nucleotides, and between 100x and 200x for sequences of between 200 to 300\nnucleotides. And up to 1.5x for sequences of size 10.000 nucleotides and\nbeyond. This package contains the minimum files require for it to work. Please\ndownload the repository at:\nhttps://rafanozal@bitbucket.org/rafanozal/amplican.git\nto get the a more verbose documentation and script benchmarks.\n}\n\\details{\n\\tabular{ll}{\nPackage: \\tab Gotoh\\cr\nType: \\tab Package\\cr\nVersion: \\tab 0.9.1\\cr\nDate: \\tab 2015-05-18\\cr\nLicense: \\tab GPL (>= 2)\\cr\n}\nIn order to use the package you need to install the Rcpp library.\nThere are only two functions gRCPP and gotohRCPP. They are exactly the same\nfunction. The first one uses the R header and the second one uses the C++\nheader. For gRCPP you just need to give two strings representing a sequence\nof nucleotides each; any other option have a default value. For gotohRCPP you\nneed to include all values. Please read the help manual for a verbose\ndescription\n}\n\\author{\nRafael Nozal Canyadas <rca025@uib.no>\nEivind Valen <eivind.valen@gmail.com>\n\nMaintainer: Rafael Nozal Canyadas <rca025@uib.no>\n}\n\\references{\nhttp://goo.gl/pIDucs\n\n(If the link is dead, just search \"Gotoh 1982\".)\n}\n\\keyword{ package }\n\\examples{\ngRCPP(\"aaaaa\", \"aaddttaaaa\")\ngRCPP(\"aaaaa\", \"aaddttaaaa\", \"NUC44\", 30, 5)\ngotohRCPP(\"aaaaa\", \"aaddttaaaa\", \"NUC44\", 30, 5, TRUE, TRUE)\n}\n",
+    "created" : 1432196461325.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "236104417",
+    "id" : "E3D3C018",
+    "lastKnownWriteTime" : 1432733061,
+    "path" : "~/Desktop/git2/AmpliCan/Rpackages/Gotoh/man/Gotoh-package.Rd",
+    "project_path" : "man/Gotoh-package.Rd",
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "r_doc"
+}

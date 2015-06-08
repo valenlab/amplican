@@ -1,0 +1,16 @@
+{
+    "contents" : "CXX = g++-4.7.2\nCXX_STD = CXX11\n",
+    "created" : 1432300660225.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2598249671",
+    "id" : "FC09E4A1",
+    "lastKnownWriteTime" : 1432314475,
+    "path" : "~/Desktop/git2/AmpliCan/Rpackages/Gotoh/src/Makevars",
+    "project_path" : "src/Makevars",
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "text"
+}

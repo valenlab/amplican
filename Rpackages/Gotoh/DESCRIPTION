@@ -1,0 +1,26 @@
+Package: Gotoh
+Type: Package
+Title: C++ Wrapper for R which Does Alignments using Gotoh Algorithm
+Version: 0.9.1
+Date: 2015-05-18
+Author: Rafael Nozal Canyadas <rca025@uib.no> , Eivind Valen <eivind.valen@gmail.com>
+Maintainer: Rafael Nozal Canyadas <rca025@uib.no>
+Description: Implement a Gotoh approach to sequence alignment. The Gotoh
+             algorithm was first published by Osamu Gotoh in 1982; for more
+             information please refer to: <doi:10.1016/0022-2836(82)90398-9>
+             We are using 'Rcpp', which decrease greatly the CPU time with
+             respect other alignment implementations. This was done in an
+             effort to speed up the calculations for the project AmpliCan. The
+             improvement we got compared with 'DECIPHER' is in between 300x and
+             500x many fold for sequences between 100 to 200 nucleotides, and
+             between 100x and 200x for sequences of between 200 to 300
+             nucleotides. And up to 1.5x for sequences of size 10.000
+             nucleotides and beyond. This package contains the minimum files
+             require for it to work. Please download the repository at:
+             https://rafanozal@bitbucket.org/rafanozal/amplican.git
+             to get the a more verbose documentation and script benchmarks.
+Depends: R (>= 3.1.1)
+License: GPL (>= 2)
+Imports: Rcpp (>= 0.11.6)
+LinkingTo: Rcpp
+OS_type: unix
