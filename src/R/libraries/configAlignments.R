@@ -1,21 +1,17 @@
-
-source("libraries/tools2.R") # Minor stuff like the reverse complement of a DNA sequence.
-
-
-makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
+makeAlignment <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
                            MIN_QUALITY = 0, WRITE_ALIGNMENTS = TRUE,
                            SCORING_MATRIX = "NUC44", GAP_OPENING = 50,
                            GAP_EXTENSION = 0, GAP_ENDING = FALSE,
                            FAR_INDELS = TRUE, configDataframe = NULL,
                            resultFolder = NULL, alignmentFolder = NULL, 
-                           processID = 0, configFilePath = "", TIMING){
+                           processID = 0, configFilePath = "", TIMING,
+                          TEMPFOLDER){
 
   # Feedback with the processor that is working now
   print(paste("Nice to meet you; I'm mighty processor number: ",processID))
   
   # Prepare the unnasigned folder
-  sourceCpp("libraries/gotoh3.cpp")
-  currentUnassignedFolderName <- paste(alignmentFolder,"/unassigned_sequences",sep = '') # This dir is created previosly
+  currentUnassignedFolderName <- paste(alignmentFolder,"/unassigned_sequences",sep = '') # This folder was created previosly
   
   # In this variable we are going to keep track of the last config row. This is important
   # because it is going to be sorted. You need to be very careful with this function
@@ -27,20 +23,17 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
   {
     # Make your own file descriptor for the errors log
     subLogFileName <- paste(resultFolder,"/", processID,"_SUBLOG.txt",sep = '')
-    logFileConn    <-  file(subLogFileName, open="at")
+    logFileConn    <- file(subLogFileName, open="at")
     
-    # Make your own file descriptor for the final config file, and add the columns name
-#     subConfigFileName <- paste(alignmentFolder,"/", processID,"_SUBCONFIG.txt",sep = '')
-#     configFileConn    <-  file(subConfigFileName, open="at")
-#     writeLines("'ID'\t'Barcode'\t'Forward_Reads_File'\t'Reverse_Reads_File'\t'Experiment_Type'\t'Target_Primer'\t'Forward_Primer'\t'Reverse_Primer'\t'Strand'\t'Amplicon'\t'Total_Pre_N_Filter'\t'Total_Post_N_Filter'\t'Experiment_Unique_Sequences'\t'Total_Experiment_Sequences'\t'Sum_Forward_Found'\t'Sum_Reverse_Found'\t'Sum_Target_Forward_Found'\t'Sum_Target_Reverse_Found'\t'Sum_Deletions_Forward'\t'Sum_Deletions_Reverse'\t'Sum_Is_Sequence'", configFileConn)    
+    # Make your own file descriptor for the temporal files
+    tempFileName <- paste(resultFolder,"/", processID,"_TEMPORALFILES.txt",sep = '')
+    tempFileConn <- file(tempFileName, open="at")
     
     # These are for the configs later one; we need to keep track of them here
     # (Actually we don't, because these variables stay alive and R doesn't care about variable scope
     #  but I'm going to do it anyway; it should be easy to adapt this into another language later on)
     masterFileConn     <- NULL
     uberAlignmentFD    <- NULL
-#     deletionFD         <- NULL
-#     deletionRelativeFD <- NULL
     uniqueTableFD      <- NULL
     
     # Depending on the flags, these two FDs might not open; we keep track if they are open or not
@@ -48,7 +41,7 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
     uberAlignmentFDOpen    <- FALSE
     
   }
-
+  
   # Lets rename the configDataframe to configTable (so we don't make a lot of copypastes for the time being)
   configTable <- configDataframe
 
@@ -66,8 +59,6 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
     configTable$Total_Experiment_Sequences  <- 0
     
     # Several statistics about deletions, cuts and reads 
-#     configTable$Sum_Forward_Found        <- 0
-#     configTable$Sum_Reverse_Found        <- 0
     configTable$Sum_Target_Forward_Found <- 0
     configTable$Sum_Target_Reverse_Found <- 0
     
@@ -103,18 +94,7 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
   #------------------------------------------------------
   # PREPARE SOME TIMING VARIABLES
   #------------------------------------------------------
-  {
-#     # Get the barcode timing as well. In here we are going to keep track of barcode wise timing.
-#     barcodeTiming <- data.frame(matrix(NA, nrow = nrow(barcodeTable), ncol = 4))
-#     colnames(barcodeTiming) <- c("Barcode", "Total_Time","Sorting_Time", "Something_Time")
-#     
-#     # If we want to time the run, initialize the timing dataframe
-#     if(TIMING == TRUE){
-#       barcodeTiming$Barcode        <- barcodeTable$Barcode
-#       barcodeTiming$Total_Time     <- 0
-#       barcodeTiming$Sorting_Time   <- 0
-#     }
-    
+  {    
     # We are going to create another dataframe for timing stuff.
     # Each row of this dataFrame represent each row of the dataframe
     configTiming <- data.frame(matrix(0, nrow = nrow(configTable), ncol = 15))
@@ -212,7 +192,7 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
       # CHECK FOR BASIC INFO
       #------------------------
       {
-        # Variables
+        # Initialize Variables
         totalPreNFilter           <- 0
         totalPostNFilter          <- 0
         experimentUniqueSequences <- 0
@@ -225,10 +205,11 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
         sumDeletionsReverse       <- 0
         sumIsSequence             <- 0
         
-        # Specials
+        # Specials IDs
         currentID                          <- configTable[configIndex,"ID"]
         currentBarcode                     <- configTable[configIndex,"Barcode"] # Should be equal to the variable: barcode
         
+        # Primers and amplicon info
         forwardPrimer                      <- toString(configTable[configIndex,"Forward_Primer"])
         reversePrimer                      <- toString(configTable[configIndex,"Reverse_Primer"])
         targetPrimer                       <- toString(configTable[configIndex,"Target_Primer"])
@@ -238,6 +219,7 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
         forwardPrimerLength                <- nchar(forwardPrimer)
         reversePrimerLength                <- nchar(reversePrimer)
         
+        # Names of files and folders
         currentIDCodeResultsFolderName     <- paste(alignmentFolder,"/",currentID,"_",currentBarcode,sep = '')
         currentAlignmentsResultsFolderName <- paste(currentIDCodeResultsFolderName,"/alignments",sep='')
         masterAlignmentFilePath            <- paste(currentIDCodeResultsFolderName,"/alignments.txt",sep='')            
@@ -248,7 +230,7 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
                                                     currentBarcode,"_deletionsRelative.txt",sep = '')
         uniqueTablePath                    <- paste(currentIDCodeResultsFolderName,"/",currentID,"_",
                                                     currentBarcode,"_uniques.txt",sep = '')
-        
+        # Flags
         targetFound  <- FALSE
         primersFound <- FALSE
         apFound      <- FALSE
@@ -256,11 +238,9 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
         # File descriptors
         masterFileConn     <- NULL
         uberAlignmentFD    <- NULL
-#         deletionFD         <- NULL
-#         deletionRelativeFD <- NULL
         uniqueTableFD      <- NULL
         
-        # Timing
+        # Initialize Timing variables
         t3                   <- Sys.time()
         totalTime            <- 0
         alignTime            <- 0
@@ -278,13 +258,6 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
         
       }
       
-#       #------------------------
-#       # DEBUG
-#       #------------------------
-#       {
-#         print(currentID)
-#       }
-#       print("A")
       # Create folders
       dir.create(file.path(currentIDCodeResultsFolderName), showWarnings = TRUE)
       dir.create(file.path(currentAlignmentsResultsFolderName), showWarnings = TRUE)
@@ -294,13 +267,13 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
       if(reverseAmplicon == 1){
         targetPrimer  <- reverseComplement(targetPrimer)
       }
-#       print("B")
+
       # Get the position of the alignment and how wide it is
       # TODO: Adjust for more than one
       allPositions       <- countUppercaseGroups(amplicon)
       alignmentPositions <- allPositions[[2]][1]
       widePosition       <- allPositions[[3]][1]
-      print("C")
+      
       #------------------------
       # PREPARE THE FILE DESCRIPTORS
       #------------------------
@@ -326,15 +299,10 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
           }
           
         }
-        
-#         deletionFD         <- file(deletionFilePath, open="at")
-#         deletionRelativeFD <- file(deletionRelativeFilePath, open="at")
+
+        # Prepare the unique table where all the sequences are going.
         uniqueTableFD      <- file(uniqueTablePath, open="at")
         
-#         writeLines( paste("Gene_ID", "Hash_ID", "Start","End","Freq","Type","Location", "Wide",sep = '\t') 
-#                     , deletionFD)
-#         writeLines( paste("Gene_ID", "Hash_ID", "Start","End","Freq","Type","Location", "Wide",sep = '\t') 
-#                     , deletionRelativeFD)
         writeLines( paste("Total", "Frequency", "Forward", "Reverse", "Forward_Deletions_String",
                           "Reverse_Deletions_String", "Forward_Deletions_Genome_Coordinates_String",
                           "Reverse_Deletions_Genome_Coordinates_String",
@@ -346,7 +314,7 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
                     , uniqueTableFD)
         
       }      
-#       print("D")
+
       #------------------------
       # CHECK FOR WARNINGS
       #------------------------
@@ -367,6 +335,8 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
     
     #------------------------------------------------------
     # GET THE FILES NAMES
+    # - We need to adjust for relative or absolute paths
+    # - We are just checkig for files names for both forwards and reverse
     #------------------------------------------------------
     {
       # Check that we are in an absolute path or relative path
@@ -391,9 +361,10 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
         reverseReadsFileName <- paste(dataFolderPath, "/",barcodeTable$"Reverse_Reads_File"[i],sep = '')
       }
     }
-#     print("E")
+    
     #------------------------------------------------------
     # GET THE CONTENT FOR THE FORWARD AND REVERSE FILES
+    # - The content from the files will be in forwardsTable and reversesTable
     #------------------------------------------------------
     {
       # Time how much does it take to read the forward and reverse files
@@ -402,18 +373,18 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
       #---------------------------------------------------------------------------------
       # Get the actual FORWARD read file, unzip it, read it, an put it into a dataframe.
       #---------------------------------------------------------------------------------
-      forwardsTable <- getReadsFile(forwardReadsFileName)
+      forwardsTable <- getReadsFile(forwardReadsFileName, TEMPFOLDER, tempFileConn)
       
       #---------------------------------------------------------------------------------
       # Get the actual REVERSE read file, unzip it, read it, an put it into a dataframe.
       #---------------------------------------------------------------------------------
-      reversesTable <- getReadsFile(reverseReadsFileName)
+      reversesTable <- getReadsFile(reverseReadsFileName, TEMPFOLDER, tempFileConn)
       
       t2 <- Sys.time()
       td <- as.numeric(t2-t1, units = "secs")
       fillingTime <- td
     }
-#     print("F")
+    
     #------------------------------------------------------
     # APPLY THE FILTERS
     #
@@ -449,7 +420,7 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
       td <- as.numeric(t2-t1, units = "secs")
       filterTime <- td
     }
-#     print("G")
+    
     #------------------------------------------------------
     # MAKE THE UNIQUE TABLE
     #
@@ -499,14 +470,15 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
         
       }
       
-      write.table(uniqueTable,  paste(currentResultsFolderName,"/",processID,"_DEBUGUNIQUE.txt",sep = '') , sep="\t")
+      #Debug the unique table
+      #write.table(uniqueTable,  paste(alignmentFolder,"/",processID,"_DEBUGUNIQUE.txt",sep = '') , sep="\t")
       
       t2 <- Sys.time()
       td <- as.numeric(t2-t1, units = "secs")
       uniqueTime <- td
       
     }    
-#     print("H")
+    
     #------------------------------------------------------
     # Update the barcode table
     #------------------------------------------------------
@@ -519,7 +491,7 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
       barcodeTable$Total_Experiment_Sequences[i]  <- totalSequences
     
     }
-#     print("I")
+    
     #------------------------------------------------------
     # PREPARE THE UNASSIGNED VARIABLES
     #------------------------------------------------------
@@ -534,7 +506,7 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
       # Create the file and write the columns names
       unnasignedFileName <- paste(currentUnassignedFolderName,"/",barcode,"_unassigned.txt",sep = '', collapse = '')      
     }
-#     print("J")
+
     #------------------------------------------------------
     # PREPARE THE CONFIG LINES FOR THAT BARCODE
     #------------------------------------------------------
@@ -556,26 +528,26 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
       # Finally, we have another index that takes care of the overall config table. We start at that point
       # and we finish at that point plus the size of configSubset
     }
-#     print("K")
+
     #------------------------------------------------------
     # DEBUG STUFF
     #------------------------------------------------------
     {
-      print("DEBUG")
-      print(paste("barcode", barcode))
-#       print(paste("Forward file", forwardReadsFileName))
-#       print(paste("Reverse file", reverseReadsFileName))
-      
-#       print(paste("Sequences Lost", totalSequenceLost))
-#       print(paste("Prefilter", totalSequencesPrefilter))
-#       print(paste("Postfilter", totalSequencesPostfilter))
-      print(paste("Total Uniques", totalUniqueSequences))
-#       print(paste("Total Sequences", totalSequences))
-      
-      print(paste("Config Subset Size", subConfigLength))
-      print(paste("First config table row", configIndex))
-      print(paste("Last config table row", configIndex + subConfigLength - 1))
-      print(paste("", 0))
+#       print("DEBUG")
+#       print(paste("barcode", barcode))
+# #       print(paste("Forward file", forwardReadsFileName))
+# #       print(paste("Reverse file", reverseReadsFileName))
+#       
+# #       print(paste("Sequences Lost", totalSequenceLost))
+# #       print(paste("Prefilter", totalSequencesPrefilter))
+# #       print(paste("Postfilter", totalSequencesPostfilter))
+#       print(paste("Total Uniques", totalUniqueSequences))
+# #       print(paste("Total Sequences", totalSequences))
+#       
+#       print(paste("Config Subset Size", subConfigLength))
+#       print(paste("First config table row", configIndex))
+#       print(paste("Last config table row", configIndex + subConfigLength - 1))
+#       print(paste("", 0))
     }
 
     #------------------------------------------------------
@@ -662,8 +634,10 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
           # -- The fourth part is the alignment of the pattern.
           # -- The fifth part is the alignment of the subject.
           t1 <- Sys.time()
-          alignForward <- gotoh(forwardString, ampliconString , SCORING_MATRIX, GAP_OPENING, GAP_EXTENSION, GAP_ENDING, FAR_INDELS)
-          alignReverse <- gotoh(reverseString, ampliconString , SCORING_MATRIX, GAP_OPENING, GAP_EXTENSION, GAP_ENDING, FAR_INDELS)
+          alignForward <- gRCPP(forwardString, ampliconString , SCORING_MATRIX, GAP_OPENING, GAP_EXTENSION, GAP_ENDING, FAR_INDELS)
+          alignReverse <- gRCPP(reverseString, ampliconString , SCORING_MATRIX, GAP_OPENING, GAP_EXTENSION, GAP_ENDING, FAR_INDELS)
+#           alignForward <- gotoh(forwardString, ampliconString , SCORING_MATRIX, GAP_OPENING, GAP_EXTENSION, GAP_ENDING, FAR_INDELS)
+#           alignReverse <- gotoh(reverseString, ampliconString , SCORING_MATRIX, GAP_OPENING, GAP_EXTENSION, GAP_ENDING, FAR_INDELS)
           t2 <- Sys.time()
           td <- as.numeric(t2-t1, units = "secs")
           alignTime <- alignTime + td
@@ -1357,10 +1331,9 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
     }
 
     # Close all the file descriptors that we had open so far at barcode level
-    # These three are open for sure
-#     close(deletionFD)
-#     close(deletionRelativeFD)
+    # These one is open for sure
     close(uniqueTableFD)
+
     # These two might not be needed, check it out and close if necessary
     if(masterFileConnOpen){
       close(masterFileConn)
@@ -1369,21 +1342,18 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
       close(uberAlignmentFD)
     }
 
-    # Write down the timing for the last row
-    #configTiming$Total_Time[configIndex] <- totalTime
-
   }
   
   # Close all the file descriptors that we had open so far at function level
   close(logFileConn)
-#   close(configFileConn)
+  close(tempFileConn)
 
   #------------------------------------------------------
   # WRITE THE TIMING VARIABLES
   #------------------------------------------------------
   {
     if(TIMING == TRUE){
-      write.table(configTiming, paste(currentResultsFolderName,"/",processID,
+      write.table(configTiming, paste(alignmentFolder,"/",processID,
                                       "_configFile_Timing",sep = ''), sep="\t")
 #       write.table(barcodeTiming, paste(currentResultsFolderName,"/",processID,
 #                                       "_barcodeFile_Timing",sep = ''), sep="\t")
@@ -1397,11 +1367,9 @@ makeAlignment5 <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
   # WRITE THE BARCODE AND CONFIG TABLE
   #------------------------------------------------------
   {
-    write.table(configTable,  paste(currentResultsFolderName,"/",processID,"_configFile_results",sep = '') , sep="\t")
-    write.table(barcodeTable, paste(currentResultsFolderName,"/",processID,"_barcodeFile_results",sep = ''), sep="\t")
+    write.table(configTable,  paste(alignmentFolder,"/",processID,"_configFile_results",sep = '') , sep="\t")
+    write.table(barcodeTable, paste(alignmentFolder,"/",processID,"_barcodeFile_results",sep = ''), sep="\t")
   }
-  
-  
   
   return (0)
 }

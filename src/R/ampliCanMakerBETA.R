@@ -91,10 +91,16 @@
 #                         the new uncompressed files. However, this may not be
 #                         desirable. If you plan to run it again with different
 #                         options, you will need to uncompress everything again
-#                         instead of only one time. If your original files were
-#                         not compressed, this option won't delete them, even
-#                         if you set it to TRUE. You will need to manually
-#                         delete them later. Default is FALSE.
+#                         instead of only one time.
+#
+#                         Set this to TRUE if you want to automatically delete
+#                         all the temporal files at the end of the run. Set
+#                         this to FALSE, if you don't want to.
+#
+#                         If your original files were not compressed, this
+#                         option won't delete them, even if you set it to TRUE.
+#                         You will need to manually delete them later. 
+#                         Default is FALSE.
 #
 # (string) TEMPFOLDER     Your FASTQ files can be compressed in a file. If this
 #                         happens, the program needs to uncompress them first.
@@ -114,8 +120,9 @@ ampliCanMaker <- function (CONFIG, TOTAL_PROCESSORS = 1,
                            MIN_QUALITY = 0, WRITE_ALIGNMENTS = 2,
                            SCORING_MATRIX = "NUC44", GAP_OPENING = 50,
                            GAP_EXTENSION = 0, GAP_ENDING = FALSE, 
-                           FAR_INDELS = TRUE, RESULT_FOLDER = "0123",
-                           DELETEFQ = FALSE, TIMING = FALSE){
+                           FAR_INDELS = TRUE, RESULT_FOLDER = NULL,
+                           DELETEFQ = FALSE, TEMPFOLDER = NULL, 
+                           TIMING = FALSE){
 
   ############################################
   #Summons the libraries and get to use functions from there.
@@ -127,7 +134,7 @@ ampliCanMaker <- function (CONFIG, TOTAL_PROCESSORS = 1,
   library(plyr)
   library(dplyr) # Makes code look nicer; implemented hash for duplicated sequences with this.
   library(Rcpp) # Alignments
-  library(gotoh)
+  library(Gotoh)
   
   # Making things in parallel
   library(doParallel)
@@ -179,16 +186,16 @@ ampliCanMaker <- function (CONFIG, TOTAL_PROCESSORS = 1,
     
     # If nothing is specified, the folder will be call results" and will be
     # placed at the same folder as this script.
-    if(RESULT_FOLDER == "0123"){
+    if(is.null(RESULT_FOLDER)){
       # Check if there is a folder call /result in cwd, if not create a new one
       dir.create(file.path(getwd(), "/results"), showWarnings = FALSE) 
       resultsFolder <- paste(getwd(), "/results/run_", timeStamp, "_", configFileName, sep = '')
     
     }
     else{
-      resultsFolder <- paste(getwd(), RESULT_FOLDER, "/run_", timeStamp, "_", configFileName, sep = '')
+      resultsFolder <- paste(RESULT_FOLDER, "/run_", timeStamp, "_", configFileName, sep = '')
     }
-  
+    
     # Make a folder call /RESULT_FOLDER/run_YYYYmmddHHMMSS_<config name>
     # where we are going to write the results for this run.
     {
@@ -197,6 +204,10 @@ ampliCanMaker <- function (CONFIG, TOTAL_PROCESSORS = 1,
       # Inside this folder it will be a file named log where we will write relevant information
       logFileName <- paste(resultsFolder, "/MasterLog.txt", sep = '')
       logFileConn <- file(logFileName, open="at")
+      
+      # Inside that folder, it will be another file, that keep track of all temporal files
+#       tempFileName <- paste(resultsFolder, "/TemporalFiles.txt", sep = '')
+#       tempFileConn <- file(tempFileName, open="at")
       
       # Write the constants into the master logs
       writeLines(paste("Total Processors:      " , TOTAL_PROCESSORS) , logFileConn)
@@ -245,14 +256,21 @@ ampliCanMaker <- function (CONFIG, TOTAL_PROCESSORS = 1,
       processorsSubDataframes <- divideWorkByBarcode(TOTAL_PROCESSORS, configTable, currentConfigPath)
       
       # Analyze the config file in parallel 
-      parallelPackages = c("Rcpp","R.utils","plyr","dplyr","gotoh")
+      parallelPackages = c("Rcpp","R.utils","plyr","dplyr","Gotoh")
       
       foreach(j=1:TOTAL_PROCESSORS , .packages=parallelPackages) %dopar% {
         
-        makeAlignment5(SKIP_BAD_NUCLEOTIDES, AVERAGE_QUALITY, MIN_QUALITY, WRITE_ALIGNMENTS,
+        source("libraries/filters.R") # Filtering.        
+        source("libraries/tools.R") # Minor stuff like the reverse complement of a DNA sequence.        
+        source("libraries/errorswarnings.R") # Handles pre-parsing, error messages, warning to the users, and so on.        
+        source("libraries/configAlignments.R") # Function that deals with the config files and get running everything.
+        
+        #print(reverseComplement("aaaatcgat"))
+        
+        makeAlignment(SKIP_BAD_NUCLEOTIDES, AVERAGE_QUALITY, MIN_QUALITY, WRITE_ALIGNMENTS,
                       SCORING_MATRIX, GAP_OPENING, GAP_EXTENSION, GAP_ENDING,FAR_INDELS,
                       processorsSubDataframes[[j]], resultsFolder, currentResultsFolderName, j,
-                      currentConfigPath, TIMING)
+                      currentConfigPath, TIMING, TEMPFOLDER)
         
       }
       
@@ -260,6 +278,7 @@ ampliCanMaker <- function (CONFIG, TOTAL_PROCESSORS = 1,
       
       # Put all the logs and all the configs toguether
       totalLogs    <- unifyFiles(resultsFolder,            "SUBLOG"             , "alignmentLog.txt"        ,FALSE,TRUE,FALSE)
+      totalTemp    <- unifyFiles(resultsFolder,            "TEMPORALFILES.txt"  , "temporal_files.txt"      ,FALSE,TRUE,FALSE)
       totalConfigs <- unifyFiles(currentResultsFolderName, "configFile_results" , "config_results.txt"      ,TRUE, TRUE,FALSE)
       totalConTime <- unifyFiles(currentResultsFolderName, "configFile_Timing"  , "configFile_Timing.txt"   ,TRUE, TRUE,FALSE)
       totalBarcode <- unifyFiles(currentResultsFolderName, "barcodeFile_results", "barcodeFile_results.txt" ,TRUE, TRUE,FALSE)
@@ -267,11 +286,21 @@ ampliCanMaker <- function (CONFIG, TOTAL_PROCESSORS = 1,
       
     }
   
-    # Clsoe the master log file descriptor
+    # Close the master log file descriptor.
     close(logFileConn)
     
-    # Stop the cluster and go home
+    # Close the temporal files list file descriptor
+#     close(tempFileConn)
+    
+    # Stop the cluster.
     stopCluster(cl)
+    
+    # If the user want to delete the uncompressed results, do it now.
+    if(DELETEFQ == TRUE){
+      print("Total temporal files deleted")
+      #print(paste(resultsFolder,"/temporal_files.txt",sep=''))
+      print(deleteFiles(paste(resultsFolder,"/temporal_files.txt",sep=''), deleteSource = FALSE))
+    }
     
     print("Finish!")
     print(paste("Look for your results in",resultsFolder))

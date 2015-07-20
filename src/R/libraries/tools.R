@@ -257,9 +257,9 @@ divideWork <- function(totalProcessors, configDataframe){
     end <- offset + processorsLines[i]
     offset <- end
     
-    print(paste("For processor",i))
-    print(start)
-    print(end)
+#     print(paste("For processor",i))
+#     print(start)
+#     print(end)
     
     # Make a subset based on that
     subData <- NULL
@@ -374,10 +374,10 @@ divideWorkBySize <- function(totalProcessors, configDataframe, colName){
   
   for(i in 1:totalProcessors){
     
-    print(paste("For processor",i))
-    print(processorsLines[[i]])
-    print(length(processorsLines[[i]]))
-    print(processorsSums[i])
+#     print(paste("For processor",i))
+#     print(processorsLines[[i]])
+#     print(length(processorsLines[[i]]))
+#     print(processorsSums[i])
     
     processorsSubDataframes[[i]] <- configDataframe[processorsLines[[i]],]
     
@@ -590,7 +590,7 @@ divideWorkByBarcode <- function(totalProcessors, configDataframe, configFilePath
   for(i in 1:length(processorsSubDataframes)){
   
     print(paste("For processor",i))
-    print(as.character(uniqueBarcodeDF[processorsBarcodes[[i]],]$Barcode))
+#     print(as.character(uniqueBarcodeDF[processorsBarcodes[[i]],]$Barcode))
     print("This many barcodes")
     print(length(processorsBarcodes[[i]]))
     print("Total forward reads filesize of (MB)")
@@ -691,6 +691,46 @@ unifyFiles <- function (targetFolder, regex, finalFileName, header, delete, isre
 }
 
 {
+# This funcion takes a txt file, with a file path per row, and delete all those files.
+#
+# The function takes the following parameters:
+#
+#    listOfFilesFileName: (string) Path to the file that containts 0 or more files paths that will be deleted
+#
+#    deleteSource:        (bool)   If you want that the file listOfFilesFileName to be ALSO deleted, set this
+#                                  to TRUE. Default is FALSE
+# The function returns:
+#  
+#    (int) How many files where deleted. This could be less than the orinal files, as it will only delete
+#          files that you have write privilege.
+}
+deleteFiles <- function (listOfFilesFileName, deleteSource = FALSE){
+
+  # Keep track of how many files we delete
+  totalDeleted <- 0
+
+  # Read all the files candidates
+  textFile <- readLines(toString(listOfFilesFileName),encoding="UTF-8")
+  
+  # For each of the candidates
+  for (k in 1:length(textFile)){
+  
+    # Check if we have write permissions for that file
+    access <- checkFileWriteAccess(textFile[k])
+    
+    # If we do, delete it.
+    if(access == TRUE){
+      totalDeleted <- totalDeleted + 1
+      file.remove(textFile[k])
+    }
+    
+  }
+  
+  return (totalDeleted)
+
+}
+
+{
 # This function check if the given file exist and can be read.
 # 
 # The function takes the following parameters:
@@ -736,6 +776,52 @@ checkFileAccess <- function (filePath){
 }
 
 {
+  # This function check if the given file exist and can be write.
+  # 
+  # The function takes the following parameters:
+  # 
+  #   filePath: (String) A string the path to the file.
+  # 
+  # The function returns:
+  #
+  #   (Bool) TRUE if we have file write access. This means:
+  #          -- If the file path is not NULL.
+  #          -- If the file path is not NA.
+  #          -- If the file path is not "Null", "null", "na", ...
+  #          -- If the file path have write permissions.
+  #                 
+  #          FALSE otherwise.
+  # 
+}
+checkFileWriteAccess <- function (filePath){
+  
+  result <- FALSE
+  
+  # Check that the config file exist and we have read access
+  if(!is.null(filePath[1])){ #First we need to check if it is null or we will get a warning
+    
+    if(!is.na(filePath[1])){ #Same with NA
+      
+      # Check that we don't have weird NULL strings
+      if(nchar(filePath[1]) != 0    && filePath[1] !="NULL" && filePath[1]!="null" &&
+           filePath[1]  != "na" && filePath[1] != "NA"){
+        
+        # Check that we have write access, NOTE!: If we do, the function returns 0, and -1 if we don't.
+        if(file.access(filePath[1], mode = 2) == 0 ){
+          
+          result <- TRUE
+          
+        }
+      }  
+    }
+  }
+  
+  return (result)
+  
+}
+
+
+{
   # This function get a reads file and put into a dataframe.
   # 
   # The files are usually stored in a .gz file. If the .gz file has been unzip
@@ -748,11 +834,20 @@ checkFileAccess <- function (filePath){
   #
   #   The file must exist, and you must have reads rights.
   #
-  #   If the file is zipped, you must have write rights.
+  #   If the file is zipped, you must have write rights for the writing folder.
   #
   # The function takes the following parameters:
   #   
-  #   fileName: (String) A String with the absolute path to the file.
+  #   fileName:   (String) A String with the absolute path to the file.
+  #
+  #   TEMPFOLDER: (String) Optional, a String with the absolute path to a folder.
+  #                        In this folder is where the files are going to be unziped.
+  #                        If nothing is specify, the files will be unziped in the same
+  #                        folder where the zipped files are.
+  #
+  #   tempFileConn: (File) Optional, a file where we write the path of the temporal file.
+  #                        If a file is unzipped, we might want to consider it a temoporal file
+  #                        and delete it later. In here we keep track of it.
   # 
   # The function returns:
   #
@@ -771,9 +866,9 @@ checkFileAccess <- function (filePath){
   #   FASTQ format, meaning that is repeating the following pattern over an over
   #   again:
   #   - Line with the ID and other metadata
-  #   - Line with the sequence
+  #   - Line with the sequence [01]
   #   - '+ line'
-  #   - Line with the quality of the nucleotides
+  #   - Line with the quality of the nucleotides [02]
   # 
   #   This means that the number of lines in that file must be divisible by 4.
   # 
@@ -782,7 +877,7 @@ checkFileAccess <- function (filePath){
   #   be the same.
   
 }
-getReadsFile <- function(fileName) {
+getReadsFile <- function(fileName, TEMPFOLDER = NULL, tempFileConn = NULL) {
   
   unzipReadsFileName <- NULL
   table.df           <- NULL
@@ -790,13 +885,35 @@ getReadsFile <- function(fileName) {
   # Check that the fileName has .gz in it.
   # If it does we need to unzip it. Otherwise we can start reading it directly.
   
+  # If it is compressed
   if(length(grep(".gz", fileName, ignore.case = TRUE))==1){
+
+    # Get the path of the original path without the .gz
+    pathUnzipName <- sub(".gz", "", fileName, fixed=TRUE)
+    
+    # Get the name of the original file without the gz
+    fileUnzipName <- basename(pathUnzipName)
+    
+    # Create the path of the final file
+    unzipReadsFileName <- pathUnzipName # this is the path in the same folder as the .gz
+    
+    if(!is.null(TEMPFOLDER)){
+      unzipReadsFileName <- paste(TEMPFOLDER,"/",fileUnzipName, sep='')
+    }
     
     # Unzip the file
-    gunzip(fileName, skip = TRUE, overwrite = FALSE, remove = FALSE) #If it is already unzipped, use that
-    unzipReadsFileName <- sub(".gz", "", fileName, fixed=TRUE)
+    gunzip(fileName, destname = unzipReadsFileName, skip = TRUE, overwrite = FALSE, remove = FALSE) #If it is already unzipped, use that
+#     print("final name")
+#     print(unzipReadsFileName)
+    # If the users wants, keep track of the filepath for the unzipped file.
+    if(!is.null(tempFileConn)){
+    
+      writeLines(unzipReadsFileName , tempFileConn)
+      
+    }
     
   }
+  # If it is not compressed
   else{
     
     unzipReadsFileName <- fileName
@@ -862,7 +979,6 @@ getReadsFile <- function(fileName) {
     print("INCORRECT FILE: This file has a number of lines that is not multiple of 4!")
     
   }
-  
   
   return (table.df)
   

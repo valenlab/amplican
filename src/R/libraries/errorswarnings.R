@@ -276,9 +276,9 @@ checkConfigFile <- function (configTable, configFilePath, logFileConn){
 
   badCandidates <- subset(barcodeTable, Total > 1, select=c("Barcode", "Total"))
   
-  print(barcodeTable)
-  print(badCandidates)
-  print(barcodeAndFilesSubset)
+#   print(barcodeTable)
+#   print(badCandidates)
+#   print(barcodeAndFilesSubset)
   
   # We can have several barcodes, repeat on the config with the same files, thats is OK. But not with different
   # files. If that happen, we will have more rows in the barcodeAndFilesSubset than in the barcodeTable
