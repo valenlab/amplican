@@ -1,9 +1,5 @@
-############################################
-# Constant declarations
-############################################
-
 # This function takes a configuration file and generate the alignments.
-
+#
 # Parameters:
 #
 # (string) CONFIG         The path to your configuration file. For example:
