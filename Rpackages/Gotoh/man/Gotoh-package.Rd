@@ -29,12 +29,9 @@ Date: \tab 2015-05-18\cr
 License: \tab GPL (>= 2)\cr
 }
 In order to use the package you need to install the Rcpp library.
-There are only two functions gRCPP and gotohRCPP. They are exactly the same
-function. The first one uses the R header and the second one uses the C++
-header. For gRCPP you just need to give two strings representing a sequence
-of nucleotides each; any other option have a default value. For gotohRCPP you
-need to include all values. Please read the help manual for a verbose
-description
+There are only one function: "gRCPP". For gRCPP you just need to give two
+strings representing a sequence of nucleotides each; any other option have a
+default value. Please read the help manual for a verbose description.
 }
 \author{
 Rafael Nozal Canyadas <rca025@uib.no>
@@ -51,5 +48,5 @@ http://goo.gl/pIDucs
 \examples{
 gRCPP("aaaaa", "aaddttaaaa")
 gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5)
-gotohRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5, TRUE, TRUE)
+gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5, TRUE, TRUE)
 }

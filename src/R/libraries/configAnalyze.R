@@ -436,9 +436,9 @@ analyzeConfig <- function(ALL_IN_MODE = 3, ALIGNMENT_DISTANCE = 5, SAME_CUTS = T
               
             }
             
-            print(forwardDeletionsTotal)
-            print(forwardDeletionsStarts)
-            print(forwardDeletionsEnds)
+#             print(forwardDeletionsTotal)
+#             print(forwardDeletionsStarts)
+#             print(forwardDeletionsEnds)
 
             # Now we are going to find out the total of valid deletion for each cut criteria which is activated.
             # It could happen that the firsts criterias don't eliminate anything and the last one kill them all. For that

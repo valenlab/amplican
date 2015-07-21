@@ -165,9 +165,9 @@ ampliCanAnalyzer <- function (ALIGNMENT_FOLDER, TOTAL_PROCESSORS = 1,
     }
   
     # Put all the logs and all the configs toguether
-    totalLogs    <- unifyFiles(analysisPath,             "SUBLOG",             "myFinalLog.txt",          FALSE,TRUE,FALSE)
-    totalConTime <- unifyFiles(currentResultsFolderName, "configFile_Timing",  "analysisFile_Timing.txt", TRUE, TRUE,FALSE)
-    totalConfigs <- unifyFiles(analysisPath,             "configFile_results", "analysis_results.txt",    TRUE,TRUE,FALSE)
+    totalLogs    <- unifyFiles(analysisPath,  "SUBLOG",             "myFinalLog.txt",          FALSE,TRUE,FALSE)
+    totalConTime <- unifyFiles(analysisPath,  "configFile_Timing",  "analysisFile_Timing.txt", TRUE, TRUE,FALSE)
+    totalConfigs <- unifyFiles(analysisPath,  "configFile_results", "analysis_results.txt",    TRUE,TRUE,FALSE)
   
   }
 
@@ -181,7 +181,3 @@ ampliCanAnalyzer <- function (ALIGNMENT_FOLDER, TOTAL_PROCESSORS = 1,
   print(paste("Look for your results in", analysisPath))
 
 }
-
-
-
-

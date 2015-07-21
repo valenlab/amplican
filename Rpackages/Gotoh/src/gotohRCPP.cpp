@@ -55,8 +55,8 @@
 #include <ctype.h>   // characters to uppercase
 
 #include <Rcpp.h>  //If you are not working with R, comment this line
-					 //otherwise you have to install Rcpp.h and you need admin
-					 //privelege to do that.
+					         //otherwise you have to install Rcpp.h and you need admin
+					         //privelege to do that.
 
 // Enable C++11 via this plugin (Rcpp 0.10.3 or later)
 // [[Rcpp::plugins("cpp11")]]						 

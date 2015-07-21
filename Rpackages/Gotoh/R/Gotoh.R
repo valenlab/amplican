@@ -221,24 +221,14 @@
 #' 
 #' gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5)
 #' 
-#' gotohRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5, TRUE, TRUE)
+#' gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5, TRUE, TRUE)
 #' 
+#' @useDynLib Gotoh
+#' @importFrom Rcpp evalCpp
 #' @export
 gRCPP <- function(pattern, subject, scoringMatrix="NUC44", gapOpening = 50,
                   gapExtension = 0, gapEnding = FALSE, farIndels = TRUE){
 
-  # Tell the program where is the cpp file with the functions
-  
-  # This is a half-ass solution for when R checks the package.
-  # The folder /src/ is not copied properly, so I added an alternative path
-  if(file.access("./src/gotohRCPP.cpp", mode = 4) == 0 ){
-    Rcpp::sourceCpp("./src/gotohRCPP.cpp")
-  }
-  else{
-    Rcpp::sourceCpp("./00_pkg_src/Gotoh/src/gotohRCPP.cpp")
-  }
-  
-  
   
   result <- gotohRCPP(pattern, subject, scoringMatrix, gapOpening,
                       gapExtension, gapEnding, farIndels)
