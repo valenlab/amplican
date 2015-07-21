@@ -54,7 +54,7 @@
 #include <typeinfo>  //in printMatrix<T>, string or int
 #include <ctype.h>   // characters to uppercase
 
-//#include <Rcpp.h>  //If you are not working with R, comment this line
+#include <Rcpp.h>  //If you are not working with R, comment this line
 					 //otherwise you have to install Rcpp.h and you need admin
 					 //privelege to do that.
 

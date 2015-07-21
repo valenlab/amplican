@@ -79,7 +79,7 @@
 #
 #                         If nothing is specified, the folder will be call
 #                         "results" and will be placed at the same folder as
-#                         this script.
+#                         the CWD().
 #
 #                         The folder created for this run will have a timestamp
 #                         with this format:
