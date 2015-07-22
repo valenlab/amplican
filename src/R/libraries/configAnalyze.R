@@ -86,28 +86,6 @@ analyzeConfig <- function(ALL_IN_MODE = 3, ALIGNMENT_DISTANCE = 5, SAME_CUTS = T
     
   }
   
-#   if(TIMING == TRUE){
-#   
-#     # Variables for timing
-#     # ---- Variables for each row
-#     configTable$Time_Total         <- 0
-#     configTable$Time_ReadBasic     <- 0
-#     configTable$Time_ProcessRow    <- 0
-#     configTable$Time_RecordStat    <- 0
-#     # ---- Variables that compose the process row timing
-#     configTable$Time_ExpandUniques        <- 0
-#     configTable$Time_InitVariables        <- 0
-#     configTable$Time_ExtractAlignmentInfo <- 0
-#     configTable$Time_ALLIN                <- 0
-#     configTable$Time_SAMECUT              <- 0
-#     configTable$Time_PRIMERDIMER          <- 0
-#     configTable$Time_Frameshift           <- 0
-#     configTable$Time_ApplyCriterias       <- 0
-#     configTable$Time_FillUnique           <- 0
-#   
-#   }
-  
-  
   # Add a bunch of columns to the dataframe of the config file that will serve as a summary
   # Please refer to the /doc folder for a verbose explanation for each one of these
   {
@@ -217,16 +195,13 @@ analyzeConfig <- function(ALL_IN_MODE = 3, ALIGNMENT_DISTANCE = 5, SAME_CUTS = T
       readBasicData <- td
     }
     
-    # Get the file path for the unique and the deletion table
+    # Get the file path for the unique table
     uniqueFilePath           <- paste(resultsFolder,'/',currentID,'_',currentBarcode,"/",currentID,'_',currentBarcode,
                                       "_uniques.txt", collapse='', sep='')
 
     # Check that the files exist and can be read
     uniqueReady           <- checkFileAccess(uniqueFilePath)
-#     deletionReady         <- checkFileAccess(deletionFilePath)
-#     deletionRelativeReady <- checkFileAccess(deletionRelativeFilePath)
 
-    #if(uniqueReady == FALSE || deletionReady == FALSE || deletionRelativeReady == FALSE){
     if(uniqueReady == FALSE){
 
       if(uniqueReady == FALSE){
@@ -243,30 +218,12 @@ analyzeConfig <- function(ALL_IN_MODE = 3, ALIGNMENT_DISTANCE = 5, SAME_CUTS = T
         writeLines("", logFileConn)  
         
       }
-
-#       if(deletionReady == FALSE || deletionRelativeReady == FALSE){
-#         print("-----------------------------------------")
-#         print("---|             WARNING!            |---")
-#         print("-----------------------------------------")
-#         print("WARNING!: Couldn't read this deletions file.")
-#         print(deletionFilePath)
-#         print("Does it exist? Do you have read access?")
-#         print("All warning and errors are register in the log")
-#         
-#         writeLines(paste("The processor ",processID), logFileConn)  
-#         writeLines(paste("Couldn't find the unique file ",deletionFilePath), logFileConn)  
-#         writeLines("", logFileConn)  
-#         
-#       }
     
     }
     else{
       
       # Get the unique table into a dataframe
       uniqueTable <- read.table(uniqueFilePath, header=TRUE, sep="\t")
-
-#       # Subset and get only those which are sequences
-#       uniqueTable <- subset(uniqueTable, Is_Sequence == TRUE)
       
       # Keep the ID row for later, we will need it to compare with some info from the deletion table
       # Keep in mind that the the uniqueTable_i match the uniqueID_i
@@ -282,8 +239,6 @@ analyzeConfig <- function(ALL_IN_MODE = 3, ALIGNMENT_DISTANCE = 5, SAME_CUTS = T
       for (k in 1:nrow(uniqueTable)){
         uniqueTable$Frequency[k] <- uniqueTable$Total[k] / totalSequences  
       }}
-
-      
 
       cutsFilePath <- paste(currentIDCodeResultsFolderName,"/",currentID,"_",currentBarcode,
                                   "_cutsTable.txt",sep = '')
@@ -435,10 +390,6 @@ analyzeConfig <- function(ALL_IN_MODE = 3, ALIGNMENT_DISTANCE = 5, SAME_CUTS = T
               extractAlignmentInfo <- extractAlignmentInfo + td
               
             }
-            
-#             print(forwardDeletionsTotal)
-#             print(forwardDeletionsStarts)
-#             print(forwardDeletionsEnds)
 
             # Now we are going to find out the total of valid deletion for each cut criteria which is activated.
             # It could happen that the firsts criterias don't eliminate anything and the last one kill them all. For that
@@ -589,7 +540,7 @@ analyzeConfig <- function(ALL_IN_MODE = 3, ALIGNMENT_DISTANCE = 5, SAME_CUTS = T
                 }
                  
                 writeLines( paste(currentID,
-                                  k,
+                                  t,
                                   as.numeric(forwardRelativeDeletionsStarts[m]),
                                   as.numeric(addjustedEndForward),
                                   as.numeric(uniqueTable$Frequency[k]),
@@ -597,8 +548,6 @@ analyzeConfig <- function(ALL_IN_MODE = 3, ALIGNMENT_DISTANCE = 5, SAME_CUTS = T
                                   "Forward",
                                   addjustedEndForward - forwardRelativeDeletionsStarts[m],
                                   sep = '\t') , cutsFD)
-                
-                #cutsTable <- rbind(cutsTable, data.frame(Gene_ID = currentID, Hash_ID = k , Start = forwardRelativeDeletionsStarts[m], End = addjustedEndForward, Freq = uniqueTable$Frequency[k], Type = type, Location = "Forward"))
                   
               }}
         
@@ -619,7 +568,7 @@ analyzeConfig <- function(ALL_IN_MODE = 3, ALIGNMENT_DISTANCE = 5, SAME_CUTS = T
                 }
             
                 writeLines( paste(currentID,
-                                  k,
+                                  t,
                                   as.numeric(reverseRelativeDeletionsStarts[m]),
                                   as.numeric(addjustedEndReverse),
                                   as.numeric(-uniqueTable$Frequency[k]),
@@ -627,8 +576,6 @@ analyzeConfig <- function(ALL_IN_MODE = 3, ALIGNMENT_DISTANCE = 5, SAME_CUTS = T
                                   "Reverse",
                                   addjustedEndReverse - reverseRelativeDeletionsStarts[m],
                                   sep = '\t') , cutsFD)
-                
-                #cutsTable <- rbind(cutsTable, data.frame(Gene_ID = currentID, Hash_ID = k , Start = reverseRelativeDeletionsStarts[m], End = addjustedEndReverse, Freq = -uniqueTable$Frequency[k], Type = type, Location = "Reverse"))
             
               }}
         

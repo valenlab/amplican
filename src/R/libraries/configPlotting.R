@@ -1,12 +1,9 @@
-source("libraries/tools2.R")
-
 makePlots <- function(CUT_RATE, NO_CUT_RATE, NO_DELETION, IN_FRAME, FRAMESHIFT, MULTIPLES,
                       DELETION_COLOR, CUT_COLOR, POSITION_WINDOW, START, END, DUPLICATE_INTO_FOLDERS,
                       PLOTBACK, PLOTGRID, LINETYPE, FREQONE, ACCUMULATE, FILTERENDS, SIZE,
-                      analysisDataframe, processID, ANALYSIS_PATH, plotPath, dataPath){
+                      analysisDataframe, processID, ANALYSIS_PATH, plotPath, dataPath, alignmentDistance, FORMAT){
   
-  # TODO:
-  ALIGNMENT_DISTANCE <- 5
+  ALIGNMENT_DISTANCE <- alignmentDistance
   
   # Get some timing variables ready
   {
@@ -289,10 +286,66 @@ makePlots <- function(CUT_RATE, NO_CUT_RATE, NO_DELETION, IN_FRAME, FRAMESHIFT, 
     # -- Plot the mutations
     #------------------------------------------------------
     {
+      
       t1 <- Sys.time()
       
-      # Lets find out the length of the amplicon first
+      # Here are the values for the different configurations of SIZE. The first column is the font size
+      # the second column is the width for the resulting image. The last one is the SIZE value (string)
+      # 1425 ; 1000 = 4K
+      #      = 1080
+      #      ; 62   = 720
+      #      = VGA
+      
+      baseWidth   <- 0
+      baseSize    <- 0
+      legendSize  <- 0
+      legendTitle <- 0
+      
+      if(SIZE == "4K"){
+        baseSize    <- 1425
+        baseWidth   <- 1000
+        legendSize  <- 6
+        legendTitle <- 10
+      }
+      else{
+        
+        if(SIZE == "1080"){
+          baseSize    <- 1425
+          baseWidth   <- 1000
+          legendSize  <- 6
+          legendTitle <- 10
+        }
+        else{
+          
+          if(SIZE == "720"){
+            baseSize    <- 89
+            baseWidth   <- 62
+            legendSize  <- 2
+            legendTitle <- 3
+          }
+          else{
+            baseSize    <- 1425
+            baseWidth   <- 1000
+            legendSize  <- 6
+            legendTitle <- 10
+          }
+        }
+      }
+      
+      # Lets find out the length of the amplicon first and generate a special DF
+      # This DF is use to plot the nucleotides inside the archplot and the mutation plots
+      # DONT try to do this with a for because it doubles the time (trust me).
+      
       ampliconLength <- nchar(toString(amplicon)) # We need this variable here
+      addjustedSize  <- baseSize/ampliconLength  # TODO: Not sure that this is correct yet
+      
+      ampliconDF <- data.frame(matrix(NA,ampliconLength,2))
+      colnames(ampliconDF) <- c("Letter", "X")
+      ampliconDF$Letter <- strsplit(toString(amplicon),"")[[1]]
+      ampliconDF$X      <- seq(1,ampliconLength)
+      
+      
+   
       
       # Now lets make the archplot
       
@@ -373,12 +426,14 @@ makePlots <- function(CUT_RATE, NO_CUT_RATE, NO_DELETION, IN_FRAME, FRAMESHIFT, 
             
           }}
 
+        myArchplot <- myArchplot + geom_text(data = ampliconDF, x = ampliconDF$X, y = 0, hjust = 0, label = ampliconDF$Letter, size=addjustedSize, aes(family="mono")) 
+        
         # For each of the characters on the amplicon, lets write one letter
-        for(k in 1:ampliconLength){
-
-          myArchplot <- myArchplot + geom_text(data = NULL, x = k, y = 0, hjust = 0, label = strsplit(toString(amplicon),"")[[1]][k] , size=addjustedSize, aes(family="mono")) 
-          
-        }
+#         for(k in 1:ampliconLength){
+# 
+#           myArchplot <- myArchplot + geom_text(data = NULL, x = k, y = 0, hjust = 0, label = strsplit(toString(amplicon),"")[[1]][k] , size=addjustedSize, aes(family="mono")) 
+#           
+#         }
 
         # Save the file into the plot folder
         ggsave(paste(plotPath,"/",currentID,"_",currentBarcode,"_archplot.", FORMAT ,sep = ''), width = 1000 , units="mm", limitsize=FALSE)
@@ -475,44 +530,22 @@ makePlots <- function(CUT_RATE, NO_CUT_RATE, NO_DELETION, IN_FRAME, FRAMESHIFT, 
       fileName <- paste(dataPath,"/",currentID,"_",currentBarcode,"_reverseMutation.txt",sep = '', collapse = '')
       write.table(reverseMutations, file = fileName, quote = FALSE, sep = "\t")
 
-      # Rename the columns for the reverse
-#       colnames(reverseMutations) = c("-A","-T","-C","-G")
-
       # Add the position column and melt the data
       forwardMutations$Position <- row.names(forwardMutations)
       reverseMutations$Position <- row.names(reverseMutations)
 
-      # Merge both dataframes in one
-#       bothMutations    <- forwardMutations
-#       bothMutations$rA <- reverseMutations[,1]
-#       bothMutations$rT <- reverseMutations[,2] # Can't name this reverseMutation$T, why??
-#       bothMutations$rC <- reverseMutations[,3]
-#       bothMutations$rG <- reverseMutations[,4]
-
-#       colnames(bothMutations) <- c("A", "T","C","G","Position","A","T","C","G")
-#       fileName <- paste(dataPath,"/",currentID,"_",currentBarcode,"_bothMutation.txt",sep = '', collapse = '')
-#       write.table(bothMutations, file = fileName, quote = FALSE, sep = "\t")
-
       # Melt everything
-#       bothMelted <- melt( bothMutations , id.var="Position")
       forwardMelted <- melt(forwardMutations, id.var="Position")
       reverseMelted <- melt(reverseMutations, id.var="Position")
 
       # Change the columns names
-#       colnames(bothMelted) <- c("Position", "Nucleotide","Frequency")
       colnames(forwardMelted) <- c("Position", "Nucleotide","Frequency")
       colnames(reverseMelted) <- c("Position", "Nucleotide","Frequency")
 
-#         forwardMelted <- melt( forwardMutations , id.var="Position")
-#         reverseMelted <- melt( reverseSampleOriginal , id.var="Position")
-
       # Find out the maximum frequency, so the plot is centered at 0
-#       maxFreq      <- max(bothMelted$Frequency)
-#       minFreq      <- min(bothMelted$Frequency)
-#       if(maxFreq < minFreq * (-1)) {maxFreq <- minFreq * (-1)}
-        maxFreq      <- max(forwardMelted$Frequency)
-        minFreq      <- min(reverseMelted$Frequency)
-        if(maxFreq < minFreq * (-1)) {maxFreq <- minFreq * (-1)}
+      maxFreq      <- max(forwardMelted$Frequency)
+      minFreq      <- min(reverseMelted$Frequency)
+      if(maxFreq < minFreq * (-1)) {maxFreq <- minFreq * (-1)}
 
       # Now plot the mutations and save it to disk
 
@@ -542,40 +575,18 @@ makePlots <- function(CUT_RATE, NO_CUT_RATE, NO_DELETION, IN_FRAME, FRAMESHIFT, 
                           
       }}
 
+      mutationPlot <- mutationPlot + geom_text(data = ampliconDF, x = ampliconDF$X, y = 0, hjust = 0, label = ampliconDF$Letter, size=addjustedSize, aes(family="mono")) 
+
       # For each of the characters on the amplicon, lets write one letter
-      for(k in 1:ampliconLength){
-      
-        mutationPlot <- mutationPlot + geom_text(data = NULL, x = k, y = 0, hjust = 0, label = strsplit(toString(amplicon),"")[[1]][k] , size=addjustedSize, aes(family="mono")) 
-                        
-      }
+#       for(k in 1:ampliconLength){
+#       
+#         mutationPlot <- mutationPlot + geom_text(data = NULL, x = k, y = 0, hjust = 0, label = strsplit(toString(amplicon),"")[[1]][k] , size=addjustedSize, aes(family="mono")) 
+#                         
+#       }
   
-            # Keep leyend consistant between plot. Red is a deletion, blue is a cut always.
-#             scale_colour_discrete(drop=TRUE , limits = c("deletion","cut")) + 
-#             #scale_colour_manual(values = c(CUT_RATE, NO_CUT_RATE)) + # This will trigger an adding another scale, but it seems to be the only way! NOTWORKING NOW!!!??? WTF R!!!
-#             scale_fill_manual(values=c(NO_CUT_RATE, CUT_RATE)) +
-
-
-
-        
-        
-
-        
-
-
       # Save the file into the plot folder
-      ggsave(paste(plotPath,"/",currentID,"_",currentBarcode,"_mutations.", FORMAT ,sep = ''), width = 1000 , units="mm", limitsize=FALSE)
+      ggsave(paste(plotPath,"/",currentID,"_",currentBarcode,"_mutations.", FORMAT ,sep = ''), width = 1000 , units="mm", limitsize=FALSE)      
 
-        
-        
-
-
-         
-
-      
-      
-      
-      
-      
       t2 <- Sys.time()
       td <- as.numeric(t2-t1, units = "secs")
       archplotTiming <- td

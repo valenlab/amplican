@@ -45,7 +45,7 @@
 #   be the same.
 
 }
-getReadsFile <- function(fileName) {
+getReadsFileDELETE <- function(fileName) {
   
   unzipReadsFileName <- NULL
   table.df           <- NULL
