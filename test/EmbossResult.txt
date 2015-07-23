@@ -1,0 +1,163 @@
+########################################
+# Program: needle
+# Rundate: Mon 13 Oct 2014 15:03:31
+# Commandline: needle
+#    -auto
+#    -stdout
+#    -asequence emboss_needle-I20141013-150330-0745-402808-es.asequence
+#    -bsequence emboss_needle-I20141013-150330-0745-402808-es.bsequence
+#    -datafile EDNAFULL
+#    -gapopen 50.0
+#    -gapextend 5.0E-4
+#    -endopen 50.0
+#    -endextend 5.0E-4
+#    -aformat3 pair
+#    -snucleotide1
+#    -snucleotide2
+# Align_format: pair
+# Report_file: stdout
+########################################
+
+#=======================================
+#
+# Aligned_sequences: 2
+# 1: EMBOSS_001
+# 2: EMBOSS_001
+# Matrix: EDNAFULL
+# Gap_penalty: 50.0
+# Extend_penalty: 0.0
+#
+# Length: 190
+# Identity:     121/190 (63.7%)
+# Similarity:   121/190 (63.7%)
+# Gaps:          69/190 (36.3%)
+# Score: 504.967
+# 
+#
+#=======================================
+
+EMBOSS_001         1 AATATATATATA----------------------------------CGCT     16
+                     ||||||||||||                                  ||||
+EMBOSS_001         1 AATATATATATACGCCGGGGATATAGAAGATCCACGCTCTTCGACTCGCT     50
+
+EMBOSS_001        17 CTCTAGCTAGGGACTCTCTCTCATTGGGCCTCCCCTCTTTACACGGACTA     66
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+EMBOSS_001        51 CTCTAGCTAGGGACTCTCTCTCATTGGGCCTCCCCTCTTTACACGGACTA    100
+
+EMBOSS_001        67 TTTCGGAGCTCTACGCGCTACTAGCGACCTCTCGACTCGACTCTAGCAGC    116
+                     |||| | |                          |   | ||||   |||
+EMBOSS_001       101 TTTC-G-G--------------------------A---G-CTCT---AGC    115
+
+EMBOSS_001       117 TAGCATCAGCGACACTCTCTACGACGACCTAGCTCGACTG    156
+                     ||||||||||||||||||||||||||||||||||||||||
+EMBOSS_001       116 TAGCATCAGCGACACTCTCTACGACGACCTAGCTCGACTG    155
+
+
+#---------------------------------------
+#---------------------------------------
+
+
+
+
+
+==> devtools::document(roclets=c('rd', 'collate', 'namespace'))
+
+Updating Gotoh documentation
+Loading Gotoh
+Re-compiling Gotoh
+'/usr/lib/R/bin/R' --vanilla CMD INSTALL '/Home/ii/rafaelc/Gotoh'  \
+  --library='/tmp/Rtmp511yq3' --no-R --no-data --no-help --no-demo --no-inst  \
+  --no-docs --no-exec --no-multiarch --no-test-load --preclean 
+
+* installing *source* package ‘Gotoh’ ...
+Warning in .write_description(db, file.path(outDir, "DESCRIPTION")) :
+  Unknown encoding with non-ASCII data: converting to ASCII
+** libs
+g++ -I/usr/share/R/include -DNDEBUG     -UNDEBUG -Wall -pedantic -g -O0 -std=c++11 -fpic  -g -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Wformat-security -Werror=format-security -D_FORTIFY_SOURCE=2 -g  -c gotoh.cpp -o gotoh.o
+g++ -I/usr/share/R/include -DNDEBUG     -UNDEBUG -Wall -pedantic -g -O0 -std=c++11 -fpic  -g -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Wformat-security -Werror=format-security -D_FORTIFY_SOURCE=2 -g  -c gotohRCPP.cpp -o gotohRCPP.o
+g++ -shared -L/usr/lib/R/lib -Wl,-Bsymbolic-functions -Wl,-z,relro -o Gotoh.so gotoh.o gotohRCPP.o -L/usr/lib/R/lib -lR
+
+gotohRCPP.o: In function `std::string::_Rep::_M_set_sharable()':
+
+/Home/ii/rafaelc/Gotoh/src/gotohRCPP.cpp:1178: multiple definition of `initialize(int**, int**, int**, char**, char**, char**, std::string const&, std::string const&, int const&, int const&, bool const&)'
+gotoh.o:/Home/ii/rafaelc/Gotoh/src/gotoh.h:1178: first defined here
+
+gotohRCPP.o: In function `align(int**, int**, int**, char**, char**, char**, std::string const&, std::string const&, std::string const&, int const&, int const&, bool const&, bool const&, Alignment_Result*&)':
+/Home/ii/rafaelc/Gotoh/src/gotohRCPP.cpp:1293: multiple definition of `align(int**, int**, int**, char**, char**, char**, std::string const&, std::string const&, std::string const&, int const&, int const&, bool const&, bool const&, Alignment_Result*&)'
+
+gotoh.o:/Home/ii/rafaelc/Gotoh/src/gotoh.h:1293: first defined here
+
+gotohRCPP.o: In function `gotoh(std::string const&, std::string const&, std::string const&, int const&, int const&, bool const&, bool const&, Alignment_Result*&)':
+/Home/ii/rafaelc/Gotoh/src/gotohRCPP.cpp:2071: multiple definition of `gotoh(std::string const&, std::string const&, std::string const&, int const&, int const&, bool const&, bool const&, Alignment_Result*&)'
+
+gotoh.o:/Home/ii/rafaelc/Gotoh/src/gotoh.h:2071: first defined here
+gotohRCPP.o: In function `std::string::_Rep::_M_set_sharable()':
+
+/Home/ii/rafaelc/Gotoh/src/gotohRCPP.cpp:1178: multiple definition of `PAUSE'
+gotoh.o:/Home/ii/rafaelc/Gotoh/src/gotoh.h:1178: first defined here
+
+collect2: error: ld returned 1 exit status
+make: *** [Gotoh.so] Error 1
+ERROR: compilation failed for package ‘Gotoh’
+* removing ‘/tmp/Rtmp511yq3/Gotoh’
+Error: Command failed (1)
+Execution halted
+
+Exited with status 1.
+
+
+
+==> devtools::document(roclets=c('rd', 'collate', 'namespace'))
+
+Updating Gotoh documentation
+Loading Gotoh
+Re-compiling Gotoh
+'/usr/lib/R/bin/R' --vanilla CMD INSTALL '/Home/ii/rafaelc/Gotoh'  \
+  --library='/tmp/Rtmpy49Bdf' --no-R --no-data --no-help --no-demo --no-inst  \
+  --no-docs --no-exec --no-multiarch --no-test-load 
+
+g++ -I/usr/share/R/include -DNDEBUG     -UNDEBUG -Wall -pedantic -g -O0 -std=c++11 -fpic  -g -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Wformat-security -Werror=format-security -D_FORTIFY_SOURCE=2 -g  -c gotohRCPP.cpp -o gotohRCPP.o
+* installing *source* package ‘Gotoh’ ...
+Warning in .write_description(db, file.path(outDir, "DESCRIPTION")) :
+  Unknown encoding with non-ASCII data: converting to ASCII
+** libs
+g++ -shared -L/usr/lib/R/lib -Wl,-Bsymbolic-functions -Wl,-z,relro -o Gotoh.so gotohRCPP.o -L/usr/lib/R/lib -lR
+installing to /tmp/Rtmpy49Bdf/Gotoh/libs
+* DONE (Gotoh)
+
+Error: file not found: './src/gotohRCPP.cpp'
+
+In addition: Warning messages:
+1: In normalizePath(dirname(file)) :
+  path[1]="./src": No such file or directory
+2: In normalizePath(file, winslash = "/") :
+  path[1]="./src/gotohRCPP.cpp": No such file or directory
+Execution halted
+
+Exited with status 1.
+
+==> devtools::document(roclets=c('rd', 'collate', 'namespace'))
+
+Updating Gotoh documentation
+Loading Gotoh
+Re-compiling Gotoh
+'/usr/lib/R/bin/R' --vanilla CMD INSTALL '/Home/ii/rafaelc/Gotoh'  \
+  --library='/tmp/RtmpndQms1' --no-R --no-data --no-help --no-demo --no-inst  \
+  --no-docs --no-exec --no-multiarch --no-test-load 
+
+g++ -I/usr/share/R/include -DNDEBUG     -UNDEBUG -Wall -pedantic -g -O0 -std=c++11 -fpic  -g -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Wformat-security -Werror=format-security -D_FORTIFY_SOURCE=2 -g  -c gotohRCPP.cpp -o gotohRCPP.o
+* installing *source* package ‘Gotoh’ ...
+Warning in .write_description(db, file.path(outDir, "DESCRIPTION")) :
+  Unknown encoding with non-ASCII data: converting to ASCII
+** libs
+gotohRCPP.cpp:57:70: fatal error: Rcpp.h: No such file or directory
+compilation terminated.
+make: *** [gotohRCPP.o] Error 1
+ERROR: compilation failed for package ‘Gotoh’
+* removing ‘/tmp/RtmpndQms1/Gotoh’
+Error: Command failed (1)
+Execution halted
+
+Exited with status 1.
+
+

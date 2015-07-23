@@ -261,22 +261,12 @@ ampliCanPlotter <- function (ANALYSIS_PATH, TOTAL_PROCESSORS = 1,
   
   # Plotting stuff
   library(reshape2) # Rearrenge data for ggplot
-  suppressWarnings(library(ggplot2)) # !!! <- !!! I'm supressing warnigns here because in the ggsave of the mutation
-  #                                               plot there is a precision warning that call for:
-  #           
-  #                                               Warning messages:
-  #                                               1: position_stack requires constant width: output may be incorrect 
-  #                                               2: Stacking not well defined when ymin != 0 
-  #                                               3: position_stack requires constant width: output may be incorrect 
-  #
-  #                                               I have come to conclude that these warnings are indeed incorrect,
-  #                                               and the warnings can be safely supressed. Maybe there is an update
-  #                                               in the future that doesn't trigger this anymore.
+  library(ggplot2) 
   library(GenomicRanges) # For the archplots
   library(ggbio)
   
   # Making things in parallel
-  library(doParallel)
+  library(doParallel) 
   cl <- makeCluster(TOTAL_PROCESSORS, outfile="") #outfile tells the workers to print on the terminal
   registerDoParallel(cl)
   
@@ -348,12 +338,12 @@ ampliCanPlotter <- function (ANALYSIS_PATH, TOTAL_PROCESSORS = 1,
       
     }
 
-    # Read the config file from the analysis folder and get the ID+Barcode and Cut Rate
-    analysisDF <-  read.table(paste(ANALYSIS_PATH, "/analysis_results.txt", sep=''), header=TRUE, sep="\t")
+  # Read the config file from the analysis folder and get the ID+Barcode and Cut Rate
+  analysisDF <-  read.table(paste(ANALYSIS_PATH, "/analysis_results.txt", sep=''), header=TRUE, sep="\t")
 
-    #----------------------------
-    # --- CUT RATE PLOT (Both normalize and absolute)
-    #----------------------------
+  #----------------------------
+  # --- CUT RATE PLOT (Both normalize and absolute)
+  #----------------------------
     {
       
       print("Plotting Cut Rates")
@@ -438,9 +428,9 @@ ampliCanPlotter <- function (ANALYSIS_PATH, TOTAL_PROCESSORS = 1,
       
     }
 
-    #----------------------------
-    # --- FRAMESHIFT PLOT
-    #----------------------------
+  #----------------------------
+  # --- FRAMESHIFT PLOT
+  #----------------------------
     {
       
       print("Plotting Frameshifts")
@@ -570,9 +560,9 @@ ampliCanPlotter <- function (ANALYSIS_PATH, TOTAL_PROCESSORS = 1,
 
     }
 
-    #----------------------------
-    # --- BARCODE PLOT
-    #----------------------------
+  #----------------------------
+  # --- BARCODE PLOT
+  #----------------------------
     {
   
     print("Plotting Barcodes Info")
@@ -727,9 +717,9 @@ ampliCanPlotter <- function (ANALYSIS_PATH, TOTAL_PROCESSORS = 1,
   
     }
 
-    #-------------------------------------
-    # --- HISTOGRAM AND ARCHPLOT FOR EACH
-    #-------------------------------------
+  #-------------------------------------
+  # --- HISTOGRAM AND ARCHPLOT FOR EACH
+  #-------------------------------------
     {
       
       print("Plotting Archplots")

@@ -426,15 +426,9 @@ makePlots <- function(CUT_RATE, NO_CUT_RATE, NO_DELETION, IN_FRAME, FRAMESHIFT, 
             
           }}
 
+        # For each of the characters on the amplicon, lets write one letter
         myArchplot <- myArchplot + geom_text(data = ampliconDF, x = ampliconDF$X, y = 0, hjust = 0, label = ampliconDF$Letter, size=addjustedSize, aes(family="mono")) 
         
-        # For each of the characters on the amplicon, lets write one letter
-#         for(k in 1:ampliconLength){
-# 
-#           myArchplot <- myArchplot + geom_text(data = NULL, x = k, y = 0, hjust = 0, label = strsplit(toString(amplicon),"")[[1]][k] , size=addjustedSize, aes(family="mono")) 
-#           
-#         }
-
         # Save the file into the plot folder
         ggsave(paste(plotPath,"/",currentID,"_",currentBarcode,"_archplot.", FORMAT ,sep = ''), width = 1000 , units="mm", limitsize=FALSE)
         
@@ -550,6 +544,7 @@ makePlots <- function(CUT_RATE, NO_CUT_RATE, NO_DELETION, IN_FRAME, FRAMESHIFT, 
       # Now plot the mutations and save it to disk
 
 
+
 #       mutationPlot <- ggplot(data = bothMelted, aes(x = as.numeric(Position) + 0.5, y = Frequency, fill = Nucleotide)) +
         mutationPlot <- ggplot() + 
                         geom_bar(data = forwardMelted, aes(x=as.numeric(Position) + 0.5, y=Frequency, fill=Nucleotide),stat = "identity", binwidth = 1) +
@@ -575,17 +570,23 @@ makePlots <- function(CUT_RATE, NO_CUT_RATE, NO_DELETION, IN_FRAME, FRAMESHIFT, 
                           
       }}
 
+      # For each of the characters on the amplicon, lets write one letter
       mutationPlot <- mutationPlot + geom_text(data = ampliconDF, x = ampliconDF$X, y = 0, hjust = 0, label = ampliconDF$Letter, size=addjustedSize, aes(family="mono")) 
 
-      # For each of the characters on the amplicon, lets write one letter
-#       for(k in 1:ampliconLength){
-#       
-#         mutationPlot <- mutationPlot + geom_text(data = NULL, x = k, y = 0, hjust = 0, label = strsplit(toString(amplicon),"")[[1]][k] , size=addjustedSize, aes(family="mono")) 
-#                         
-#       }
-  
       # Save the file into the plot folder
-      ggsave(paste(plotPath,"/",currentID,"_",currentBarcode,"_mutations.", FORMAT ,sep = ''), width = 1000 , units="mm", limitsize=FALSE)      
+      suppressWarnings(ggsave(paste(plotPath,"/",currentID,"_",currentBarcode,"_mutations.", FORMAT ,sep = ''), width = 1000 , units="mm", limitsize=FALSE))
+
+      # !!! <- !!! I'm supressing warnigns here because in the ggsave of the mutation
+      # plot there is a precision warning that call for:
+      #           
+      # Warning messages:
+      # 1: position_stack requires constant width: output may be incorrect 
+      # 2: Stacking not well defined when ymin != 0 
+      # 3: position_stack requires constant width: output may be incorrect 
+      #
+      # I have come to conclude that these warnings are indeed incorrect,
+      # and the warnings can be safely supressed. Maybe there is an update
+      # in the future that doesn't trigger this anymore.
 
       t2 <- Sys.time()
       td <- as.numeric(t2-t1, units = "secs")
