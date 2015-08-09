@@ -25,7 +25,7 @@ to get the a more verbose documentation and script benchmarks.
 Package: \tab Gotoh\cr
 Type: \tab Package\cr
 Version: \tab 0.9.1\cr
-Date: \tab 2015-05-18\cr
+Date: \tab 2015-07-18\cr
 License: \tab GPL (>= 2)\cr
 }
 In order to use the package you need to install the Rcpp library.

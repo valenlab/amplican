@@ -820,7 +820,6 @@ checkFileWriteAccess <- function (filePath){
   
 }
 
-
 {
   # This function get a reads file and put into a dataframe.
   # 
@@ -1124,3 +1123,5 @@ checkReady <- function(configFilePath){
   return (result)
   
 }
+
+checkFolderAcess <- function(folderPath){}

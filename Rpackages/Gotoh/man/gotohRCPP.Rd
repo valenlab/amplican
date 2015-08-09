@@ -227,5 +227,5 @@ gRCPP("aaaaa", "aaddttaaaa")
 
 gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5)
 
-gotohRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5, TRUE, TRUE)
+gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5, TRUE, TRUE)
 }

@@ -154,7 +154,10 @@ ampliCanMaker <- function (CONFIG, TOTAL_PROCESSORS = 1,
   currentConfigPath <- CONFIG
 
   # Check that the config file exist and is readable, etc...
-  readyConfig <- checkReady(currentConfigPath)
+  # and do the same with some other critical folders.
+  readyConfig       <- checkReady(currentConfigPath)
+  resultFolderReady <- checkFileWriteAccess(RESULT_FOLDER)
+  tempFolderReady   <- checkFileWriteAccess(TEMPFOLDER)
   
   # If it is a bad config show the error and stop the program; otherwise, continue working on it
   if(readyConfig == FALSE){
@@ -167,6 +170,29 @@ ampliCanMaker <- function (CONFIG, TOTAL_PROCESSORS = 1,
     print("Does it exist? Do you have read access?")
     
   }
+  
+  else if(!is.null(RESULT_FOLDER) && resultFolderReady == FALSE ){
+    
+    print("-----------------------------------------")
+    print("---|             ERROR!              |---")
+    print("-----------------------------------------")
+    print("ERROR!: Couldn't access the result folder:")
+    print(RESULT_FOLDER)
+    print("Does it exist? Do you have write access?")
+    
+  }
+  
+  else if(!is.null(TEMPFOLDER) && tempFolderReady == FALSE ){
+    
+    print("-----------------------------------------")
+    print("---|             ERROR!              |---")
+    print("-----------------------------------------")
+    print("ERROR!: Couldn't access the temporal folder:")
+    print(TEMPFOLDER)
+    print("Does it exist? Do you have write access?")
+    
+  }
+  
   else{
 
     # Get the name of the config file
@@ -180,7 +206,7 @@ ampliCanMaker <- function (CONFIG, TOTAL_PROCESSORS = 1,
     currentTime <- Sys.time()
     timeStamp <-  strftime(currentTime,"%Y%m%d%H%M%S")
     
-    # If nothing is specified, the folder will be call results" and will be
+    # If nothing is specified, the folder will be call "results" and will be
     # placed at the same folder as this script.
     if(is.null(RESULT_FOLDER)){
       # Check if there is a folder call /result in cwd, if not create a new one

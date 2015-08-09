@@ -1,2 +1,0 @@
-CXX = g++-4.7.2
-CXX_STD = CXX11
