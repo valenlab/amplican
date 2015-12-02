@@ -1,11 +1,11 @@
 makeAlignment <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
-                           MIN_QUALITY = 0, WRITE_ALIGNMENTS = TRUE,
-                           SCORING_MATRIX = "NUC44", GAP_OPENING = 50,
-                           GAP_EXTENSION = 0, GAP_ENDING = FALSE,
-                           FAR_INDELS = TRUE, configDataframe = NULL,
-                           resultFolder = NULL, alignmentFolder = NULL, 
-                           processID = 0, configFilePath = "", TIMING,
-                          TEMPFOLDER){
+                          MIN_QUALITY = 0, WRITE_ALIGNMENTS = TRUE,
+                          SCORING_MATRIX = "NUC44", GAP_OPENING = 50,
+                          GAP_EXTENSION = 0, GAP_ENDING = FALSE,
+                          FAR_INDELS = TRUE, configDataframe = NULL,
+                          resultFolder = NULL, alignmentFolder = NULL, 
+                          processID = 0, configFilePath = "", TIMING,
+                          TEMPFOLDER, FASTQFILES){
 
   # Feedback with the processor that is working now
   print(paste("Nice to meet you; I'm mighty processor number: ",processID))
@@ -373,18 +373,18 @@ makeAlignment <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
       #---------------------------------------------------------------------------------
       # Get the actual FORWARD read file, unzip it, read it, an put it into a dataframe.
       #---------------------------------------------------------------------------------
-      forwardsTable <- getReadsFile(forwardReadsFileName, TEMPFOLDER, tempFileConn)
+      forwardsTable <- getReadsFile(forwardReadsFileName, TEMPFOLDER, tempFileConn, 0, 0)
       
       #---------------------------------------------------------------------------------
       # Get the actual REVERSE read file, unzip it, read it, an put it into a dataframe.
       #---------------------------------------------------------------------------------
-      reversesTable <- getReadsFile(reverseReadsFileName, TEMPFOLDER, tempFileConn)
+      reversesTable <- getReadsFile(reverseReadsFileName, TEMPFOLDER, tempFileConn, 0, 0)
       
       t2 <- Sys.time()
       td <- as.numeric(t2-t1, units = "secs")
       fillingTime <- td
     }
-    
+        
     #------------------------------------------------------
     # APPLY THE FILTERS
     #
@@ -471,7 +471,7 @@ makeAlignment <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
       }
       
       #Debug the unique table
-      #write.table(uniqueTable,  paste(alignmentFolder,"/",processID,"_DEBUGUNIQUE.txt",sep = '') , sep="\t")
+      #write.table(uniqueTable,  paste(alignmentFolder,"/",processID,"_",currentBarcode,"_DEBUGUNIQUE.txt",sep = '') , sep="\t")
       
       t2 <- Sys.time()
       td <- as.numeric(t2-t1, units = "secs")
@@ -533,6 +533,7 @@ makeAlignment <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
     # DEBUG STUFF
     #------------------------------------------------------
     {
+        
 #       print("DEBUG")
 #       print(paste("barcode", barcode))
 # #       print(paste("Forward file", forwardReadsFileName))
@@ -560,11 +561,11 @@ makeAlignment <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
     # In most cases, there is a giagantic chuck of unnasigned that we don't need to process.
     #
     # You also need to take care of the emptyUniques, it might happens (rare) that we don't have
-    # any sequence in the files, or none of them passed the filters.
+    # any sequence in the files, or none of them passed the filters. TODO
     #------------------------------------------------------
     if(emptyUniques == FALSE){
     while(configSubsetIndex <= subConfigLength) {
-#       print(paste("Unique Index: ",uniqueIndex))
+      # print(paste("Unique Index: ",uniqueIndex))
       # Search for the forward, reverse and targets
       {
         
@@ -609,9 +610,22 @@ makeAlignment <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
         searchPrimers <- searchPrimers + td
       }
       
+      # Addjust the finding of primers. If we are not going to use either the
+      # forward sequences, or the reverse sequences, finding or not that primer
+      # is irrelevant.
+      if(FASTQFILES == 1){
+        reverseFound <- TRUE
+      }
+      else{
+		if(FASTQFILES == 2){
+		  forwardFound <- TRUE 
+		}      
+      
+      }
+      
       # If the forward and reverse are found, do the alignments and everything else
       if(forwardFound && reverseFound){
-#         print("primers found")
+        # print("primers found")
         # Mark this one as assigned
         unnasignedSequences[uniqueIndex] <- FALSE
 
@@ -622,6 +636,10 @@ makeAlignment <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
         forwardString   <- candidateForwardSequence
         reverseString   <- toString(candidateComplementarySequence)[1]
         ampliconString  <- amplicon
+        
+        # Here is where the alignments are going to be stored
+        alignForward <- ""
+        alignReverse <- ""
         
         #------------------------------------------------------
         # Align the candidates with the genome
@@ -634,8 +652,25 @@ makeAlignment <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
           # -- The fourth part is the alignment of the pattern.
           # -- The fifth part is the alignment of the subject.
           t1 <- Sys.time()
-          alignForward <- gRCPP(forwardString, ampliconString , SCORING_MATRIX, GAP_OPENING, GAP_EXTENSION, GAP_ENDING, FAR_INDELS)
-          alignReverse <- gRCPP(reverseString, ampliconString , SCORING_MATRIX, GAP_OPENING, GAP_EXTENSION, GAP_ENDING, FAR_INDELS)
+          
+          # If we are using both FASTQ files, or only the forward, align the
+          # forward sequence with the amplicon.
+          if(FASTQFILES == 0 || FASTQFILES == 1){
+          
+			alignForward <- gRCPP(forwardString, ampliconString , SCORING_MATRIX, GAP_OPENING, GAP_EXTENSION, GAP_ENDING, FAR_INDELS)
+          
+          }
+          
+          # If we are using both FASTQ files, or only the reverse, align the
+          # reverse sequence with the amplicon
+          if(FASTQFILES == 0 || FASTQFILES == 2){
+          
+			alignReverse <- gRCPP(reverseString, ampliconString , SCORING_MATRIX, GAP_OPENING, GAP_EXTENSION, GAP_ENDING, FAR_INDELS)
+          
+          }
+          
+          
+          
 #           alignForward <- gotoh(forwardString, ampliconString , SCORING_MATRIX, GAP_OPENING, GAP_EXTENSION, GAP_ENDING, FAR_INDELS)
 #           alignReverse <- gotoh(reverseString, ampliconString , SCORING_MATRIX, GAP_OPENING, GAP_EXTENSION, GAP_ENDING, FAR_INDELS)
           t2 <- Sys.time()
@@ -665,8 +700,22 @@ makeAlignment <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
           reversePatternAlignment <- gsub("\n","",unlist(strsplit(alignReverse, "++++", fixed = TRUE))[4])
           reverseSubjectAlignment <- gsub("\n","",unlist(strsplit(alignReverse, "++++", fixed = TRUE))[5])
           
-          forwardAlignmentLength <- nchar(forwardPatternAlignment)
-          reverseAlignmentLength <- nchar(reversePatternAlignment)
+          # We need to count the lenght of the alignment for the forward and the
+          # reverse; but only if they are actually relevant. Otherwise they are
+          # of lenght 0.
+          if(FASTQFILES == 0 || FASTQFILES == 1){
+			forwardAlignmentLength <- nchar(forwardPatternAlignment)
+          }
+          else{
+			forwardAlignmentLength <- 0
+          }
+          
+          if(FASTQFILES == 0 || FASTQFILES == 2){
+			reverseAlignmentLength <- nchar(reversePatternAlignment)
+          }
+          else{
+			reverseAlignmentLength <- 0
+          }
           
           t2 <- Sys.time()
           td <- as.numeric(t2-t1, units = "secs")
@@ -1018,7 +1067,7 @@ makeAlignment <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
         
         # If we are inside the scope of the primers
         if(insideScope == TRUE){
-#           print("Inside Scope")
+          # print("Inside Scope")
           # Keep track on which primer was not found
           forwardFound[uniqueIndex] <- forwardFound
           reverseFound[uniqueIndex] <- reverseFound
@@ -1029,7 +1078,7 @@ makeAlignment <- function(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
         
         # If we passed the scope of the current primers, take the next two primers
         else{
-#           print("Recording configs")
+           print("Recording configs")
           # Finish the timing for the last row, and add the timing variables to the timing dataframes          
           t4 <- Sys.time()
           totalTime <- as.numeric(t4-t3, units = "secs")

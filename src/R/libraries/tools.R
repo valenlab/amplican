@@ -71,90 +71,100 @@ reverseComplement <- function(dna){
 }
 getEventInfo <- function(liteString){
   
-  # Divide the string in two pieces; one for the insertions and the other one for the deletions
-  alignmentData <- unlist(strsplit(liteString, "!", fixed = TRUE))
-  alignmentInsertionsData <- alignmentData[1]
-  alignmentDeletionsData  <- alignmentData[2]
-  alignmentMissmatchData  <- alignmentData[3]
+  if(is.na(liteString) == FALSE){
   
-  # The totals of events are after the first @ and before the second @
-  alignmentInsertionsTotal  <- as.numeric(unlist(strsplit(alignmentInsertionsData,"@",fixed = TRUE))[2])
-  alignmentDeletionsTotal   <- as.numeric(unlist(strsplit(alignmentDeletionsData ,"@",fixed = TRUE))[2])
-  alignmentMissmatchesTotal <- as.numeric(unlist(strsplit(alignmentMissmatchData ,"@",fixed = TRUE))[2])
-  
-  # We need 7 arrays, 2 for the insertions, 2 for the deletions, 3 for the missmatches
-  #
-  # For deletions and insertions:
-  # Each of those two arrays, will represent the starts and the ends of each event.
-  # So for event 1, we need to look where does it start in the start_array[1] and where does ends in end_array[1]
-  #
-  # For missmatches
-  # One array represent the original nucleotide
-  # One array represent the new      nucleotide
-  # One array represent the position in coordinates
-  
-  # Create an array for the boundaries of the event insertions
-  alignmentInsertionsStarts <- rep(0,alignmentInsertionsTotal)
-  alignmentInsertionsEnds <-   rep(0,alignmentInsertionsTotal)
-  
-  # Create an array for the boundaries of the event deletions
-  alignmentDeletionsStarts <- rep(0,alignmentDeletionsTotal)
-  alignmentDeletionsEnds <-   rep(0,alignmentDeletionsTotal)
-  
-  # Create the arrays for the mutations
-  alignmentMutationsOriginal <- rep('x', alignmentMissmatchesTotal)
-  alignmentMutationsMutated  <- rep('x', alignmentMissmatchesTotal)
-  alignmentMutationsPosition <- rep(0  , alignmentMissmatchesTotal)
-  
-  # Fill the arrays for the event insertions
-  alignmentInsertionsBoundariesData  <- unlist(strsplit(alignmentInsertionsData,"@",fixed = TRUE))[3]
-  alignmentInsertionsBoundariesArray <- unlist(strsplit(alignmentInsertionsBoundariesData,"*",fixed = TRUE))
-  if(alignmentInsertionsTotal>0){
-    for(i in 1:alignmentInsertionsTotal){
-      indelPair <- unlist(strsplit(alignmentInsertionsBoundariesArray[i],",",fixed = TRUE))
-      alignmentInsertionsStarts[i] <- as.numeric(indelPair[1])
-      alignmentInsertionsEnds[i]   <- as.numeric(indelPair[2])
-    }}
-  else{
-    alignmentInsertionsStarts <- NULL
-    alignmentInsertionsEnds   <- NULL
-  }
-  
-  # Fill the arrays for the event deletions
-  alignmentDeletionsBoundariesData <- unlist(strsplit(alignmentDeletionsData,"@",fixed = TRUE))[3]
-  alignmentDeletionsBoundariesArray <- unlist(strsplit(alignmentDeletionsBoundariesData,"*",fixed = TRUE))
-  if(alignmentDeletionsTotal>0){
-    for(l in 1:alignmentDeletionsTotal){
-      indelPair <- unlist(strsplit(alignmentDeletionsBoundariesArray[l],",",fixed = TRUE))
-      alignmentDeletionsStarts[l] <- as.numeric(indelPair[1])
-      alignmentDeletionsEnds[l]   <- as.numeric(indelPair[2])
-    }}
-  else{
-    alignmentDeletionsStarts <- NULL
-    alignmentDeletionsEnds   <- NULL
-  }
-  
-  # Fill the arrays for the missmatches
-  alignmentMissmatchBoundariesData <- unlist(strsplit(alignmentMissmatchData,"@",fixed = TRUE))[3]
-  alignmentMissmatchBoundariesArray <- unlist(strsplit(alignmentMissmatchBoundariesData,"*",fixed = TRUE))
-  if(alignmentMissmatchesTotal>0){
-    for(l in 1:alignmentMissmatchesTotal){
-      
-      missMatchTrio <- unlist(strsplit(alignmentMissmatchBoundariesArray[l],",",fixed = TRUE))
-      alignmentMutationsOriginal[l]  <- missMatchTrio[2]
-      alignmentMutationsMutated[l]   <- missMatchTrio[3]
-      alignmentMutationsPosition [l] <- as.numeric(missMatchTrio[1])
+	  # Divide the string in two pieces; one for the insertions and the other one for the deletions
+	  alignmentData <- unlist(strsplit(liteString, "!", fixed = TRUE))
+	  alignmentInsertionsData <- alignmentData[1]
+	  alignmentDeletionsData  <- alignmentData[2]
+	  alignmentMissmatchData  <- alignmentData[3]
+	  
+	  # The totals of events are after the first @ and before the second @
+	  alignmentInsertionsTotal  <- as.numeric(unlist(strsplit(alignmentInsertionsData,"@",fixed = TRUE))[2])
+	  alignmentDeletionsTotal   <- as.numeric(unlist(strsplit(alignmentDeletionsData ,"@",fixed = TRUE))[2])
+	  alignmentMissmatchesTotal <- as.numeric(unlist(strsplit(alignmentMissmatchData ,"@",fixed = TRUE))[2])
+	  
+	  # We need 7 arrays, 2 for the insertions, 2 for the deletions, 3 for the missmatches
+	  #
+	  # For deletions and insertions:
+	  # Each of those two arrays, will represent the starts and the ends of each event.
+	  # So for event 1, we need to look where does it start in the start_array[1] and where does ends in end_array[1]
+	  #
+	  # For missmatches
+	  # One array represent the original nucleotide
+	  # One array represent the new      nucleotide
+	  # One array represent the position in coordinates
+	  
+	  # Create an array for the boundaries of the event insertions
+	  alignmentInsertionsStarts <- rep(0,alignmentInsertionsTotal)
+	  alignmentInsertionsEnds <-   rep(0,alignmentInsertionsTotal)
+	  
+	  # Create an array for the boundaries of the event deletions
+	  alignmentDeletionsStarts <- rep(0,alignmentDeletionsTotal)
+	  alignmentDeletionsEnds <-   rep(0,alignmentDeletionsTotal)
+	  
+	  # Create the arrays for the mutations
+	  alignmentMutationsOriginal <- rep('x', alignmentMissmatchesTotal)
+	  alignmentMutationsMutated  <- rep('x', alignmentMissmatchesTotal)
+	  alignmentMutationsPosition <- rep(0  , alignmentMissmatchesTotal)
+	  
+	  # Fill the arrays for the event insertions
+	  alignmentInsertionsBoundariesData  <- unlist(strsplit(alignmentInsertionsData,"@",fixed = TRUE))[3]
+	  alignmentInsertionsBoundariesArray <- unlist(strsplit(alignmentInsertionsBoundariesData,"*",fixed = TRUE))
+	  if(alignmentInsertionsTotal>0){
+		for(i in 1:alignmentInsertionsTotal){
+		  indelPair <- unlist(strsplit(alignmentInsertionsBoundariesArray[i],",",fixed = TRUE))
+		  alignmentInsertionsStarts[i] <- as.numeric(indelPair[1])
+		  alignmentInsertionsEnds[i]   <- as.numeric(indelPair[2])
+		}}
+	  else{
+		alignmentInsertionsStarts <- NULL
+		alignmentInsertionsEnds   <- NULL
+	  }
+	  
+	  # Fill the arrays for the event deletions
+	  alignmentDeletionsBoundariesData <- unlist(strsplit(alignmentDeletionsData,"@",fixed = TRUE))[3]
+	  alignmentDeletionsBoundariesArray <- unlist(strsplit(alignmentDeletionsBoundariesData,"*",fixed = TRUE))
+	  if(alignmentDeletionsTotal>0){
+		for(l in 1:alignmentDeletionsTotal){
+		  indelPair <- unlist(strsplit(alignmentDeletionsBoundariesArray[l],",",fixed = TRUE))
+		  alignmentDeletionsStarts[l] <- as.numeric(indelPair[1])
+		  alignmentDeletionsEnds[l]   <- as.numeric(indelPair[2])
+		}}
+	  else{
+		alignmentDeletionsStarts <- NULL
+		alignmentDeletionsEnds   <- NULL
+	  }
+	  
+	  # Fill the arrays for the missmatches
+	  alignmentMissmatchBoundariesData <- unlist(strsplit(alignmentMissmatchData,"@",fixed = TRUE))[3]
+	  alignmentMissmatchBoundariesArray <- unlist(strsplit(alignmentMissmatchBoundariesData,"*",fixed = TRUE))
+	  if(alignmentMissmatchesTotal>0){
+		for(l in 1:alignmentMissmatchesTotal){
+		  
+		  missMatchTrio <- unlist(strsplit(alignmentMissmatchBoundariesArray[l],",",fixed = TRUE))
+		  alignmentMutationsOriginal[l]  <- missMatchTrio[2]
+		  alignmentMutationsMutated[l]   <- missMatchTrio[3]
+		  alignmentMutationsPosition [l] <- as.numeric(missMatchTrio[1])
 
-    }}
-  else{
+		}}
+	  else{
     alignmentMutationsOriginal <- NULL
     alignmentMutationsMutated  <- NULL
     alignmentMutationsPosition <- NULL
   }
   
-  return (list(alignmentInsertionsTotal, alignmentInsertionsStarts, alignmentInsertionsEnds,
-               alignmentDeletionsTotal,  alignmentDeletionsStarts, alignmentDeletionsEnds,
-               alignmentMutationsOriginal, alignmentMutationsMutated, alignmentMutationsPosition))
+	  return (list(alignmentInsertionsTotal, alignmentInsertionsStarts, alignmentInsertionsEnds,
+				   alignmentDeletionsTotal,  alignmentDeletionsStarts, alignmentDeletionsEnds,
+				   alignmentMutationsOriginal, alignmentMutationsMutated, alignmentMutationsPosition))
+  
+  }
+  
+  else{
+
+	  return (list(0, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL))
+    
+  }
   
 }
 
@@ -603,6 +613,7 @@ divideWorkByBarcode <- function(totalProcessors, configDataframe, configFilePath
   
   }
   
+  
   return (processorsSubDataframes)
 
 }
@@ -876,7 +887,7 @@ checkFileWriteAccess <- function (filePath){
   #   be the same.
   
 }
-getReadsFile <- function(fileName, TEMPFOLDER = NULL, tempFileConn = NULL) {
+getReadsFile <- function(fileName, TEMPFOLDER = NULL, tempFileConn = NULL, cropLeft = 0, cropRight = 0) {
   
   unzipReadsFileName <- NULL
   table.df           <- NULL
@@ -957,12 +968,12 @@ getReadsFile <- function(fileName, TEMPFOLDER = NULL, tempFileConn = NULL) {
       
       # Sequence line
       if(z==2){
-        matrixTable[ceiling(k/4),1] <- textFile[k]
+        matrixTable[ceiling(k/4),1] <-  substr(textFile[k], cropLeft+1, nchar(textFile[k])-cropRight)
       }
       
       # Quality line
       if(z==0){
-        matrixTable[ceiling(k/4),2] <- textFile[k]
+        matrixTable[ceiling(k/4),2] <- substr(textFile[k], cropLeft+1, nchar(textFile[k])-cropRight)
       }
       
     }

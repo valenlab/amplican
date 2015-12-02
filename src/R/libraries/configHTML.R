@@ -198,7 +198,9 @@ getAnalysisConstant <- function(AnalysisFolder){
 }
 
 # Make a summary of the variables used during this combination of runs
-makeStatisticsHTML2 <- function (htmlPath, PLOTFOLDER, ANALYSISFOLDER, ALIGNMENTFOLDER, RESULTSFOLDER, PLOTTARGET){
+makeStatisticsHTML2 <- function (htmlPath, PLOTFOLDER, ANALYSISFOLDER, ALIGNMENTFOLDER, RESULTSFOLDER, SERVERURL){
+  
+  print(SERVERURL)
   
   # Get the alignment constants
   alignmentVariables <- getAlignmentConstant(RESULTSFOLDER)
@@ -343,7 +345,7 @@ makeStatisticsHTML2 <- function (htmlPath, PLOTFOLDER, ANALYSISFOLDER, ALIGNMENT
 }
 
 # Make the barcode HTML page with all the barcode plots
-makeBarcodeHTML2 <- function(htmlPath, ANALYSISFOLDER, PLOTFOLDER, barcodeSubDF, plotsBarcodesURL, dataURL){
+makeBarcodeHTML2 <- function(htmlPath, ANALYSISFOLDER, PLOTFOLDER, barcodeSubDF, plotsBarcodesURL, dataURL, SERVERURL, LINKBY){
   
   # Create the HTML source file. We are going to write here the HTML result for this function.
   # at the end of this function, this will contain the entire html
@@ -651,7 +653,7 @@ makeBarcodeHTML2 <- function(htmlPath, ANALYSISFOLDER, PLOTFOLDER, barcodeSubDF,
 
 # Make the cutrate HTML page with all the cutrate plots
 makeCutRatesHTML3 <- function(htmlPath, ANALYSISFOLDER, PLOTFOLDER, LINKBY, analyisisSubDF,
-                              plotsCutratesURL, plotsFrameshiftURL, dataURL){
+                              plotsCutratesURL, plotsFrameshiftURL, dataURL, SERVERURL){
   
   # Create the HTML source file. We are going to write here the HTML result for this function.
   # at the end of this function, this will contain the entire html
@@ -1249,7 +1251,7 @@ makeResultsHTML3 <- function(htmlPath, ANALYSISFOLDER, PLOTFOLDER, analyisisSubD
 
 # Make the Resutls HTML page with all the cutrate plots
 makeResultsHTML4 <- function(htmlPath, ANALYSISFOLDER, PLOTFOLDER, analyisisSubDF,
-                             PLOTTARGET, dataURL){
+                             PLOTTARGET, dataURL, SERVERURL){
   
   # We need to make one results for each group
   for (i in 1:length(analyisisSubDF)){

@@ -110,6 +110,13 @@
 #
 # (bool) TIMING           You can choose to generate a timing file for
 #                         debugging and benchmarking. Default is FALSE.
+#
+# (int) FASTQFILES        Normally you want to use both FASTQ files. But in
+#                         some special cases, you may want to use only the
+#                         forward file, or only the reverse file.
+#                         0 - Use both FASTQ files
+#                         1 - Use only the forward FASTQ file
+#                         2 - Use only the reverse FASTQ file
 
 ampliCanMaker <- function (CONFIG, TOTAL_PROCESSORS = 1,
                            SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0, 
@@ -118,7 +125,7 @@ ampliCanMaker <- function (CONFIG, TOTAL_PROCESSORS = 1,
                            GAP_EXTENSION = 0, GAP_ENDING = FALSE, 
                            FAR_INDELS = TRUE, RESULT_FOLDER = NULL,
                            DELETEFQ = FALSE, TEMPFOLDER = NULL, 
-                           TIMING = FALSE){
+                           TIMING = FALSE, FASTQFILES = 0){
 
   ############################################
   #Summons the libraries and get to use functions from there.
@@ -292,7 +299,7 @@ ampliCanMaker <- function (CONFIG, TOTAL_PROCESSORS = 1,
         makeAlignment(SKIP_BAD_NUCLEOTIDES, AVERAGE_QUALITY, MIN_QUALITY, WRITE_ALIGNMENTS,
                       SCORING_MATRIX, GAP_OPENING, GAP_EXTENSION, GAP_ENDING,FAR_INDELS,
                       processorsSubDataframes[[j]], resultsFolder, currentResultsFolderName, j,
-                      currentConfigPath, TIMING, TEMPFOLDER)
+                      currentConfigPath, TIMING, TEMPFOLDER, FASTQFILES)
         
       }
       
