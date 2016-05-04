@@ -166,56 +166,20 @@ divideWorkBySize <- function(totalProcessors, configDataframe, colName){
 #' smaller, the length is equal to the number of rows of
 #' configDataframe.
 divideWorkByBarcode <- function(total_processors, configTable){
+  sortedConfigTable <- configTable[order(configTable$Barcode),]
+  sortedConfigTable$Size <- round(file.info(sortedconfigTable$"Forward_Reads_File")[["size"]]/1048576,2)
 
-  uniqueBarcodeDF <- unique(configTable$Barcode)
-  uniqueBarcodeDF <- data.frame(uniqueBarcodeDF[order(uniqueBarcodeDF)])
-  colnames(uniqueBarcodeDF) <- c("Barcode")
-  sortedconfigTable <- configTable[order(configTable$Barcode),]
-  # ---------------------------------------------------------------
-  # ADD THE SIZE OF THE FORWARD FILE TO EACH BARCODE
-  # ---------------------------------------------------------------
-  filePath <- ""
-  uniqueBarcodeDF$Size <- 0
-  currentBarcode <- 1
-  # We always have at least one barcode. So we can fill the first one already
+  uniqueBarcodeDF <- unique(sortedConfigTable[c("Barcode", "Size")])
+  uniqueBarcodeDF <- data.frame(uniqueBarcodeDF[order(uniqueBarcodeDF$Barcode),])
 
-    # Check that we are in an absolute path or relative path
-    # (Not ./folder/folder/file.txt path, but /folfer/file.txt or file.txt , something not unixy)
-    absolutePathForward <- length(grep("/", sortedconfigTable$"Forward_Reads_File"[1], ignore.case = TRUE)) >= 1
-    # Get the names of the forward read and reverse read files
-    if(absolutePathForward == TRUE){
-      filePath <- as.character(sortedconfigTable$"Forward_Reads_File"[1])
-    } else {
-      dataFolderPath <- getConfigFolder(configFilePath)
-      filePath <- paste(dataFolderPath, "/", sortedconfigTable$"Forward_Reads_File"[1],sep = '')
-    }
-    #filePath <- as.string(configTable$Forward_Reads_File[1])
-    uniqueBarcodeDF$Size[1] <- round(file.info(filePath)[["size"]]/1048576,2)
-
-    # Now check all the barcodes in the config
-    for(i in 1:nrow(sortedconfigTable)){
-      if(as.character(sortedconfigTable$Barcode[i]) != as.character(uniqueBarcodeDF$Barcode[currentBarcode])){
-        currentBarcode <- currentBarcode + 1
-        # Get the names of the forward read and reverse read files
-        if(absolutePathForward == TRUE){
-          filePath <- as.character(sortedconfigTable$"Forward_Reads_File"[i])
-        }
-        else{
-          dataFolderPath <- getConfigFolder(configFilePath)
-          filePath <- paste(dataFolderPath, "/",sortedconfigTable$"Forward_Reads_File"[i],sep = '')
-        }
-        #filePath <- as.string(configTable$Forward_Reads_File[1])
-        uniqueBarcodeDF$Size[currentBarcode] <- round(file.info(filePath)[["size"]]/1048576,2)
-      }
-    }
   # ---------------------------------------------------------------
   # DIVIDE THE BARCODES FOR EACH PROCESSOR
   # ---------------------------------------------------------------
     # In here we are going to store how many barcodes goes for each processor
     # at the beggining is a list of empty lists (slow)
-    processorsBarcodes <- rep( list(list()), total_processors )
+    processorsBarcodes <- rep(list(list()), total_processors)
     # In here we store the sum for each processor
-    processorsSums <- rep(0.0, total_processors)
+    processorsSums <- rep(0, total_processors)
     # Get the data sorted by value in decreased order
     rowsSorted <- order(uniqueBarcodeDF[,c("Size")], decreasing = TRUE)
     # Get the total of barcodes
@@ -248,7 +212,7 @@ divideWorkByBarcode <- function(total_processors, configTable){
           }
         }
         # Add the minimum to the list and update everything
-        processorsBarcodes[[reference]] <- c(processorsBarcodes[[reference]],analyzeLine)
+        processorsBarcodes[[reference]] <- c(processorsBarcodes[[reference]], analyzeLine)
         processorsSums[reference] <- processorsSums[reference] + currentValue
       }
     }
@@ -276,13 +240,7 @@ divideWorkByBarcode <- function(total_processors, configTable){
     }
     # We have discover which rows should go into each dataframe. Now, convert those integers into actuall dataframe
     for(i in 1:length(processorsSubDataframes)){
-      print(paste("For processor",i))
-      #     print(as.character(uniqueBarcodeDF[processorsBarcodes[[i]],]$Barcode))
-      print("This many barcodes")
-      print(length(processorsBarcodes[[i]]))
-      print("Total forward reads filesize of (MB)")
-      print(processorsSums[i])
       processorsSubDataframes[[i]] <- configTable[processorsSubDataframes[[i]],]
     }
-  return (processorsSubDataframes)
+  return(processorsSubDataframes)
 }

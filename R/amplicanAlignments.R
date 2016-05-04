@@ -148,8 +148,9 @@ ampliCanMaker <- function (config,
     # Stop the cluster.
     stopCluster(cl)
   } else {
-    for(j in 1:dim(configTable)[1]){
-      makeAlignment(skip_bad_nucleotides,
+      makeAlignment(configTable,
+                    resultsFolder,
+                    skip_bad_nucleotides,
                     average_quality,
                     min_quality,
                     write_alignments,
@@ -158,15 +159,11 @@ ampliCanMaker <- function (config,
                     gap_extension,
                     gap_ending,
                     far_indels,
-                    configTable[[j]],
-                    resultsFolder,
-                    resultsFolder,
                     j,
                     config,
                     TIMING,
                     temp_folder,
                     fastqfiles)
-    }
   }
 
   message("Alignments done.")

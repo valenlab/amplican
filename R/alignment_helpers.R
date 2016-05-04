@@ -208,7 +208,6 @@ countUppercaseGroups <- function(candidate){
 #' @return no clue
 makeAlignment <- function(configTable,
                           resultFolder,
-                          alignmentFolder,
                           temp_folder,
                           fastqfiles,
                           skip_bad_nucleotides = TRUE,
