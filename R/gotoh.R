@@ -8,28 +8,22 @@
 #'              possition of those, length, etc... This information is latter
 #'              to be processed in R.
 #' @param pattern (string) See subject.
-#'
 #' @param subject (string) These two strings are the string representation of
 #'                          the sequences that we want to align. Passed as
 #'                          constant references (don't duplicate and don't
 #'                          modify). Both sequences are nucleotide sequences
 #'                          and we restrict the alphabet to {a,t,g,c,A,T,G,C}.
-#'
 #' @param scoringMatrix (string) Select a scoring matrix for the nucleotides.
 #'                               The default matrix is NUC44. You can choose
 #'                               from the following matrices:
 #'                               - NUC44 (+5 for match, -4 for miss)
-#'
 #' @param gapOpening (int) The score penalty for opening a new gap. Default
 #'                         value is 50.
-#'
 #' @param gapExtension (int) The score penalty for extending the gap. Default
 #'                           value is 0.
-#'
 #' @param gapEnding (bool) Set to TRUE if you want that the alignment score
 #'                         be affected by the gaps at the end of the alignment,
 #'                         FALSE for otherwise. (FALSE default).
-#'
 #' @param farIndels (bool) If a gap start at the first positions, or ends at
 #'                         the last position, then is a far away indel. In
 #'                         some cases, you might want to consider that a
@@ -37,10 +31,8 @@
 #'                         Set to TRUE if you want that the start or ending
 #'                         gap counts as deletion/insertion. FALSE othewise.
 #'                         (TRUE default).
-#'
 #' @return (string) The function return a string with all the information. The
 #'                  string is divided in 5 parts. These parts are:
-#'
 #'                  - Verbose alignment result.
 #'                  - List of events from the alignment perspective.
 #'                  - List of events from the subject perspective.
@@ -90,45 +82,29 @@
 #'                   ----------------
 #'                   INSERTIONS:
 #'                   ----------------
-#'
 #'                   --Insertions respect patterns coordinates--
-#'
-#'
 #'                   ----------------
 #'                   DELETIONS:
 #'                   ----------------
 #'                   In Pattern
 #'                   START: 1
 #'                   END:   5
-#'
-#'
 #'                   --Deletions respect subject coordinates--
-#'
 #'                   In Pattern
 #'                   START: 1
 #'                   END:   5
-#'
-#'
 #'                   ----------------
 #'                   MISMATCHES:
 #'                   ----------------
 #'                   START:    5
 #'                   ORIGINAL: t
 #'                   MUTATED:  a
-#'
-#'
 #'                   --Missmatches respect subject coordinates--
-#'
 #'                   START:    5
 #'                   ORIGINAL: t
 #'                   MUTATED:  a
-#'
-#'
-#'
 #'                   ****************
-#'
 #'                   -- List of events from the alignment perspective --
-#'
 #'                   The next string is compact representation of the
 #'                   insertions, deletions, and missmatches. The representaion
 #'                   follows the following format:
@@ -159,9 +135,7 @@
 #'
 #'                   This is an example:
 #'                   (at)0(at)!(at)1(at)1,5*!(at)1(at)5,t,a*
-#'
 #'                   -- List of events from the subject perspective --
-#'
 #'                   The next string is compact representation of the
 #'                   insertions, deletions, and missmatches. The twist here is
 #'                   that the information is given from the subject coordinates
@@ -186,24 +160,21 @@
 #'
 #'                   The format in which this information is portrayed is the
 #'                   same as in the previous list of events.
-#'
 #'                   -- Pattern alignment string --
 #'
 #'                   A string with the characters that represent the resulted
 #'                   alignment for the pattern. In our example:
-#'
 #'                   -----aaaaa
-#'
 #'                   -- Pattern subject string --
 #'
 #'                   A string with the characters that represent the resulted
 #'                   alignment for the subject. In our example:
 #'
 #'                   aaddttaaaa
-#' @examples
-#' gRCPP("aaaaa", "aaddttaaaa")
-#' gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5)
-#' gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5, TRUE, TRUE)
+#' #@examples
+#' #gRCPP("aaaaa", "aaddttaaaa")
+#' #gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5)
+#' #gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5, TRUE, TRUE)
 #' @useDynLib amplican
 #' @importFrom Rcpp sourceCpp
 gRCPP <- function(pattern, subject, scoringMatrix="NUC44", gapOpening = 50,

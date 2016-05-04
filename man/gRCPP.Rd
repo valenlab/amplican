@@ -202,6 +202,10 @@ gap counts as deletion/insertion. FALSE othewise.
                   alignment for the subject. In our example:
 
                   aaddttaaaa
+#@examples
+#gRCPP("aaaaa", "aaddttaaaa")
+#gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5)
+#gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5, TRUE, TRUE)
 }
 \description{
 \code{gRCPP} This is the main aligning fucntion. The function allocate
@@ -211,10 +215,5 @@ gap counts as deletion/insertion. FALSE othewise.
              information about the alignmnent, indels and missmaches,
              possition of those, length, etc... This information is latter
              to be processed in R.
-}
-\examples{
-gRCPP("aaaaa", "aaddttaaaa")
-gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5)
-gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5, TRUE, TRUE)
 }
 

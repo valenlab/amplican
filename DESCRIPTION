@@ -1,8 +1,12 @@
 Package: amplican
 Type: Package
-Title: What the Package Does (Title Case)
-Description: More about what it does
-    (maybe more than one line)
+Title: fast and precise analysis of CRISPR experiments
+Description: Amplican creates raport of deletions, insertions, frameshifts,
+    cut rates and other metrics in user selected format (interactive html, pdf).
+    Amplican uses vary fast C implementation of Gotoh alhoritm to align your fastq
+    samples and automates analysis across different experiments. Amplican maintains
+    elasticity through configuration file, which with your fastq samples are only
+    requirements.
 Version: 0.1.0
 Authors@R: as.person(c(
     "Kornel Labun <kornel.labun@gmail.com> [aut]",
@@ -15,6 +19,21 @@ License: GPL-3
 LazyData: TRUE
 LinkingTo: Rcpp
 Imports:
-    Rcpp
+    Rcpp,
+    R.utils,
+    plyr,
+    dplyr
 RoxygenNote: 5.0.1
-Suggests: testthat
+Suggests:
+    testthat,
+    doParallel
+Collate:
+    'RcppExports.R'
+    'alignment_helpers.R'
+    'amplican.R'
+    'parallel_helpers.R'
+    'filters_helpers.R'
+    'amplicanAlignments.R'
+    'directory_helpers.R'
+    'gotoh.R'
+    'warnings_helpers.R'
