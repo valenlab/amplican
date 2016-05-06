@@ -78,7 +78,7 @@ gap_extension = 0
 gap_ending = FALSE
 far_indels = TRUE
 deletefq = FALSE
-temp_folder = FALSE
+temp_folder = ""
 fastqfiles = 0
 ampliCanMaker <- function (config,
                            fastq_folder,
@@ -93,11 +93,11 @@ ampliCanMaker <- function (config,
                            gap_ending = FALSE,
                            far_indels = TRUE,
                            deletefq = FALSE,
-                           temp_folder = FALSE,
+                           temp_folder = "",
                            fastqfiles = 0){
   message("Checking write access...")
   checkFileWriteAccess(results_folder)
-  if (temp_folder) { checkFileWriteAccess(temp_folder) }
+  if (temp_folder != "") {checkFileWriteAccess(temp_folder)}
 
   message("Checking configuration file...")
   configTable <- read.table(config, header=FALSE, sep="\t", strip.white=TRUE)
@@ -106,10 +106,16 @@ ampliCanMaker <- function (config,
   configTable$Forward_Reads_File <- paste(fastq_folder, configTable$Forward_Reads_File, sep = "/")
   configTable$Reverse_Reads_File <- paste(fastq_folder, configTable$Reverse_Reads_File, sep = "/")
   checkConfigFile(configTable, fastq_folder)
+  configTable <- unpackFastq(configTable, temp_folder)
 
   resultsFolder <- paste0(results_folder, "/alignments/")
   if(!dir.exists(resultsFolder)) {
     dir.create(resultsFolder)
+  }
+
+  unassignedFolder <- paste0(resultsFolder, "/unassigned_sequences")
+  if(!dir.exists(unassignedFolder)) {
+    dir.create(file.path(unassignedFolder))
   }
 
   # MasterLog with parameters
@@ -128,27 +134,19 @@ ampliCanMaker <- function (config,
   writeLines(paste("Far Indels:            ", far_indels), logFileConn)
   close(logFileConn)
 
+  uBarcode <- unique(configTable$Barcode)
+
   if (requireNamespace("doParallel", quietly = TRUE) & total_processors > 1) {
     cl <- makeCluster(total_processors, outfile="")
     registerDoParallel(cl)
-    # Divide the config dataframe into several subset of roughly equal size
-    processorsSubDataframes <- divideWorkByBarcode(total_processors, configTable)
 
-    foreach(j=1:total_processors , .packages = c("Rcpp", "R.utils")) %dopar% {
+    foreach(j=1:length(uBarcode), .packages = c("Rcpp", "R.utils")) %dopar% {
 
       source("libraries/filters.R") # Filtering.
       source("libraries/tools.R") # Minor stuff like the reverse complement of a DNA sequence.
       source("libraries/errorswarnings.R") # Handles pre-parsing, error messages, warning to the users, and so on.
       source("libraries/configAlignments.R") # Function that deals with the config files and get running everything.
-      makeAlignment(skip_bad_nucleotides, average_quality, min_quality, write_alignments,
-                    scoring_matrix, gap_opening, gap_extension, gap_ending,far_indels,
-                    processorsSubDataframes[[j]], resultsFolder, resultsFolder, j,
-                    config, TIMING, temp_folder, fastqfiles)
-    }
-    # Stop the cluster.
-    stopCluster(cl)
-  } else {
-      makeAlignment(configTable,
+      makeAlignment(configTable[configTable$Barcode == uBarcode[j],],
                     resultsFolder,
                     skip_bad_nucleotides,
                     average_quality,
@@ -158,12 +156,23 @@ ampliCanMaker <- function (config,
                     gap_opening,
                     gap_extension,
                     gap_ending,
-                    far_indels,
-                    j,
-                    config,
-                    TIMING,
-                    temp_folder,
-                    fastqfiles)
+                    far_indels)
+    }
+    stopCluster(cl)
+  } else {
+      for(j in 1:length(uBarcode)){
+        makeAlignment(configTable[configTable$Barcode == uBarcode[j],],
+                      resultsFolder,
+                      skip_bad_nucleotides,
+                      average_quality,
+                      min_quality,
+                      write_alignments,
+                      scoring_matrix,
+                      gap_opening,
+                      gap_extension,
+                      gap_ending,
+                      far_indels)
+      }
   }
 
   message("Alignments done.")
@@ -176,8 +185,8 @@ ampliCanMaker <- function (config,
 
   # If the user want to delete the uncompressed results, do it now.
   if (deletefq == TRUE) {
-    message("Deleting temporal files...")
-    print(deleteFiles(paste(resultsFolder, "/temporal_files.txt",sep=''), deleteSource = FALSE))
+    message("Deleting temporary files...")
+    deleteFiles(configTable)
   }
   message("Finished.")
 }

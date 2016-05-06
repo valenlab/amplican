@@ -33,23 +33,14 @@ unifyFiles <- function (targetFolder, regex, finalFileName, header, delete, isre
   candidates <- grep(regex, allFiles, fixed=FALSE, ignore.case=FALSE)
 
   if(length(candidates)>0){
-
     # Inside this folder it will be a file named as the user desired
     finalFilePath <- paste(targetFolder, "/", finalFileName, sep = '')
     finalFileFD   <- file(finalFilePath, open="w")
 
     for(i in 1:length(candidates)){
-
       candidateName <- paste(targetFolder,"/",allFiles[candidates[i]],sep="")
-
       # Read the file into a string variable
       textFile <- readLines(candidateName,encoding="UTF-8")
-
-      #       print("From:")
-      #       print(candidateName)
-      #       print("Get:")
-      #       print(textFile)
-      #
       if(header == TRUE && i!=1){
         textFile <- textFile[2:length(textFile)]
       }
@@ -68,33 +59,50 @@ unifyFiles <- function (targetFolder, regex, finalFileName, header, delete, isre
   return (length(candidates))
 }
 
-#' This funcion takes a txt file, with a file path per row, and delete all those files.
+#' Delete files from configTables Forward_Reads_File and Reverse_Reads_File (fastq files).
 #'
-#'@param listOfFilesFileName: (string) Path to the file that containts 0 or more files paths that will be deleted
+#'@param configTable (data.frame) Contains Forward_Reads_File and Reverse_Reads_File to be removed
+#'@return (void) In case of fail, prints err.
+deleteFiles <- function(configTable){
+  for (i in 1:dim(configTable)[1]){
+    file.remove(configTable$Forward_Reads_File[i])
+    file.remove(configTable$Reverse_Reads_File[i])
+  }
+}
+
+#' Unpack fastq files if needed, correct paths to the files in configTable.
 #'
-#'@param deleteSource:        (bool)   If you want that the file listOfFilesFileName to be ALSO deleted, set this
-#'                                  to TRUE. Default is FALSE
-#'@return (int) How many files where deleted. This could be less than the orinal files, as it will only delete
-#'          files that you have write privilege.
-deleteFiles <- function (listOfFilesFileName, deleteSource = FALSE){
-  # Keep track of how many files we delete
-  totalDeleted <- 0
-
-  # Read all the files candidates
-  textFile <- readLines(toString(listOfFilesFileName),encoding="UTF-8")
-
-  # For each of the candidates
-  for (k in 1:length(textFile)){
-    # Check if we have write permissions for that file
-    access <- checkFileWriteAccess(textFile[k])
-
-    # If we do, delete it.
-    if(access == TRUE){
-      totalDeleted <- totalDeleted + 1
-      file.remove(textFile[k])
+#' @param configTable (data.frame) Contains configuration file.
+#' @param temp_folder (String) Where to store unzipped files.
+#' @return (data.frame) configTable with Forward_File and Reverse_File updated if
+#' unpacking files was required.
+#' @import R.utils
+unpackFastq <- function(configTable, temp_folder){
+  for(i in 1:dim(configTable)[1]){
+    forward <- configTable$Forward_Reads_File[i]
+    rewerse <- configTable$Reverse_Reads_File[i]
+    if (isGzipped(forward)) {
+      for_name <- sub(".gz", "", forward, fixed=TRUE)
+      for_destname <-ifelse(temp_folder != "",
+                            paste0(temp_folder, "/", basename(for_name)),
+                            for_name)
+      gunzip(forward,
+             destname = for_destname,
+             skip = TRUE, overwrite = FALSE, remove = FALSE)
+      configTable$Forward_Reads_File[i] <- for_destname
+    }
+    if (isGzipped(rewerse)) {
+      rew_name <- sub(".gz", "", rewerse, fixed=TRUE)
+      rew_destname <- ifelse(temp_folder != "",
+                             paste0(temp_folder, "/", basename(rew_name)),
+                             rew_name)
+      gunzip(rewerse,
+             destname = rew_destname,
+             skip = TRUE, overwrite = FALSE, remove = FALSE)
+      configTable$Reverse_Reads_File[i] <- rew_destname
     }
   }
-  return (totalDeleted)
+  return(configTable)
 }
 
 #' This function check if the given file exist and can be read.
@@ -175,8 +183,6 @@ getReadsFile <- function(fileName, TEMPFOLDER = NULL, tempFileConn = NULL, cropL
 
     # Unzip the file
     gunzip(fileName, destname = unzipReadsFileName, skip = TRUE, overwrite = FALSE, remove = FALSE) #If it is already unzipped, use that
-    #     print("final name")
-    #     print(unzipReadsFileName)
     # If the users wants, keep track of the filepath for the unzipped file.
     if(!is.null(tempFileConn)){
 
@@ -246,76 +252,6 @@ getReadsFile <- function(fileName, TEMPFOLDER = NULL, tempFileConn = NULL, cropL
     print("INCORRECT FILE: This file has a number of lines that is not multiple of 4!")
   }
   return (table.df)
-}
-
-#' Given a config file path, get the folder containing that config file
-#'
-#' /home/myUser/myGenesData/experiment.txt
-#'
-#' The function returns:
-#' myGenesData
-#'@param   string configFilePath: A string with the absolute path pointing to the config file
-#'@return string :  A string with the name of the folder containing the config file
-getConfigFolder <- function(configFilePath){
-
-  # Separate the name by points.
-  auxiliaryNames <- unlist(strsplit(configFilePath, ".", fixed = TRUE))
-
-  # The path can have an IP address, or not. In any case, we need to add all the list toguether again
-  # and skip that last member, while putting a dot in between each member.
-  finalPath = auxiliaryNames[1]
-
-  if(length(auxiliaryNames) > 2){
-    for (i in 2:(length(auxiliaryNames)-1)){
-
-      finalPath = paste(finalPath,".",auxiliaryNames[i])
-
-    }}
-
-  # In here; we have the complete path including the config file name minus the extension
-  # We just need to take out the name of the config file away
-  configName <- getConfigName(configFilePath)
-
-  #   print(configFilePath)
-  #   print(configName)
-  #   print(finalPath)
-
-
-  finalPath <- substr(finalPath, 1, (nchar(finalPath) - nchar(configName)) )
-
-  #return (finalPath) Isn't the following much more efficient?
-
-  # Divide by /
-  foldersNames <- unlist(strsplit(configFilePath, "/", fixed = TRUE))
-
-  # Put toguether everything again except the last element of the list (which is the name of the config file)
-  finalPath <- paste(foldersNames[1:length(foldersNames)-1], collapse = '/')
-
-  # We need to add a / at the start of the finalPath
-  #finalPath <- paste("/",finalPath,sep='') #NOPE! Because the first / in the config path was splitted, and give us a "" (empty string) at position [1], so collapsing with / will give us the initial /
-  return (finalPath)
-}
-
-#' Given a config file path, get the name of the config file. For example, for the path:
-#'
-#' /home/myUser/myGenesData/experiment.txt
-#'
-#' The function returns:
-#' experiment.txt
-#'@param string configFilePath: A string with the absolute path pointing to the config file
-#'@return string :  A string with the name of the config file
-getConfigName <- function(configFilePath){
-
-  # Separate the name by points.
-  auxiliaryNames <- unlist(strsplit(configFilePath, ".", fixed = TRUE))
-
-  # The path can have an IP address, or not. In any case, the second name from the end of that list
-  # contain the name of the parent folder. Inside that name, we split by the folder separator "/"
-  auxiliaryFolders <- unlist(strsplit(auxiliaryNames[length(auxiliaryNames) - 1], "/", fixed = TRUE))
-
-  # The last element is the name of the config file
-  configName <- auxiliaryFolders[length(auxiliaryFolders)]
-  return (configName)
 }
 
 #' Gives a config file path and check if exist, is readable, etc...

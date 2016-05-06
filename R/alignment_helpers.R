@@ -94,13 +94,13 @@ getEventInfo <- function(liteString){
                                                           fixed = TRUE))[3]
     alignmentInsertionsBoundariesArray <- unlist(strsplit(alignmentInsertionsBoundariesData,"*",
                                                           fixed = TRUE))
-    if(alignmentInsertionsTotal>0){
+    if (alignmentInsertionsTotal>0) {
       for(i in 1:alignmentInsertionsTotal){
         indelPair <- unlist(strsplit(alignmentInsertionsBoundariesArray[i],",",fixed = TRUE))
         alignmentInsertionsStarts[i] <- as.numeric(indelPair[1])
         alignmentInsertionsEnds[i]   <- as.numeric(indelPair[2])
-      }}
-    else{
+      }
+    } else {
       alignmentInsertionsStarts <- NULL
       alignmentInsertionsEnds   <- NULL
     }
@@ -110,13 +110,13 @@ getEventInfo <- function(liteString){
                                                         fixed = TRUE))[3]
     alignmentDeletionsBoundariesArray <- unlist(strsplit(alignmentDeletionsBoundariesData,"*",
                                                          fixed = TRUE))
-    if(alignmentDeletionsTotal>0){
+    if (alignmentDeletionsTotal>0) {
       for(l in 1:alignmentDeletionsTotal){
         indelPair <- unlist(strsplit(alignmentDeletionsBoundariesArray[l],",",fixed = TRUE))
         alignmentDeletionsStarts[l] <- as.numeric(indelPair[1])
         alignmentDeletionsEnds[l]   <- as.numeric(indelPair[2])
-      }}
-    else{
+      }
+    } else {
       alignmentDeletionsStarts <- NULL
       alignmentDeletionsEnds   <- NULL
     }
@@ -126,27 +126,26 @@ getEventInfo <- function(liteString){
                                                         fixed = TRUE))[3]
     alignmentMissmatchBoundariesArray <- unlist(strsplit(alignmentMissmatchBoundariesData,"*",
                                                          fixed = TRUE))
-    if(alignmentMissmatchesTotal>0){
+    if (alignmentMissmatchesTotal>0) {
       for(l in 1:alignmentMissmatchesTotal){
-
         missMatchTrio <- unlist(strsplit(alignmentMissmatchBoundariesArray[l],",",fixed = TRUE))
         alignmentMutationsOriginal[l]  <- missMatchTrio[2]
         alignmentMutationsMutated[l]   <- missMatchTrio[3]
         alignmentMutationsPosition [l] <- as.numeric(missMatchTrio[1])
 
-      }}
-    else{
+      }
+    } else {
       alignmentMutationsOriginal <- NULL
       alignmentMutationsMutated  <- NULL
       alignmentMutationsPosition <- NULL
     }
 
-    return (list(alignmentInsertionsTotal, alignmentInsertionsStarts, alignmentInsertionsEnds,
+    return(list(alignmentInsertionsTotal, alignmentInsertionsStarts, alignmentInsertionsEnds,
                  alignmentDeletionsTotal,  alignmentDeletionsStarts, alignmentDeletionsEnds,
                  alignmentMutationsOriginal, alignmentMutationsMutated, alignmentMutationsPosition))
 
   } else {
-    return (list(0, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL))
+    return(list(0, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL))
   }
 }
 
@@ -208,8 +207,6 @@ countUppercaseGroups <- function(candidate){
 #' @return no clue
 makeAlignment <- function(configTable,
                           resultFolder,
-                          temp_folder,
-                          fastqfiles,
                           skip_bad_nucleotides = TRUE,
                           average_quality = 0,
                           min_quality = 0,
@@ -218,12 +215,7 @@ makeAlignment <- function(configTable,
                           gap_opening = 50,
                           gap_extension = 0,
                           gap_ending = FALSE,
-                          far_indels = TRUE,
-                          processID = 0){
-
-  # Prepare the unnasigned folder
-  currentUnassignedFolderName <- paste0(resultsFolder, "/unassigned_sequences")
-  dir.create(file.path(currentUnassignedFolderName), showWarnings = F)
+                          far_indels = TRUE){
 
   # In this variable we are going to keep track of the last config row. This is important
   # because it is going to be sorted. You need to be very careful with this function

@@ -10,12 +10,12 @@
 #'
 #'@return bool , TRUE:  Everything went good.
 #'          FALSE: If the test fails and a warning is annotated.
-checkTarget <- function (targetPrimer, amplicon, ID, barcode, configFilePath, logFileConn){
+checkTarget <- function(targetPrimer, amplicon, ID, barcode, configFilePath, logFileConn){
   toReturn <- TRUE
   targetPositions <- regexpr(targetPrimer, amplicon, ignore.case=TRUE, fixed=FALSE)[1]
-  if(targetPositions <= 0 ){
+  if (targetPositions <= 0) {
     toReturn <- FALSE
-    print ("WARNING!: Target not found in the amplicon. This event will be register in the log")
+    warning("Target has not been found in the amplicon. Check the log file for more information.")
     writeLines("Couldn't find the target primer:", logFileConn)
     writeLines(toString(targetPrimer), logFileConn)
     writeLines("In amplicon:", logFileConn)
@@ -26,7 +26,7 @@ checkTarget <- function (targetPrimer, amplicon, ID, barcode, configFilePath, lo
     writeLines(toString(configFilePath), logFileConn)
     writeLines("\n", logFileConn)
   }
-  return (toReturn)
+  return(toReturn)
 }
 
 #' This function check if the forward anr reverse primer is in the amplicon.
@@ -51,17 +51,15 @@ checkTarget <- function (targetPrimer, amplicon, ID, barcode, configFilePath, lo
 #' @return bool , TRUE:  Everything went good.
 #'          FALSE: If the test fails and a warning is annotated.
 #'
-checkPrimers <- function (forwardPrimer, reversePrimerReverseComplementary, amplicon, ID, barcode,
+checkPrimers <- function(forwardPrimer, reversePrimerReverseComplementary, amplicon, ID, barcode,
                           configFilePath, logFileConn){
-
   toReturn <- TRUE
-
   forwardPrimerPosition <- regexpr(forwardPrimer, amplicon, ignore.case=TRUE, fixed=FALSE)[1]
   reversePrimerPosition <- regexpr(reversePrimerReverseComplementary, amplicon, ignore.case=TRUE, fixed=FALSE)[1]
   if(forwardPrimerPosition <= 0 || reversePrimerPosition <=0){
     toReturn <- FALSE
-    print ("WARNING!: One of primer was not found in the amplicon. This event will be register in the log")
-    writeLines("Couldn't find the forward primer or reverse primer reversed and complemented):", logFileConn)
+    warning("One of primer was not found in the amplicon. Check the log file for more information.")
+    writeLines("Couldn't find the forward primer or reverse primer (reversed and complemented):", logFileConn)
     writeLines(toString(forwardPrimer), logFileConn)
     writeLines(toString(reversePrimerReverseComplementary), logFileConn)
     writeLines("In amplicon:", logFileConn)
@@ -94,12 +92,10 @@ checkPrimers <- function (forwardPrimer, reversePrimerReverseComplementary, ampl
 #'          FALSE: If the test fails and a warning is annotated.
 #'
 checkPositions <- function (alignmentPositions, amplicon, ID, barcode, configFilePath, logFileConn){
-
   toReturn <- TRUE
-
-  if(alignmentPositions[1] <= 0){
-    warningTrigger <- FALSE
-    print ("WARNING!: Aligment position not found in the amplicon. This event will be register in the log")
+  if (alignmentPositions[1] <= 0) {
+    toReturn <- FALSE
+    warning("Aligment position was not found in the amplicon. Find more information in the log file.")
     writeLines("Couldn't find alignment position for amplicon:", logFileConn)
     writeLines(toString(amplicon), logFileConn)
     writeLines("For ID and barcode:", logFileConn)
@@ -108,7 +104,7 @@ checkPositions <- function (alignmentPositions, amplicon, ID, barcode, configFil
     writeLines(toString(configFilePath), logFileConn)
     writeLines("\n", logFileConn)
   }
-  return (toReturn)
+  return(toReturn)
 }
 
 #' This function pre-process a config file and check that everything is in order
@@ -117,7 +113,7 @@ checkPositions <- function (alignmentPositions, amplicon, ID, barcode, configFil
 #'   No IDs are duplicated
 #'   Every combination of barcode, forward primer and reverse primer is unique.
 #'   Each barcode has unique forward reads file and reverse read files.
-#'   Check that the read files exist and with reading access
+#'   Check that the read files exist with read access.
 #' @param config (data.frame) Config file.
 #' @param fastq_folder (string) Path to fastq folder.
 #' @return (Void) If anything goes wrong stops and prints error.
@@ -138,12 +134,11 @@ checkConfigFile <- function(configTable, fastq_folder){
                 paste(which(duplicated(configTable[, "ID"])), collapse = " ")))
   }
 
-  # ?? should this be uncommented
-  # barcode_primers_duple <- duplicated(configTable[c("Barcode", "Forward_Primer", "Reverse_Primer")])
-  # if(sum(barcode_primers_duple) != 0){
-  #   stop(paste0("Config file has non unique combinations of barcode, forward primer and reverse primer.
-  #               Duplicated rows: ", paste(which(barcode_primers_duple, collapse=" "))))
-  # }
+  barcode_primers_duple <- duplicated(configTable[c("Barcode", "Forward_Primer", "Reverse_Primer")])
+  if(sum(barcode_primers_duple) != 0){
+    stop(paste0("Config file has non unique combinations of barcode, forward primer and reverse primer.
+                Duplicated rows: ", paste(which(barcode_primers_duple, collapse=" "))))
+  }
 
   barcode_files_duple <- duplicated(configTable[c("Barcode")])
   forward_reverse_files_duple <- duplicated(configTable[c("Forward_Reads_File", "Reverse_Reads_File")])
