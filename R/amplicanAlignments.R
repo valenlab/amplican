@@ -88,6 +88,7 @@ ampliCanMaker <- function (config,
                            average_quality = 0,
                            min_quality = 0,
                            write_alignments = 2,
+                           scoring_matrix = "NUC44",
                            gap_opening = 50,
                            gap_extension = 0,
                            gap_ending = FALSE,
@@ -102,7 +103,7 @@ ampliCanMaker <- function (config,
   message("Checking configuration file...")
   configTable <- read.table(config, header=FALSE, sep="\t", strip.white=TRUE)
   colnames(configTable) <- c("ID","Barcode","Forward_Reads_File","Reverse_Reads_File","Experiment_Type",
-                             "Target_Primer","Forward_Primer","Reverse_Primer","Strand","Genome")
+                             "Target_Primer","Forward_Primer","Reverse_Primer","Strand","Amplicon")
   configTable$Forward_Reads_File <- paste(fastq_folder, configTable$Forward_Reads_File, sep = "/")
   configTable$Reverse_Reads_File <- paste(fastq_folder, configTable$Reverse_Reads_File, sep = "/")
   checkConfigFile(configTable, fastq_folder)
@@ -135,6 +136,18 @@ ampliCanMaker <- function (config,
   close(logFileConn)
 
   uBarcode <- unique(configTable$Barcode)
+
+  # Several statistics about deletions, cuts and reads
+  configTable$Sum_Target_Forward_Found <- 0
+  configTable$Sum_Target_Reverse_Found <- 0
+  # Deletions, valid or not
+  configTable$Sum_Deletions_Forward <- 0
+  configTable$Sum_Deletions_Reverse <- 0
+  configTable$Sum_Is_Sequence    <- 0
+  # Warnings
+  configTable$Found_Target  <- 0
+  configTable$Found_Primers <- 0
+  configTable$Found_AP      <- 0
 
   if (requireNamespace("doParallel", quietly = TRUE) & total_processors > 1) {
     cl <- makeCluster(total_processors, outfile="")

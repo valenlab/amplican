@@ -10,23 +10,18 @@
 #'
 #'@return bool , TRUE:  Everything went good.
 #'          FALSE: If the test fails and a warning is annotated.
-checkTarget <- function(targetPrimer, amplicon, ID, barcode, configFilePath, logFileConn){
-  toReturn <- TRUE
-  targetPositions <- regexpr(targetPrimer, amplicon, ignore.case=TRUE, fixed=FALSE)[1]
-  if (targetPositions <= 0) {
-    toReturn <- FALSE
+checkTarget <- function(targetPrimer, amplicon, ID, barcode, logFileConn){
+  targetPositions <- grepl(targetPrimer, amplicon, ignore.case=TRUE)
+  if (targetPositions) {
     warning("Target has not been found in the amplicon. Check the log file for more information.")
     writeLines("Couldn't find the target primer:", logFileConn)
-    writeLines(toString(targetPrimer), logFileConn)
+    writeLines(targetPrimer, logFileConn)
     writeLines("In amplicon:", logFileConn)
-    writeLines(toString(amplicon), logFileConn)
-    writeLines("For ID and barcode:", logFileConn)
-    writeLines(toString(paste(ID, barcode, sep=" ")), logFileConn)
-    writeLines("Which bellongs to the config file located in:", logFileConn)
-    writeLines(toString(configFilePath), logFileConn)
+    writeLines(amplicon, logFileConn)
+    writeLines(paste0("For ID: ", ID, " and barcode: ", barcode), logFileConn)
     writeLines("\n", logFileConn)
   }
-  return(toReturn)
+  return(targetPositions)
 }
 
 #' This function check if the forward anr reverse primer is in the amplicon.
@@ -51,26 +46,20 @@ checkTarget <- function(targetPrimer, amplicon, ID, barcode, configFilePath, log
 #' @return bool , TRUE:  Everything went good.
 #'          FALSE: If the test fails and a warning is annotated.
 #'
-checkPrimers <- function(forwardPrimer, reversePrimerReverseComplementary, amplicon, ID, barcode,
-                          configFilePath, logFileConn){
-  toReturn <- TRUE
-  forwardPrimerPosition <- regexpr(forwardPrimer, amplicon, ignore.case=TRUE, fixed=FALSE)[1]
-  reversePrimerPosition <- regexpr(reversePrimerReverseComplementary, amplicon, ignore.case=TRUE, fixed=FALSE)[1]
-  if(forwardPrimerPosition <= 0 || reversePrimerPosition <=0){
-    toReturn <- FALSE
+checkPrimers <- function(forwardPrimer, reversePrimerRC, amplicon, ID, barcode, logFileConn){
+  forwardPrimerPosition <- grepl(forwardPrimer, amplicon, ignore.case=TRUE)
+  reversePrimerPosition <- grepl(reversePrimerRC, amplicon, ignore.case=TRUE)
+  if (!(forwardPrimerPosition | reversePrimerPosition)) {
     warning("One of primer was not found in the amplicon. Check the log file for more information.")
     writeLines("Couldn't find the forward primer or reverse primer (reversed and complemented):", logFileConn)
     writeLines(toString(forwardPrimer), logFileConn)
     writeLines(toString(reversePrimerReverseComplementary), logFileConn)
     writeLines("In amplicon:", logFileConn)
     writeLines(toString(amplicon), logFileConn)
-    writeLines("For ID and barcode:", logFileConn)
-    writeLines(toString(paste(ID, barcode, sep=" ")), logFileConn)
-    writeLines("Which bellongs to the config file located in:", logFileConn)
-    writeLines(toString(configFilePath), logFileConn)
+    writeLines(paste0("For ID: ", ID, " and barcode: ", barcode), logFileConn)
     writeLines("\n", logFileConn)
   }
-  return (toReturn)
+  return(forwardPrimerPosition | reversePrimerPosition)
 }
 
 #' This function check if the given alignment positions are valid
@@ -91,10 +80,8 @@ checkPrimers <- function(forwardPrimer, reversePrimerReverseComplementary, ampli
 #'   bool , TRUE:  Everything went good.
 #'          FALSE: If the test fails and a warning is annotated.
 #'
-checkPositions <- function (alignmentPositions, amplicon, ID, barcode, configFilePath, logFileConn){
-  toReturn <- TRUE
+checkPositions <- function(alignmentPositions, amplicon, ID, barcode, configFilePath, logFileConn){
   if (alignmentPositions[1] <= 0) {
-    toReturn <- FALSE
     warning("Aligment position was not found in the amplicon. Find more information in the log file.")
     writeLines("Couldn't find alignment position for amplicon:", logFileConn)
     writeLines(toString(amplicon), logFileConn)
@@ -104,7 +91,7 @@ checkPositions <- function (alignmentPositions, amplicon, ID, barcode, configFil
     writeLines(toString(configFilePath), logFileConn)
     writeLines("\n", logFileConn)
   }
-  return(toReturn)
+  return(alignmentPositions[1] > 0)
 }
 
 #' This function pre-process a config file and check that everything is in order
