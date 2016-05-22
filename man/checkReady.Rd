@@ -7,7 +7,7 @@
 checkReady(configFilePath)
 }
 \arguments{
-\item{string}{configFilePath: A string with the absolute path pointing to the config file}
+\item{configFilePath}{(string) A string with the absolute path pointing to the config file}
 }
 \value{
 bool, TRUE:  Everything went good.

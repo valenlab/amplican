@@ -1,15 +1,12 @@
 #' This function check if the target RNA is in the amplicon.
 #'
-#'@param   string targetPrimer: A sequence of nucleotides in a string format representing the target
-#'@param          amplicon:     A sequence of nucleotides in a string format representing the amplicon
-#'@param          ID:           The ID from where this target and amplicon came.
-#'@param          barcode:      The barcode from where this target and amplicon came.
-#'@param          configFilePath: The location on disk where you can find the config file with this ID and barcode.
-#
-#'@param   file descriptor logFileConn: A file descriptor in R which is pointing to the log file.
+#'@param targetPrimer (string) A sequence of nucleotides in a string format representing the target
+#'@param amplicon (string) A sequence of nucleotides in a string format representing the amplicon
+#'@param ID (string) The ID from where this target and amplicon came.
+#'@param barcode (String) The barcode from where this target and amplicon came.
+#'@param logFileConn (connection) A file descriptor in R which is pointing to the log file.
+#'@return (bool) , TRUE:  Everything went good.
 #'
-#'@return bool , TRUE:  Everything went good.
-#'          FALSE: If the test fails and a warning is annotated.
 checkTarget <- function(targetPrimer, amplicon, ID, barcode, logFileConn){
   targetPositions <- grepl(targetPrimer, amplicon, ignore.case=TRUE)
   if (targetPositions) {
@@ -31,20 +28,16 @@ checkTarget <- function(targetPrimer, amplicon, ID, barcode, logFileConn){
 #' that is suppose to containt a reverse complement it won't find it. However you can use it to find any pair of
 #' primers regarless if they are reverse complemented or not.
 #'
-#' @param string forwardPrimer: A sequence of nucleotides in a string format representing the forward primer
-#' @param        reversePrimer: A sequence of nucleotides in a string format representing the reverse primer. Usually
+#' @param forwardPrimer (string) A sequence of nucleotides in a string format representing the forward primer
+#' @param reversePrimerRC (string) A sequence of nucleotides in a string format representing the reverse primer. Usually
 #'                         you want to reverse complement this BEFORE giving it to the function. The function WILL NOT
 #'                         reverse complement it for you. (see: /libraries/tools.R , you have there the reverse
 #'                         complement function)
-#' @param         amplicon:     A sequence of nucleotides in a string format representing the amplicon
-#' @param         ID:           The ID from where this target and amplicon came.
-#' @param         barcode:      The barcode from where this target and amplicon came.
-#' @param         configFilePath: The location on disk where you can find the config file with this ID and barcode.
-#'
-#'   file descriptor logFileConn: A file descriptor in R which is pointing to the log file.
-#'
-#' @return bool , TRUE:  Everything went good.
-#'          FALSE: If the test fails and a warning is annotated.
+#' @param amplicon (string) A sequence of nucleotides in a string format representing the amplicon
+#' @param ID (string) The ID from where this target and amplicon came.
+#' @param barcode (string) The barcode from where this target and amplicon came.
+#' @param logFileConn (connection) The location on disk where you can find the config file with this ID and barcode.
+#' @return (bool) TRUE when everything went good.
 #'
 checkPrimers <- function(forwardPrimer, reversePrimerRC, amplicon, ID, barcode, logFileConn){
   forwardPrimerPosition <- grepl(forwardPrimer, amplicon, ignore.case=TRUE)
@@ -53,7 +46,7 @@ checkPrimers <- function(forwardPrimer, reversePrimerRC, amplicon, ID, barcode, 
     warning("One of primer was not found in the amplicon. Check the log file for more information.")
     writeLines("Couldn't find the forward primer or reverse primer (reversed and complemented):", logFileConn)
     writeLines(toString(forwardPrimer), logFileConn)
-    writeLines(toString(reversePrimerReverseComplementary), logFileConn)
+    writeLines(toString(reversePrimerRC), logFileConn)
     writeLines("In amplicon:", logFileConn)
     writeLines(toString(amplicon), logFileConn)
     writeLines(paste0("For ID: ", ID, " and barcode: ", barcode), logFileConn)
@@ -62,33 +55,22 @@ checkPrimers <- function(forwardPrimer, reversePrimerRC, amplicon, ID, barcode, 
   return(forwardPrimerPosition | reversePrimerPosition)
 }
 
-#' This function check if the given alignment positions are valid
+#' This function checks if the given alignment positions are valid
 #'
-#' The function takes the following paramenters:
+#' @param alignmentPositions (vector) of integers representing the aligning positions inside the amplicon
+#' @param amplicon (string) A sequence of nucleotides in a string format representing the amplicon
+#' @param ID (string) The ID for target and amplicon.
+#' @param barcode (string) barcode belonging to target and amplicon.
+#' @param logFileConn (connection) Path to config file.
+#' @return (bool) TRUE when positions are greater than 0.
 #'
-#'   array<int> alignmentPositions: an array of integers representing the aligning positions inside the amplicon.
-#'
-#'   string   amplicon:     A sequence of nucleotides in a string format representing the amplicon
-#'            ID:           The ID from where this target and amplicon came.
-#'            barcode:      The barcode from where this target and amplicon came.
-#'            configFilePath: The location on disk where you can find the config file with this ID and barcode.
-#'
-#'   file descriptor logFileConn: A file descriptor in R which is pointing to the log file.
-#'
-#' The function returns the following variables:
-#'
-#'   bool , TRUE:  Everything went good.
-#'          FALSE: If the test fails and a warning is annotated.
-#'
-checkPositions <- function(alignmentPositions, amplicon, ID, barcode, configFilePath, logFileConn){
+checkPositions <- function(alignmentPositions, amplicon, ID, barcode, logFileConn){
   if (alignmentPositions[1] <= 0) {
     warning("Aligment position was not found in the amplicon. Find more information in the log file.")
     writeLines("Couldn't find alignment position for amplicon:", logFileConn)
     writeLines(toString(amplicon), logFileConn)
     writeLines("For ID and barcode:", logFileConn)
     writeLines(toString(paste(ID, barcode, sep=" ")), logFileConn)
-    writeLines("Which bellongs to the config file located in:", logFileConn)
-    writeLines(toString(configFilePath), logFileConn)
     writeLines("\n", logFileConn)
   }
   return(alignmentPositions[1] > 0)
@@ -101,7 +83,7 @@ checkPositions <- function(alignmentPositions, amplicon, ID, barcode, configFile
 #'   Every combination of barcode, forward primer and reverse primer is unique.
 #'   Each barcode has unique forward reads file and reverse read files.
 #'   Check that the read files exist with read access.
-#' @param config (data.frame) Config file.
+#' @param configTable (data.frame) Config file.
 #' @param fastq_folder (string) Path to fastq folder.
 #' @return (Void) If anything goes wrong stops and prints error.
 checkConfigFile <- function(configTable, fastq_folder){
@@ -112,26 +94,26 @@ checkConfigFile <- function(configTable, fastq_folder){
   goodRows <- complete.cases(configTable)
   if (sum(goodRows) != totalRows) {
     stop(paste0("Config file has bad rows: ",
-                paste(which(goodRows == F), collapse = " ") ,
+                paste(which(goodRows == F)),
                 " due to NA/NULL values"))
   }
 
   if(length(unique(configTable[, "ID"])) != totalRows){
     stop(paste0("Config file has duplicates IDs in rows:",
-                paste(which(duplicated(configTable[, "ID"])), collapse = " ")))
+                paste(which(duplicated(configTable[, "ID"])))))
   }
 
   barcode_primers_duple <- duplicated(configTable[c("Barcode", "Forward_Primer", "Reverse_Primer")])
   if(sum(barcode_primers_duple) != 0){
     stop(paste0("Config file has non unique combinations of barcode, forward primer and reverse primer.
-                Duplicated rows: ", paste(which(barcode_primers_duple, collapse=" "))))
+                Duplicated rows: ", paste(which(barcode_primers_duple))))
   }
 
   barcode_files_duple <- duplicated(configTable[c("Barcode")])
   forward_reverse_files_duple <- duplicated(configTable[c("Forward_Reads_File", "Reverse_Reads_File")])
   fail_barcodes <- which(barcode_files_duple != forward_reverse_files_duple)
   if (length(fail_barcodes) > 0) {
-    stop(paste0("Each of these rows are malfunctioned in the config file: ", paste(fail_barcodes, collapse = " "),
+    stop(paste0("Each of these rows are malfunctioned in the config file: ", paste(fail_barcodes),
                 " For each barcode there can be only one set of paths for forward and reverse files."))
   }
 
@@ -141,6 +123,6 @@ checkConfigFile <- function(configTable, fastq_folder){
   if (sum(access) > 0) {
     stop(paste0("We either dont have read access or paths are incorrect. ",
                 "Check specified paths in config for these files:\n",
-                paste(uniqueFilePaths[access], collapse = "\n")))
+                paste(uniqueFilePaths[access], sep = "\n")))
   }
 }

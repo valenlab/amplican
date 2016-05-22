@@ -11,12 +11,12 @@ dividing the work.}
 divideWork(totalProcessors, configDataframe)
 }
 \arguments{
-\item{totalProcessors:}{(Int)       An integer with the number of processors.
+\item{totalProcessors}{(Int)       An integer with the number of processors.
 This is also the amount of groups that will
 result from this function. The number must be
 1 or bigger.}
 
-\item{configDataframe:}{(Dataframe) A dataframe you want to divide. It doesn't
+\item{configDataframe}{(Dataframe) A dataframe you want to divide. It doesn't
 require any special column. But it must not be
 empty. It can be full of NA rows thought.}
 }

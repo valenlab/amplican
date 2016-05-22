@@ -2,27 +2,25 @@
 % Please edit documentation in R/warnings_helpers.R
 \name{checkPositions}
 \alias{checkPositions}
-\title{This function check if the given alignment positions are valid}
+\title{This function checks if the given alignment positions are valid}
 \usage{
-checkPositions(alignmentPositions, amplicon, ID, barcode, configFilePath,
-  logFileConn)
+checkPositions(alignmentPositions, amplicon, ID, barcode, logFileConn)
+}
+\arguments{
+\item{alignmentPositions}{(vector) of integers representing the aligning positions inside the amplicon}
+
+\item{amplicon}{(string) A sequence of nucleotides in a string format representing the amplicon}
+
+\item{ID}{(string) The ID for target and amplicon.}
+
+\item{barcode}{(string) barcode belonging to target and amplicon.}
+
+\item{logFileConn}{(connection) Path to config file.}
+}
+\value{
+(bool) TRUE when positions are greater than 0.
 }
 \description{
-The function takes the following paramenters:
-}
-\details{
-array<int> alignmentPositions: an array of integers representing the aligning positions inside the amplicon.
-
-string   amplicon:     A sequence of nucleotides in a string format representing the amplicon
-           ID:           The ID from where this target and amplicon came.
-           barcode:      The barcode from where this target and amplicon came.
-           configFilePath: The location on disk where you can find the config file with this ID and barcode.
-
-file descriptor logFileConn: A file descriptor in R which is pointing to the log file.
-
-The function returns the following variables:
-
-bool , TRUE:  Everything went good.
-         FALSE: If the test fails and a warning is annotated.
+This function checks if the given alignment positions are valid
 }
 

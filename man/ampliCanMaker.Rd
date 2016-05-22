@@ -6,9 +6,9 @@
 \usage{
 ampliCanMaker(config, fastq_folder, results_folder, total_processors = 1,
   skip_bad_nucleotides = TRUE, average_quality = 0, min_quality = 0,
-  write_alignments = 2, gap_opening = 50, gap_extension = 0,
-  gap_ending = FALSE, far_indels = TRUE, deletefq = FALSE,
-  temp_folder = FALSE, fastqfiles = 0)
+  write_alignments = 2, scoring_matrix = "NUC44", gap_opening = 50,
+  gap_extension = 0, gap_ending = FALSE, far_indels = TRUE,
+  deletefq = FALSE, temp_folder = "", fastqfiles = 0)
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
@@ -46,10 +46,9 @@ Default is 0.}
 0 - Write nothing
 1 - Write only the summary file
 2 - Write also a verbose file with all the alignments
-    in the same .txt file (Default option)
-3 - Write also every individual .txt file. Be aware
-    that this option generates thousands of tiny
-    files which can bottleneck the run.}
+    in the same .txt file (Default option)}
+
+\item{scoring_matrix}{(string) For now the only option is "NUC44".}
 
 \item{gap_opening}{(int) The opening gap score. Default is 50.}
 
@@ -85,7 +84,7 @@ forward file, or only the reverse file.
 }
 \description{
 amplicanAlignments takes a configuration files, fastq reads and output directory to prepare
-alignments. It is first step in our pipeline. Next step is \code{\link{amplicanAnalysis}}. If
-you prefer to use simpler, more automated approach use \code{\link{amplicanPipeline}}.
+alignments. It is first step in our pipeline. Next step is amplicanAnalysis. If
+you prefer to use simpler, more automated approach use amplicanPipeline.
 }
 

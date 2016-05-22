@@ -4,30 +4,26 @@
 \alias{checkPrimers}
 \title{This function check if the forward anr reverse primer is in the amplicon.}
 \usage{
-checkPrimers(forwardPrimer, reversePrimerReverseComplementary, amplicon, ID,
-  barcode, configFilePath, logFileConn)
+checkPrimers(forwardPrimer, reversePrimerRC, amplicon, ID, barcode, logFileConn)
 }
 \arguments{
-\item{string}{forwardPrimer: A sequence of nucleotides in a string format representing the forward primer}
+\item{forwardPrimer}{(string) A sequence of nucleotides in a string format representing the forward primer}
 
-\item{reversePrimer:}{A sequence of nucleotides in a string format representing the reverse primer. Usually
+\item{reversePrimerRC}{(string) A sequence of nucleotides in a string format representing the reverse primer. Usually
 you want to reverse complement this BEFORE giving it to the function. The function WILL NOT
 reverse complement it for you. (see: /libraries/tools.R , you have there the reverse
 complement function)}
 
-\item{amplicon:}{A sequence of nucleotides in a string format representing the amplicon}
+\item{amplicon}{(string) A sequence of nucleotides in a string format representing the amplicon}
 
-\item{ID:}{The ID from where this target and amplicon came.}
+\item{ID}{(string) The ID from where this target and amplicon came.}
 
-\item{barcode:}{The barcode from where this target and amplicon came.}
+\item{barcode}{(string) The barcode from where this target and amplicon came.}
 
-\item{configFilePath:}{The location on disk where you can find the config file with this ID and barcode.
-
-  file descriptor logFileConn: A file descriptor in R which is pointing to the log file.}
+\item{logFileConn}{(connection) The location on disk where you can find the config file with this ID and barcode.}
 }
 \value{
-bool , TRUE:  Everything went good.
-         FALSE: If the test fails and a warning is annotated.
+(bool) TRUE when everything went good.
 }
 \description{
 The forward primer should be the one coming from the configuration file, while the reverse primer should be

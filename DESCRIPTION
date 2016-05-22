@@ -21,12 +21,16 @@ LinkingTo: Rcpp
 Imports:
     Rcpp,
     R.utils,
-    plyr,
-    dplyr
+    seqinr,
+    ShortRead,
+    IRanges,
+    GenomicRanges,
+    S4Vectors
 RoxygenNote: 5.0.1
 Suggests:
     testthat,
-    doParallel
+    doParallel,
+    foreach
 Collate:
     'RcppExports.R'
     'alignment_helpers.R'

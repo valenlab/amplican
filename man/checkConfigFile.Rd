@@ -7,9 +7,9 @@
 checkConfigFile(configTable, fastq_folder)
 }
 \arguments{
-\item{fastq_folder}{(string) Path to fastq folder.}
+\item{configTable}{(data.frame) Config file.}
 
-\item{config}{(data.frame) Config file.}
+\item{fastq_folder}{(string) Path to fastq folder.}
 }
 \value{
 (Void) If anything goes wrong stops and prints error.
@@ -19,6 +19,6 @@ Its takes care of the following:
   No IDs are duplicated
   Every combination of barcode, forward primer and reverse primer is unique.
   Each barcode has unique forward reads file and reverse read files.
-  Check that the read files exist and with reading access
+  Check that the read files exist with read access.
 }
 

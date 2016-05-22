@@ -4,18 +4,17 @@
 \alias{getEventInfo}
 \title{This function takes a lite string and gives back the events coordinates}
 \usage{
-getEventInfo(liteString)
+getEventInfo(liteString, ID, strand = "*")
 }
 \arguments{
-\item{liteString}{(list)}
+\item{liteString}{(string)}
+
+\item{ID}{(string)}
+
+\item{strand}{(string) Either "+", "-" or default "*"}
 }
 \value{
-A list with 6 elements:
-    - The element 1 and element 4 is the total of insertions and deletions (in that order)
-    - The element 2 and element 5 is where the insertions and deletions starts (in that order)
-    - The element 3 and element 6 is where the insertions and deletion ends in (that order)
-    - Elements 2,3,4,5 are integer arrays.
-    - If the total of insertions/deletions is 0, the integer arrays will be equal to NULL
+(GRanges) Object with metadata for insertion, deletion, missmatch
 }
 \description{
 For the given example:
@@ -27,8 +26,9 @@ NNNNNNNNNNN-----NNNNNNN-------NNNNNNNN--------NNNNNNNN------    Subject
 \details{
 The RCPP library returns the information regarding the start and ends of the events in the
 following way:
-(Please notice that there is a +1 shift in the index)
+(Notice that there is a +1 shift in the index)
 
-#returned: @4@ 12,16 * 24,30 * 39,46 * 55,60 * ! @3@ 1,6 * 31,33  * 48,50 *
+#returned: @4@12,16*24,30*39,46*55,60*!@3@1,6*31,33*48,50*!@0@
+#example: @0@!@1@152,207*!@1@25,t,A*
 }
 

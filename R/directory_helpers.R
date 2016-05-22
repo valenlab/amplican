@@ -6,20 +6,20 @@
 #'
 #' The function takes the following parameters:
 #'
-#'@param   targetFolder:  (String) The folder where the files are suppose to be.
+#'@param targetFolder (String) The folder where the files are suppose to be.
 #'
-#'@param   regex:         (String) The files to be combined, must comply with this
+#'@param regex (String) The files to be combined, must comply with this
 #'                           regex.
 #'
-#'@param   finalFileName: (String) The name of the final file.
+#'@param finalFileName (String) The name of the final file.
 #'
-#'@param   header:        (Bool)   If header is true, it will take the header of the
+#'@param header (Bool)   If header is true, it will take the header of the
 #'                           first file only and ignore the rest. Otherwise it
 #'                           will repeat the header many times.
 #'
-#'@param   delete:        (Bool)   If true, it will delete the original files
+#'@param delete (Bool)   If true, it will delete the original files
 #'
-#'@param   isrecursive:   (Bool)   If recursive is true, it will look inside all the
+#'@param isrecursive (Bool)   If recursive is true, it will look inside all the
 #'                           folder of the given folder for more files which
 #'                           name match the regex.
 #'
@@ -76,7 +76,7 @@ deleteFiles <- function(configTable){
 #' @param temp_folder (String) Where to store unzipped files.
 #' @return (data.frame) configTable with Forward_File and Reverse_File updated if
 #' unpacking files was required.
-#' @import R.utils
+#' @importFrom R.utils isGzipped gunzip
 unpackFastq <- function(configTable, temp_folder){
   for(i in 1:dim(configTable)[1]){
     forward <- configTable$Forward_Reads_File[i]
@@ -107,7 +107,7 @@ unpackFastq <- function(configTable, temp_folder){
 
 #' This function check if the given file exist and can be read.
 #'
-#' @param   filePath: (String) A string the path to the file.
+#' @param filePath (String) A string the path to the file.
 #' @return (Void) Stop if no access.
 checkFileAccess <- function (filePath){
   if (file.access(filePath[1], mode = 4) != 0) {
@@ -117,7 +117,7 @@ checkFileAccess <- function (filePath){
 
 #' This function checks if the given directory exist and can be written to.
 #'
-#' @param filePath: (String) A string the path to the file.
+#' @param filePath (String) A string the path to the file.
 #' @return (Void) Stop if no access.
 checkFileWriteAccess <- function(filePath){
    if (file.access(filePath[1], mode = 2) != 0) {
@@ -128,7 +128,7 @@ checkFileWriteAccess <- function(filePath){
 
 #' Gives a config file path and check if exist, is readable, etc...
 #'
-#'@param string configFilePath: A string with the absolute path pointing to the config file
+#'@param configFilePath (string) A string with the absolute path pointing to the config file
 #'@return bool, TRUE:  Everything went good.
 #'          FALSE: If the config file doesn't exist or if we don't have read access
 #'                 If the string provided was 'NULL', 'NA', '0', 'null' or 'na'

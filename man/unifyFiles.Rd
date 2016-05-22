@@ -8,20 +8,20 @@ pattern and put them toguether into a single file.}
 unifyFiles(targetFolder, regex, finalFileName, header, delete, isrecursive)
 }
 \arguments{
-\item{targetFolder:}{(String) The folder where the files are suppose to be.}
+\item{targetFolder}{(String) The folder where the files are suppose to be.}
 
-\item{regex:}{(String) The files to be combined, must comply with this
+\item{regex}{(String) The files to be combined, must comply with this
 regex.}
 
-\item{finalFileName:}{(String) The name of the final file.}
+\item{finalFileName}{(String) The name of the final file.}
 
-\item{header:}{(Bool)   If header is true, it will take the header of the
+\item{header}{(Bool)   If header is true, it will take the header of the
 first file only and ignore the rest. Otherwise it
 will repeat the header many times.}
 
-\item{delete:}{(Bool)   If true, it will delete the original files}
+\item{delete}{(Bool)   If true, it will delete the original files}
 
-\item{isrecursive:}{(Bool)   If recursive is true, it will look inside all the
+\item{isrecursive}{(Bool)   If recursive is true, it will look inside all the
 folder of the given folder for more files which
 name match the regex.}
 }

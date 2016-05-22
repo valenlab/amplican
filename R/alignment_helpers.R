@@ -12,9 +12,11 @@
 #'
 #' #returned: @4@12,16*24,30*39,46*55,60*!@3@1,6*31,33*48,50*!@0@
 #' #example: @0@!@1@152,207*!@1@25,t,A*
-#' @param liteString (list)
-#' @import GenomicRanges
+#' @param liteString (string)
+#' @param ID (string)
+#' @param strand (string) Either "+", "-" or default "*"
 #' @return (GRanges) Object with metadata for insertion, deletion, missmatch
+#' @import GenomicRanges S4Vectors
 getEventInfo <- function(liteString, ID, strand = "*"){
 
     if(is.na(liteString) | length(liteString) < 12){
@@ -33,7 +35,7 @@ getEventInfo <- function(liteString, ID, strand = "*"){
       insertions <- unlist(strsplit(insertions, "*", fixed = TRUE))
       insertionsPairs <- as.numeric(unlist(strsplit(insertions, ",", fixed = TRUE)))
       insertionsR <- GRanges(ranges = IRanges(start = insertionsPairs[c(T, F)], end = insertionsPairs[c(F, T)]),
-                            strand = Rle(rep(strand, insCount)),
+                            strand = S4Vectors::Rle(rep(strand, insCount)),
                             seqnames = Rle(rep(ID, insCount)))
       insertionsR$mm_originally = ""
       insertionsR$mm_replacement = ""
@@ -71,6 +73,7 @@ getEventInfo <- function(liteString, ID, strand = "*"){
     return(c(insertionsR, deletionsR, missmatchesR))
 }
 
+
 #' For a given string, detect how many groups of uppercases are there, where are
 #' they, and how long they are.
 #'
@@ -100,11 +103,8 @@ upperGroups <- function(candidate){
 #' @param far_indels (bool)
 #' @param configTable (bool)
 #' @param resultsFolder (char)
-#' @param alignmentFolder (char)
-#' @param procesID (int)
-#' @param temp_folder (char)
 #' @param fastqfiles (char)
-#' @import ShortRead, seqinr, GenomicRanges
+#' @import ShortRead seqinr GenomicRanges
 #' @return no clue
 makeAlignment <- function(configTable,
                           resultsFolder,
@@ -116,7 +116,8 @@ makeAlignment <- function(configTable,
                           gap_opening = 50,
                           gap_extension = 0,
                           gap_ending = FALSE,
-                          far_indels = TRUE){
+                          far_indels = TRUE,
+                          fastqfiles = 0){
 
   barcode <- configTable$Barcode[1]
 
@@ -314,15 +315,15 @@ makeAlignment <- function(configTable,
               file = paste(resultsFolder, "/", barcode, "_unassigned.txt", sep = '', collapse = ''),
               quote = FALSE, sep = "\t")
 
-  if (masterFileConnOpen) {
+  if (isOpen(masterFileConn)) {
     close(masterFileConn)
   }
-  if (uberAlignmentFDOpen) {
+  if (isOpen(uberAlignmentFD)) {
     close(uberAlignmentFD)
   }
   close(uniqueTableFD)
 
-  write.table(configTable, paste0(alignmentFolder, "/", barcode, "_configFile_results") , sep="\t")
-  write.table(barcodeTable, paste0(alignmentFolder, "/", barcode, "_barcodeFile_results"), sep="\t")
+  write.table(configTable, paste0(resultsFolder, "/", barcode, "_configFile_results") , sep="\t")
+  write.table(barcodeTable, paste0(resultsFolder, "/", barcode, "_barcodeFile_results"), sep="\t")
   return()
 }

@@ -7,16 +7,10 @@
 checkFileAccess(filePath)
 }
 \arguments{
-\item{filePath:}{(String) A string the path to the file.}
+\item{filePath}{(String) A string the path to the file.}
 }
 \value{
-(Bool) TRUE if we have file access. This means:
-         -- If the file path is not NULL.
-         -- If the file path is not NA.
-         -- If the file path is not "Null", "null", "na", ...
-         -- If the file path have read permissions.
-
-         FALSE otherwise.
+(Void) Stop if no access.
 }
 \description{
 This function check if the given file exist and can be read.

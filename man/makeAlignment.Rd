@@ -2,54 +2,42 @@
 % Please edit documentation in R/alignment_helpers.R
 \name{makeAlignment}
 \alias{makeAlignment}
-\title{make alignments}
+\title{Make alignments}
 \usage{
-makeAlignment(SKIP_BAD_NUCLEOTIDES = TRUE, AVERAGE_QUALITY = 0,
-  MIN_QUALITY = 0, WRITE_ALIGNMENTS = TRUE, SCORING_MATRIX = "NUC44",
-  GAP_OPENING = 50, GAP_EXTENSION = 0, GAP_ENDING = FALSE,
-  FAR_INDELS = TRUE, configDataframe = NULL, resultFolder = NULL,
-  alignmentFolder = NULL, processID = 0, configFilePath = "", TIMING,
-  TEMPFOLDER, FASTQFILES)
+makeAlignment(configTable, resultsFolder, skip_bad_nucleotides = TRUE,
+  average_quality = 0, min_quality = 0, write_alignments = 1,
+  scoring_matrix = "NUC44", gap_opening = 50, gap_extension = 0,
+  gap_ending = FALSE, far_indels = TRUE, fastqfiles = 0)
 }
 \arguments{
-\item{AVERAGE_QUALITY}{(int)}
+\item{configTable}{(bool)}
 
-\item{MIN_QUALITY}{(int)}
+\item{resultsFolder}{(char)}
 
-\item{WRITE_ALIGNMENTS}{(bool)}
+\item{skip_bad_nucleotides}{(bool)}
 
-\item{SCORING_MATRIX}{(char)}
+\item{average_quality}{(int)}
 
-\item{GAP_OPENING}{(bool)}
+\item{min_quality}{(int)}
 
-\item{GAP_EXTENSION}{(int)}
+\item{write_alignments}{(bool)}
 
-\item{GAP_ENDING}{(bool)}
+\item{scoring_matrix}{(char)}
 
-\item{FAR_INDELS}{(bool)}
+\item{gap_opening}{(bool)}
 
-\item{configDataframe}{(bool)}
+\item{gap_extension}{(int)}
 
-\item{resultFolder}{(char)}
+\item{gap_ending}{(bool)}
 
-\item{alignmentFolder}{(char)}
+\item{far_indels}{(bool)}
 
-\item{configFilePath}{(char)}
-
-\item{TIMING}{(bool)}
-
-\item{TEMPFOLDER}{(char)}
-
-\item{FASTQFILES}{(char)}
-
-\item{SKIP_BAD_NUKLEOTYDES}{(bool)}
-
-\item{procesID}{(int)}
+\item{fastqfiles}{(char)}
 }
 \value{
 no clue
 }
 \description{
-make alignments
+Make alignments
 }
 

@@ -11,15 +11,15 @@ O(nlogn).}
 divideWorkBySize(totalProcessors, configDataframe, colName)
 }
 \arguments{
-\item{totalProcessors:}{(Int)       An integer with the number of processors.
+\item{totalProcessors}{(Int)       An integer with the number of processors.
 This is also the amount of groups that will
 result from this function. The number must be
 1 or bigger.}
 
-\item{configDataframe:}{(Dataframe) A dataframe you want to divide. It must not be
+\item{configDataframe}{(Dataframe) A dataframe you want to divide. It must not be
 empty.}
 
-\item{colName:}{(String)    The name of a column in configDataframe. This
+\item{colName}{(String)    The name of a column in configDataframe. This
 column should be full of of values that can be
 sorted and can be added (typically either int
 or float). It can be negative values.}

@@ -8,14 +8,14 @@
 #'
 #'   divideWorkBySize()
 #'   divideWorkByBarcode()
-#'@param   totalProcessors: (Int)       An integer with the number of processors.
+#'@param totalProcessors (Int)       An integer with the number of processors.
 #'                                This is also the amount of groups that will
 #'                                result from this function. The number must be
 #'                                1 or bigger.
-#'@param   configDataframe: (Dataframe) A dataframe you want to divide. It doesn't
+#'@param configDataframe (Dataframe) A dataframe you want to divide. It doesn't
 #'                                require any special column. But it must not be
 #'                                empty. It can be full of NA rows thought.
-#'@return   (List) A list with several dataframes. Each dataframe is a subgroup of
+#'@return (List) A list with several dataframes. Each dataframe is a subgroup of
 #'          configDataframe. If the number of rows of configDataframe is bigger
 #'          than totalProcessors, the list have length totalProcessors. If it is
 #'          smaller, the length is equal to the number of rows of
@@ -66,19 +66,19 @@ divideWork <- function(totalProcessors, configDataframe){
 #'   divideWork()
 #'   divideWorkByBarcode()
 #'
-#'@param   totalProcessors: (Int)       An integer with the number of processors.
+#'@param totalProcessors (Int)       An integer with the number of processors.
 #'                                This is also the amount of groups that will
 #'                                result from this function. The number must be
 #'                                1 or bigger.
 #'
-#'@param   configDataframe: (Dataframe) A dataframe you want to divide. It must not be
+#'@param configDataframe (Dataframe) A dataframe you want to divide. It must not be
 #'                                empty.
 #'
-#'@param   colName:         (String)    The name of a column in configDataframe. This
+#'@param colName (String)    The name of a column in configDataframe. This
 #'                                column should be full of of values that can be
 #'                                sorted and can be added (typically either int
 #'                                or float). It can be negative values.
-#'@return   (List) A list with several dataframes. Each dataframe is a subgroup of
+#'@return (List) A list with several dataframes. Each dataframe is a subgroup of
 #'          configDataframe. If the number of rows of configDataframe is bigger
 #'          than totalProcessors, the list have length totalProcessors. If it is
 #'          smaller, the length is equal to the number of rows of

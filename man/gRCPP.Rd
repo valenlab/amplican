@@ -42,7 +42,6 @@ gap counts as deletion/insertion. FALSE othewise.
 \value{
 (string) The function return a string with all the information. The
                  string is divided in 5 parts. These parts are:
-
                  - Verbose alignment result.
                  - List of events from the alignment perspective.
                  - List of events from the subject perspective.
@@ -92,45 +91,29 @@ gap counts as deletion/insertion. FALSE othewise.
                   ----------------
                   INSERTIONS:
                   ----------------
-
                   --Insertions respect patterns coordinates--
-
-
                   ----------------
                   DELETIONS:
                   ----------------
                   In Pattern
                   START: 1
                   END:   5
-
-
                   --Deletions respect subject coordinates--
-
                   In Pattern
                   START: 1
                   END:   5
-
-
                   ----------------
                   MISMATCHES:
                   ----------------
                   START:    5
                   ORIGINAL: t
                   MUTATED:  a
-
-
                   --Missmatches respect subject coordinates--
-
                   START:    5
                   ORIGINAL: t
                   MUTATED:  a
-
-
-
                   ****************
-
                   -- List of events from the alignment perspective --
-
                   The next string is compact representation of the
                   insertions, deletions, and missmatches. The representaion
                   follows the following format:
@@ -161,9 +144,7 @@ gap counts as deletion/insertion. FALSE othewise.
 
                   This is an example:
                   (at)0(at)!(at)1(at)1,5*!(at)1(at)5,t,a*
-
                   -- List of events from the subject perspective --
-
                   The next string is compact representation of the
                   insertions, deletions, and missmatches. The twist here is
                   that the information is given from the subject coordinates
@@ -188,14 +169,11 @@ gap counts as deletion/insertion. FALSE othewise.
 
                   The format in which this information is portrayed is the
                   same as in the previous list of events.
-
                   -- Pattern alignment string --
 
                   A string with the characters that represent the resulted
                   alignment for the pattern. In our example:
-
                   -----aaaaa
-
                   -- Pattern subject string --
 
                   A string with the characters that represent the resulted

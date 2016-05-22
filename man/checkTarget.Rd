@@ -4,24 +4,21 @@
 \alias{checkTarget}
 \title{This function check if the target RNA is in the amplicon.}
 \usage{
-checkTarget(targetPrimer, amplicon, ID, barcode, configFilePath, logFileConn)
+checkTarget(targetPrimer, amplicon, ID, barcode, logFileConn)
 }
 \arguments{
-\item{string}{targetPrimer: A sequence of nucleotides in a string format representing the target}
+\item{targetPrimer}{(string) A sequence of nucleotides in a string format representing the target}
 
-\item{amplicon:}{A sequence of nucleotides in a string format representing the amplicon}
+\item{amplicon}{(string) A sequence of nucleotides in a string format representing the amplicon}
 
-\item{ID:}{The ID from where this target and amplicon came.}
+\item{ID}{(string) The ID from where this target and amplicon came.}
 
-\item{barcode:}{The barcode from where this target and amplicon came.}
+\item{barcode}{(String) The barcode from where this target and amplicon came.}
 
-\item{configFilePath:}{The location on disk where you can find the config file with this ID and barcode.}
-
-\item{file}{descriptor logFileConn: A file descriptor in R which is pointing to the log file.}
+\item{logFileConn}{(connection) A file descriptor in R which is pointing to the log file.}
 }
 \value{
-bool , TRUE:  Everything went good.
-         FALSE: If the test fails and a warning is annotated.
+(bool) , TRUE:  Everything went good.
 }
 \description{
 This function check if the target RNA is in the amplicon.

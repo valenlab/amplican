@@ -2,21 +2,17 @@
 % Please edit documentation in R/directory_helpers.R
 \name{deleteFiles}
 \alias{deleteFiles}
-\title{This funcion takes a txt file, with a file path per row, and delete all those files.}
+\title{Delete files from configTables Forward_Reads_File and Reverse_Reads_File (fastq files).}
 \usage{
-deleteFiles(listOfFilesFileName, deleteSource = FALSE)
+deleteFiles(configTable)
 }
 \arguments{
-\item{listOfFilesFileName:}{(string) Path to the file that containts 0 or more files paths that will be deleted}
-
-\item{deleteSource:}{(bool)   If you want that the file listOfFilesFileName to be ALSO deleted, set this
-to TRUE. Default is FALSE}
+\item{configTable}{(data.frame) Contains Forward_Reads_File and Reverse_Reads_File to be removed}
 }
 \value{
-(int) How many files where deleted. This could be less than the orinal files, as it will only delete
-         files that you have write privilege.
+(void) In case of fail, prints err.
 }
 \description{
-This funcion takes a txt file, with a file path per row, and delete all those files.
+Delete files from configTables Forward_Reads_File and Reverse_Reads_File (fastq files).
 }
 
