@@ -37,7 +37,7 @@ Collate:
     'amplican.R'
     'parallel_helpers.R'
     'filters_helpers.R'
+    'gotoh.R'
     'amplicanAlignments.R'
     'directory_helpers.R'
-    'gotoh.R'
     'warnings_helpers.R'

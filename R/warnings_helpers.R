@@ -10,7 +10,7 @@
 checkTarget <- function(targetPrimer, amplicon, ID, barcode, logFileConn){
   targetPositions <- grepl(targetPrimer, amplicon, ignore.case=TRUE)
   if (targetPositions) {
-    warning("Target has not been found in the amplicon. Check the log file for more information.")
+    message("Warning: Target has not been found in the amplicon. Check the log file for more information.")
     writeLines("Couldn't find the target primer:", logFileConn)
     writeLines(targetPrimer, logFileConn)
     writeLines("In amplicon:", logFileConn)
@@ -43,7 +43,7 @@ checkPrimers <- function(forwardPrimer, reversePrimerRC, amplicon, ID, barcode, 
   forwardPrimerPosition <- grepl(forwardPrimer, amplicon, ignore.case=TRUE)
   reversePrimerPosition <- grepl(reversePrimerRC, amplicon, ignore.case=TRUE)
   if (!(forwardPrimerPosition | reversePrimerPosition)) {
-    warning("One of primer was not found in the amplicon. Check the log file for more information.")
+    message("Warning: One of primer was not found in the amplicon. Check the log file for more information.")
     writeLines("Couldn't find the forward primer or reverse primer (reversed and complemented):", logFileConn)
     writeLines(toString(forwardPrimer), logFileConn)
     writeLines(toString(reversePrimerRC), logFileConn)
@@ -65,8 +65,9 @@ checkPrimers <- function(forwardPrimer, reversePrimerRC, amplicon, ID, barcode, 
 #' @return (bool) TRUE when positions are greater than 0.
 #'
 checkPositions <- function(alignmentPositions, amplicon, ID, barcode, logFileConn){
-  if (alignmentPositions[1] <= 0) {
-    warning("Aligment position was not found in the amplicon. Find more information in the log file.")
+  pos <- ifelse(is.na(alignmentPositions[1]), 0, alignmentPositions[1])
+  if (pos <= 0) {
+    message("Warning: Aligment position was not found in the amplicon. Find more information in the log file.")
     writeLines("Couldn't find alignment position for amplicon:", logFileConn)
     writeLines(toString(amplicon), logFileConn)
     writeLines("For ID and barcode:", logFileConn)

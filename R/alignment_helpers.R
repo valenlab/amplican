@@ -19,7 +19,7 @@
 #' @import GenomicRanges S4Vectors
 getEventInfo <- function(liteString, ID, strand = "*"){
 
-    if(is.na(liteString) | length(liteString) < 12){
+    if(is.na(liteString) | nchar(liteString) < 12){
       return(GRanges())
     }
 
@@ -120,6 +120,7 @@ makeAlignment <- function(configTable,
                           fastqfiles = 0){
 
   barcode <- configTable$Barcode[1]
+  message(paste0("Aligning reads for ", barcode))
 
   #Read Reads for this Barcode
   forwardsTable <- readFastq(configTable$Forward_Reads_File[1])
@@ -131,7 +132,7 @@ makeAlignment <- function(configTable,
   nucq <- alphabetQuality(forwardsTable) & alphabetQuality(reversesTable)
   goodReads <- goodq & avrq & nucq
 
-  barcodeTable <- data.frame(Total_Pre_Filter = length(goodReads), Total_Post_Filter = sum(goodReads))
+  barcodeTable <- data.frame(Barcode = barcode, Total_Pre_Filter = length(goodReads), Total_Post_Filter = sum(goodReads))
 
   forwardsTable <- forwardsTable[goodReads]
   reversesTable <- reversesTable[goodReads]
@@ -172,6 +173,9 @@ makeAlignment <- function(configTable,
     uniqueTablePath <- paste0(currentIDFolderName, "/", currentID, "_", barcode, "_uniques.txt")
 
     cutSites <- upperGroups(amplicon)
+    if (length(cutSites) == 0) {
+      message(paste0("Warning: There is no CUT sites specified (uppercase letters) in amplicon for ID ", currentID))
+    }
 
     # If we need to write the alignment, prepare the proper file descriptors
     if (write_alignments >= 1) {
@@ -186,10 +190,10 @@ makeAlignment <- function(configTable,
 
     # Prepare the unique table where all the sequences are going.
     uniqueTableFD <- file(uniqueTablePath, open = "at")
-    writeLines(paste("Total", "Frequency", "Forward", "Reverse", "Forward_Alignment_String",
+    writeLines(paste("Count", "Frequency", "Forward", "Reverse", "Forward_Alignment_String",
                      "Reverse_Alignment_String", "Forward_Alignment_Genome_Coordinates_String",
                      "Reverse_Alignment_Genome_Coordinates_String", "Forward_Alignment_Length",
-                     "Reverse_Alignment_Length", "Alignment", "Forward_Alignment_Positions",
+                     "Reverse_Alignment_Length", "experiment_ID", "Forward_Alignment_Positions",
                      "Reverse_Alignment_Positions", "Forward_Wide_Position", "Reverse_Wide_Position",
                      "Target_Forward_Found", "Target_Reverse_Found", "Insertions_Forward", "Insertions_Reverse",
                      "Deletions_Forward", "Deletions_Reverse", "Missmatches_Forward", "Missmatches_Reverse",
@@ -217,103 +221,105 @@ makeAlignment <- function(configTable,
     uniqueTable$asigned <- uniqueTable$asigned | primersFound
     IDuniqueTable <- uniqueTable[primersFound, ]
 
-    for (r in dim(IDuniqueTable)[1]) {
-      forwardString   <- toupper(toString(IDuniqueTable[r, "Forward"]))
-      reverseString   <- toupper(c2s(rev(comp(s2c(toString(IDuniqueTable[r, "Reverse"]))))))
-      # The return of gotoh is a string divided in five parts with the separator "++++"
-      # -- [1] is the verbose alignment result
-      # -- [2] is a string with the insertions and deletions and missmatches
-      # -- [3] is a string with the insertions and deletions and missmatches,
-      #    but from the subject (amplicon) coordinates
-      # -- [4] is the alignment of the pattern.
-      # -- [5] is the alignment of the subject.
-      alignForward <- ""
-      if (fastqfiles == 0 || fastqfiles == 1) {
-        alignForward <- gRCPP(forwardString,
-                              amplicon,
-                              scoring_matrix,
-                              gap_opening,
-                              gap_extension,
-                              gap_ending,
-                              far_indels)
-        alignForward <- gsub("\n", "", unlist(strsplit(alignForward, "++++", fixed = TRUE)))
-      }
-      alignReverse <- ""
-      if (fastqfiles == 0 || fastqfiles == 2) {
-        alignReverse <- gRCPP(reverseString,
-                              amplicon,
-                              scoring_matrix,
-                              gap_opening,
-                              gap_extension,
-                              gap_ending,
-                              far_indels)
-        alignReverse <- gsub("\n", "", unlist(strsplit(alignReverse, "++++", fixed = TRUE)))
-      }
-      # Write the alignments
-      if (write_alignments >= 1) {
-        writeLines(c(paste(currentID, toString(uniqueTable$Total[r])),
-                     alignForward[4],
-                     alignReverse[4]), masterFileConn)
-      }
-      if (write_alignments >= 2) {
-        writeLines(c(paste0(currentID, "_", r), "\n FORWARD AND AMPLICON: \n",
-                     alignForward[1], "\n REVERSE AND AMPLICON: \n",
-                     alignReverse[1], "\n"), uberAlignmentFD)
-      }
+    if (dim(IDuniqueTable)[1] > 0) {
+      for (r in dim(IDuniqueTable)[1]) {
+        forwardString   <- toupper(toString(IDuniqueTable[r, "Forward"]))
+        reverseString   <- toupper(c2s(rev(comp(s2c(toString(IDuniqueTable[r, "Reverse"]))))))
+        # The return of gotoh is a string divided in five parts with the separator "++++"
+        # -- [1] is the verbose alignment result
+        # -- [2] is a string with the insertions and deletions and missmatches
+        # -- [3] is a string with the insertions and deletions and missmatches,
+        #    but from the subject (amplicon) coordinates
+        # -- [4] is the alignment of the pattern.
+        # -- [5] is the alignment of the subject.
+        alignForward <- ""
+        if (fastqfiles == 0 || fastqfiles == 1) {
+          alignForward <- gRCPP(forwardString,
+                                amplicon,
+                                scoring_matrix,
+                                gap_opening,
+                                gap_extension,
+                                gap_ending,
+                                far_indels)
+          alignForward <- gsub("\n", "", unlist(strsplit(alignForward, "++++", fixed = TRUE)))
+        }
+        alignReverse <- ""
+        if (fastqfiles == 0 || fastqfiles == 2) {
+          alignReverse <- gRCPP(reverseString,
+                                amplicon,
+                                scoring_matrix,
+                                gap_opening,
+                                gap_extension,
+                                gap_ending,
+                                far_indels)
+          alignReverse <- gsub("\n", "", unlist(strsplit(alignReverse, "++++", fixed = TRUE)))
+        }
+        # Write the alignments
+        if (write_alignments >= 1) {
+          writeLines(c(paste(currentID, toString(uniqueTable$Total[r])),
+                       alignForward[4],
+                       alignReverse[4]), masterFileConn)
+        }
+        if (write_alignments >= 2) {
+          writeLines(c(paste0(currentID, "_", r), "\n FORWARD AND AMPLICON: \n",
+                       alignForward[1], "\n REVERSE AND AMPLICON: \n",
+                       alignReverse[1], "\n"), uberAlignmentFD)
+        }
 
-      forwardData <- getEventInfo(alignForward[2], currentID)
-      reverseData <- getEventInfo(alignReverse[2], currentID)
+        forwardData <- getEventInfo(alignForward[2], currentID)
+        reverseData <- getEventInfo(alignReverse[2], currentID)
 
-      # Write the sequence info
-      forwardAllPositions <- upperGroups(toString(alignForward[5]))
-      reverseAllPositions <- upperGroups(toString(alignReverse[5]))
+        # Write the sequence info
+        forwardAllPositions <- upperGroups(toString(alignForward[5]))
+        reverseAllPositions <- upperGroups(toString(alignReverse[5]))
 
-      writeLines(paste(as.numeric(r),
-                       as.numeric(IDuniqueTable$Total[r]),
-                       as.numeric(IDuniqueTable$Frequency[r]),
-                       IDuniqueTable$Forward[r],
-                       IDuniqueTable$Reverse[r],
-                       gsub("\n", "", alignForward[2]),
-                       gsub("\n", "", alignReverse[2]),
-                       gsub("\n", "", alignForward[3]),
-                       gsub("\n", "", alignReverse[3]),
-                       as.numeric(ifelse(fastqfiles == 0 || fastqfiles == 1, nchar(alignForward[4]), 0)),
-                       as.numeric(ifelse(fastqfiles == 0 || fastqfiles == 2, nchar(alignReverse[4]), 0)),
-                       paste0(currentID, ".txt"),
-                       start(forwardAllPositions),
-                       start(reverseAllPositions),
-                       width(forwardAllPositions),
-                       width(reverseAllPositions),
-                       IDuniqueTable$ForwardFound[r],
-                       IDuniqueTable$ReverseFound[r],
-                       sum(forwardData$type == "insertion"),
-                       sum(reverseData$type == "insertion"),
-                       sum(forwardData$type == "deletion"),
-                       sum(reverseData$type == "deletion"),
-                       sum(forwardData$type == "missmatch"),
-                       sum(forwardData$type == "missmatch"),
-                       sep = '\t'), uniqueTableFD)
+        writeLines(paste(IDuniqueTable$Total[r],
+                         IDuniqueTable$Frequency[r],
+                         IDuniqueTable$Forward[r],
+                         IDuniqueTable$Reverse[r],
+                         alignForward[2],
+                         alignReverse[2],
+                         alignForward[3],
+                         alignReverse[3],
+                         ifelse(fastqfiles == 0 || fastqfiles == 1, nchar(alignForward[4]), 0),
+                         ifelse(fastqfiles == 0 || fastqfiles == 2, nchar(alignReverse[4]), 0),
+                         currentID,
+                         paste(start(forwardAllPositions), sep = ","),
+                         paste(start(reverseAllPositions), sep = ","),
+                         paste(width(forwardAllPositions), sep = ","),
+                         paste(width(reverseAllPositions), sep = ","),
+                         IDuniqueTable$forwardFound[r],
+                         IDuniqueTable$reverseFound[r],
+                         sum(forwardData$type == "insertion"),
+                         sum(reverseData$type == "insertion"),
+                         sum(forwardData$type == "deletion"),
+                         sum(reverseData$type == "deletion"),
+                         sum(forwardData$type == "missmatch"),
+                         sum(forwardData$type == "missmatch"),
+                         sep = '\t'), uniqueTableFD)
 
-      configTable$Sum_Insertions_Forward[i] <- configTable$Sum_Insertions_Forward[i] +
-                                               sum(forwardData$type == "insertion") * IDuniqueTable$Total[i]
-      configTable$Sum_Insertions_Reverse[i] <- configTable$Sum_Insertions_Reverse[i] +
-                                               sum(reverseData$type == "insertion") * IDuniqueTable$Total[i]
-      configTable$Sum_Deletions_Forward[i] <- configTable$Sum_Deletions_Forward[i] +
-                                              sum(forwardData$type == "deletion") * IDuniqueTable$Total[i]
-      configTable$Sum_Deletions_Reverse[i] <- configTable$Sum_Deletions_Reverse[i] +
-                                              sum(reverseData$type == "deletion") * IDuniqueTable$Total[i]
-      configTable$Sum_Missmatches_Forward[i] <- configTable$Sum_Missmatches_Forward[i] +
-                                                sum(forwardData$type == "missmatch") * IDuniqueTable$Total[i]
-      configTable$Sum_Missmatches_Reverse[i] <- configTable$Sum_Missmatches_Reverse[i] +
-                                                sum(reverseData$type == "missmatch") * IDuniqueTable$Total[i]
+        configTable$Sum_Insertions_Forward[i] <- configTable$Sum_Insertions_Forward[i] +
+          sum(forwardData$type == "insertion") * IDuniqueTable$Total[i]
+        configTable$Sum_Insertions_Reverse[i] <- configTable$Sum_Insertions_Reverse[i] +
+          sum(reverseData$type == "insertion") * IDuniqueTable$Total[i]
+        configTable$Sum_Deletions_Forward[i] <- configTable$Sum_Deletions_Forward[i] +
+          sum(forwardData$type == "deletion") * IDuniqueTable$Total[i]
+        configTable$Sum_Deletions_Reverse[i] <- configTable$Sum_Deletions_Reverse[i] +
+          sum(reverseData$type == "deletion") * IDuniqueTable$Total[i]
+        configTable$Sum_Missmatches_Forward[i] <- configTable$Sum_Missmatches_Forward[i] +
+          sum(forwardData$type == "missmatch") * IDuniqueTable$Total[i]
+        configTable$Sum_Missmatches_Reverse[i] <- configTable$Sum_Missmatches_Reverse[i] +
+          sum(reverseData$type == "missmatch") * IDuniqueTable$Total[i]
+      }
     }
+
     configTable$Sum_Target_Forward_Found[i] <- sum(uniqueTable$forwardFound)
     configTable$Sum_Target_Reverse_Found[i] <- sum(uniqueTable$reverseFound)
   }
 
   write.table(uniqueTable[!uniqueTable$asigned, ],
-              file = paste(resultsFolder, "/", barcode, "_unassigned.txt", sep = '', collapse = ''),
-              quote = FALSE, sep = "\t")
+              file = paste(resultsFolder, "/unassigned_sequences/", barcode, "_unassigned_reads.txt", sep = ''),
+              quote = FALSE, sep = "\t", row.names = F)
 
   if (isOpen(masterFileConn)) {
     close(masterFileConn)
@@ -323,7 +329,7 @@ makeAlignment <- function(configTable,
   }
   close(uniqueTableFD)
 
-  write.table(configTable, paste0(resultsFolder, "/", barcode, "_configFile_results") , sep="\t")
-  write.table(barcodeTable, paste0(resultsFolder, "/", barcode, "_barcodeFile_results"), sep="\t")
+  write.table(configTable, paste0(resultsFolder, "/", barcode, "_configFile_results") , sep="\t", row.names = F)
+  write.table(barcodeTable, paste0(resultsFolder, "/", barcode, "_barcodeFile_results"), sep="\t", row.names = F)
   return()
 }

@@ -58,7 +58,7 @@
 #'                         0 - Use both FASTQ files
 #'                         1 - Use only the forward FASTQ file
 #'                         2 - Use only the reverse FASTQ file
-#' @include alignment_helpers.R filters_helpers.R parallel_helpers.R
+#' @include gotoh.R alignment_helpers.R filters_helpers.R parallel_helpers.R
 #' warnings_helpers.R directory_helpers.R
 #' @export
 
@@ -89,6 +89,8 @@ ampliCanMaker <- function (config,
   configTable$Forward_Reads_File <- paste(fastq_folder, configTable$Forward_Reads_File, sep = "/")
   configTable$Reverse_Reads_File <- paste(fastq_folder, configTable$Reverse_Reads_File, sep = "/")
   checkConfigFile(configTable, fastq_folder)
+
+  message("Preparing FASTQ files...")
   configTable <- unpackFastq(configTable, temp_folder)
 
   resultsFolder <- paste0(results_folder, "/alignments/")
@@ -97,7 +99,7 @@ ampliCanMaker <- function (config,
   }
 
   unassignedFolder <- paste0(resultsFolder, "/unassigned_sequences")
-  if(!dir.exists(unassignedFolder)) {
+  if (!dir.exists(unassignedFolder)) {
     dir.create(file.path(unassignedFolder))
   }
 
@@ -122,10 +124,13 @@ ampliCanMaker <- function (config,
   # Several statistics about deletions, cuts and reads
   configTable$Sum_Target_Forward_Found <- 0
   configTable$Sum_Target_Reverse_Found <- 0
-  # Deletions, valid or not
   configTable$Sum_Deletions_Forward <- 0
   configTable$Sum_Deletions_Reverse <- 0
-  configTable$Sum_Is_Sequence    <- 0
+  configTable$Sum_Insertions_Forward <- 0
+  configTable$Sum_Insertions_Reverse <- 0
+  configTable$Sum_Missmatches_Forward <- 0
+  configTable$Sum_Missmatches_Reverse <- 0
+
   # Warnings
   configTable$Found_Target  <- 0
   configTable$Found_Primers <- 0
@@ -135,7 +140,11 @@ ampliCanMaker <- function (config,
     cl <- parallel::makeCluster(total_processors, outfile="")
     doParallel::registerDoParallel(cl)
 
-    foreach::foreach(j=1:length(uBarcode), .packages = c("Rcpp", "R.utils")) %dopar% {
+    foreach::foreach(j=1:length(uBarcode), .export=c('getEventInfo', 'upperGroups',
+                                                     'checkTarget', 'checkPrimers', 'checkPositions',
+                                                     'goodBaseQuality', 'goodAvgQuality', 'alphabetQuality',
+                                                     'gRCPP'),
+                     .packages = c('Rcpp', 'R.utils', 'GenomicRanges', 'ShortRead', 'seqinr')) %dopar% {
       makeAlignment(configTable[configTable$Barcode == uBarcode[j],],
                     resultsFolder,
                     skip_bad_nucleotides,
@@ -167,9 +176,8 @@ ampliCanMaker <- function (config,
 
   message("Alignments done.")
 
-  # Put all the logs and all the configs toguether
+  # Put all the logs and all the configs together
   totalLogs <- unifyFiles(resultsFolder, "SUBLOG", "alignmentLog.txt", FALSE, TRUE, FALSE)
-  totalTemp <- unifyFiles(resultsFolder, "TEMPORALFILES.txt", "temporal_files.txt", FALSE, TRUE, FALSE)
   totalConfigs <- unifyFiles(resultsFolder, "configFile_results", "config_results.txt", TRUE, TRUE, FALSE)
   totalBarcode <- unifyFiles(resultsFolder, "barcodeFile_results", "barcodeFile_results.txt", TRUE, TRUE, FALSE)
 

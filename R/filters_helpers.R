@@ -6,10 +6,10 @@
 #' 50-50-50-50-10, and we set the minimum to 30, the whole sequence will be a bad sequence.
 #' The minimum is set to 0 by default.
 #' @return (Logical) Logical vector with the valid rows as TRUE.
-#' @import ShortRead
+#' @importFrom ShortRead ShortReadQ
 #'
 goodBaseQuality <- function(reads, min = 0){
-  apply(as(quality(reads), "matrix"), 1, min, na.rm = T) >= min
+  apply(as(slot(reads, "quality"), "matrix"), 1, min, na.rm = T) >= min
 }
 
 
@@ -21,10 +21,10 @@ goodBaseQuality <- function(reads, min = 0){
 #' quality 70-70-70, the average would be 70. If set the average to 70 or less the sequence will
 #' pass. If we set the average to 71 the sequence will not pass. The average is set to 0 by default.
 #' @return (Logical) Logical vector with the valid rows as TRUE.
-#' @import ShortRead
+#' @importFrom ShortRead ShortReadQ
 #'
 goodAvgQuality <- function(reads, avg = 0){
-  apply(as(quality(reads), "matrix"), 1, mean, na.rm = T) >= avg
+  apply(as(slot(reads, "quality"), "matrix"), 1, mean, na.rm = T) >= avg
 }
 
 
@@ -32,7 +32,7 @@ goodAvgQuality <- function(reads, avg = 0){
 #'
 #' @param reads (ShortRead object) Loaded reads from fastq.
 #' @return (Logical) Logical vector with the valid rows as TRUE.
-#' @import ShortRead
+#' @importFrom ShortRead srFilter
 #'
 alphabetQuality <- function(reads){
   nucq <- polynFilter(nuc = c("A", "C", "T", "G"))
