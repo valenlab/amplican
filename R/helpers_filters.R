@@ -28,7 +28,7 @@ goodAvgQuality <- function(reads, avg = 0){
 }
 
 
-#' This filters out sequences which have bad average quality readings.
+#' This filters out sequences which have nonstandard nucleotides.
 #'
 #' @param reads (ShortRead object) Loaded reads from fastq.
 #' @return (Logical) Logical vector with the valid rows as TRUE.

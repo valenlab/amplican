@@ -1,8 +1,7 @@
 #' Prepare alignments.
 #'
-#' amplicanAlignments takes a configuration files, fastq reads and output directory to prepare
-#' alignments. It is first step in our pipeline. Next step is amplicanAnalysis. If
-#' you prefer to use simpler, more automated approach use amplicanPipeline.
+#' ampliCanAnalysis takes a configuration files, fastq reads and output directory to prepare
+#' alignments and summary.
 #' @param config (string) The path to your configuration file. For example:
 #'                      /Home/johndoe/.../AmpliCan/res/Cas9_toy/run11.txt
 #' @param fastq_folder (string) Path to FASTQ files. If not specified, FASTQ files should be
@@ -58,26 +57,25 @@
 #'                         0 - Use both FASTQ files
 #'                         1 - Use only the forward FASTQ file
 #'                         2 - Use only the reverse FASTQ file
-#' @include gotoh.R alignment_helpers.R filters_helpers.R parallel_helpers.R
-#' warnings_helpers.R directory_helpers.R
+#' @include gotoh.R helpers_alignment.R helpers_filters.R helpers_warnings.R helpers_directory.R
 #' @export
-
-ampliCanMaker <- function (config,
-                           fastq_folder,
-                           results_folder,
-                           total_processors = 1,
-                           skip_bad_nucleotides = TRUE,
-                           average_quality = 0,
-                           min_quality = 0,
-                           write_alignments = 2,
-                           scoring_matrix = "NUC44",
-                           gap_opening = 50,
-                           gap_extension = 0,
-                           gap_ending = FALSE,
-                           far_indels = TRUE,
-                           deletefq = FALSE,
-                           temp_folder = "",
-                           fastqfiles = 0){
+#'
+ampliCanAnalysis <- function(config,
+                             fastq_folder,
+                             results_folder,
+                             total_processors = 1,
+                             skip_bad_nucleotides = TRUE,
+                             average_quality = 0,
+                             min_quality = 0,
+                             write_alignments = 2,
+                             scoring_matrix = "NUC44",
+                             gap_opening = 50,
+                             gap_extension = 0,
+                             gap_ending = FALSE,
+                             far_indels = TRUE,
+                             deletefq = FALSE,
+                             temp_folder = "",
+                             fastqfiles = 0){
   message("Checking write access...")
   checkFileWriteAccess(results_folder)
   if (temp_folder != "") {checkFileWriteAccess(temp_folder)}
@@ -104,7 +102,7 @@ ampliCanMaker <- function (config,
   }
 
   # MasterLog with parameters
-  logFileName <- paste(resultsFolder, "/MasterLog.txt", sep = '')
+  logFileName <- paste(results_folder, "/MasterLog.txt", sep = '')
   logFileConn <- file(logFileName, open="at")
   writeLines(paste("Config file:           ", config), logFileConn)
   writeLines(paste("Total Processors:      ", total_processors), logFileConn)
@@ -132,9 +130,9 @@ ampliCanMaker <- function (config,
   configTable$Sum_Missmatches_Reverse <- 0
 
   # Warnings
-  configTable$Found_Target  <- 0
+  configTable$Found_Target <- 0
   configTable$Found_Primers <- 0
-  configTable$Found_AP      <- 0
+  configTable$Found_AP <- 0
 
   if (requireNamespace("doParallel", quietly = TRUE) & total_processors > 1) {
     cl <- parallel::makeCluster(total_processors, outfile="")
@@ -177,9 +175,9 @@ ampliCanMaker <- function (config,
   message("Alignments done.")
 
   # Put all the logs and all the configs together
-  totalLogs <- unifyFiles(resultsFolder, "SUBLOG", "alignmentLog.txt", FALSE, TRUE, FALSE)
-  totalConfigs <- unifyFiles(resultsFolder, "configFile_results", "config_results.txt", TRUE, TRUE, FALSE)
-  totalBarcode <- unifyFiles(resultsFolder, "barcodeFile_results", "barcodeFile_results.txt", TRUE, TRUE, FALSE)
+  totalLogs <- unifyFiles(resultsFolder, "SUBLOG", paste0(results_folder, "/alignmentLog.txt"), header = F)
+  totalConfigs <- unifyFiles(resultsFolder, "configFile_results", paste0(results_folder, "/config_results.txt"))
+  totalBarcode <- unifyFiles(resultsFolder, "barcodeFile_results", paste0(results_folder, "/barcodeFile_results.txt"))
 
   # If the user want to delete the uncompressed results, do it now.
   if (deletefq == TRUE) {

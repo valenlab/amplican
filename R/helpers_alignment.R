@@ -17,6 +17,7 @@
 #' @param strand (string) Either "+", "-" or default "*"
 #' @return (GRanges) Object with metadata for insertion, deletion, missmatch
 #' @import GenomicRanges S4Vectors
+#'
 getEventInfo <- function(liteString, ID, strand = "*"){
 
     if(is.na(liteString) | nchar(liteString) < 12){
@@ -74,7 +75,7 @@ getEventInfo <- function(liteString, ID, strand = "*"){
 }
 
 
-#' For a given string, detect how many groups of uppercases are there, where are
+#' For a given string, detect how many groups of uppercases is inside, where are
 #' they, and how long they are.
 #'
 #' For example:
@@ -106,6 +107,7 @@ upperGroups <- function(candidate){
 #' @param fastqfiles (char)
 #' @import ShortRead seqinr GenomicRanges
 #' @return no clue
+#'
 makeAlignment <- function(configTable,
                           resultsFolder,
                           skip_bad_nucleotides = TRUE,
@@ -139,7 +141,7 @@ makeAlignment <- function(configTable,
 
   #Unique reads
   uniqueTable <- data.frame(as.character(forwardsTable@sread), as.character(reversesTable@sread))
-  colnames(uniqueTable) <- c("Forward","Reverse")
+  colnames(uniqueTable) <- c("Forward", "Reverse")
   uniqueTable$Total <- paste0(uniqueTable$Forward, uniqueTable$Reverse)
   uniqueTable <- aggregate(Total ~  Reverse + Forward, uniqueTable, length)
   uniqueTable$Frequency <- uniqueTable$Total / sum(uniqueTable$Total)
@@ -155,41 +157,33 @@ makeAlignment <- function(configTable,
     forwardPrimer <- toString(configTable[i, "Forward_Primer"])
     reversePrimer <- toString(configTable[i, "Reverse_Primer"])
     targetPrimer <- toString(configTable[i, "Target_Primer"])
-    # Update the target Primer if necessary
+    # Update the target primer if necessary
     reverseAmplicon <- configTable[i, "Strand"]
     if (reverseAmplicon == 1) {
       targetPrimer  <-  c2s(rev(comp(s2c(targetPrimer), forceToLower = F, ambiguous = T)))
     }
     amplicon <- toString(configTable[i, "Amplicon"])
     # Names of files and folders
-    currentIDFolderName <- paste0(resultsFolder,"/", currentID, "_", barcode)
-    if(!dir.exists(currentIDFolderName)) {
+    currentIDFolderName <- paste0(resultsFolder, "/", currentID, "_", barcode)
+    if (!dir.exists(currentIDFolderName)) {
       dir.create(file.path(currentIDFolderName), showWarnings = TRUE)
     }
-    masterAlignmentFilePath <- paste0(currentIDFolderName, "/alignments.txt")
-    uberAlignmentFilePath <- paste0(currentIDFolderName, "/verbose.txt")
-    deletionFilePath <- paste0(currentIDFolderName, "/", currentID, "_", barcode, "_deletions.txt")
-    deletionRelativeFilePath <- paste0(currentIDFolderName, "/", currentID, "_", barcode, "_deletionsRelative.txt")
-    uniqueTablePath <- paste0(currentIDFolderName, "/", currentID, "_", barcode, "_uniques.txt")
 
     cutSites <- upperGroups(amplicon)
     if (length(cutSites) == 0) {
       message(paste0("Warning: There is no CUT sites specified (uppercase letters) in amplicon for ID ", currentID))
     }
 
-    # If we need to write the alignment, prepare the proper file descriptors
+    # Alignment verbosity levels
     if (write_alignments >= 1) {
-      # Prepare the summary alignment file
-      masterFileConn <- file(masterAlignmentFilePath, open = "at")
-      writeLines(c(toString(amplicon), "\n"), masterFileConn)
+      masterFileConn <- file(paste0(currentIDFolderName, "/alignments.txt"), open = "at")
     }
     if (write_alignments >= 2) {
-      # Start the file where the alignments are accumulated
-      uberAlignmentFD <- file(uberAlignmentFilePath, open = "at")
+      uberAlignmentFD <- file(paste0(currentIDFolderName, "/detailed_alignments.txt"), open = "at")
     }
 
     # Prepare the unique table where all the sequences are going.
-    uniqueTableFD <- file(uniqueTablePath, open = "at")
+    uniqueTableFD <- file(paste0(currentIDFolderName, "/", currentID, "_", barcode, "_unique_reads.txt"), open = "at")
     writeLines(paste("Count", "Frequency", "Forward", "Reverse", "Forward_Alignment_String",
                      "Reverse_Alignment_String", "Forward_Alignment_Genome_Coordinates_String",
                      "Reverse_Alignment_Genome_Coordinates_String", "Forward_Alignment_Length",
@@ -241,7 +235,7 @@ makeAlignment <- function(configTable,
                                 gap_extension,
                                 gap_ending,
                                 far_indels)
-          alignForward <- gsub("\n", "", unlist(strsplit(alignForward, "++++", fixed = TRUE)))
+          alignForward <- unlist(strsplit(alignForward, "++++", fixed = TRUE))
         }
         alignReverse <- ""
         if (fastqfiles == 0 || fastqfiles == 2) {
@@ -252,18 +246,21 @@ makeAlignment <- function(configTable,
                                 gap_extension,
                                 gap_ending,
                                 far_indels)
-          alignReverse <- gsub("\n", "", unlist(strsplit(alignReverse, "++++", fixed = TRUE)))
+          alignReverse <- unlist(strsplit(alignReverse, "++++", fixed = TRUE))
         }
         # Write the alignments
         if (write_alignments >= 1) {
-          writeLines(c(paste(currentID, toString(uniqueTable$Total[r])),
+          writeLines(c(paste("ID:", currentID, "Count:", toString(uniqueTable$Total[r])),
                        alignForward[4],
                        alignReverse[4]), masterFileConn)
         }
+        alignForward <- gsub("\n", "", alignForward)
+        alignReverse <- gsub("\n", "", alignReverse)
+
         if (write_alignments >= 2) {
-          writeLines(c(paste0(currentID, "_", r), "\n FORWARD AND AMPLICON: \n",
-                       alignForward[1], "\n REVERSE AND AMPLICON: \n",
-                       alignReverse[1], "\n"), uberAlignmentFD)
+          writeLines(c(paste("ID:", currentID, "Count:", toString(uniqueTable$Total[r]), "\n"),
+                       "FORWARD AND AMPLICON:", alignForward[1],
+                       "REVERSE AND AMPLICON:", alignReverse[1]), uberAlignmentFD)
         }
 
         forwardData <- getEventInfo(alignForward[2], currentID)

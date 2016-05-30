@@ -33,11 +33,11 @@ Suggests:
     foreach
 Collate:
     'RcppExports.R'
-    'alignment_helpers.R'
     'amplican.R'
-    'parallel_helpers.R'
-    'filters_helpers.R'
+    'helpers_directory.R'
+    'helpers_warnings.R'
+    'helpers_filters.R'
+    'helpers_alignment.R'
     'gotoh.R'
     'amplicanAlignments.R'
-    'directory_helpers.R'
-    'warnings_helpers.R'
+    'amplicanReport.R'

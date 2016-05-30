@@ -11,12 +11,9 @@ checkTarget <- function(targetPrimer, amplicon, ID, barcode, logFileConn){
   targetPositions <- grepl(targetPrimer, amplicon, ignore.case=TRUE)
   if (targetPositions) {
     message("Warning: Target has not been found in the amplicon. Check the log file for more information.")
-    writeLines("Couldn't find the target primer:", logFileConn)
-    writeLines(targetPrimer, logFileConn)
-    writeLines("In amplicon:", logFileConn)
-    writeLines(amplicon, logFileConn)
-    writeLines(paste0("For ID: ", ID, " and barcode: ", barcode), logFileConn)
-    writeLines("\n", logFileConn)
+    writeLines(paste0("Couldn't find the target primer: ", targetPrimer,
+                      "\nIn amplicon:", amplicon,
+                      "\nFor ID: ", ID, " and barcode: ", barcode, "\n"), logFileConn)
   }
   return(targetPositions)
 }
@@ -44,13 +41,10 @@ checkPrimers <- function(forwardPrimer, reversePrimerRC, amplicon, ID, barcode, 
   reversePrimerPosition <- grepl(reversePrimerRC, amplicon, ignore.case=TRUE)
   if (!(forwardPrimerPosition | reversePrimerPosition)) {
     message("Warning: One of primer was not found in the amplicon. Check the log file for more information.")
-    writeLines("Couldn't find the forward primer or reverse primer (reversed and complemented):", logFileConn)
-    writeLines(toString(forwardPrimer), logFileConn)
-    writeLines(toString(reversePrimerRC), logFileConn)
-    writeLines("In amplicon:", logFileConn)
-    writeLines(toString(amplicon), logFileConn)
-    writeLines(paste0("For ID: ", ID, " and barcode: ", barcode), logFileConn)
-    writeLines("\n", logFileConn)
+    writeLines(paste0("Couldn't find the forward primer: ", toString(forwardPrimer),
+                      "/nor reverse primer: ", toString(reversePrimerRC),
+                      "/nIn amplicon: ", amplicon,
+                      "/nFor ID: ", ID, " and barcode: ", barcode, "/n"), logFileConn)
   }
   return(forwardPrimerPosition | reversePrimerPosition)
 }
@@ -68,11 +62,8 @@ checkPositions <- function(alignmentPositions, amplicon, ID, barcode, logFileCon
   pos <- ifelse(is.na(alignmentPositions[1]), 0, alignmentPositions[1])
   if (pos <= 0) {
     message("Warning: Aligment position was not found in the amplicon. Find more information in the log file.")
-    writeLines("Couldn't find alignment position for amplicon:", logFileConn)
-    writeLines(toString(amplicon), logFileConn)
-    writeLines("For ID and barcode:", logFileConn)
-    writeLines(toString(paste(ID, barcode, sep=" ")), logFileConn)
-    writeLines("\n", logFileConn)
+    writeLines(paste0("Couldn't find alignment position for amplicon: ", toString(amplicon),
+                      "/nFor ID: ", ID, " and barcode: ", barcode, "/n"), logFileConn)
   }
   return(alignmentPositions[1] > 0)
 }
@@ -87,6 +78,7 @@ checkPositions <- function(alignmentPositions, amplicon, ID, barcode, logFileCon
 #' @param configTable (data.frame) Config file.
 #' @param fastq_folder (string) Path to fastq folder.
 #' @return (Void) If anything goes wrong stops and prints error.
+#'
 checkConfigFile <- function(configTable, fastq_folder){
 
   totalRows <- dim(configTable)[1]
