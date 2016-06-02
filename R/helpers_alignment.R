@@ -134,7 +134,12 @@ makeAlignment <- function(configTable,
   nucq <- alphabetQuality(forwardsTable) & alphabetQuality(reversesTable)
   goodReads <- goodq & avrq & nucq
 
-  barcodeTable <- data.frame(Barcode = barcode, Total_Pre_Filter = length(goodReads), Total_Post_Filter = sum(goodReads))
+  barcodeTable <- data.frame(barcode = barcode,
+                             read_count = length(goodReads),
+                             bad_base_quality = sum(!goodq),
+                             bad_average_quality = sum(!avrq),
+                             bad_alphabet = sum(!nucq),
+                             filtered_read_count = sum(goodReads))
 
   forwardsTable <- forwardsTable[goodReads]
   reversesTable <- reversesTable[goodReads]
@@ -148,8 +153,7 @@ makeAlignment <- function(configTable,
   uniqueTable <- uniqueTable[order(uniqueTable$Forward, uniqueTable$Reverse),]
   uniqueTable$asigned <- F
 
-  barcodeTable$Experiment_Unique_Sequences <- nrow(uniqueTable)
-  barcodeTable$Total_Experiment_Sequences  <- sum(uniqueTable$Total)
+  barcodeTable$unique_reads <- nrow(uniqueTable)
 
   for(i in dim(configTable)[1]){ #for each id
     currentID <- configTable[i, "ID"]
@@ -176,14 +180,20 @@ makeAlignment <- function(configTable,
 
     # Alignment verbosity levels
     if (write_alignments >= 1) {
-      masterFileConn <- file(paste0(currentIDFolderName, "/alignments.txt"), open = "at")
+      algn_file <- paste0(currentIDFolderName, "/alignments.txt")
+      if (file.exists(algn_file)) {file.remove(algn_file)}
+      masterFileConn <- file(algn_file, open = "at")
     }
     if (write_alignments >= 2) {
+      algn_detail_file <- paste0(currentIDFolderName, "/detailed_alignments.txt")
+      if (file.exists(algn_detail_file)) {file.remove(algn_detail_file)}
       uberAlignmentFD <- file(paste0(currentIDFolderName, "/detailed_alignments.txt"), open = "at")
     }
 
     # Prepare the unique table where all the sequences are going.
-    uniqueTableFD <- file(paste0(currentIDFolderName, "/", currentID, "_", barcode, "_unique_reads.txt"), open = "at")
+    uniqueTable_file <- paste0(currentIDFolderName, "/", currentID, "_", barcode, "_unique_reads.txt")
+    if (file.exists(uniqueTable_file)) {file.remove(uniqueTable_file)}
+    uniqueTableFD <- file(uniqueTable_file, open = "at")
     writeLines(paste("Count", "Frequency", "Forward", "Reverse", "Forward_Alignment_String",
                      "Reverse_Alignment_String", "Forward_Alignment_Genome_Coordinates_String",
                      "Reverse_Alignment_Genome_Coordinates_String", "Forward_Alignment_Length",
@@ -194,7 +204,9 @@ makeAlignment <- function(configTable,
                      sep = '\t'), uniqueTableFD)
 
     #Warnings
-    logFileConn <- file(paste0(resultsFolder, "/", barcode, "_SUBLOG.txt"), open = "at")
+    sublog_file <- paste0(resultsFolder, "/", barcode, "_SUBLOG.txt")
+    if (file.exists(sublog_file)) {file.remove(sublog_file)}
+    logFileConn <- file(sublog_file, open = "at")
     configTable$Found_Target[i]  <- checkTarget(targetPrimer, amplicon, currentID, barcode, logFileConn)
     configTable$Found_Primers[i] <- checkPrimers(forwardPrimer, c2s(rev(comp(s2c(reversePrimer)))), amplicon, currentID, barcode, logFileConn)
     configTable$Found_AP[i] <- checkPositions(start(cutSites), amplicon, currentID, barcode, logFileConn)
@@ -249,18 +261,17 @@ makeAlignment <- function(configTable,
           alignReverse <- unlist(strsplit(alignReverse, "++++", fixed = TRUE))
         }
         # Write the alignments
-        if (write_alignments >= 1) {
-          writeLines(c(paste("ID:", currentID, "Count:", toString(uniqueTable$Total[r])),
-                       alignForward[4],
-                       alignReverse[4]), masterFileConn)
-        }
-        alignForward <- gsub("\n", "", alignForward)
-        alignReverse <- gsub("\n", "", alignReverse)
-
         if (write_alignments >= 2) {
           writeLines(c(paste("ID:", currentID, "Count:", toString(uniqueTable$Total[r]), "\n"),
                        "FORWARD AND AMPLICON:", alignForward[1],
                        "REVERSE AND AMPLICON:", alignReverse[1]), uberAlignmentFD)
+        }
+        alignForward <- gsub("\n", "", alignForward)
+        alignReverse <- gsub("\n", "", alignReverse)
+        if (write_alignments >= 1) {
+          writeLines(c(paste("ID:", currentID, "Count:", toString(uniqueTable$Total[r])),
+                       alignForward[4],
+                       alignReverse[4]), masterFileConn)
         }
 
         forwardData <- getEventInfo(alignForward[2], currentID)
@@ -314,6 +325,8 @@ makeAlignment <- function(configTable,
     configTable$Sum_Target_Reverse_Found[i] <- sum(uniqueTable$reverseFound)
   }
 
+  barcodeTable$unassigned_reads <- sum(!uniqueTable$asigned)
+  barcodeTable$assigned_reads <- sum(uniqueTable$asigned)
   write.table(uniqueTable[!uniqueTable$asigned, ],
               file = paste(resultsFolder, "/unassigned_sequences/", barcode, "_unassigned_reads.txt", sep = ''),
               quote = FALSE, sep = "\t", row.names = F)
@@ -327,6 +340,6 @@ makeAlignment <- function(configTable,
   close(uniqueTableFD)
 
   write.table(configTable, paste0(resultsFolder, "/", barcode, "_configFile_results") , sep="\t", row.names = F)
-  write.table(barcodeTable, paste0(resultsFolder, "/", barcode, "_barcodeFile_results"), sep="\t", row.names = F)
+  write.table(barcodeTable, paste0(resultsFolder, "/", barcode, "_reads_filters.csv"), sep="\t", row.names = F)
   return()
 }

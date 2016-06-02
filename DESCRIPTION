@@ -29,6 +29,7 @@ Imports:
 RoxygenNote: 5.0.1
 Suggests:
     testthat,
+    knitr,
     doParallel,
     foreach
 Collate:
@@ -41,3 +42,4 @@ Collate:
     'gotoh.R'
     'amplicanAlignments.R'
     'amplicanReport.R'
+    'amplicanSummary.R'

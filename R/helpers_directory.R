@@ -16,7 +16,8 @@ unifyFiles <- function(targetFolder, regex, finalFileName, header = T, delete = 
   allFiles <- list.files(targetFolder, recursive = isrecursive)
   candidates <- grep(regex, allFiles, fixed = F, ignore.case = F)
 
-  if(length(candidates)>0){
+  if (length(candidates)>0) {
+    if (file.exists(finalFileName)) {file.remove(finalFileName)}
     finalFileFD   <- file(finalFileName, open="w")
 
     for(i in 1:length(candidates)){

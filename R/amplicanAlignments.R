@@ -60,7 +60,7 @@
 #' @include gotoh.R helpers_alignment.R helpers_filters.R helpers_warnings.R helpers_directory.R
 #' @export
 #'
-ampliCanAnalysis <- function(config,
+amplicanAnalysis <- function(config,
                              fastq_folder,
                              results_folder,
                              total_processors = 1,
@@ -101,8 +101,9 @@ ampliCanAnalysis <- function(config,
     dir.create(file.path(unassignedFolder))
   }
 
-  # MasterLog with parameters
-  logFileName <- paste(results_folder, "/MasterLog.txt", sep = '')
+  # Parameters
+  logFileName <- paste(results_folder, "/RunParameters.txt", sep = '')
+  if (file.exists(logFileName)) {file.remove(logFileName)}
   logFileConn <- file(logFileName, open="at")
   writeLines(paste("Config file:           ", config), logFileConn)
   writeLines(paste("Total Processors:      ", total_processors), logFileConn)
@@ -176,8 +177,8 @@ ampliCanAnalysis <- function(config,
 
   # Put all the logs and all the configs together
   totalLogs <- unifyFiles(resultsFolder, "SUBLOG", paste0(results_folder, "/alignmentLog.txt"), header = F)
-  totalConfigs <- unifyFiles(resultsFolder, "configFile_results", paste0(results_folder, "/config_results.txt"))
-  totalBarcode <- unifyFiles(resultsFolder, "barcodeFile_results", paste0(results_folder, "/barcodeFile_results.txt"))
+  totalConfigs <- unifyFiles(resultsFolder, "configFile_results", paste0(results_folder, "/config_summary.csv"))
+  totalBarcode <- unifyFiles(resultsFolder, "reads_filters.csv", paste0(results_folder, "/barcode_reads_filters.csv"))
 
   # If the user want to delete the uncompressed results, do it now.
   if (deletefq == TRUE) {
