@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_warnings.R
 \name{checkPrimers}
 \alias{checkPrimers}
-\title{This function check if the forward anr reverse primer is in the amplicon.}
+\title{This function checks if the forward and reverse primer are in the amplicon.}
 \usage{
 checkPrimers(forwardPrimer, reversePrimerRC, amplicon, ID, barcode, logFileConn)
 }
@@ -11,8 +11,7 @@ checkPrimers(forwardPrimer, reversePrimerRC, amplicon, ID, barcode, logFileConn)
 
 \item{reversePrimerRC}{(string) A sequence of nucleotides in a string format representing the reverse primer. Usually
 you want to reverse complement this BEFORE giving it to the function. The function WILL NOT
-reverse complement it for you. (see: /libraries/tools.R , you have there the reverse
-complement function)}
+reverse complement it for you.}
 
 \item{amplicon}{(string) A sequence of nucleotides in a string format representing the amplicon}
 
@@ -23,12 +22,10 @@ complement function)}
 \item{logFileConn}{(connection) The location on disk where you can find the config file with this ID and barcode.}
 }
 \value{
-(bool) TRUE when everything went good.
+(boolean) TRUE when both primers are found in the amplicon
 }
 \description{
 The forward primer should be the one coming from the configuration file, while the reverse primer should be
-reverse and complement. This function DOES NOT reverse complement the input. So if you look up for something
-that is suppose to containt a reverse complement it won't find it. However you can use it to find any pair of
-primers regarless if they are reverse complemented or not.
+reverse and complementary. This function DOES NOT reverse complements the input.
 }
 

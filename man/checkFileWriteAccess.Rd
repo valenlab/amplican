@@ -7,10 +7,10 @@
 checkFileWriteAccess(filePath)
 }
 \arguments{
-\item{filePath}{(String) A string the path to the file.}
+\item{filePath}{(string) A string the path to the file.}
 }
 \value{
-(Void) Stop if no access.
+(void) Stop if no access.
 }
 \description{
 This function checks if the given directory exist and can be written to.

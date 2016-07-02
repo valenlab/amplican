@@ -18,7 +18,7 @@ checkPositions(alignmentPositions, amplicon, ID, barcode, logFileConn)
 \item{logFileConn}{(connection) Path to config file.}
 }
 \value{
-(bool) TRUE when positions are greater than 0.
+(boolean) TRUE when positions are greater than 0.
 }
 \description{
 This function checks if the given alignment positions are valid

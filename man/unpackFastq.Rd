@@ -9,7 +9,7 @@ unpackFastq(configTable, temp_folder)
 \arguments{
 \item{configTable}{(data.frame) Contains configuration file.}
 
-\item{temp_folder}{(String) Where to store unzipped files.}
+\item{temp_folder}{(string) Where to store unzipped files.}
 }
 \value{
 (data.frame) configTable with Forward_File and Reverse_File updated if

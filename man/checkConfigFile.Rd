@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_warnings.R
 \name{checkConfigFile}
 \alias{checkConfigFile}
-\title{This function pre-process a config file and check that everything is in order}
+\title{This function pre-process a config file and checks that everything is in order.}
 \usage{
 checkConfigFile(configTable, fastq_folder)
 }
@@ -12,13 +12,13 @@ checkConfigFile(configTable, fastq_folder)
 \item{fastq_folder}{(string) Path to fastq folder.}
 }
 \value{
-(Void) If anything goes wrong stops and prints error.
+(void) If anything goes wrong stops and prints error.
 }
 \description{
 Its takes care of the following:
-  No IDs are duplicated
+  No IDs are duplicated.
   Every combination of barcode, forward primer and reverse primer is unique.
   Each barcode has unique forward reads file and reverse read files.
-  Check that the read files exist with read access.
+  Checks that the read files exist with read access.
 }
 

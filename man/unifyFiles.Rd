@@ -9,22 +9,22 @@ unifyFiles(targetFolder, regex, finalFileName, header = T, delete = T,
   isrecursive = F)
 }
 \arguments{
-\item{targetFolder}{(String) The folder where the files are suppose to be.}
+\item{targetFolder}{(string) The folder where the files are suppose to be.}
 
-\item{regex}{(String) The files to be combined, must comply with this regex.}
+\item{regex}{(string) The files to be combined, must comply with this regex.}
 
 \item{finalFileName}{(String) The name of the final file.}
 
-\item{header}{(Bool) If header is true, it will take the header of the
+\item{header}{(boolean) If header is true, it will take the header of the
 first file only and ignore the rest. Otherwise it
 will repeat the header many times.}
 
-\item{delete}{(Bool) If true, it will delete the original files}
+\item{delete}{(boolean) If true, it will delete the original files}
 
-\item{isrecursive}{(Bool) If TRUE will search recursively through regex matching folders.}
+\item{isrecursive}{(boolean) If TRUE will search recursively through regex matching folders.}
 }
 \value{
-(Void)
+(void)
 }
 \description{
 This function takes all the files in a given folder that match a regex

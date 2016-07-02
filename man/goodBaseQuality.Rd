@@ -9,13 +9,13 @@ goodBaseQuality(reads, min = 0)
 \arguments{
 \item{reads}{(ShortRead object) Loaded reads from fastq.}
 
-\item{min}{(Int) This is the minimum quality that we accept for
+\item{min}{(numeric) This is the minimum quality that we accept for
 every nucleotide. For example, if we have a sequence with nucleotides which have quality
 50-50-50-50-10, and we set the minimum to 30, the whole sequence will be a bad sequence.
 The minimum is set to 0 by default.}
 }
 \value{
-(Logical) Logical vector with the valid rows as TRUE.
+(boolean) Logical vector with the valid rows as TRUE.
 }
 \description{
 This filters out sequences which have bad base quality readings.

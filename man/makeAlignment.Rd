@@ -35,7 +35,7 @@ makeAlignment(configTable, resultsFolder, skip_bad_nucleotides = TRUE,
 \item{fastqfiles}{(char)}
 }
 \value{
-no clue
+GRanges object with insertions, deletions and missmatches for each of the ID
 }
 \description{
 Make alignments

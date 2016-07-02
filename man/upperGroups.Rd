@@ -8,7 +8,7 @@ they, and how long they are.}
 upperGroups(candidate)
 }
 \arguments{
-\item{candidate}{(String) A string with the nucleotide sequence.}
+\item{candidate}{(string) A string with the nucleotide sequence.}
 }
 \value{
 (Ranges) A Ranges object with uppercases groups for given candidate string

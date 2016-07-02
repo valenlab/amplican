@@ -1,15 +1,15 @@
 #' This function takes all the files in a given folder that match a regex
 #' pattern and merges them together.
 #'
-#'@param targetFolder (String) The folder where the files are suppose to be.
-#'@param regex (String) The files to be combined, must comply with this regex.
+#'@param targetFolder (string) The folder where the files are suppose to be.
+#'@param regex (string) The files to be combined, must comply with this regex.
 #'@param finalFileName (String) The name of the final file.
-#'@param header (Bool) If header is true, it will take the header of the
+#'@param header (boolean) If header is true, it will take the header of the
 #'                     first file only and ignore the rest. Otherwise it
 #'                     will repeat the header many times.
-#'@param delete (Bool) If true, it will delete the original files
-#'@param isrecursive (Bool) If TRUE will search recursively through regex matching folders.
-#'@return (Void)
+#'@param delete (boolean) If true, it will delete the original files
+#'@param isrecursive (boolean) If TRUE will search recursively through regex matching folders.
+#'@return (void)
 #'
 unifyFiles <- function(targetFolder, regex, finalFileName, header = T, delete = T, isrecursive = F){
 
@@ -55,7 +55,7 @@ deleteFiles <- function(configTable){
 #' Unpack fastq files if needed, correct paths to the files in configTable.
 #'
 #' @param configTable (data.frame) Contains configuration file.
-#' @param temp_folder (String) Where to store unzipped files.
+#' @param temp_folder (string) Where to store unzipped files.
 #' @return (data.frame) configTable with Forward_File and Reverse_File updated if
 #' unpacking files was required.
 #' @importFrom R.utils isGzipped gunzip
@@ -91,8 +91,8 @@ unpackFastq <- function(configTable, temp_folder){
 
 #' This function checks if the given directory exist and can be written to.
 #'
-#' @param filePath (String) A string the path to the file.
-#' @return (Void) Stop if no access.
+#' @param filePath (string) A string the path to the file.
+#' @return (void) Stop if no access.
 #'
 checkFileWriteAccess <- function(filePath){
    if (file.access(filePath[1], mode = 2) != 0) {

@@ -82,12 +82,13 @@ getEventInfo <- function(liteString, ID, strand = "*"){
 #'    asdkfaAGASDGAsjaeuradAFDSfasfjaeiorAuaoeurasjfasdhfashTTSfajeiasjsf
 #'
 #' Has 4 groups of uppercases of length 7, 4, 1 and 3.
-#' @param candidate (String) A string with the nucleotide sequence.
-#' @import IRanges
+#' @param candidate (string) A string with the nucleotide sequence.
+#' @import IRanges seqinr
 #' @return (Ranges) A Ranges object with uppercases groups for given candidate string
 #'
 upperGroups <- function(candidate){
-  return(reduce(IRanges(start=c(which(grepl("[[:upper:]]", s2c(candidate)))), width = 1)))
+  return(reduce(IRanges(start = c(which(grepl("[[:upper:]]", s2c(candidate)))),
+                        width = 1)))
 }
 
 
@@ -106,7 +107,7 @@ upperGroups <- function(candidate){
 #' @param resultsFolder (char)
 #' @param fastqfiles (char)
 #' @import ShortRead seqinr GenomicRanges
-#' @return no clue
+#' @return GRanges object with insertions, deletions and missmatches for each of the ID
 #'
 makeAlignment <- function(configTable,
                           resultsFolder,
@@ -121,12 +122,15 @@ makeAlignment <- function(configTable,
                           far_indels = TRUE,
                           fastqfiles = 0){
 
+  alignmentRanges <- GRanges()
   barcode <- configTable$Barcode[1]
   message(paste0("Aligning reads for ", barcode))
 
   #Read Reads for this Barcode
-  forwardsTable <- readFastq(configTable$Forward_Reads_File[1])
-  reversesTable <- readFastq(configTable$Reverse_Reads_File[1])
+  forwardsTable <- if (fastqfiles == 2) NULL else readFastq(configTable$Forward_Reads_File[1])
+  reversesTable <- if (fastqfiles == 1) NULL else readFastq(configTable$Reverse_Reads_File[1])
+  if (fastqfiles == 1) { rewersesTable <- rep(T, length(forwardsTable)) }
+  if (fastqfiles == 2) { forwardsTable <- rep(T, length(reversesTable)) }
 
   #Filter Reads
   goodq <- goodBaseQuality(forwardsTable, min = min_quality) & goodBaseQuality(reversesTable, min = min_quality)
@@ -145,7 +149,8 @@ makeAlignment <- function(configTable,
   reversesTable <- reversesTable[goodReads]
 
   #Unique reads
-  uniqueTable <- data.frame(as.character(forwardsTable@sread), as.character(reversesTable@sread))
+  uniqueTable <- data.frame( if (fastqfiles == 2) "" else as.character(forwardsTable@sread),
+                             if (fastqfiles == 1) "" else as.character(reversesTable@sread))
   colnames(uniqueTable) <- c("Forward", "Reverse")
   uniqueTable$Total <- paste0(uniqueTable$Forward, uniqueTable$Reverse)
   uniqueTable <- aggregate(Total ~  Reverse + Forward, uniqueTable, length)
@@ -170,7 +175,7 @@ makeAlignment <- function(configTable,
     # Names of files and folders
     currentIDFolderName <- paste0(resultsFolder, "/", currentID, "_", barcode)
     if (!dir.exists(currentIDFolderName)) {
-      dir.create(file.path(currentIDFolderName), showWarnings = TRUE)
+      dir.create(file.path(currentIDFolderName), showWarnings = F)
     }
 
     cutSites <- upperGroups(amplicon)
@@ -208,22 +213,21 @@ makeAlignment <- function(configTable,
     if (file.exists(sublog_file)) {file.remove(sublog_file)}
     logFileConn <- file(sublog_file, open = "at")
     configTable$Found_Target[i]  <- checkTarget(targetPrimer, amplicon, currentID, barcode, logFileConn)
-    configTable$Found_Primers[i] <- checkPrimers(forwardPrimer, c2s(rev(comp(s2c(reversePrimer)))), amplicon, currentID, barcode, logFileConn)
+    configTable$Found_Primers[i] <- checkPrimers(forwardPrimer, c2s(rev(comp(s2c(reversePrimer)))),
+                                                 amplicon, currentID, barcode, logFileConn)
     configTable$Found_AP[i] <- checkPositions(start(cutSites), amplicon, currentID, barcode, logFileConn)
     close(logFileConn)
 
     # Search for the forward, reverse and targets
-    uniqueTable$forwardFound <- grepl(forwardPrimer, uniqueTable$Forward, ignore.case=TRUE)
-    uniqueTable$reverseFound <- grepl(reversePrimer, uniqueTable$Reverse, ignore.case=TRUE)
+    uniqueTable$forwardFound <- if (fastqfiles == 2) {F} else grepl(forwardPrimer, uniqueTable$Forward,
+                                                                    ignore.case=TRUE)
+    uniqueTable$reverseFound <- if (fastqfiles == 1) {F} else grepl(reversePrimer, uniqueTable$Reverse,
+                                                                    ignore.case=TRUE)
     uniqueTable$targetFoundForward <- grepl(targetPrimer, uniqueTable$Forward, ignore.case=TRUE)
     uniqueTable$targetFoundReverse <- grepl(c2s(rev(comp(s2c(targetPrimer)))), uniqueTable$Reverse, ignore.case=TRUE)
     primersFound <- uniqueTable$forwardFound & uniqueTable$reverseFound
-    if (fastqfiles == 1) {
-      primersFound <- uniqueTable$forwardFound
-    }
-    if (fastqfiles == 2) {
-      primersFound <- uniqueTable$reverseFound
-    }
+    if (fastqfiles == 1) { primersFound <- uniqueTable$forwardFound }
+    if (fastqfiles == 2) { primersFound <- uniqueTable$reverseFound }
     uniqueTable$asigned <- uniqueTable$asigned | primersFound
     IDuniqueTable <- uniqueTable[primersFound, ]
 
@@ -238,8 +242,8 @@ makeAlignment <- function(configTable,
         #    but from the subject (amplicon) coordinates
         # -- [4] is the alignment of the pattern.
         # -- [5] is the alignment of the subject.
-        alignForward <- ""
-        if (fastqfiles == 0 || fastqfiles == 1) {
+        alignForward <- c("", "", "", "", "")
+        if (fastqfiles != 2) {
           alignForward <- gRCPP(forwardString,
                                 amplicon,
                                 scoring_matrix,
@@ -249,8 +253,8 @@ makeAlignment <- function(configTable,
                                 far_indels)
           alignForward <- unlist(strsplit(alignForward, "++++", fixed = TRUE))
         }
-        alignReverse <- ""
-        if (fastqfiles == 0 || fastqfiles == 2) {
+        alignReverse <- c("", "", "", "", "")
+        if (fastqfiles != 1) {
           alignReverse <- gRCPP(reverseString,
                                 amplicon,
                                 scoring_matrix,
@@ -277,6 +281,18 @@ makeAlignment <- function(configTable,
         forwardData <- getEventInfo(alignForward[2], currentID)
         reverseData <- getEventInfo(alignReverse[2], currentID)
 
+        #Frequency - correct
+        #Cut definition
+        #Frameshift table
+        #Filter PRIMER DIMERS and sum how many
+        forwardRelative <- getEventInfo(alignForward[3], currentID)
+        strand(forwardRelative) <- "+"
+        forwardRelative$Count <- IDuniqueTable$Total[r]
+        reverseRelative <- getEventInfo(alignReverse[3], currentID)
+        strand(reverseRelative) <- "-"
+        reverseRelative$Count <- IDuniqueTable$Total[r]
+        alignmentRanges <- c(alignmentRanges, forwardRelative, reverseRelative)
+
         # Write the sequence info
         forwardAllPositions <- upperGroups(toString(alignForward[5]))
         reverseAllPositions <- upperGroups(toString(alignReverse[5]))
@@ -289,8 +305,8 @@ makeAlignment <- function(configTable,
                          alignReverse[2],
                          alignForward[3],
                          alignReverse[3],
-                         ifelse(fastqfiles == 0 || fastqfiles == 1, nchar(alignForward[4]), 0),
-                         ifelse(fastqfiles == 0 || fastqfiles == 2, nchar(alignReverse[4]), 0),
+                         nchar(alignForward[4]),
+                         nchar(alignReverse[4]),
                          currentID,
                          paste(start(forwardAllPositions), sep = ","),
                          paste(start(reverseAllPositions), sep = ","),
@@ -341,5 +357,5 @@ makeAlignment <- function(configTable,
 
   write.table(configTable, paste0(resultsFolder, "/", barcode, "_configFile_results") , sep="\t", row.names = F)
   write.table(barcodeTable, paste0(resultsFolder, "/", barcode, "_reads_filters.csv"), sep="\t", row.names = F)
-  return()
+  return(alignmentRanges)
 }

@@ -1,19 +1,20 @@
 #' Prepare alignments.
 #'
-#' ampliCanAnalysis takes a configuration files, fastq reads and output directory to prepare
-#' alignments and summary.
+#' amplicanAnalysis takes a configuration files, fastq reads and output directory to prepare
+#' alignments and summary. Finally it return a GRanges object containing all missmatches, indels and insertions
+#' from our alinments.
 #' @param config (string) The path to your configuration file. For example:
 #'                      /Home/johndoe/.../AmpliCan/res/Cas9_toy/run11.txt
 #' @param fastq_folder (string) Path to FASTQ files. If not specified, FASTQ files should be
 #' in the same directory as config file.
 #' @param results_folder (string) Where do you want your results to be stored. The
 #' program will create files in that folder so make sure you have writing permissions.
-#' @param total_processors (int) Set this to the number of processors you want to use.
+#' @param total_processors (numeric) Set this to the number of processors you want to use.
 #' Default is 1. Works only if you have "doParallel" installed and accessible.
 #' @param skip_bad_nucleotides (logical) Some sequences have faulty nucleotides labels
 #' with N. If we find a sequence like that in either forwards or reverse, we skip that
 #' aligment. Default is TRUE.
-#' @param average_quality (int) The FASTQ file have a quality for each nucleotide,
+#' @param average_quality (numeric) The FASTQ file have a quality for each nucleotide,
 #' being ! the lower and ~ the highest. In ASCII :
 #'                              !"#$%&'()*+,-./0123456789:;<=>?@
 #'                              ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`
@@ -23,23 +24,23 @@
 #' You can write whatever number in between, and the program will find out the apropiate character
 #' encoding. The filter works by converting each character to a number, and then finding the average.
 #' If the average fall above this threshold then we take the sequence. Default is 0.
-#' @param min_quality (int)  Similar as in average_quality, but this is the minimum quality for
+#' @param min_quality (numeric)  Similar as in average_quality, but this is the minimum quality for
 #' ALL nucleotides. If one of them has quality BELLOW this threshold, then the sequence is skipped.
 #' Default is 0.
-#' @param write_alignments (int) How to write the aligments results into disk:
+#' @param write_alignments (numeric) How to write the aligments results into disk:
 #'                         0 - Write nothing
 #'                         1 - Write only the summary file
 #'                         2 - Write also a verbose file with all the alignments
 #'                             in the same .txt file (Default option)
 #' @param scoring_matrix (string) For now the only option is "NUC44".
-#' @param gap_opening (int) The opening gap score. Default is 50.
-#' @param gap_extension (int) The gap extension score. Default is 0.
-#' @param gap_ending (logical) If you want that the ending gap count for the
+#' @param gap_opening (numeric) The opening gap score. Default is 50.
+#' @param gap_extension (numeric) The gap extension score. Default is 0.
+#' @param gap_ending (boolean) If you want that the ending gap count for the
 #' alignment score set this to TRUE. Default is FALSE.
-#' @param far_indels (logical) If the ending/starting gap should be considered to be
+#' @param far_indels (boolean) If the ending/starting gap should be considered to be
 #' an indel. Default is TRUE. If you want to filter these out from the plots,
 #' there is an option to do so in the plot function. You don't need to do it here.
-#' @param deletefq (logical) If you have fastq.gz files they will be uncompressed into
+#' @param deletefq (boolean) If you have fastq.gz files they will be uncompressed into
 #' the same directory. Set this to true if you want to delete uncompressed files afterwards.
 #' Default is FALSE.
 #' @param temp_folder (string) Your FASTQ files can be compressed in a file. If this
@@ -51,12 +52,13 @@
 #'                         folder where the original files are. In any case you
 #'                         will need writing permissions in the folder in order
 #'                         to uncompress everything.
-#' @param fastqfiles (int) Normally you want to use both FASTQ files. But in
+#' @param fastqfiles (numeric) Normally you want to use both FASTQ files. But in
 #'                         some special cases, you may want to use only the
 #'                         forward file, or only the reverse file.
 #'                         0 - Use both FASTQ files
 #'                         1 - Use only the forward FASTQ file
 #'                         2 - Use only the reverse FASTQ file
+#' @return GRanges object of alignment insertions, deletions, missmatches for each ID
 #' @include gotoh.R helpers_alignment.R helpers_filters.R helpers_warnings.R helpers_directory.R
 #' @export
 #'
@@ -76,16 +78,31 @@ amplicanAnalysis <- function(config,
                              deletefq = FALSE,
                              temp_folder = "",
                              fastqfiles = 0){
+
+  alignmentRanges <- GRanges()
+
   message("Checking write access...")
   checkFileWriteAccess(results_folder)
   if (temp_folder != "") {checkFileWriteAccess(temp_folder)}
 
   message("Checking configuration file...")
   configTable <- read.table(config, header=FALSE, sep="\t", strip.white=TRUE)
-  colnames(configTable) <- c("ID","Barcode","Forward_Reads_File","Reverse_Reads_File","Experiment_Type",
-                             "Target_Primer","Forward_Primer","Reverse_Primer","Strand","Amplicon")
-  configTable$Forward_Reads_File <- paste(fastq_folder, configTable$Forward_Reads_File, sep = "/")
-  configTable$Reverse_Reads_File <- paste(fastq_folder, configTable$Reverse_Reads_File, sep = "/")
+  colnames(configTable) <- c("ID", "Barcode", "Forward_Reads_File", "Reverse_Reads_File", "Experiment_Type",
+                             "Target_Primer", "Forward_Primer", "Reverse_Primer", "Strand", "Amplicon")
+  configTable$Forward_Reads_File <- ifelse(configTable$Forward_Reads_File == "",
+                                           "",
+                                           paste(fastq_folder, configTable$Forward_Reads_File, sep = "/"))
+  configTable$Reverse_Reads_File <- ifelse(configTable$Reverse_Reads_File == "",
+                                           "",
+                                           paste(fastq_folder, configTable$Reverse_Reads_File, sep = "/"))
+  if (sum(configTable$Reverse_Reads_File == "") > 0) {
+    message("Reverse_Reads_File has empty rows. Changing fastqfiles parameter to 1, operating only on forward reads.")
+    fastqfiles <- 1
+  }
+  if (sum(configTable$Forward_Reads_File == "") > 0) {
+    message("Forward_Reads_File has empty rows. Changing fastqfiles parameter to 2, operating only on reverse reads.")
+    fastqfiles <- 2
+  }
   checkConfigFile(configTable, fastq_folder)
 
   message("Preparing FASTQ files...")
@@ -139,11 +156,15 @@ amplicanAnalysis <- function(config,
     cl <- parallel::makeCluster(total_processors, outfile="")
     doParallel::registerDoParallel(cl)
 
-    foreach::foreach(j=1:length(uBarcode), .export=c('getEventInfo', 'upperGroups',
-                                                     'checkTarget', 'checkPrimers', 'checkPositions',
-                                                     'goodBaseQuality', 'goodAvgQuality', 'alphabetQuality',
-                                                     'gRCPP'),
-                     .packages = c('Rcpp', 'R.utils', 'GenomicRanges', 'ShortRead', 'seqinr')) %dopar% {
+    alignmentRanges <- foreach::foreach(j=1:length(uBarcode),
+                                        .export=c('getEventInfo', 'upperGroups',
+                                                                        'checkTarget', 'checkPrimers',
+                                                                        'checkPositions', 'goodBaseQuality',
+                                                                        'goodAvgQuality', 'alphabetQuality',
+                                                                        'gRCPP'),
+                                        .combine = c,
+                                        .packages = c('Rcpp', 'R.utils', 'GenomicRanges',
+                                                      'ShortRead', 'seqinr')) %dopar% {
       makeAlignment(configTable[configTable$Barcode == uBarcode[j],],
                     resultsFolder,
                     skip_bad_nucleotides,
@@ -159,21 +180,26 @@ amplicanAnalysis <- function(config,
     parallel::stopCluster(cl)
   } else {
       for(j in 1:length(uBarcode)){
-        makeAlignment(configTable[configTable$Barcode == uBarcode[j],],
-                      resultsFolder,
-                      skip_bad_nucleotides,
-                      average_quality,
-                      min_quality,
-                      write_alignments,
-                      scoring_matrix,
-                      gap_opening,
-                      gap_extension,
-                      gap_ending,
-                      far_indels)
+        alignmentRanges <- c(alignmentRanges, makeAlignment(configTable[configTable$Barcode == uBarcode[j],],
+                                                            resultsFolder,
+                                                            skip_bad_nucleotides,
+                                                            average_quality,
+                                                            min_quality,
+                                                            write_alignments,
+                                                            scoring_matrix,
+                                                            gap_opening,
+                                                            gap_extension,
+                                                            gap_ending,
+                                                            far_indels,
+                                                            fastqfiles))
+
       }
   }
 
   message("Alignments done.")
+  write.table(as.data.frame(alignmentRanges),
+              file = paste0(results_folder, "/alignments.csv"),
+              row.names = F, na = "", col.names = T, sep = "\t")
 
   # Put all the logs and all the configs together
   totalLogs <- unifyFiles(resultsFolder, "SUBLOG", paste0(results_folder, "/alignmentLog.txt"), header = F)
@@ -186,4 +212,5 @@ amplicanAnalysis <- function(config,
     deleteFiles(configTable)
   }
   message("Finished.")
+  return(alignmentRanges)
 }

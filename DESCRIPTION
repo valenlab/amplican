@@ -40,6 +40,6 @@ Collate:
     'helpers_filters.R'
     'helpers_alignment.R'
     'gotoh.R'
-    'amplicanAlignments.R'
+    'amplicanAnalysis.R'
     'amplicanReport.R'
     'amplicanSummary.R'

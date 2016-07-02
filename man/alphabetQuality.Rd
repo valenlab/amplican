@@ -10,7 +10,7 @@ alphabetQuality(reads)
 \item{reads}{(ShortRead object) Loaded reads from fastq.}
 }
 \value{
-(Logical) Logical vector with the valid rows as TRUE.
+(boolean) Logical vector with the valid rows as TRUE.
 }
 \description{
 This filters out sequences which have nonstandard nucleotides.

@@ -8,7 +8,7 @@ amplicanReport(alignments_folder, levels = c("ID"),
   report_files = c("report_id"))
 }
 \arguments{
-\item{alignments_folder}{(string) Folder containing results from the \code{\link{ampliCanAnalysis}} function,
+\item{alignments_folder}{(string) Folder containing results from the \code{\link{amplicanAnalysis}} function,
 do not change names of the files.}
 
 \item{levels}{(vector) Possible values are: "ID", "Barcode", "Experiment_Type". You can also input more than one
@@ -18,7 +18,7 @@ value eg. c("ID", "Barcode") will create two separate reports for each level.}
 file name. Files are created in current working directory by default.}
 }
 \description{
-ampliCanReport takes a configuration file, fastq reads and output directory to prepare
+amplicanReport takes a configuration file, fastq reads and output directory to prepare
 summary as editable .Rmd file. You can specify whether you want to make summaries based on
 ID, Barcode or Experiment Type.
 }

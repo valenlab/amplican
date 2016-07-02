@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_warnings.R
 \name{checkTarget}
 \alias{checkTarget}
-\title{This function check if the target RNA is in the amplicon.}
+\title{This function checks if the target RNA is in the amplicon.}
 \usage{
 checkTarget(targetPrimer, amplicon, ID, barcode, logFileConn)
 }
@@ -13,14 +13,14 @@ checkTarget(targetPrimer, amplicon, ID, barcode, logFileConn)
 
 \item{ID}{(string) The ID from where this target and amplicon came.}
 
-\item{barcode}{(String) The barcode from where this target and amplicon came.}
+\item{barcode}{(string) The barcode from where this target and amplicon came.}
 
 \item{logFileConn}{(connection) A file descriptor in R which is pointing to the log file.}
 }
 \value{
-(bool) , TRUE:  Everything went good.
+(boolean) TRUE when target is in amplicon
 }
 \description{
-This function check if the target RNA is in the amplicon.
+This function checks if the target RNA is in the amplicon.
 }
 
