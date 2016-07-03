@@ -8,7 +8,8 @@ amplicanAnalysis(config, fastq_folder, results_folder, total_processors = 1,
   skip_bad_nucleotides = TRUE, average_quality = 0, min_quality = 0,
   write_alignments = 2, scoring_matrix = "NUC44", gap_opening = 50,
   gap_extension = 0, gap_ending = FALSE, far_indels = TRUE,
-  deletefq = FALSE, temp_folder = "", fastqfiles = 0)
+  deletefq = FALSE, temp_folder = "", fastqfiles = 0, PRIMER_DIMER = 10,
+  cut_buffer = 5)
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
@@ -81,6 +82,14 @@ forward file, or only the reverse file.
 0 - Use both FASTQ files
 1 - Use only the forward FASTQ file
 2 - Use only the reverse FASTQ file}
+
+\item{PRIMER_DIMER}{(numeric) Value specyfying buffer for PRIMER DIMER detection. For a given read it will be
+recognized as PRIMER DIMER when alignment will introduce gap of size bigger than:
+length of amplicon - (lenghts of PRIMERS + PRIMER_DIMER value)}
+
+\item{cut_buffer}{(numeric) Value specyfying a buffer for PAM, this will add from both sides to
+a window defined from uppercase letters in the amplicon. Deletions overlapping this window will be considered a
+valid cut (if confirmed by both forward and rewerse reads).}
 }
 \value{
 GRanges object of alignment insertions, deletions, missmatches for each ID

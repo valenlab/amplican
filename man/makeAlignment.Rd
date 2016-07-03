@@ -7,7 +7,8 @@
 makeAlignment(configTable, resultsFolder, skip_bad_nucleotides = TRUE,
   average_quality = 0, min_quality = 0, write_alignments = 1,
   scoring_matrix = "NUC44", gap_opening = 50, gap_extension = 0,
-  gap_ending = FALSE, far_indels = TRUE, fastqfiles = 0)
+  gap_ending = FALSE, far_indels = TRUE, fastqfiles = 0,
+  PRIMER_DIMER = 10, cut_buffer = 5)
 }
 \arguments{
 \item{configTable}{(bool)}
@@ -33,6 +34,10 @@ makeAlignment(configTable, resultsFolder, skip_bad_nucleotides = TRUE,
 \item{far_indels}{(bool)}
 
 \item{fastqfiles}{(char)}
+
+\item{PRIMER_DIMER}{(numeric)}
+
+\item{cut_buffer}{(numeric)}
 }
 \value{
 GRanges object with insertions, deletions and missmatches for each of the ID

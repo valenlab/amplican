@@ -58,6 +58,12 @@
 #'                         0 - Use both FASTQ files
 #'                         1 - Use only the forward FASTQ file
 #'                         2 - Use only the reverse FASTQ file
+#' @param PRIMER_DIMER (numeric) Value specyfying buffer for PRIMER DIMER detection. For a given read it will be
+#' recognized as PRIMER DIMER when alignment will introduce gap of size bigger than:
+#' length of amplicon - (lenghts of PRIMERS + PRIMER_DIMER value)
+#' @param cut_buffer (numeric) Value specyfying a buffer for PAM, this will add from both sides to
+#' a window defined from uppercase letters in the amplicon. Deletions overlapping this window will be considered a
+#' valid cut (if confirmed by both forward and rewerse reads).
 #' @return GRanges object of alignment insertions, deletions, missmatches for each ID
 #' @include gotoh.R helpers_alignment.R helpers_filters.R helpers_warnings.R helpers_directory.R
 #' @export
@@ -77,7 +83,9 @@ amplicanAnalysis <- function(config,
                              far_indels = TRUE,
                              deletefq = FALSE,
                              temp_folder = "",
-                             fastqfiles = 0){
+                             fastqfiles = 0,
+                             PRIMER_DIMER = 10,
+                             cut_buffer = 5){
 
   alignmentRanges <- GRanges()
 
@@ -138,19 +146,17 @@ amplicanAnalysis <- function(config,
   uBarcode <- unique(configTable$Barcode)
 
   # Several statistics about deletions, cuts and reads
-  configTable$Sum_Target_Forward_Found <- 0
-  configTable$Sum_Target_Reverse_Found <- 0
-  configTable$Sum_Deletions_Forward <- 0
-  configTable$Sum_Deletions_Reverse <- 0
-  configTable$Sum_Insertions_Forward <- 0
-  configTable$Sum_Insertions_Reverse <- 0
-  configTable$Sum_Missmatches_Forward <- 0
-  configTable$Sum_Missmatches_Reverse <- 0
+  configTable$Cut_Forward <- 0
+  configTable$Cut_Reverse <- 0
+  configTable$Frameshift_Forward <- 0
+  configTable$Frameshift_Reverse <- 0
+  configTable$PRIMER_DIMER <- 0
+  configTable$Reads <- 0
 
   # Warnings
-  configTable$Found_Target <- 0
+  configTable$Found_Guide <- 0
   configTable$Found_Primers <- 0
-  configTable$Found_AP <- 0
+  configTable$Found_PAM <- 1
 
   if (requireNamespace("doParallel", quietly = TRUE) & total_processors > 1) {
     cl <- parallel::makeCluster(total_processors, outfile="")
@@ -191,7 +197,9 @@ amplicanAnalysis <- function(config,
                                                             gap_extension,
                                                             gap_ending,
                                                             far_indels,
-                                                            fastqfiles))
+                                                            fastqfiles,
+                                                            PRIMER_DIMER,
+                                                            cut_buffer))
 
       }
   }
