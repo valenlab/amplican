@@ -40,7 +40,7 @@ makeAlignment(configTable, resultsFolder, skip_bad_nucleotides = TRUE,
 \item{cut_buffer}{(numeric)}
 }
 \value{
-GRanges object with insertions, deletions and missmatches for each of the ID
+Void
 }
 \description{
 Make alignments

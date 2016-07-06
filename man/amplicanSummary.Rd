@@ -4,7 +4,7 @@
 \alias{amplicanSummary}
 \title{Prepare summary report as .Rmd file}
 \usage{
-amplicanSummary(alignments_folder, report_name = "report_summary")
+amplicanSummary(alignments_folder, report_name = "summary_report")
 }
 \arguments{
 \item{alignments_folder}{(string) Folder containing results from the \code{\link{amplicanAnalysis}} function,

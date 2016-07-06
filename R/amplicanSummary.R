@@ -7,7 +7,7 @@
 #' @param report_name (string) Name of the summary report.
 #' @export
 #'
-amplicanSummary <- function(alignments_folder, report_name = "report_summary"){
+amplicanSummary <- function(alignments_folder, report_name = "summary_report"){
   report_name <- paste0(report_name, ".Rmd")
 
   isRmdReady <- file.create(report_name, showWarnings = T)

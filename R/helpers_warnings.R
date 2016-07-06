@@ -55,13 +55,14 @@ checkPrimers <- function(forwardPrimer, reversePrimerRC, amplicon, ID, barcode, 
 #' @param configTable (data.frame) Config file.
 #' @param fastq_folder (string) Path to fastq folder.
 #' @return (void) If anything goes wrong stops and prints error.
+#' @importFrom stats complete.cases
 #'
 checkConfigFile <- function(configTable, fastq_folder){
 
   totalRows <- dim(configTable)[1]
   totalCols <- dim(configTable)[2]
 
-  goodRows <- complete.cases(configTable)
+  goodRows <- stats::complete.cases(configTable)
   if (sum(goodRows) != totalRows) {
     stop(paste0("Config file has bad rows: ",
                 paste(which(goodRows == F)),

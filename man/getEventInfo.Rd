@@ -4,7 +4,7 @@
 \alias{getEventInfo}
 \title{This function takes a lite string and gives back the events coordinates}
 \usage{
-getEventInfo(liteString, ID, strand = "*")
+getEventInfo(liteString, ID, strand = "*", read_alignment)
 }
 \arguments{
 \item{liteString}{(string)}
@@ -12,9 +12,11 @@ getEventInfo(liteString, ID, strand = "*")
 \item{ID}{(string)}
 
 \item{strand}{(string) Either "+", "-" or default "*"}
+
+\item{read_alignment}{(string) Sequence of aligned read to amplicon.}
 }
 \value{
-(GRanges) Object with metadata for insertion, deletion, missmatch
+(GRanges) Object with metadata for insertion, deletion, mismatch
 }
 \description{
 For the given example:

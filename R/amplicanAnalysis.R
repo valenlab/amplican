@@ -64,8 +64,9 @@
 #' @param cut_buffer (numeric) Value specyfying a buffer for PAM, this will add from both sides to
 #' a window defined from uppercase letters in the amplicon. Deletions overlapping this window will be considered a
 #' valid cut (if confirmed by both forward and rewerse reads).
-#' @return GRanges object of alignment insertions, deletions, missmatches for each ID
+#' @return Void
 #' @include gotoh.R helpers_alignment.R helpers_filters.R helpers_warnings.R helpers_directory.R
+#' @import doParallel foreach GenomicRanges
 #' @export
 #'
 amplicanAnalysis <- function(config,
@@ -86,8 +87,6 @@ amplicanAnalysis <- function(config,
                              fastqfiles = 0,
                              PRIMER_DIMER = 10,
                              cut_buffer = 5){
-
-  alignmentRanges <- GRanges()
 
   message("Checking write access...")
   checkFileWriteAccess(results_folder)
@@ -146,31 +145,27 @@ amplicanAnalysis <- function(config,
   uBarcode <- unique(configTable$Barcode)
 
   # Several statistics about deletions, cuts and reads
-  configTable$Cut_Forward <- 0
-  configTable$Cut_Reverse <- 0
-  configTable$Frameshift_Forward <- 0
-  configTable$Frameshift_Reverse <- 0
+  configTable$Cut <- 0
+  configTable$Frameshift <- 0
   configTable$PRIMER_DIMER <- 0
   configTable$Reads <- 0
 
   # Warnings
   configTable$Found_Guide <- 0
-  configTable$Found_Primers <- 0
   configTable$Found_PAM <- 1
 
   if (requireNamespace("doParallel", quietly = TRUE) & total_processors > 1) {
     cl <- parallel::makeCluster(total_processors, outfile="")
     doParallel::registerDoParallel(cl)
 
-    alignmentRanges <- foreach::foreach(j=1:length(uBarcode),
-                                        .export=c('getEventInfo', 'upperGroups',
-                                                                        'checkTarget', 'checkPrimers',
-                                                                        'checkPositions', 'goodBaseQuality',
-                                                                        'goodAvgQuality', 'alphabetQuality',
-                                                                        'gRCPP'),
-                                        .combine = c,
-                                        .packages = c('Rcpp', 'R.utils', 'GenomicRanges',
-                                                      'ShortRead', 'seqinr')) %dopar% {
+    foreach::foreach(j=1:length(uBarcode),
+                     .export=c('getEventInfo', 'upperGroups',
+                               'checkTarget', 'checkPrimers',
+                               'goodBaseQuality', 'goodAvgQuality',
+                               'alphabetQuality', 'gRCPP'),
+                     .combine = c,
+                     .packages = c('Rcpp', 'R.utils', 'GenomicRanges',
+                                   'ShortRead', 'seqinr')) %dopar% {
       makeAlignment(configTable[configTable$Barcode == uBarcode[j],],
                     resultsFolder,
                     skip_bad_nucleotides,
@@ -186,33 +181,30 @@ amplicanAnalysis <- function(config,
     parallel::stopCluster(cl)
   } else {
       for(j in 1:length(uBarcode)){
-        alignmentRanges <- c(alignmentRanges, makeAlignment(configTable[configTable$Barcode == uBarcode[j],],
-                                                            resultsFolder,
-                                                            skip_bad_nucleotides,
-                                                            average_quality,
-                                                            min_quality,
-                                                            write_alignments,
-                                                            scoring_matrix,
-                                                            gap_opening,
-                                                            gap_extension,
-                                                            gap_ending,
-                                                            far_indels,
-                                                            fastqfiles,
-                                                            PRIMER_DIMER,
-                                                            cut_buffer))
-
+        makeAlignment(configTable[configTable$Barcode == uBarcode[j],],
+                      resultsFolder,
+                      skip_bad_nucleotides,
+                      average_quality,
+                      min_quality,
+                      write_alignments,
+                      scoring_matrix,
+                      gap_opening,
+                      gap_extension,
+                      gap_ending,
+                      far_indels,
+                      fastqfiles,
+                      PRIMER_DIMER,
+                      cut_buffer)
       }
   }
 
-  message("Alignments done.")
-  write.table(as.data.frame(alignmentRanges),
-              file = paste0(results_folder, "/alignments.csv"),
-              row.names = F, na = "", col.names = T, sep = "\t")
+  message("Alignments done. Creating results files...")
 
   # Put all the logs and all the configs together
-  totalLogs <- unifyFiles(resultsFolder, "SUBLOG", paste0(results_folder, "/alignmentLog.txt"), header = F)
-  totalConfigs <- unifyFiles(resultsFolder, "configFile_results", paste0(results_folder, "/config_summary.csv"))
-  totalBarcode <- unifyFiles(resultsFolder, "reads_filters.csv", paste0(results_folder, "/barcode_reads_filters.csv"))
+  unifyFiles(resultsFolder, "SUBLOG", paste0(results_folder, "/alignmentLog.txt"), header = F)
+  unifyFiles(resultsFolder, "configFile_results", paste0(results_folder, "/config_summary.csv"))
+  unifyFiles(resultsFolder, "alignment_ranges", paste0(results_folder, "/alignments.csv"))
+  unifyFiles(resultsFolder, "reads_filters.csv", paste0(results_folder, "/barcode_reads_filters.csv"))
 
   # If the user want to delete the uncompressed results, do it now.
   if (deletefq == TRUE) {
@@ -220,5 +212,5 @@ amplicanAnalysis <- function(config,
     deleteFiles(configTable)
   }
   message("Finished.")
-  return(alignmentRanges)
+  return()
 }

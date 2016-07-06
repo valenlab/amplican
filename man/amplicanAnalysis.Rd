@@ -92,7 +92,7 @@ a window defined from uppercase letters in the amplicon. Deletions overlapping t
 valid cut (if confirmed by both forward and rewerse reads).}
 }
 \value{
-GRanges object of alignment insertions, deletions, missmatches for each ID
+Void
 }
 \description{
 amplicanAnalysis takes a configuration files, fastq reads and output directory to prepare

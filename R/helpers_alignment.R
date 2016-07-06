@@ -15,10 +15,12 @@
 #' @param liteString (string)
 #' @param ID (string)
 #' @param strand (string) Either "+", "-" or default "*"
-#' @return (GRanges) Object with metadata for insertion, deletion, missmatch
-#' @import GenomicRanges S4Vectors
+#' @param read_alignment (string) Sequence of aligned read to amplicon.
+#' @return (GRanges) Object with metadata for insertion, deletion, mismatch
+#' @import GenomicRanges
+#' @importFrom S4Vectors Rle
 #'
-getEventInfo <- function(liteString, ID, strand = "*"){
+getEventInfo <- function(liteString, ID, strand = "*", read_alignment){
 
     if(is.na(liteString) | nchar(liteString) < 12){
       return(GRanges())
@@ -27,7 +29,7 @@ getEventInfo <- function(liteString, ID, strand = "*"){
     alignmentData <- unlist(strsplit(liteString, "!", fixed = TRUE))
     insertionsData <- alignmentData[1]
     deletionsData <- alignmentData[2]
-    missmatchesData <- alignmentData[3]
+    mismatchesData <- alignmentData[3]
 
     insertionsR <- GRanges()
     insCount <- as.numeric(unlist(strsplit(insertionsData, "@", fixed = TRUE))[2])
@@ -36,10 +38,10 @@ getEventInfo <- function(liteString, ID, strand = "*"){
       insertions <- unlist(strsplit(insertions, "*", fixed = TRUE))
       insertionsPairs <- as.numeric(unlist(strsplit(insertions, ",", fixed = TRUE)))
       insertionsR <- GRanges(ranges = IRanges(start = insertionsPairs[c(T, F)], end = insertionsPairs[c(F, T)]),
-                            strand = S4Vectors::Rle(rep(strand, insCount)),
-                            seqnames = Rle(rep(ID, insCount)))
+                             strand = S4Vectors::Rle(rep(strand, insCount)),
+                             seqnames = Rle(rep(ID, insCount)))
       insertionsR$mm_originally = ""
-      insertionsR$mm_replacement = ""
+      insertionsR$mm_replacement = substring(read_alignment, insertionsPairs[c(T, F)], insertionsPairs[c(F, T)])
       insertionsR$type = "insertion"
     }
 
@@ -50,28 +52,28 @@ getEventInfo <- function(liteString, ID, strand = "*"){
       deletions <- unlist(strsplit(deletions, "*", fixed = TRUE))
       deletionsPairs <- as.numeric(unlist(strsplit(deletions, ",", fixed = TRUE)))
       deletionsR <- GRanges(ranges = IRanges(start = deletionsPairs[c(T, F)], end = deletionsPairs[c(F, T)]),
-                             strand = Rle(rep(strand, delCount)),
-                             seqnames = Rle(rep(ID, delCount)))
+                            strand = Rle(rep(strand, delCount)),
+                            seqnames = Rle(rep(ID, delCount)))
       deletionsR$mm_originally = ""
       deletionsR$mm_replacement = ""
       deletionsR$type = "deletion"
     }
 
-    missmatchesR <- GRanges()
-    mmCount <- as.numeric(unlist(strsplit(missmatchesData, "@", fixed = TRUE))[2])
+    mismatchesR <- GRanges()
+    mmCount <- as.numeric(unlist(strsplit(mismatchesData, "@", fixed = TRUE))[2])
     if(mmCount > 0){
-      missmatches <- unlist(strsplit(missmatchesData, "@", fixed = TRUE))[3]
-      missmatches <- unlist(strsplit(missmatches, "*", fixed = TRUE))
-      missmatches <- unlist(strsplit(missmatches, ",", fixed = TRUE))
-      missmatchesR <- GRanges(ranges = IRanges(start = as.numeric(missmatches[c(T, F, F)]), width = 1),
+      mismatches <- unlist(strsplit(mismatchesData, "@", fixed = TRUE))[3]
+      mismatches <- unlist(strsplit(mismatches, "*", fixed = TRUE))
+      mismatches <- unlist(strsplit(mismatches, ",", fixed = TRUE))
+      mismatchesR <- GRanges(ranges = IRanges(start = as.numeric(mismatches[c(T, F, F)]), width = 1),
                               strand = Rle(rep(strand, mmCount)),
                               seqnames = Rle(rep(ID, mmCount)))
-      missmatchesR$mm_originally = missmatches[c(F, T, F)]
-      missmatchesR$mm_replacement = missmatches[c(F, F, T)]
-      missmatchesR$type = "missmatch"
+      mismatchesR$mm_originally = mismatches[c(F, T, F)]
+      mismatchesR$mm_replacement = mismatches[c(F, F, T)]
+      mismatchesR$type = "mismatch"
     }
 
-    return(c(insertionsR, deletionsR, missmatchesR))
+    return(c(insertionsR, deletionsR, mismatchesR))
 }
 
 
@@ -83,11 +85,12 @@ getEventInfo <- function(liteString, ID, strand = "*"){
 #'
 #' Has 4 groups of uppercases of length 7, 4, 1 and 3.
 #' @param candidate (string) A string with the nucleotide sequence.
-#' @import IRanges seqinr
+#' @import IRanges
+#' @importFrom seqinr s2c
 #' @return (Ranges) A Ranges object with uppercases groups for given candidate string
 #'
 upperGroups <- function(candidate){
-  return(reduce(IRanges(start = c(which(grepl("[[:upper:]]", s2c(candidate)))),
+  return(reduce(IRanges(start = c(which(grepl("[[:upper:]]", seqinr::s2c(candidate)))),
                         width = 1)))
 }
 
@@ -108,9 +111,12 @@ upperGroups <- function(candidate){
 #' @param fastqfiles (char)
 #' @param PRIMER_DIMER (numeric)
 #' @param cut_buffer (numeric)
-#' @import ShortRead seqinr GenomicRanges
+#' @import GenomicRanges
+#' @importFrom seqinr comp s2c c2s
 #' @importFrom utils write.table read.table
-#' @return GRanges object with insertions, deletions and missmatches for each of the ID
+#' @importFrom stats aggregate
+#' @importFrom ShortRead readFastq
+#' @return Void
 #'
 makeAlignment <- function(configTable,
                           resultsFolder,
@@ -127,13 +133,12 @@ makeAlignment <- function(configTable,
                           PRIMER_DIMER = 10,
                           cut_buffer = 5){
 
-  alignmentRanges <- GRanges()
   barcode <- toString(configTable$Barcode[1])
   message(paste0("Aligning reads for ", barcode))
 
   #Read Reads for this Barcode
-  forwardsTable <- if (fastqfiles == 2) NULL else readFastq(configTable$Forward_Reads_File[1])
-  reversesTable <- if (fastqfiles == 1) NULL else readFastq(configTable$Reverse_Reads_File[1])
+  forwardsTable <- if (fastqfiles == 2) NULL else ShortRead::readFastq(configTable$Forward_Reads_File[1])
+  reversesTable <- if (fastqfiles == 1) NULL else ShortRead::readFastq(configTable$Reverse_Reads_File[1])
   if (fastqfiles == 1) { rewersesTable <- rep(T, length(forwardsTable)) }
   if (fastqfiles == 2) { forwardsTable <- rep(T, length(reversesTable)) }
 
@@ -158,7 +163,7 @@ makeAlignment <- function(configTable,
                              if (fastqfiles == 1) "" else as.character(reversesTable@sread))
   colnames(uniqueTable) <- c("Forward", "Reverse")
   uniqueTable$Total <- paste0(uniqueTable$Forward, uniqueTable$Reverse)
-  uniqueTable <- aggregate(Total ~  Reverse + Forward, uniqueTable, length)
+  uniqueTable <- stats::aggregate(Total ~  Reverse + Forward, uniqueTable, length)
   uniqueTable$BarcodeFrequency <- uniqueTable$Total / sum(uniqueTable$Total)
   uniqueTable <- uniqueTable[order(uniqueTable$Forward, uniqueTable$Reverse),]
   uniqueTable$Asigned <- F
@@ -167,13 +172,14 @@ makeAlignment <- function(configTable,
   barcodeTable$unique_reads <- nrow(uniqueTable)
 
   for(i in 1:dim(configTable)[1]){ #for each id
+    alignmentRanges <- GRanges()
     currentID <- configTable[i, "ID"]
     # Primers and amplicon info
     forwardPrimer <- toString(configTable[i, "Forward_Primer"])
     reversePrimer <- toString(configTable[i, "Reverse_Primer"])
     guideRNA <- toString(configTable[i, "Target_Primer"])
     if (configTable[i, "Strand"] == 1) {
-      guideRNA  <-  c2s(rev(comp(s2c(guideRNA), forceToLower = F, ambiguous = T)))
+      guideRNA  <-  seqinr::c2s(rev(seqinr::comp(seqinr::s2c(guideRNA), forceToLower = F, ambiguous = T)))
     }
     amplicon <- toString(configTable[i, "Amplicon"])
     # Names of files and folders
@@ -199,8 +205,9 @@ makeAlignment <- function(configTable,
     if (file.exists(sublog_file)) {file.remove(sublog_file)}
     logFileConn <- file(sublog_file, open = "at")
     configTable$Found_Guide[i]  <- checkTarget(guideRNA, amplicon, currentID, barcode, logFileConn)
-    configTable$Found_Primers[i] <- checkPrimers(forwardPrimer, c2s(rev(comp(s2c(reversePrimer)))),
-                                                 amplicon, currentID, barcode, logFileConn)
+    checkPrimers(forwardPrimer, seqinr::c2s(rev(seqinr::comp(seqinr::s2c(reversePrimer)))),
+                 amplicon, currentID, barcode, logFileConn)
+
     cutSites <- upperGroups(amplicon) + cut_buffer
     if (length(cutSites) == 0) {
       message("Warning: Aligment position was not found in the amplicon. Find more information in the log file.")
@@ -217,7 +224,8 @@ makeAlignment <- function(configTable,
     uniqueTable$reverseFound <- if (fastqfiles == 1) {F} else grepl(reversePrimer, uniqueTable$Reverse,
                                                                     ignore.case=TRUE)
     uniqueTable$guideFoundForward <- grepl(guideRNA, uniqueTable$Forward, ignore.case=TRUE)
-    uniqueTable$guideFoundReverse <- grepl(c2s(rev(comp(s2c(guideRNA)))), uniqueTable$Reverse, ignore.case=TRUE)
+    uniqueTable$guideFoundReverse <- grepl(seqinr::c2s(rev(seqinr::comp(seqinr::s2c(guideRNA)))),
+                                           uniqueTable$Reverse, ignore.case=TRUE)
     primersFound <- uniqueTable$forwardFound & uniqueTable$reverseFound
     if (fastqfiles == 1) { primersFound <- uniqueTable$forwardFound }
     if (fastqfiles == 2) { primersFound <- uniqueTable$reverseFound }
@@ -225,13 +233,13 @@ makeAlignment <- function(configTable,
     IDuniqueTable <- uniqueTable[primersFound, ]
 
     if (dim(IDuniqueTable)[1] > 0) {
-      for (r in 1:dim(IDuniqueTable)[1]) {
+      for (r in dim(IDuniqueTable)[1]) {
         forwardString   <- toupper(toString(IDuniqueTable[r, "Forward"]))
-        reverseString   <- toupper(c2s(rev(comp(s2c(toString(IDuniqueTable[r, "Reverse"]))))))
+        reverseString   <- toupper(seqinr::c2s(rev(seqinr::comp(seqinr::s2c(toString(IDuniqueTable[r, "Reverse"]))))))
         # The return of gotoh is a string divided in five parts with the separator "++++"
         # -- [1] is the verbose alignment result
-        # -- [2] is a string with the insertions and deletions and missmatches
-        # -- [3] is a string with the insertions and deletions and missmatches,
+        # -- [2] is a string with the insertions and deletions and mismatches
+        # -- [3] is a string with the insertions and deletions and mismatches,
         #    but from the subject (amplicon) coordinates
         # -- [4] is the alignment of the pattern.
         # -- [5] is the alignment of the subject.
@@ -271,25 +279,51 @@ makeAlignment <- function(configTable,
                        alignReverse[4]), masterFileConn)
         }
 
-        forwardData <- getEventInfo(alignForward[3], currentID)
-        reverseData <- getEventInfo(alignReverse[3], currentID)
+        forwardData <- getEventInfo(alignForward[3], currentID, "+", alignForward[4])
+        reverseData <- getEventInfo(alignReverse[3], currentID, "-", alignReverse[4])
 
         #Filter PRIMER DIMERS and sum how many
         PD_cutoff <- nchar(amplicon) - (nchar(forwardPrimer) + nchar(reversePrimer) + PRIMER_DIMER)
         isPD <- any(c(width(forwardData), width(reverseData)) > PD_cutoff)
         IDuniqueTable[r, "PRIMER_DIMER"] <- isPD
-        configTable$PRIMER_DIMER[i] <- configTable$PRIMER_DIMER[i] + isPD
+        configTable$PRIMER_DIMER[i] <- configTable$PRIMER_DIMER[i] + isPD * IDuniqueTable$Total[r]
         if (isPD) { next }
 
-        #Frameshift table
-        configTable$Frameshift_Forward[i] <- configTable$Frameshift_Forward[i] +
-          sum(width(forwardData[forwardData$type != "missmatch"])) %% 3 != 0
-        configTable$Frameshift_Reverse[i] <- configTable$Frameshift_Reverse[i] +
-          sum(width(reverseData[reverseData$type != "missmatch"])) %% 3 != 0
+        #Filter our deletions on end and beginings
+        forwardData <- forwardData[!(forwardData$type == "deletion" & end(forwardData) == nchar(amplicon))]
+        reverseData <- reverseData[!(reverseData$type == "deletion" & start(reverseData) == 1)]
+        #Filter insertions on end and beginings
+        forwardData <- forwardData[!(forwardData$type == "insertion" & start(forwardData) > nchar(amplicon))]
+        reverseData <- reverseData[!(reverseData$type == "insertion" & start(reverseData) == 1)]
 
-        #Cut definition
-        forwardData$cut <- F
-        reverseData$cut <- F
+        #Frameshift table
+        frameshift <- F
+        if (fastqfiles == 0) {
+          frameshift <- sum(width(forwardData[forwardData$type != "mismatch"])) %% 3 != 0 &
+                        sum(width(reverseData[reverseData$type != "mismatch"])) %% 3 != 0
+        } else if (fastqfiles == 1) {
+          frameshift <- sum(width(forwardData[forwardData$type != "mismatch"])) %% 3 != 0
+        } else {
+          frameshift <- sum(width(reverseData[reverseData$type != "mismatch"])) %% 3 != 0
+        }
+        configTable$Frameshift[i] <- configTable$Frameshift[i] + frameshift * IDuniqueTable$Total[r]
+
+        #definitions
+        if (length(forwardData) > 0) {
+          forwardData$cut <- F
+          forwardData$count <- IDuniqueTable$Total[r]
+          forwardData$frequency <- 0 #prepare field
+          forwardData$read_id <- r
+        }
+
+        if (length(reverseData) > 0) {
+          reverseData$cut <- F
+          reverseData$count <- IDuniqueTable$Total[r]
+          reverseData$frequency <- 0 #prepare field
+          reverseData$read_id <- r
+        }
+
+        #cut assessment
         overlapFd <- subsetByOverlaps(ranges(forwardData[forwardData$type == "deletion"]), cutSites)
         overlapRe <- subsetByOverlaps(ranges(reverseData[reverseData$type == "deletion"]), cutSites)
         if (fastqfiles == 0) {
@@ -304,24 +338,21 @@ makeAlignment <- function(configTable,
           reverseData$cut[!is.na(match(ranges(reverseData), overlapRe))] <- T
         }
 
-        #Strand Count Frequency
-        strand(forwardData) <- "+"
-        forwardData$count <- IDuniqueTable$Total[r]
-        forwardData$frequency <- IDuniqueTable$Total[r]/sum(IDuniqueTable$Total)
+        configTable$Cut[i] <- configTable$Cut[i] + ifelse(fastqfiles == 2,
+                                                          any(reverseData$cut) * IDuniqueTable$Total[r],
+                                                          any(forwardData$cut) * IDuniqueTable$Total[r])
 
-        strand(reverseData) <- "-"
-        reverseData$count <- IDuniqueTable$Total[r]
-        reverseData$frequency <- IDuniqueTable$Total[r]/sum(IDuniqueTable$Total)
-
-        alignmentRanges <- c(alignmentRanges, forwardData, reverseData)
-
-        # events counts
-        configTable$Cut_Forward[i] <- configTable$Cut_Forward[i] +
-          any(forwardData$cut) * IDuniqueTable$Total[r]
-        configTable$Cut_Reverse[i] <- configTable$Cut_Reverse[i] +
-          any(reverseData$cut) * IDuniqueTable$Total[r]
+        if (length(forwardData) > 0 | length(reverseData) > 0) {
+          alignmentRanges <- c(alignmentRanges, forwardData, reverseData)
+        }
       }
+
       configTable$Reads[i] <- sum(IDuniqueTable$Total)
+      # fill frequency
+      if ( length(alignmentRanges) > 0) {
+        reads_count_filtered <- configTable$Reads[i] - configTable$PRIMER_DIMER[i]
+        alignmentRanges$frequency <- alignmentRanges$count / reads_count_filtered
+      }
     }
 
     if (isOpen(masterFileConn)) {
@@ -329,6 +360,11 @@ makeAlignment <- function(configTable,
     }
     if (isOpen(uberAlignmentFD)) {
       close(uberAlignmentFD)
+    }
+
+    if (length(alignmentRanges) > 0) {
+      write.table(as.data.frame(alignmentRanges),
+                  paste0(resultsFolder, "/", barcode, "_alignment_ranges.csv") , sep="\t", row.names = F)
     }
   }
 
@@ -338,7 +374,7 @@ makeAlignment <- function(configTable,
               file = paste(resultsFolder, "/unassigned_sequences/", barcode, "_unassigned_reads.txt", sep = ''),
               quote = FALSE, sep = "\t", row.names = F)
 
-  write.table(configTable, paste0(resultsFolder, "/", barcode, "_configFile_results") , sep="\t", row.names = F)
+  write.table(configTable, paste0(resultsFolder, "/", barcode, "_configFile_results.csv") , sep="\t", row.names = F)
   write.table(barcodeTable, paste0(resultsFolder, "/", barcode, "_reads_filters.csv"), sep="\t", row.names = F)
-  return(alignmentRanges)
+  return()
 }

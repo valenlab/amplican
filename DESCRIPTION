@@ -25,13 +25,17 @@ Imports:
     ShortRead,
     IRanges,
     GenomicRanges,
-    S4Vectors
+    S4Vectors,
+    doParallel,
+    foreach,
+    ggplot2,
+    ggbio,
+    stringr,
+    stats
 RoxygenNote: 5.0.1
 Suggests:
     testthat,
-    knitr,
-    doParallel,
-    foreach
+    knitr
 Collate:
     'RcppExports.R'
     'amplican.R'
@@ -43,3 +47,4 @@ Collate:
     'amplicanAnalysis.R'
     'amplicanReport.R'
     'amplicanSummary.R'
+    'helpers_plots.R'

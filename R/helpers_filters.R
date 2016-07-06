@@ -10,7 +10,7 @@
 #'
 goodBaseQuality <- function(reads, min = 0){
   if (is.logical(reads)) { return(reads) }
-  apply(as(slot(reads, "quality"), "matrix"), 1, min, na.rm = T) >= min
+  return(apply(as(slot(reads, "quality"), "matrix"), 1, min, na.rm = T) >= min)
 }
 
 
@@ -26,7 +26,7 @@ goodBaseQuality <- function(reads, min = 0){
 #'
 goodAvgQuality <- function(reads, avg = 0){
   if (is.logical(reads)) { return(reads) }
-  apply(as(slot(reads, "quality"), "matrix"), 1, mean, na.rm = T) >= avg
+  return(apply(as(slot(reads, "quality"), "matrix"), 1, mean, na.rm = T) >= avg)
 }
 
 
@@ -34,10 +34,15 @@ goodAvgQuality <- function(reads, avg = 0){
 #'
 #' @param reads (ShortRead object) Loaded reads from fastq.
 #' @return (boolean) Logical vector with the valid rows as TRUE.
-#' @importFrom ShortRead srFilter
+#' @importFrom stringr str_detect
 #'
 alphabetQuality <- function(reads){
   if (is.logical(reads)) { return(reads) }
-  nucq <- polynFilter(nuc = c("A", "C", "T", "G"))
-  !as.logical(nucq(reads))
+  filt <- tryCatch({
+    nucq <- ShortRead::polynFilter(nuc = c("A", "C", "T", "G")) #c stack limits!
+    return(!as.logical(nucq(reads)))
+    }, error = function(cond) {
+      return(sapply(slot(reads, "sread"), stringr::str_detect, "^[ATCG]+$"))
+    })
+  return(filt)
 }
