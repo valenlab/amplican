@@ -14,18 +14,7 @@ amplicanSummary <- function(alignments_folder, report_name = "summary_report"){
   if (isRmdReady) {
 
     fileConn <- file(report_name)
-    writeLines(c("---",
-                 "title: 'Reads Summary Report'",
-                 "author: amplican",
-                 "date: '`r format(Sys.time(), \"%d %B %Y\")`'",
-                 "output:",
-                 "  html_document:",
-                 "    toc: true",
-                 "    theme: paper",
-                 "    toc_float: true",
-                 "    number_sections: true",
-                 "---\n",
-                 "***\n",
+    writeLines(c(write_head("Summary Read Report"),
                  "# Explanation of variables\n",
                  "***\n",
                  "**read_count** - how many reads belongs to this barcode  ",

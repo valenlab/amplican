@@ -41,7 +41,7 @@ getEventInfo <- function(liteString, ID, strand = "*", read_alignment){
                              strand = S4Vectors::Rle(rep(strand, insCount)),
                              seqnames = Rle(rep(ID, insCount)))
       insertionsR$mm_originally = ""
-      insertionsR$mm_replacement = substring(read_alignment, insertionsPairs[c(T, F)], insertionsPairs[c(F, T)])
+      insertionsR$mm_replacement = ""
       insertionsR$type = "insertion"
     }
 
@@ -73,7 +73,13 @@ getEventInfo <- function(liteString, ID, strand = "*", read_alignment){
       mismatchesR$type = "mismatch"
     }
 
-    return(c(insertionsR, deletionsR, mismatchesR))
+    finalEvents <- c(insertionsR, deletionsR, mismatchesR)
+    return(if (length(finalEvents) > 0) finalEvents else GRanges(ranges = IRanges(start = 0, end = 0),
+                                                                 seqnames = ID,
+                                                                 strand = strand,
+                                                                 mm_originally = "",
+                                                                 mm_replacement = "",
+                                                                 type = "no_events"))
 }
 
 
@@ -90,7 +96,7 @@ getEventInfo <- function(liteString, ID, strand = "*", read_alignment){
 #' @return (Ranges) A Ranges object with uppercases groups for given candidate string
 #'
 upperGroups <- function(candidate){
-  return(reduce(IRanges(start = c(which(grepl("[[:upper:]]", seqinr::s2c(candidate)))),
+  return(IRanges::reduce(IRanges(start = c(which(grepl("[[:upper:]]", seqinr::s2c(candidate)))),
                         width = 1)))
 }
 
@@ -233,7 +239,7 @@ makeAlignment <- function(configTable,
     IDuniqueTable <- uniqueTable[primersFound, ]
 
     if (dim(IDuniqueTable)[1] > 0) {
-      for (r in dim(IDuniqueTable)[1]) {
+      for (r in 1:dim(IDuniqueTable)[1]) {
         forwardString   <- toupper(toString(IDuniqueTable[r, "Forward"]))
         reverseString   <- toupper(seqinr::c2s(rev(seqinr::comp(seqinr::s2c(toString(IDuniqueTable[r, "Reverse"]))))))
         # The return of gotoh is a string divided in five parts with the separator "++++"
@@ -290,21 +296,25 @@ makeAlignment <- function(configTable,
         if (isPD) { next }
 
         #Filter our deletions on end and beginings
-        forwardData <- forwardData[!(forwardData$type == "deletion" & end(forwardData) == nchar(amplicon))]
-        reverseData <- reverseData[!(reverseData$type == "deletion" & start(reverseData) == 1)]
+        forwardDataFiltered <- forwardData[!(forwardData$type == "deletion" & end(forwardData) == nchar(amplicon))]
+        reverseDataFiltered <- reverseData[!(reverseData$type == "deletion" & start(reverseData) == 1)]
         #Filter insertions on end and beginings
-        forwardData <- forwardData[!(forwardData$type == "insertion" & start(forwardData) > nchar(amplicon))]
-        reverseData <- reverseData[!(reverseData$type == "insertion" & start(reverseData) == 1)]
+        forwardDataFiltered <- forwardData[!(forwardData$type == "insertion" & start(forwardData) > nchar(amplicon))]
+        reverseDataFiltered <- reverseData[!(reverseData$type == "insertion" & start(reverseData) == 1)]
 
         #Frameshift table
         frameshift <- F
         if (fastqfiles == 0) {
-          frameshift <- sum(width(forwardData[forwardData$type != "mismatch"])) %% 3 != 0 &
-                        sum(width(reverseData[reverseData$type != "mismatch"])) %% 3 != 0
+          frameshift <- sum(width(forwardDataFiltered[forwardDataFiltered$type == "insertion" |
+                                                        forwardDataFiltered$type == "deletion"])) %% 3 != 0 &
+                        sum(width(reverseDataFiltered[reverseDataFiltered$type == "insertion" |
+                                                        reverseDataFiltered$type == "deletion"])) %% 3 != 0
         } else if (fastqfiles == 1) {
-          frameshift <- sum(width(forwardData[forwardData$type != "mismatch"])) %% 3 != 0
+          frameshift <- sum(width(forwardDataFiltered[forwardDataFiltered$type == "insertion" |
+                                                        forwardDataFiltered$type == "deletion"])) %% 3 != 0
         } else {
-          frameshift <- sum(width(reverseData[reverseData$type != "mismatch"])) %% 3 != 0
+          frameshift <- sum(width(reverseData[reverseDataFiltered$type == "insertion" |
+                                                reverseDataFiltered$type == "deletion"])) %% 3 != 0
         }
         configTable$Frameshift[i] <- configTable$Frameshift[i] + frameshift * IDuniqueTable$Total[r]
 
@@ -324,8 +334,8 @@ makeAlignment <- function(configTable,
         }
 
         #cut assessment
-        overlapFd <- subsetByOverlaps(ranges(forwardData[forwardData$type == "deletion"]), cutSites)
-        overlapRe <- subsetByOverlaps(ranges(reverseData[reverseData$type == "deletion"]), cutSites)
+        overlapFd <- subsetByOverlaps(ranges(forwardDataFiltered[forwardDataFiltered$type == "deletion"]), cutSites)
+        overlapRe <- subsetByOverlaps(ranges(reverseDataFiltered[reverseDataFiltered$type == "deletion"]), cutSites)
         if (fastqfiles == 0) {
           #forward and reverse have to agree on deletion
           overlapFd <- overlapFd[!is.na(match(overlapFd, overlapRe))]

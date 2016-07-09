@@ -1,9 +1,10 @@
 #' This function plots mutations in relation to the amplicon. Top plot is for the forward reads, middle one shows
 #' amplicon sequence, and bottom plot is for reverse reads.
 #'
-#' @param alignmentsGRanges (GRanges object) Loaded alignment information from alignments.csv file.
+#' @param alignments (GRanges object) Loaded alignment information from alignments.csv file.
 #' @param config (data.frame) Loaded table from config_summary.csv file.
 #' @param id (string) Name of the ID column from config file.
+#' @param cut_buffer (numeric) Default is 5, you should specify the same as used in the analysis.
 #' @return (mutation plot) ggplot2 object of mutation plot
 #' @import GenomicRanges
 #' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle scale_colour_manual geom_bar
@@ -14,10 +15,12 @@
 #' @importFrom stats na.omit aggregate
 #' @export
 #'
-amplican_mutations_plot <- function(alignmentsGRanges, config, id) {
+amplican_plot_mutations <- function(alignments, config, id, cut_buffer = 5) {
 
-  idRanges <- alignmentsGRanges[alignmentsGRanges$seqnames == id,]
+  idRanges <- alignments[alignments$seqnames == id,]
   idRanges <- idRanges[idRanges$type == "mismatch",]
+
+  if (dim(idRanges)[1] == 0) {return(print("No mismatches to plot."))}
 
   amplicon <- toString(config[which(config$ID == id), "Amplicon"])
   ampl_len <- nchar(amplicon)
@@ -27,12 +30,20 @@ amplican_mutations_plot <- function(alignmentsGRanges, config, id) {
 
   box <- upperGroups(amplicon)
   xlabels <- if (config[which(config$ID == id), "Strand"] != 1) {
-    seq(-start(box[1]) + 1, ampl_len-start(box[1]), 4)
+    if (length(box) >= 1) {
+      seq(-start(box[1]) + 1, ampl_len-start(box[1]), 4)
+    } else {
+      seq(1, ampl_len, 4)
+    }
   } else {
-    rev(seq(end(box[1]) - ampl_len + 1, end(box[1]), 4))
+    if (length(box) >= 1) {
+      rev(seq(end(box[1]) - ampl_len + 1, end(box[1]), 4))
+    } else {
+      rev(seq(1, ampl_len, 4))
+    }
   }
-  xbreaks <- seq(1, nchar(amplicon), 4)
-  box <- box + 5
+  xbreaks <- seq(1, ampl_len, 4)
+  box <- box + cut_buffer
 
   frPrimer <- toString(config[which(config$ID == id), "Forward_Primer"])
   frPrimer <- stringr::str_locate(toupper(amplicon), toupper(frPrimer))
@@ -106,9 +117,10 @@ amplican_mutations_plot <- function(alignmentsGRanges, config, id) {
 #' This function plots deletions in relation to the amplicon. Top plot is for the forward reads, middle one shows
 #' amplicon sequence, and bottom plot is for reverse reads.
 #'
-#' @param alignmentsGRanges (GRanges object) Loaded alignment information from alignments.csv file.
+#' @param alignments (GRanges object) Loaded alignment information from alignments.csv file.
 #' @param config (data.frame) Loaded table from config_summary.csv file.
 #' @param id (string) Name of the ID column from config file.
+#' @param cut_buffer (numeric) Default is 5, you should specify the same as used in the analysis.
 #' @return (deletions plot) ggplot2 object of mutation plot
 #' @import GenomicRanges
 #' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle scale_colour_manual
@@ -119,26 +131,39 @@ amplican_mutations_plot <- function(alignmentsGRanges, config, id) {
 #' @importFrom stats na.omit
 #' @export
 #'
-amplican_deletions_plot <- function(alignmentsGRanges, config, id) {
+amplican_plot_deletions <- function(alignments, config, id, cut_buffer = 5) {
 
-  archRanges <- alignmentsGRanges[alignmentsGRanges$seqnames == id,]
-  archRanges <- archRanges[archRanges$type == "deletion",]
-  archRanges <- stats::aggregate(cbind(count, frequency, cut) ~ strand + start + end, archRanges, sum)
+  archRanges <- alignments[alignments$seqnames == id & alignments$type == "deletion",]
 
   amplicon <- toString(config[which(config$ID == id), "Amplicon"])
   ampl_len <- nchar(amplicon)
+
+  archRanges <- archRanges[!(archRanges$end == ampl_len & archRanges$strand == "+"),]
+  archRanges <- archRanges[!(archRanges$start == 1 & archRanges$strand == "-"),]
+
+  if (dim(archRanges)[1] == 0) {return(print("No deletions to plot."))}
+  archRanges <- stats::aggregate(cbind(count, frequency, cut) ~ strand + start + end, archRanges, sum)
+
   selcolumns <- c("position", "nucleotide", "upper", "count")
   ampl_df <- data.frame(seq(1, ampl_len), seqinr::s2c(amplicon), seqinr::s2c(toupper(amplicon)), 1)
   names(ampl_df) <- selcolumns
 
   box <- upperGroups(amplicon)
   xlabels <- if (config[which(config$ID == id), "Strand"] != 1) {
-    seq(-start(box[1]) + 1, ampl_len-start(box[1]), 4)
+    if (length(box) >= 1) {
+      seq(-start(box[1]) + 1, ampl_len-start(box[1]), 4)
+    } else {
+      seq(1, ampl_len, 4)
+    }
   } else {
-    rev(seq(end(box[1]) - ampl_len + 1, end(box[1]), 4))
+    if (length(box) >= 1) {
+      rev(seq(end(box[1]) - ampl_len + 1, end(box[1]), 4))
+    } else {
+      rev(seq(1, ampl_len, 4))
+    }
   }
-  xbreaks <- seq(1, nchar(amplicon), 4)
-  box <- box + 5
+  xbreaks <- seq(1, ampl_len, 4)
+  box <- box + cut_buffer
 
   frPrimer <- toString(config[which(config$ID == id), "Forward_Primer"])
   frPrimer <- stringr::str_locate(toupper(amplicon), toupper(frPrimer))
@@ -206,9 +231,10 @@ amplican_deletions_plot <- function(alignmentsGRanges, config, id) {
 #' This function plots insertions in relation to the amplicon. Top plot is for the forward reads, middle one shows
 #' amplicon sequence, and bottom plot is for reverse reads.
 #'
-#' @param alignmentsGRanges (GRanges object) Loaded alignment information from alignments.csv file.
+#' @param alignments (GRanges object) Loaded alignment information from alignments.csv file.
 #' @param config (data.frame) Loaded table from config_summary.csv file.
 #' @param id (string) Name of the ID column from config file.
+#' @param cut_buffer (numeric) Default is 5, you should specify the same as used in the analysis.
 #' @return (insertions plot) ggplot2 object of mutation plot
 #' @import GenomicRanges
 #' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle scale_colour_manual
@@ -219,12 +245,19 @@ amplican_deletions_plot <- function(alignmentsGRanges, config, id) {
 #' @importFrom stats na.omit aggregate
 #' @export
 #'
-amplican_insertions_plot <- function(alignmentsGRanges, config, id) {
-  idRanges <- alignmentsGRanges[alignmentsGRanges$seqnames == id,]
-  idRanges <- idRanges[idRanges$type == "insertion",]
+amplican_plot_insertions <- function(alignments, config, id, cut_buffer = 5) {
+
+  idRanges <- alignments[alignments$seqnames == id & alignments$type == "insertion",]
 
   amplicon <- toString(config[which(config$ID == id), "Amplicon"])
   ampl_len <- nchar(amplicon)
+
+  idRanges <- idRanges[!(idRanges$strand == "+" & idRanges$start > ampl_len),]
+  idRanges <- idRanges[!(idRanges$strand == "-" & idRanges$start == 1),]
+  if (dim(idRanges)[1] == 0) {
+    return(print("No insertions to plot."))
+  }
+
   selcolumns <- c("position", "nucleotide", "upper", "count")
   ampl_df <- data.frame(seq(1, ampl_len), seqinr::s2c(amplicon), seqinr::s2c(toupper(amplicon)), 1)
   names(ampl_df) <- selcolumns
@@ -238,28 +271,49 @@ amplican_insertions_plot <- function(alignmentsGRanges, config, id) {
   #reduce mismatches
   idRangesReduced <- stats::aggregate(frequency ~ strand + start + end, idRanges, sum)
   idRangesFr <- idRangesReduced[idRangesReduced$strand == "+",]
-  idRangesFrgroup = rep(1:dim(idRangesFr)[1], each = 3)
-  idRangesFrFrequency = rep(idRangesFr$frequency, each = 3)
-  idRangesFrFrequency[c(T, F, F)] <- 0
-  idRangesFrX <- as.vector(rbind(idRangesFr$start, idRangesFr$start, idRangesFr$end))
-  traingleFr <- data.frame(frequency = idRangesFrFrequency, position = idRangesFrX, group = idRangesFrgroup)
+  if (dim(idRangesFr)[1] != 0) {
+    idRangesFrgroup = rep(1:dim(idRangesFr)[1], each = 3)
+    idRangesFrFrequency = rep(idRangesFr$frequency, each = 3)
+    idRangesFrFrequency[c(T, F, F)] <- 0
+    idRangesFrX <- as.vector(rbind(idRangesFr$start, idRangesFr$start, idRangesFr$end))
+    traingleFr <- data.frame(frequency = idRangesFrFrequency, position = idRangesFrX, group = idRangesFrgroup)
+  } else {
+    idRangesFrX <- c()
+    traingleFr <- data.frame(frequency = c(), position = c(), group = c())
+  }
 
   idRangesRe <- idRangesReduced[idRangesReduced$strand == "-",]
-  idRangesRegroup = rep(1:dim(idRangesRe)[1], each = 3)
-  idRangesReFrequency = rep(idRangesRe$frequency, each = 3)
-  idRangesReFrequency[c(T, F, F)] <- 0
-  idRangesReX <- as.vector(rbind(idRangesRe$start, idRangesRe$start, idRangesRe$end))
-  traingleRe <- data.frame(frequency = idRangesReFrequency, position = idRangesReX, group = idRangesRegroup)
-  ampl_len <- max(idRangesReX, idRangesFrX) #new x scale max
+  if (dim(idRangesRe)[1] != 0) {
+    idRangesRegroup = rep(1:dim(idRangesRe)[1], each = 3)
+    idRangesReFrequency = rep(idRangesRe$frequency, each = 3)
+    idRangesReFrequency[c(T, F, F)] <- 0
+    idRangesReX <- as.vector(rbind(idRangesRe$start, idRangesRe$start, idRangesRe$end))
+    traingleRe <- data.frame(frequency = idRangesReFrequency, position = idRangesReX, group = idRangesRegroup)
+  } else {
+    idRangesReX <- c()
+    traingleRe <- data.frame(frequency = c(), position = c(), group = c())
+  }
+
+  if (dim(idRangesRe)[1] != 0 | dim(idRangesFr)[1] != 0) {
+    ampl_len <- max(c(idRangesFrX, idRangesReX, ampl_len))
+  }
 
   box <- upperGroups(amplicon)
   xlabels <- if (config[which(config$ID == id), "Strand"] != 1) {
-    seq(-start(box[1]) + 1, ampl_len-start(box[1]), 4)
+    if (length(box) >= 1) {
+      seq(-start(box[1]) + 1, ampl_len-start(box[1]), 4)
+    } else {
+      seq(1, ampl_len, 4)
+    }
   } else {
-    rev(seq(end(box[1]) - ampl_len + 1, end(box[1]), 4))
+    if (length(box) >= 1) {
+      rev(seq(end(box[1]) - ampl_len + 1, end(box[1]), 4))
+    } else {
+      rev(seq(1, ampl_len, 4))
+    }
   }
   xbreaks <- seq(1, ampl_len, 4)
-  box <- box + 5
+  box <- box + cut_buffer
 
   amplicon_colors <- c("green3", "red", "gold2", "blue")
   names(amplicon_colors) <- c("A", "C", "G", "T")

@@ -48,3 +48,4 @@ Collate:
     'amplicanReport.R'
     'amplicanSummary.R'
     'helpers_plots.R'
+    'helpers_rmd.R'

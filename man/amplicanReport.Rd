@@ -4,15 +4,16 @@
 \alias{amplicanReport}
 \title{Prepare report as .Rmd file}
 \usage{
-amplicanReport(alignments_folder, levels = c("ID"),
-  report_files = c("report_id"))
+amplicanReport(results_folder, levels = c("id", "barcode", "experiment_type",
+  "guide"), report_files = c("report_id", "report_barcode",
+  "report_experiment", "report_guide"))
 }
 \arguments{
-\item{alignments_folder}{(string) Folder containing results from the \code{\link{amplicanAnalysis}} function,
+\item{results_folder}{(string) Folder containing results from the \code{\link{amplicanAnalysis}} function,
 do not change names of the files.}
 
-\item{levels}{(vector) Possible values are: "ID", "Barcode", "Experiment_Type". You can also input more than one
-value eg. c("ID", "Barcode") will create two separate reports for each level.}
+\item{levels}{(vector) Possible values are: "id", "barcode", "experiment_type", "guide". You can also input more than one
+value eg. c("id", "barcode") will create two separate reports for each level.}
 
 \item{report_files}{(vector) You can supply your own names of the files. For each of the levels there has to be one
 file name. Files are created in current working directory by default.}
@@ -20,6 +21,6 @@ file name. Files are created in current working directory by default.}
 \description{
 amplicanReport takes a configuration file, fastq reads and output directory to prepare
 summary as editable .Rmd file. You can specify whether you want to make summaries based on
-ID, Barcode or Experiment Type.
+ID, Barcode, Experiment Type or even guideRNA.
 }
 
