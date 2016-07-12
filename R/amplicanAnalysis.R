@@ -67,6 +67,7 @@
 #' @return Void
 #' @include gotoh.R helpers_alignment.R helpers_filters.R helpers_warnings.R helpers_directory.R
 #' @import doParallel foreach GenomicRanges
+#' @importFrom utils read.table
 #' @export
 #'
 amplicanAnalysis <- function(config,
@@ -93,7 +94,7 @@ amplicanAnalysis <- function(config,
   if (temp_folder != "") {checkFileWriteAccess(temp_folder)}
 
   message("Checking configuration file...")
-  configTable <- read.table(config, header=FALSE, sep="\t", strip.white=TRUE)
+  configTable <- utils::read.table(config, header=FALSE, sep="\t", strip.white=TRUE)
   colnames(configTable) <- c("ID", "Barcode", "Forward_Reads_File", "Reverse_Reads_File", "Experiment_Type",
                              "Target_Primer", "Forward_Primer", "Reverse_Primer", "Strand", "Amplicon")
   configTable$Forward_Reads_File <- ifelse(configTable$Forward_Reads_File == "",

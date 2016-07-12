@@ -1,0 +1,8 @@
+amplican 0.99.0
+-----------------------
+
+NEW FEATURES
+
+    o `amplican_default` as wrapper for main functionality
+    o preparations for bioconductor submission
+    o artificial dataset

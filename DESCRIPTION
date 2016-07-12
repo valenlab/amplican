@@ -7,12 +7,12 @@ Description: Amplican creates raport of deletions, insertions, frameshifts,
     samples and automates analysis across different experiments. Amplican maintains
     elasticity through configuration file, which with your fastq samples are only
     requirements.
-Version: 0.1.0
-Authors@R: as.person(c(
-    "Kornel Labun <kornel.labun@gmail.com> [aut]",
-    "Rafael Nozal Canyadas <rca025@uib.no> [aut]",
-    "Eivind Valen <eivind.valen@gmail.com> [cph, cre]"
-  ))
+Version: 0.99.0
+Authors@R: c(
+    person("Kornel", "Labun", email = "kornel.labun@gmail.com", role = "aut"),
+    person(c("Rafael", "Nozal"), "Canyadas", email = "rca025@uib.no",  role = "ctr"),
+    person("Eivind", "Valen", email = "eivind.valen@gmail.com", role = c("cph", "cre"))
+  )
 URL: https://bitbucket.org/valenlab/amplican
 BugReports: https://bitbucket.org/valenlab/amplican/issues
 License: GPL-3
@@ -20,6 +20,7 @@ LazyData: TRUE
 LinkingTo: Rcpp
 Imports:
     Rcpp,
+    utils,
     R.utils,
     seqinr,
     ShortRead,
