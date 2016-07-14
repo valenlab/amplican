@@ -17,7 +17,7 @@ possible to group them. First amplicon will be used as the basis for plot.}
 \item{cut_buffer}{(numeric) Default is 5, you should specify the same as used in the analysis.}
 }
 \value{
-(deletions plot) ggplot2 object of mutation plot
+(deletions plot) ggplot2 object of deletions plot
 }
 \description{
 This function plots deletions in relation to the amplicon. Top plot is for the forward reads, middle one shows

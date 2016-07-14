@@ -1,10 +1,16 @@
-#' amplican: A package for something.
+#' amplican: fast and precise analysis of CRISPR experiments
 #'
-#' The foo package provides three categories of important functions:
-#' foo, bar and baz.
+#' It has three main goals:
 #'
-#' @section amplican functions:
-#' The amplican functions ...
+#' \itemize{
+#' \item Alignment and analysis of the MiSeq or HiSeq data.
+#' \item Prepare automatic reports as .Rmd files that are flexible and open for manipulation.
+#' \item Provide specialized plots for deletions, insertions, mismatches.
+#' }
+#'
+#' To learn more about amplican, start with the vignettes:
+#' \code{browseVignettes(package = "amplican")}
+#'
 #'
 #' @docType package
 #' @name amplican
@@ -22,7 +28,7 @@ NULL
 #' results in the result_folder and also print prepared reports into reports folder.
 #'
 #' @param config (string) The path to your configuration file. For example:
-#'                      /Home/johndoe/.../AmpliCan/res/Cas9_toy/run11.txt
+#' \code{system.file("extdata", "config.txt", package = "amplican")}
 #' @param fastq_folder (string) Path to FASTQ files. If not specified, FASTQ files should be
 #' in the same directory as config file.
 #' @param results_folder (string) Where do you want your results to be stored. The

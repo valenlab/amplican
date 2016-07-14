@@ -1,6 +1,6 @@
-#' Plots mutations using ggplot2 and ggbio.
+#' Plots mismatches using ggplot2 and ggbio.
 #'
-#' This function plots mutations in relation to the amplicon. Top plot is for the forward reads, middle one shows
+#' This function plots mismatches in relation to the amplicon. Top plot is for the forward reads, middle one shows
 #' amplicon sequence, and bottom plot is for reverse reads.
 #'
 #' @param alignments (GRanges object) Loaded alignment information from alignments.csv file.
@@ -8,7 +8,7 @@
 #' @param id (string or vector of strings) Name of the ID column from config file or name of multiple IDs if it is
 #' possible to group them. First amplicon will be used as the basis for plot.
 #' @param cut_buffer (numeric) Default is 5, you should specify the same as used in the analysis.
-#' @return (mutation plot) ggplot2 object of mutation plot
+#' @return (mismatches plot) ggplot2 object of mismatches plot
 #' @import GenomicRanges
 #' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle scale_colour_manual geom_bar
 #' scale_fill_manual scale_x_continuous geom_vline scale_y_reverse element_blank unit geom_text ylab ylim
@@ -18,7 +18,7 @@
 #' @importFrom stats na.omit aggregate
 #' @export
 #'
-amplican_plot_mutations <- function(alignments, config, id, cut_buffer = 5) {
+amplican_plot_mismatches <- function(alignments, config, id, cut_buffer = 5) {
 
   idRanges <- alignments[alignments$seqnames %in% id,]
   idRanges <- idRanges[idRanges$type == "mismatch",]
@@ -56,10 +56,10 @@ amplican_plot_mutations <- function(alignments, config, id, cut_buffer = 5) {
 
   #FILTER EVENTS
   # forward before primer after amplicon length
-  idRanges <- idRanges[!(idRanges$strand == "+" & idRanges$start < frPrimer[1]),]
-  idRanges <- idRanges[!(idRanges$strand == "+" & idRanges$end > ampl_len),]
+  idRanges <- idRanges[!(idRanges$strand == "+" & idRanges$start <= frPrimer[1]),]
+  idRanges <- idRanges[!(idRanges$strand == "+" & idRanges$end >= ampl_len),]
   # reverse before primer and after amplicon start
-  idRanges <- idRanges[!(idRanges$strand == "-" & idRanges$start > rwPrimer[1]),]
+  idRanges <- idRanges[!(idRanges$strand == "-" & idRanges$start >= rwPrimer[1]),]
   idRanges <- idRanges[!(idRanges$strand == "-" & idRanges$start == 1),]
   if (dim(idRanges)[1] == 0) {return(print("No mismatches to plot."))}
 
@@ -80,9 +80,19 @@ amplican_plot_mutations <- function(alignments, config, id, cut_buffer = 5) {
   # Setting the variables to NULL first for retarded CRAN check
   frequency <- mm_replacement <- start <- strand <- NULL
   freqAgr <- stats::aggregate(cbind(count, frequency) ~ mm_replacement + start + strand, idRanges, sum)
+  freqAgrPlus <- freqAgr[freqAgr$strand == "+",]
+  freqAgrMinus <- freqAgr[freqAgr$strand == "-",]
+
+  if (dim(freqAgrPlus)[1] == 0) {
+    freqAgrPlus <- rbind(freqAgrPlus, data.frame(mm_replacement = "G", start = 0, strand = "+", count = 0, frequency = 0))
+  }
+
+  if (dim(freqAgrMinus)[1] == 0) {
+    freqAgrMinus <- rbind(freqAgrMinus, data.frame(mm_replacement = "G", start = 0, strand = "+", count = 0, frequency = 0))
+  }
 
   mut_fr <- ggplot() +
-    geom_bar(data = freqAgr[freqAgr$strand == "+",],
+    geom_bar(data = freqAgrPlus,
              aes(x = as.numeric(start) + 1,
                  y = frequency,
                  width = 1,
@@ -101,7 +111,7 @@ amplican_plot_mutations <- function(alignments, config, id, cut_buffer = 5) {
     geom_vline(xintercept = primers, linetype = "dotdash", colour = "blue")
 
   mut_re <- ggplot() +
-    geom_bar(data = freqAgr[freqAgr$strand == "-",],
+    geom_bar(data = freqAgrMinus,
              aes(x = as.numeric(start) + 1,
                  y = frequency,
                  width = 1,
@@ -136,7 +146,7 @@ amplican_plot_mutations <- function(alignments, config, id, cut_buffer = 5) {
 #' @param id (string or vector of strings) Name of the ID column from config file or name of multiple IDs if it is
 #' possible to group them. First amplicon will be used as the basis for plot.
 #' @param cut_buffer (numeric) Default is 5, you should specify the same as used in the analysis.
-#' @return (deletions plot) ggplot2 object of mutation plot
+#' @return (deletions plot) ggplot2 object of deletions plot
 #' @import GenomicRanges
 #' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle scale_colour_manual
 #' scale_fill_manual scale_x_continuous geom_vline scale_y_reverse element_blank unit geom_text ylab ylim
@@ -182,15 +192,15 @@ amplican_plot_deletions <- function(alignments, config, id, cut_buffer = 5) {
   rwPrimer <- toString(config[which(config$ID == id[1]), "Reverse_Primer"])
   rwPrimer <- stringr::str_locate(toupper(amplicon), toupper(seqinr::c2s(seqinr::comp(rev(seqinr::s2c(rwPrimer))))))
   primers <- stats::na.omit(c(frPrimer, rwPrimer))
-  if (dim(archRanges)[1] == 0) {return(print("No deletions to plot."))}
 
   #FILTER EVENTS
   # forward before primer after amplicon length
-  archRanges <- archRanges[!(archRanges$strand == "+" & archRanges$start < frPrimer[1]),]
-  archRanges <- archRanges[!(archRanges$strand == "+" & archRanges$end > ampl_len),]
+  archRanges <- archRanges[!(archRanges$strand == "+" & archRanges$start <= frPrimer[1]),]
+  archRanges <- archRanges[!(archRanges$strand == "+" & archRanges$end >= ampl_len),]
   # reverse before primer and after amplicon start
-  archRanges <- archRanges[!(archRanges$strand == "-" & archRanges$start > rwPrimer[1]),]
+  archRanges <- archRanges[!(archRanges$strand == "-" & archRanges$start >= rwPrimer[1]),]
   archRanges <- archRanges[!(archRanges$strand == "-" & archRanges$start == 1),]
+  if (dim(archRanges)[1] == 0) {return(print("No deletions to plot."))}
 
   frequency <- cut <- NULL
   arch_plot_fr <- ggplot2::ggplot() + ggbio::geom_arch(data = archRanges[archRanges$strand == "+",],
@@ -259,7 +269,7 @@ amplican_plot_deletions <- function(alignments, config, id, cut_buffer = 5) {
 #' @param id (string or vector of strings) Name of the ID column from config file or name of multiple IDs if it is
 #' possible to group them. First amplicon will be used as the basis for plot.
 #' @param cut_buffer (numeric) Default is 5, you should specify the same as used in the analysis.
-#' @return (insertions plot) ggplot2 object of mutation plot
+#' @return (insertions plot) ggplot2 object of insertions plot
 #' @import GenomicRanges
 #' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle scale_colour_manual
 #' geom_polygon scale_fill_manual scale_x_continuous geom_vline scale_y_reverse element_blank unit geom_text ylab ylim
@@ -288,14 +298,14 @@ amplican_plot_insertions <- function(alignments, config, id, cut_buffer = 5) {
   rwPrimer <- stringr::str_locate(toupper(amplicon), toupper(seqinr::c2s(seqinr::comp(rev(seqinr::s2c(rwPrimer))))))
   primers <- stats::na.omit(c(frPrimer, rwPrimer))
 
-  idRanges <- idRanges[!(idRanges$strand == "+" & idRanges$start < frPrimer[1]),]
-  idRanges <- idRanges[!(idRanges$strand == "+" & idRanges$end > ampl_len),]
+  idRanges <- idRanges[!(idRanges$strand == "+" & idRanges$start <= frPrimer[1]),]
+  idRanges <- idRanges[!(idRanges$strand == "+" & idRanges$end >= ampl_len),]
   # reverse before primer and after amplicon start
-  idRanges <- idRanges[!(idRanges$strand == "-" & idRanges$start > rwPrimer[1]),]
+  idRanges <- idRanges[!(idRanges$strand == "-" & idRanges$start >= rwPrimer[1]),]
   idRanges <- idRanges[!(idRanges$strand == "-" & idRanges$start == 1),]
   if (dim(idRanges)[1] == 0) { return(print("No insertions to plot.")) }
 
-  #reduce mismatches
+  #reduce
   idRangesReduced <- stats::aggregate(frequency ~ strand + start + end, idRanges, sum)
   idRangesFr <- idRangesReduced[idRangesReduced$strand == "+",]
   if (dim(idRangesFr)[1] != 0) {

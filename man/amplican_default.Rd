@@ -8,7 +8,7 @@ amplican_default(config, fastq_folder, results_folder)
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
-/Home/johndoe/.../AmpliCan/res/Cas9_toy/run11.txt}
+\code{system.file("extdata", "config.txt", package = "amplican")}}
 
 \item{fastq_folder}{(string) Path to FASTQ files. If not specified, FASTQ files should be
 in the same directory as config file.}

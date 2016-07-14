@@ -4,13 +4,18 @@
 \name{amplican}
 \alias{amplican}
 \alias{amplican-package}
-\title{amplican: A package for something.}
+\title{amplican: fast and precise analysis of CRISPR experiments}
 \description{
-The foo package provides three categories of important functions:
-foo, bar and baz.
+It has three main goals:
 }
-\section{amplican functions}{
+\details{
+\itemize{
+\item Alignment and analysis of the MiSeq or HiSeq data.
+\item Prepare automatic reports as .Rmd files that are flexible and open for manipulation.
+\item Provide specialized plots for deletions, insertions, mismatches.
+}
 
-The amplican functions ...
+To learn more about amplican, start with the vignettes:
+\code{browseVignettes(package = "amplican")}
 }
 

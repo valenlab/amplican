@@ -27,7 +27,6 @@ To succesfully run our analysis it is mandatory to have created configuration fi
 
 ```{r, echo=FALSE, results = 'asis'}
 config <- read.csv(system.file("extdata", "config.txt", package = "amplican"), sep = "\t")
-
 knitr::kable(head(config))
 ```
 
@@ -37,35 +36,117 @@ You can find example config file at:
 system.file("extdata", "config.txt", package = "amplican")
 ```
 
+**ID** - should be a unique identifier of your experiments  
+**Barcode** - use this to group experiments with the same barcode  
+**Forward_Reads**, **Reverse_Reads** - put names of your files in these fields, you can put here files compressed to 
+.gz, we will unpack them for you  
+**Group** - use this field if you want to group ID by other criteria, here for instance we will group by person that
+performed experiment, on later stage it is possible to generate report with breakdown using this field  
+**guideRNA** - put your guideRNA here, if he has to be reverse complemented put "1" into **Direction** field, 
+we will use this field to make sure your guideRNA is inside the amplicon  
+**Forward_Primer**, **Reverse_Primer** - make sure these primers are correct for each of your IDs  
+**Direction** - here "0" means guide does not requires to be reverse complemented to be matched to the amplicon, 
+"1" means it should be reverse complemented, this field is also used when plotting deletions, mismatches and 
+insertions  
+**Amplicon** - insert amplicon sequence as lower case letters, by putting UPPER CASE letters you can specify
+expected cut site, you should specify at least one cut site, here for example we specify in uppercase letter PAM 
+sequence of the corresponding guideRNA  
+
 ## Default options
 
-The figure sizes have been customised so that you can easily put two images side-by-side.
+To run `amplican` with default options, along with generation of all posible reports you can use
+`amplican_default` function.
 
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+```{r amplican_default, echo=TRUE}
+# library(amplican) #don't load for time
+# example MiSeq dataset files
+config <- system.file("extdata", "config.txt", package = "amplican")
+fastq_folder <- system.file("extdata", "", package = "amplican")
+results_folder <- paste0(fastq_folder, "results")
+
+# make sure we have result folder
+dir.create(results_folder)
+# actual amplican run
+# amplican_default(config, fastq_folder, results_folder) #might be time consuming
+
+# results of the analysis can be found at
+results_folder
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+## Files created during analysis
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
+### alignmentLog.txt
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+Contains information about unpleasant errors and events found during analysis, we also print message on the screen when
+something requires your attention. This file should be empty with our examplary analis on provided dataset. In case 
+something goes wrong you should examin file and follow instructions inside.
+
+### barcode_reads_filters.csv
+
+First step of our analysis is to filter out reads that are not complying with our default restrictions:  
+
+* bad base quality - default minimum base quality is 0  
+* bad average quality - default minimum average quality is 0  
+* bad alphabet - by deafult we accept only reads with A,C,T,G bases  
+
+```{r, echo=FALSE}
+barcodeFilters <- read.csv(system.file("extdata/results", "barcode_reads_filters.csv", 
+                                       package = "amplican"), sep = "\t", header = T)
+knitr::kable(head(barcodeFilters))
+```
+
+This table is also summarized in one of the reports. As you can see for our example dataset we have two barcodes,
+to whom corespond 17 and 29 reads. Four reads are rejected for barcode_1 due to bad alphabet. Each of the barcode reads
+is unique and we can succesfully asign only 9 reads for the barcode_1 and 21 reads for barcode_2. 
+
+### config_summary.csv
+
+Extended version of the config file.
+
+```{r, echo=FALSE}
+config_summary <- read.csv(system.file("extdata/results", "config_summary.csv", 
+                                       package = "amplican"), sep = "\t", header = T)
+config_summary <- config_summary[,c("ID", "Barcode", "Cut", "Frameshift", 
+                                    "PRIMER_DIMER", "Reads", "Found_Guide", "Found_PAM")]
+knitr::kable(head(config_summary))
+```
+
+We add these fields:  
+**Cut** - number of insertions overlaping with user specified UPPER CASE group in the amplicon (extended by the buffer)  
+**Frameshift** - number of reads has frameshift (insertions and deletions)  
+**PRIMER_DIMER** - number of reads were classified as PRIMER DIMERs  
+**Reads** - number of reads assigned to this ID  
+**Found_Guide** - whether we found guide on the amplicon  
+**Found_PAM** - whether amplicon has UPPER GROUP specified (advised)  
+
+### RunParameters.txt
+
+File RunParameters.txt lists all options used for the analysis, this file you might find usefull when 
+reviewing analyisis from the past where you forgot what kind of options you used. Other than that 
+this file has no purpose. 
+
+### alignments folder
+
+Contains alignments, for each ID there is separate folder. If you specified `write_alignments` as "2" you will
+find here two files, one with just alignment forward read, reverse read and count. Other file will contain very
+detailed information:  
+- human readable alignmennt of read and amplicon,  
+- list of deletions, insertions and mismatches,  
+- same information, but relative towards amplicon coordinates
+
+### reports folder
+
+Reports are automated for the convenience of the users. We provide 6 different reports. Reports are .Rmd files
+which can be easly crafted through `rmarkdown::render(path_to_report)` or by clicking `Knit` in Rstudio to make html
+version of the report. Open one of the reports with Rstudio and try it now!
 
 ## Detailed analysis
 
 ### Aligning reads
 
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+`amplican` 
 
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
-```
+### Making reports
 
-### Printing reports
-Also a quote using `>`:
+### Making custom plots
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
