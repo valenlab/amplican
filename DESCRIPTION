@@ -2,7 +2,7 @@ Package: amplican
 Type: Package
 Title: fast and precise analysis of CRISPR experiments
 Description: Amplican creates raport of deletions, insertions, frameshifts,
-    cut rates and other metrics in user selected format (interactive html, pdf).
+    cut rates and other metrics in user selected format (preffered html).
     Amplican uses vary fast C implementation of Gotoh alhoritm to align your fastq
     samples and automates analysis across different experiments. Amplican maintains
     elasticity through configuration file, which with your fastq samples are only
@@ -36,7 +36,8 @@ Imports:
 RoxygenNote: 5.0.1
 Suggests:
     testthat,
-    knitr
+    knitr,
+    rmarkdown
 Collate:
     'RcppExports.R'
     'amplican.R'
@@ -50,3 +51,4 @@ Collate:
     'amplicanSummary.R'
     'helpers_plots.R'
     'helpers_rmd.R'
+VignetteBuilder: knitr

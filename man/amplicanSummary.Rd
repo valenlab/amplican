@@ -2,7 +2,7 @@
 % Please edit documentation in R/amplicanSummary.R
 \name{amplicanSummary}
 \alias{amplicanSummary}
-\title{Prepare summary report as .Rmd file}
+\title{Prepare summary report as .Rmd file.}
 \usage{
 amplicanSummary(alignments_folder, report_name = "summary_report")
 }
@@ -13,7 +13,7 @@ do not change names of the files.}
 \item{report_name}{(string) Name of the summary report.}
 }
 \description{
-amplicanSummary directory of results to prepare
-summary as editable .Rmd file.
+amplicanSummary takes alignments_folder as directory of results to prepare
+summary of all filters during read grouping as editable .Rmd file.
 }
 

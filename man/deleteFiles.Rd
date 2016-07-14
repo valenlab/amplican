@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_directory.R
 \name{deleteFiles}
 \alias{deleteFiles}
-\title{Delete files from configTables Forward_Reads_File and Reverse_Reads_File (fastq files).}
+\title{Remove forward and reverse fastq files.}
 \usage{
 deleteFiles(configTable)
 }

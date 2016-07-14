@@ -2,18 +2,18 @@
 % Please edit documentation in R/amplicanReport.R
 \name{amplicanReport}
 \alias{amplicanReport}
-\title{Prepare report as .Rmd file}
+\title{Prepare reports as .Rmd files.}
 \usage{
-amplicanReport(results_folder, levels = c("id", "barcode", "experiment_type",
-  "guide"), report_files = c("report_id", "report_barcode",
-  "report_experiment", "report_guide"))
+amplicanReport(results_folder, levels = c("id", "barcode", "group", "guide",
+  "amplicon"), report_files = c("report_id", "report_barcode", "report_group",
+  "report_guide", "report_amplicon"))
 }
 \arguments{
 \item{results_folder}{(string) Folder containing results from the \code{\link{amplicanAnalysis}} function,
 do not change names of the files.}
 
-\item{levels}{(vector) Possible values are: "id", "barcode", "experiment_type", "guide". You can also input more than one
-value eg. c("id", "barcode") will create two separate reports for each level.}
+\item{levels}{(vector) Possible values are: "id", "barcode", "group", "guide", "amplicon". You can also input more
+than one value eg. c("id", "barcode") will create two separate reports for each level.}
 
 \item{report_files}{(vector) You can supply your own names of the files. For each of the levels there has to be one
 file name. Files are created in current working directory by default.}
@@ -21,6 +21,6 @@ file name. Files are created in current working directory by default.}
 \description{
 amplicanReport takes a configuration file, fastq reads and output directory to prepare
 summary as editable .Rmd file. You can specify whether you want to make summaries based on
-ID, Barcode, Experiment Type or even guideRNA.
+ID, Barcode, Group or even guideRNA and Amplicon.
 }
 

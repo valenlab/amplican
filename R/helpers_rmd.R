@@ -1,4 +1,4 @@
-#' Writes head of the .Rmd report files
+#' Writes head of the .Rmd report files.
 #'
 #' @param title (string) title to include in header
 #' @return string of the header for rmd file
@@ -17,7 +17,7 @@ write_head <- function(title) {
            "---\n"))
 }
 
-#' Writes explanation to the .Rmd report files
+#' Writes explanation to the .Rmd report files.
 #'
 #' @return string of the explanation for rmd file
 #'
@@ -29,30 +29,34 @@ write_explanation <- function() {
            "**Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads  "))
 }
 
-#' Writes alignment plots: deltion, insertion and mismatch
+
+#' Writes alignment plots - aggregate on the amplicon: deltion, insertion and mismatch.
 #'
-#' @param ID is of alignment
+#' @param ID (string or vector of strings)
+#' @param title (string) title for the alignment plots
 #' @param cut_buffer (numeric) cut detection box will be extended left and right by box_buffer
 #' @return string to include in rmd file
 #'
-write_alignment_plots <- function(ID, cut_buffer = 5) {
-  return(c(paste("##", ID, "  \n"),
+write_alignment_plots <- function(ID, title, cut_buffer = 5) {
+
+  id_pass <- paste0("c('", paste0(ID, collapse = "','"), "')")
+  return(c(paste0("## ", title, "  \n"),
            "### Deletions  \n",
-           paste0("```{r deletions ", ID, ", echo=F, fig.height=14, fig.width=30, message=F, warning=F}"),
-           paste0("amplican_plot_deletions(alignments, config, '", ID, "', ", cut_buffer, ")"),
+           paste0("```{r deletions ", title, ", echo=F, fig.height=14, fig.width=30, message=F, warning=F}"),
+           paste0("amplican_plot_deletions(alignments, config, ", id_pass, ", ", cut_buffer, ")"),
            "```  \n",
            "### Insertions  \n",
-           paste0("```{r insertions ", ID, ", echo=F, message=F, warning=F, fig.height=14, fig.width=30}"),
-           paste0("amplican_plot_insertions(alignments, config, '", ID, "', ", cut_buffer, ")"),
+           paste0("```{r insertions ", title, ", echo=F, fig.height=14, fig.width=30, message=F, warning=F}"),
+           paste0("amplican_plot_insertions(alignments, config, ", id_pass, ", ", cut_buffer, ")"),
            "```  \n",
            "### Mutations  \n",
-           paste0("```{r mutations ", ID, ", echo=FALSE, fig.height=14, fig.width=30, message=FALSE, warning=FALSE}"),
-           paste0("amplican_plot_mutations(alignments, config, '", ID, "', ", cut_buffer, ")"),
+           paste0("```{r mutations ", title, ", echo=F, fig.height=14, fig.width=30, message=F, warning=F}"),
+           paste0("amplican_plot_mutations(alignments, config, ", id_pass, ", ", cut_buffer, ")"),
            "```  \n"))
 }
 
 
-#' Make contents for .Rmd file aggregated on ID
+#' Make contents for .Rmd file aggregated on ID.
 #'
 #' @param results_folder (string) path to results
 #' @param cut_buffer (numeric)
@@ -62,15 +66,15 @@ write_alignment_plots <- function(ID, cut_buffer = 5) {
 make_id_rmd <- function(results_folder, cut_buffer = 5) {
 
   config <- utils::read.csv(paste0(results_folder, "/config_summary.csv"), sep = "\t")
-  id_alignments_plots <- unlist(lapply(config$ID, write_alignment_plots, cut_buffer))
+  id_alignments_plots <- unlist(lapply(config$ID, function(x) write_alignment_plots(x, x, cut_buffer)))
 
   return(c(write_head("Report breakdown by ID"),
            "```{r load data, message=F, warning=FALSE, include=FALSE}",
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'), sep = '\t')",
-           "config <- read.csv(paste0(results_folder, '/config_summary.csv'), sep = '\t')",
+           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'), sep = '\\t')",
+           "config <- read.csv(paste0(results_folder, '/config_summary.csv'), sep = '\\t')",
            "```\n",
            "***\n",
            "# Description  \n",
@@ -111,7 +115,7 @@ make_id_rmd <- function(results_folder, cut_buffer = 5) {
            "        axis.title = element_text(size = 14, face = 'bold')) +",
            "  coord_flip()",
            "```  \n",
-           "## Cuting rates  \n",
+           "## Cut rates  \n",
            "```{r plot cut percentage, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
            "config$Reads_noPD <- config$Reads - config$PRIMER_DIMER",
            "config$cut_percentage <- config$Cut * 100/config$Reads_noPD",
@@ -172,6 +176,187 @@ make_id_rmd <- function(results_folder, cut_buffer = 5) {
 }
 
 
+#' Make contents for .Rmd file aggregated on amplicon.
+#'
+#' @param results_folder (string) path to results
+#' @param cut_buffer (numeric)
+#' @return c() collection of strings to put into rmd file
+#' @importFrom utils read.csv
+#'
+make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
+
+  config <- utils::read.csv(paste0(results_folder, "/config_summary.csv"), sep = "\t")
+  config$AmpliconUpper <- toupper(config$Amplicon)
+  uniqueAmlicons <- unique(config$AmpliconUpper)
+
+  ampl_alignments_plots <- c(mapply(function(x, i) {
+    write_alignment_plots(config$ID[config$AmpliconUpper == x], paste0("Group ", i), cut_buffer)
+  }, uniqueAmlicons, 1:length(uniqueAmlicons)))
+
+  return(c(write_head("Report breakdown by Amplicon"),
+           "```{r load data, message=F, warning=FALSE, include=FALSE}",
+           "results_folder = '/home/ai/removemelater'",
+           "library(amplican)",
+           "library(ggplot2)",
+           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'), sep = '\\t')",
+           "config <- read.csv(paste0(results_folder, '/config_summary.csv'), sep = '\\t')",
+           "config$AmpliconUpper <- toupper(config$Amplicon)",
+           "uniqueAmlicons <- unique(config$AmpliconUpper)",
+           "labels <- sapply(uniqueAmlicons, function(x) {toString(config$ID[config$AmpliconUpper == x])})",
+           "```\n",
+           "***\n",
+           "# Description  \n",
+           "***\n",
+           write_explanation(),
+           "**Deletions plot** - shows summary of deletions detected after alignments with distinction",
+           "for forward (top plot) and reverse (bottom) reads, blue dotted lines represent primers as black",
+           "dotted line represents cut site box, for deletions overlapping with cut site box there is distinction",
+           "in colour  ",
+           "**Mismatches plot** - shows summary of mismatches detected after alignments split by forward",
+           "(top plot) and reverse (bottom) reads, mismatches are colored in the same manner as amplicon  ",
+           "**Insertions plot** - shows summary of insertions detected after alignments split by forward",
+           "(top plot) and reverse (bottom) reads, insertion is shown as right-angled triangle where size of",
+           "the insertion coresponds to the width of the triangle, size and transparency of traingle reflect on",
+           "the frequency of the insertion\n",
+           "***\n",
+           "# Amplicon Summary  \n",
+           "***\n",
+
+           "## Amplicon groups\n",
+
+           "```{r amplicon groups, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           "library(knitr)",
+           "ampliconDF <- data.frame(group = 1:length(uniqueAmlicons), IDs = unname(labels))",
+           "kable(ampliconDF)",
+           "ampliconDF$Amplicon <- uniqueAmlicons #for sorting",
+           "config$group <- match(config$AmpliconUpper, ampliconDF$Amplicon)",
+           "```\n",
+
+
+           "## Read distribution  \n",
+
+           "```{r plot total reads, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           "ampliconTable <- aggregate(cbind(Reads, PRIMER_DIMER, Cut, Frameshift) ~ group, data = config, sum)\n",
+
+           "ggplot(data = ampliconTable, aes(x = group, y = log10(Reads + 1)), order = group) +",
+           "  geom_bar(stat = 'identity') +",
+           "  ylab('Number of reads log10 scaled')  +",
+           "  xlab('Amplicon Group') +",
+           "  scale_x_continuous(breaks = 1:length(uniqueAmlicons)) +",
+           "  theme(legend.position = 'none',",
+           "        axis.text = element_text(size = 12),",
+           "        axis.title = element_text(size = 14, face = 'bold')) +",
+           "  coord_flip()",
+           "```\n",
+
+           "## PRIMER DIMER filter  \n",
+
+           "```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}\n",
+
+           "ampliconTable$PD_percentage <- ampliconTable$PRIMER_DIMER * 100/ampliconTable$Reads",
+           "ampliconTable$PD_percentage[is.nan(ampliconTable$PD_percentage)] <- 0 \n",
+
+           "ggplot(data = ampliconTable, aes(x = group, y = PD_percentage, order = group)) +",
+           "  geom_bar(stat='identity') +",
+           "  ylab('Percentage of reads marked as PRIMER DIMERS')  +",
+           "  xlab('Amplicon Group') +",
+           "  scale_x_continuous(breaks = 1:length(uniqueAmlicons)) +",
+           "  theme(axis.text = element_text(size=12),",
+           "        axis.title = element_text(size=14, face = 'bold')) +",
+           "  ylim(0, 100) +",
+           "  coord_flip()",
+           "```  \n",
+
+           "## Cut rates  \n",
+
+           "```{r plot cut rate, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           "ampliconTable$Reads_noPD <- ampliconTable$Reads - ampliconTable$PRIMER_DIMER",
+           "ampliconTable$cut_percentage <- ampliconTable$Cut * 100/ampliconTable$Reads_noPD",
+           "ampliconTable$cut_percentage[is.nan(ampliconTable$cut_percentage)] <- 0  \n",
+
+           "ggplot(data = ampliconTable, aes(x = group, y = cut_percentage, order = group)) +",
+           "  geom_bar(stat = 'identity') +",
+           "  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have cut site')  +",
+           "  xlab('Amplicon Group') +",
+           "  scale_x_continuous(breaks = 1:length(uniqueAmlicons)) +",
+           "  theme(axis.text = element_text(size=12),",
+           "        axis.title = element_text(size=14, face = 'bold')) +",
+           "  ylim(0,100) +",
+           "  coord_flip()",
+           "```  \n",
+
+           "## Frameshift  \n",
+
+           "```{r plot frame shift percentage, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           "ampliconTable$frameshift_percentage <- ampliconTable$Frameshift * 100/ampliconTable$Reads_noPD",
+           "ampliconTable$frameshift_percentage[is.nan(ampliconTable$frameshift_percentage)] <- 0 \n",
+
+           "ggplot(data = ampliconTable, aes(x = group, y = frameshift_percentage, order = group)) +",
+           "  geom_bar(position = 'stack', stat = 'identity') +",
+           "  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift')  +",
+           "  xlab('Amplicon Group') +",
+           "  scale_x_continuous(breaks = 1:length(uniqueAmlicons)) +",
+           "  theme(axis.text = element_text(size=12),",
+           "        axis.title = element_text(size=14,face = 'bold')) +",
+           "  ylim(0, 100) +",
+           "  coord_flip()",
+           "```  \n",
+
+           "## Heterogeneity of reads  \n",
+
+           "```{r plot read heterogeneity, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           "alignments$ID_read_id <- paste0(alignments$seqnames, '_', alignments$read_id)",
+           "uniqueReadsByID <- alignments[!duplicated(alignments$ID_read_id), c('seqnames', 'read_id', 'count')]",
+           "uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$seqnames, uniqueReadsByID$count, decreasing = T),]\n",
+
+           "howManyTimes <- aggregate(read_id ~ seqnames, data = uniqueReadsByID, length)",
+           "howManyTimes <- howManyTimes[match(howManyTimes$seqnames, unique(uniqueReadsByID$seqnames)),] \n",
+
+           "uniqueReadsByID$group <- rep(config$group[match(howManyTimes$seqnames, unique(config$ID))], ",
+           "                             times = howManyTimes$read_id)\n",
+
+           "uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$group, uniqueReadsByID$count, decreasing = T),]\n",
+
+           "cumsum_list <- tapply(uniqueReadsByID$count, as.vector(uniqueReadsByID$group), FUN = cumsum)",
+           "cumsum_list <- cumsum_list[match(names(cumsum_list), unique(uniqueReadsByID$group))]",
+           "uniqueReadsByID$cumsum <- do.call(c, cumsum_list)\n",
+
+           "seq2 <- Vectorize(seq.default, vectorize.args = c('from', 'to'))",
+           "howManyTimes <- table(as.vector(uniqueReadsByID$group))",
+           "howManyTimes <- howManyTimes[match(names(howManyTimes), unique(uniqueReadsByID$group))]",
+           "uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dim(howManyTimes)[1]), to = howManyTimes, by = 1))\n",
+
+           "ids_with_reads <- tapply(uniqueReadsByID$cumsum, as.vector(uniqueReadsByID$group), FUN = max)",
+           "ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$group))]\n",
+
+           "toDivide <- rep(ids_with_reads, times = howManyTimes)",
+           "uniqueReadsByID$read_share_percentage <- uniqueReadsByID$cumsum * 100 / toDivide",
+           "uniqueReadsByID$read_share_percentage_normal <- uniqueReadsByID$count * 100 / toDivide  \n",
+
+           "ggplot(data = uniqueReadsByID, aes(x = as.factor(group), ",
+           "                                   y = read_share_percentage_normal, ",
+           "                                   fill = read_share_percentage_normal), ",
+           "       order = group) +",
+           "  geom_bar(position = 'stack', stat = 'identity') +",
+           "  theme(legend.position = 'top',",
+           "        axis.text = element_text(size=12),",
+           "        axis.title=element_text(size=14,face = 'bold'),",
+           "        legend.direction = 'horizontal', ",
+           "        legend.title = element_blank()) +",
+           "  ylab('Unique reads percentage of contribution') +",
+           "  xlab('Amplicon Group') +",
+           "  coord_flip()\n",
+
+           "#fix frequency to be relative to amplicon - not ID",
+           "alignments$group <- config$group[match(alignments$seqnames, config$ID)]",
+           "alignments$frequency <- alignments$count / ampliconTable$Reads[alignments$group]",
+           "``` \n",
+           "# Alignments plots  \n",
+           "***\n",
+           ampl_alignments_plots))
+}
+
+
 #' Make contents for .Rmd file aggregated on Barcode
 #'
 #' @param results_folder path to results as string
@@ -183,8 +368,8 @@ make_barcode_rmd <- function(results_folder) {
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'), sep = '\t')",
-           "config <- read.csv(paste0(results_folder, '/config_summary.csv'), sep = '\t')",
+           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'), sep = '\\t')",
+           "config <- read.csv(paste0(results_folder, '/config_summary.csv'), sep = '\\t')",
            "```\n",
            "***\n",
            "# Description  \n",
@@ -224,7 +409,7 @@ make_barcode_rmd <- function(results_folder) {
            "  coord_flip()",
            "``` \n",
 
-           "## Cuting rates  \n",
+           "## Cut rates  \n",
 
            "```{r plot cut percentage, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
            "barcodeTable$Reads_noPD <- barcodeTable$Reads - barcodeTable$PRIMER_DIMER",
@@ -257,7 +442,7 @@ make_barcode_rmd <- function(results_folder) {
 
            "## Heterogeneity of reads  \n",
 
-           "```{r plot read domination, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           "```{r plot read heterogeneity, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
            "alignments$ID_read_id <- paste0(alignments$seqnames, '_', alignments$read_id)",
            "uniqueReadsByID <- alignments[!duplicated(alignments$ID_read_id), c('seqnames', 'read_id', 'count')]",
            "uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$seqnames, uniqueReadsByID$count, decreasing = T),]\n",
@@ -305,14 +490,14 @@ make_barcode_rmd <- function(results_folder) {
 #' @param results_folder path to results as string
 #' @return c() collection of strings to put into rmd file
 #'
-make_experiment_rmd <- function(results_folder) {
-  return(c(write_head("Report breakdown by Experiment Type"),
+make_group_rmd <- function(results_folder) {
+  return(c(write_head("Report breakdown by Group"),
            "```{r load data, message=F, warning=FALSE, include=FALSE}",
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'), sep = '\t')",
-           "config <- read.csv(paste0(results_folder, '/config_summary.csv'), sep = '\t')",
+           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'), sep = '\\t')",
+           "config <- read.csv(paste0(results_folder, '/config_summary.csv'), sep = '\\t')",
            "```\n",
            "***\n",
            "# Description  \n",
@@ -320,7 +505,7 @@ make_experiment_rmd <- function(results_folder) {
            write_explanation(),
            "\n",
            "***\n",
-           "# Experiment Type Summary  \n",
+           "# Group Summary  \n",
            "***\n",
 
            "## Read distribution  \n",
@@ -329,7 +514,7 @@ make_experiment_rmd <- function(results_folder) {
            "ggplot(data = config, aes(x = Experiment_Type, y = log10(Reads + 1), order = Experiment_Type, fill = Experiment_Type)) +",
            "  geom_boxplot() +",
            "  ylab('Number of reads on log10 scale')  +",
-           "  xlab('Experiment Type') + ",
+           "  xlab('Group') + ",
            "  theme(legend.position = 'none',",
            "        axis.text = element_text(size = 12),",
            "        axis.title = element_text(size = 14, face = 'bold'))",
@@ -343,7 +528,7 @@ make_experiment_rmd <- function(results_folder) {
 
            "ggplot(data = config, aes(x = Experiment_Type, y = PD_percentage, order = Experiment_Type, fill = Experiment_Type)) +",
            "  geom_boxplot() +",
-           "  xlab('Experiment Type') + ",
+           "  xlab('Group') + ",
            "  ylab('Percentage of reads marked as PRIMER DIMERS')  +",
            "  theme(axis.text = element_text(size=12),",
            "        axis.title = element_text(size=14, face = 'bold'),",
@@ -351,7 +536,7 @@ make_experiment_rmd <- function(results_folder) {
            "  ylim(0, 100)",
            "``` \n",
 
-           "## Cuting rates  \n",
+           "## Cut rates  \n",
 
            "```{r plot cut percentage, echo=FALSE, fig.height=14, fig.width=14, message=F, warning=FALSE}",
            "config$Reads_noPD <- config$Reads - config$PRIMER_DIMER",
@@ -360,7 +545,7 @@ make_experiment_rmd <- function(results_folder) {
 
            "ggplot(data = config, aes(x = Experiment_Type, y = cut_percentage, order = Experiment_Type, fill = Experiment_Type)) +",
            "  geom_boxplot() +",
-           "  xlab('Experiment Type') + ",
+           "  xlab('Group') + ",
            "  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have cut site')  +",
            "  theme(axis.text = element_text(size=12),",
            "        axis.title = element_text(size=14, face = 'bold'),",
@@ -376,7 +561,7 @@ make_experiment_rmd <- function(results_folder) {
 
            "ggplot(data = config, aes(x = Experiment_Type, y = frameshift_percentage, order = Experiment_Type, fill = Experiment_Type)) +",
            "  geom_boxplot() +",
-           "  xlab('Experiment Type') + ",
+           "  xlab('Group') + ",
            "  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift')  +",
            "  theme(axis.text = element_text(size=12),",
            "        axis.title = element_text(size=14,face = 'bold'),",
@@ -386,7 +571,7 @@ make_experiment_rmd <- function(results_folder) {
 
            "## Heterogeneity of reads  \n",
 
-           "```{r plot read domination, echo=FALSE, fig.height=15, fig.width=14, message=F, warning=FALSE}",
+           "```{r plot read heterogeneity, echo=FALSE, fig.height=15, fig.width=14, message=F, warning=FALSE}",
            "alignments$ID_read_id <- paste0(alignments$seqnames, '_', alignments$read_id)",
            "uniqueReadsByID <- alignments[!duplicated(alignments$ID_read_id), c('seqnames', 'read_id', 'count')]",
            "uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$seqnames, uniqueReadsByID$count, decreasing = T),]\n",
@@ -423,7 +608,7 @@ make_experiment_rmd <- function(results_folder) {
            "        legend.direction = 'horizontal', ",
            "        legend.title = element_blank()) +",
            "  ylab('Unique reads percentage of contribution') +",
-           "  xlab('Experiment Type') +",
+           "  xlab('Group') +",
            "  coord_flip()",
            "``` \n"))
 }
@@ -440,8 +625,8 @@ make_guide_rmd <- function(results_folder) {
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'), sep = '\t')",
-           "config <- read.csv(paste0(results_folder, '/config_summary.csv'), sep = '\t')",
+           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'), sep = '\\t')",
+           "config <- read.csv(paste0(results_folder, '/config_summary.csv'), sep = '\\t')",
            "```\n",
            "***\n",
            "# Description  \n",
@@ -482,7 +667,7 @@ make_guide_rmd <- function(results_folder) {
            "  coord_flip()",
            "``` \n",
 
-           "## Cuting rates  \n",
+           "## Cut rates  \n",
 
            "```{r plot cut percentage, echo=FALSE, fig.height=14, fig.width=14, message=F, warning=FALSE}",
            "config$Reads_noPD <- config$Reads - config$PRIMER_DIMER",
@@ -519,7 +704,7 @@ make_guide_rmd <- function(results_folder) {
 
            "## Heterogeneity of reads  \n",
 
-           "```{r plot read domination, echo=FALSE, fig.height=15, fig.width=14, message=F, warning=FALSE}",
+           "```{r plot read heterogeneity, echo=FALSE, fig.height=15, fig.width=14, message=F, warning=FALSE}",
            "alignments$ID_read_id <- paste0(alignments$seqnames, '_', alignments$read_id)",
            "uniqueReadsByID <- alignments[!duplicated(alignments$ID_read_id), c('seqnames', 'read_id', 'count')]",
            "uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$seqnames, uniqueReadsByID$count, decreasing = T),]\n",

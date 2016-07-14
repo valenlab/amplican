@@ -64,7 +64,7 @@
 #' @param cut_buffer (numeric) Value specyfying a buffer for PAM, this will add from both sides to
 #' a window defined from uppercase letters in the amplicon. Deletions overlapping this window will be considered a
 #' valid cut (if confirmed by both forward and rewerse reads).
-#' @return Void
+#' @return NULL
 #' @include gotoh.R helpers_alignment.R helpers_filters.R helpers_warnings.R helpers_directory.R
 #' @import doParallel foreach GenomicRanges
 #' @importFrom utils read.table
@@ -86,7 +86,7 @@ amplicanAnalysis <- function(config,
                              deletefq = FALSE,
                              temp_folder = "",
                              fastqfiles = 0,
-                             PRIMER_DIMER = 10,
+                             PRIMER_DIMER = 30,
                              cut_buffer = 5){
 
   message("Checking write access...")
@@ -177,7 +177,10 @@ amplicanAnalysis <- function(config,
                     gap_opening,
                     gap_extension,
                     gap_ending,
-                    far_indels)
+                    far_indels,
+                    fastqfiles,
+                    PRIMER_DIMER,
+                    cut_buffer)
     }
     parallel::stopCluster(cl)
   } else {
@@ -213,5 +216,4 @@ amplicanAnalysis <- function(config,
     deleteFiles(configTable)
   }
   message("Finished.")
-  return()
 }

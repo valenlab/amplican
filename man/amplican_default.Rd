@@ -2,9 +2,7 @@
 % Please edit documentation in R/amplican.R
 \name{amplican_default}
 \alias{amplican_default}
-\title{amplican is convinient wrapper around all default settings of
-amplicanAnalysis, amplicanReport and amplicanSummary. It will generate all
-results in the result_folder and also print results into reports folder.}
+\title{Wraps main package functionality into one function.}
 \usage{
 amplican_default(config, fastq_folder, results_folder)
 }
@@ -19,8 +17,8 @@ in the same directory as config file.}
 program will create files in that folder so make sure you have writing permissions.}
 }
 \description{
-amplican is convinient wrapper around all default settings of
+amplican_default is convinient wrapper around all default settings of
 amplicanAnalysis, amplicanReport and amplicanSummary. It will generate all
-results in the result_folder and also print results into reports folder.
+results in the result_folder and also print prepared reports into reports folder.
 }
 

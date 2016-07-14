@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_alignment.R
 \name{getEventInfo}
 \alias{getEventInfo}
-\title{This function takes a lite string and gives back the events coordinates}
+\title{This function takes a lite string and gives back the events coordinates.}
 \usage{
 getEventInfo(liteString, ID, strand = "*", read_alignment)
 }

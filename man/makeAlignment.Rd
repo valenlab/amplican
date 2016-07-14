@@ -2,13 +2,13 @@
 % Please edit documentation in R/helpers_alignment.R
 \name{makeAlignment}
 \alias{makeAlignment}
-\title{Make alignments}
+\title{Make alignments helper.}
 \usage{
 makeAlignment(configTable, resultsFolder, skip_bad_nucleotides = TRUE,
   average_quality = 0, min_quality = 0, write_alignments = 1,
   scoring_matrix = "NUC44", gap_opening = 50, gap_extension = 0,
   gap_ending = FALSE, far_indels = TRUE, fastqfiles = 0,
-  PRIMER_DIMER = 10, cut_buffer = 5)
+  PRIMER_DIMER = 30, cut_buffer = 5)
 }
 \arguments{
 \item{configTable}{(bool)}
@@ -43,6 +43,6 @@ makeAlignment(configTable, resultsFolder, skip_bad_nucleotides = TRUE,
 Void
 }
 \description{
-Make alignments
+Main functionality of the package, aligning reads to the amplicon using gotoh implementation.
 }
 

@@ -2,8 +2,7 @@
 % Please edit documentation in R/helpers_alignment.R
 \name{upperGroups}
 \alias{upperGroups}
-\title{For a given string, detect how many groups of uppercases is inside, where are
-they, and how long they are.}
+\title{Detect uppercases as ranges object.}
 \usage{
 upperGroups(candidate)
 }
@@ -14,10 +13,13 @@ upperGroups(candidate)
 (Ranges) A Ranges object with uppercases groups for given candidate string
 }
 \description{
-For example:
-   asdkfaAGASDGAsjaeuradAFDSfasfjaeiorAuaoeurasjfasdhfashTTSfajeiasjsf
+For a given string, detect how many groups of uppercases is inside, where are
+they, and how long they are.
 }
 \details{
+For example:
+   asdkfaAGASDGAsjaeuradAFDSfasfjaeiorAuaoeurasjfasdhfashTTSfajeiasjsf
+
 Has 4 groups of uppercases of length 7, 4, 1 and 3.
 }
 

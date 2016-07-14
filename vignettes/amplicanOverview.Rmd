@@ -1,0 +1,71 @@
+---
+title: "amplican overview"
+author: "Kornel Labun"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+Welcome to the `amplican` package. This viginnette will walk you through our main package usage with example MiSeq dataset. 
+You will learn how to interpret results, create summary reports and plot deletions, insertions and mutations with
+our functions. This package, `amplican` is aimed into analysis of MiSeq or HiSeq PCR data, whether paired-end or 
+single-end. 
+
+## Introduction
+
+`amplican` creates raports of deletions, insertions, frameshifts, cut rates and other metrics in user selected format 
+(preffered html). `amplican` uses vary fast C implementation of Gotoh alhoritm to align your fastq samples and 
+automates analysis across different experiments. `amplican` maintains elasticity through configuration file, 
+which with your fastq samples are only requirements.
+
+## Configuration file
+
+To succesfully run our analysis it is mandatory to have created configuration file. Take a look at our example:
+
+```{r, echo=FALSE, results = 'asis'}
+config <- read.csv(system.file("extdata", "config.txt", package = "amplican"), sep = "\t")
+
+knitr::kable(head(config))
+```
+
+Configuration file should be a tab delimited text file with information about your experiments. 
+You can find example config file at:
+```{r, echo=FALSE}
+system.file("extdata", "config.txt", package = "amplican")
+```
+
+## Default options
+
+The figure sizes have been customised so that you can easily put two images side-by-side.
+
+```{r, fig.show='hold'}
+plot(1:10)
+plot(10:1)
+```
+
+You can enable figure captions by `fig_caption: yes` in YAML:
+
+    output:
+      rmarkdown::html_vignette:
+        fig_caption: yes
+
+Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+
+## Detailed analysis
+
+### Aligning reads
+
+You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+
+```{r, echo=FALSE, results='asis'}
+knitr::kable(head(mtcars, 10))
+```
+
+### Printing reports
+Also a quote using `>`:
+
+> "He who gives up [code] safety for [code] speed deserves neither."
+([via](https://twitter.com/hadleywickham/status/504368538874703872))

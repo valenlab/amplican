@@ -15,9 +15,11 @@ NULL
 }
 
 
-#' amplican is convinient wrapper around all default settings of
+#' Wraps main package functionality into one function.
+#'
+#' amplican_default is convinient wrapper around all default settings of
 #' amplicanAnalysis, amplicanReport and amplicanSummary. It will generate all
-#' results in the result_folder and also print results into reports folder.
+#' results in the result_folder and also print prepared reports into reports folder.
 #'
 #' @param config (string) The path to your configuration file. For example:
 #'                      /Home/johndoe/.../AmpliCan/res/Cas9_toy/run11.txt
@@ -37,6 +39,9 @@ amplican_default <- function(config, fastq_folder, results_folder) {
   }
 
   amplicanSummary(results_folder, report_name = paste0(reportsFolder, "/summary_report"))
-  amplicanReport(results_folder, report_files = paste0(reportsFolder, c("/report_id", "/report_barcode",
-                                                                        "/report_experiment", "/report_guide")))
+  amplicanReport(results_folder, report_files = paste0(reportsFolder, c("/report_id",
+                                                                        "/report_barcode",
+                                                                        "/report_group",
+                                                                        "/report_guide",
+                                                                        "/report_amplicon")))
 }

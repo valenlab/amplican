@@ -8,7 +8,7 @@ amplicanAnalysis(config, fastq_folder, results_folder, total_processors = 1,
   skip_bad_nucleotides = TRUE, average_quality = 0, min_quality = 0,
   write_alignments = 2, scoring_matrix = "NUC44", gap_opening = 50,
   gap_extension = 0, gap_ending = FALSE, far_indels = TRUE,
-  deletefq = FALSE, temp_folder = "", fastqfiles = 0, PRIMER_DIMER = 10,
+  deletefq = FALSE, temp_folder = "", fastqfiles = 0, PRIMER_DIMER = 30,
   cut_buffer = 5)
 }
 \arguments{
@@ -90,9 +90,6 @@ length of amplicon - (lenghts of PRIMERS + PRIMER_DIMER value)}
 \item{cut_buffer}{(numeric) Value specyfying a buffer for PAM, this will add from both sides to
 a window defined from uppercase letters in the amplicon. Deletions overlapping this window will be considered a
 valid cut (if confirmed by both forward and rewerse reads).}
-}
-\value{
-Void
 }
 \description{
 amplicanAnalysis takes a configuration files, fastq reads and output directory to prepare

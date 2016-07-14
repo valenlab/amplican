@@ -1,15 +1,17 @@
+#' Merge files of given type.
+#'
 #' This function takes all the files in a given folder that match a regex
 #' pattern and merges them together.
 #'
-#'@param targetFolder (string) The folder where the files are suppose to be.
-#'@param regex (string) The files to be combined, must comply with this regex.
-#'@param finalFileName (String) The name of the final file.
-#'@param header (boolean) If header is true, it will take the header of the
+#' @param targetFolder (string) The folder where the files are suppose to be.
+#' @param regex (string) The files to be combined, must comply with this regex.
+#' @param finalFileName (String) The name of the final file.
+#' @param header (boolean) If header is true, it will take the header of the
 #'                     first file only and ignore the rest. Otherwise it
 #'                     will repeat the header many times.
-#'@param delete (boolean) If true, it will delete the original files
-#'@param isrecursive (boolean) If TRUE will search recursively through regex matching folders.
-#'@return (void)
+#' @param delete (boolean) If true, it will delete the original files
+#' @param isrecursive (boolean) If TRUE will search recursively through regex matching folders.
+#' @return (void)
 #'
 unifyFiles <- function(targetFolder, regex, finalFileName, header = T, delete = T, isrecursive = F){
 
@@ -39,10 +41,12 @@ unifyFiles <- function(targetFolder, regex, finalFileName, header = T, delete = 
   return()
 }
 
+#' Remove forward and reverse fastq files.
+#'
 #' Delete files from configTables Forward_Reads_File and Reverse_Reads_File (fastq files).
 #'
-#'@param configTable (data.frame) Contains Forward_Reads_File and Reverse_Reads_File to be removed
-#'@return (void) In case of fail, prints err.
+#' @param configTable (data.frame) Contains Forward_Reads_File and Reverse_Reads_File to be removed
+#' @return (void) In case of fail, prints err.
 #'
 deleteFiles <- function(configTable){
   for (i in 1:dim(configTable)[1]){

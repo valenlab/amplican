@@ -2,12 +2,14 @@
 % Please edit documentation in R/helpers_rmd.R
 \name{write_alignment_plots}
 \alias{write_alignment_plots}
-\title{Writes alignment plots: deltion, insertion and mismatch}
+\title{Writes alignment plots - aggregate on the amplicon: deltion, insertion and mismatch.}
 \usage{
-write_alignment_plots(ID, cut_buffer = 5)
+write_alignment_plots(ID, title, cut_buffer = 5)
 }
 \arguments{
-\item{ID}{is of alignment}
+\item{ID}{(string or vector of strings)}
+
+\item{title}{(string) title for the alignment plots}
 
 \item{cut_buffer}{(numeric) cut detection box will be extended left and right by box_buffer}
 }
@@ -15,6 +17,6 @@ write_alignment_plots(ID, cut_buffer = 5)
 string to include in rmd file
 }
 \description{
-Writes alignment plots: deltion, insertion and mismatch
+Writes alignment plots - aggregate on the amplicon: deltion, insertion and mismatch.
 }
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_rmd.R
 \name{write_head}
 \alias{write_head}
-\title{Writes head of the .Rmd report files}
+\title{Writes head of the .Rmd report files.}
 \usage{
 write_head(title)
 }
@@ -13,6 +13,6 @@ write_head(title)
 string of the header for rmd file
 }
 \description{
-Writes head of the .Rmd report files
+Writes head of the .Rmd report files.
 }
 

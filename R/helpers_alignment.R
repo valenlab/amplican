@@ -1,4 +1,4 @@
-#' This function takes a lite string and gives back the events coordinates
+#' This function takes a lite string and gives back the events coordinates.
 #'
 #' For the given example:
 #' 0         1         2         3         4         5
@@ -83,6 +83,8 @@ getEventInfo <- function(liteString, ID, strand = "*", read_alignment){
 }
 
 
+#' Detect uppercases as ranges object.
+#'
 #' For a given string, detect how many groups of uppercases is inside, where are
 #' they, and how long they are.
 #'
@@ -101,7 +103,9 @@ upperGroups <- function(candidate){
 }
 
 
-#' Make alignments
+#' Make alignments helper.
+#'
+#' Main functionality of the package, aligning reads to the amplicon using gotoh implementation.
 #'
 #' @param skip_bad_nucleotides (bool)
 #' @param average_quality (int)
@@ -136,7 +140,7 @@ makeAlignment <- function(configTable,
                           gap_ending = FALSE,
                           far_indels = TRUE,
                           fastqfiles = 0,
-                          PRIMER_DIMER = 10,
+                          PRIMER_DIMER = 30,
                           cut_buffer = 5){
 
   barcode <- toString(configTable$Barcode[1])
@@ -296,7 +300,7 @@ makeAlignment <- function(configTable,
         if (isPD) { next }
 
         #Filter our deletions on end and beginings
-        forwardDataFiltered <- forwardData[!(forwardData$type == "deletion" & end(forwardData) == nchar(amplicon))]
+        forwardDataFiltered <- forwardData[!(forwardData$type == "deletion" & end(forwardData) > nchar(amplicon))]
         reverseDataFiltered <- reverseData[!(reverseData$type == "deletion" & start(reverseData) == 1)]
         #Filter insertions on end and beginings
         forwardDataFiltered <- forwardData[!(forwardData$type == "insertion" & start(forwardData) > nchar(amplicon))]
@@ -374,7 +378,7 @@ makeAlignment <- function(configTable,
 
     if (length(alignmentRanges) > 0) {
       utils::write.table(as.data.frame(alignmentRanges),
-        paste0(resultsFolder, "/", barcode, "_alignment_ranges.csv") , sep="\t", row.names = F)
+        paste0(resultsFolder, "/", currentID, "_alignment_ranges.csv") , sep="\t", row.names = F)
     }
   }
 

@@ -2,8 +2,7 @@
 % Please edit documentation in R/helpers_directory.R
 \name{unifyFiles}
 \alias{unifyFiles}
-\title{This function takes all the files in a given folder that match a regex
-pattern and merges them together.}
+\title{Merge files of given type.}
 \usage{
 unifyFiles(targetFolder, regex, finalFileName, header = T, delete = T,
   isrecursive = F)

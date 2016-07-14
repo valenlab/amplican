@@ -2,8 +2,7 @@
 % Please edit documentation in R/helpers_plots.R
 \name{amplican_plot_mutations}
 \alias{amplican_plot_mutations}
-\title{This function plots mutations in relation to the amplicon. Top plot is for the forward reads, middle one shows
-amplicon sequence, and bottom plot is for reverse reads.}
+\title{Plots mutations using ggplot2 and ggbio.}
 \usage{
 amplican_plot_mutations(alignments, config, id, cut_buffer = 5)
 }
@@ -12,7 +11,8 @@ amplican_plot_mutations(alignments, config, id, cut_buffer = 5)
 
 \item{config}{(data.frame) Loaded table from config_summary.csv file.}
 
-\item{id}{(string) Name of the ID column from config file.}
+\item{id}{(string or vector of strings) Name of the ID column from config file or name of multiple IDs if it is
+possible to group them. First amplicon will be used as the basis for plot.}
 
 \item{cut_buffer}{(numeric) Default is 5, you should specify the same as used in the analysis.}
 }

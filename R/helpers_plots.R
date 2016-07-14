@@ -1,9 +1,12 @@
+#' Plots mutations using ggplot2 and ggbio.
+#'
 #' This function plots mutations in relation to the amplicon. Top plot is for the forward reads, middle one shows
 #' amplicon sequence, and bottom plot is for reverse reads.
 #'
 #' @param alignments (GRanges object) Loaded alignment information from alignments.csv file.
 #' @param config (data.frame) Loaded table from config_summary.csv file.
-#' @param id (string) Name of the ID column from config file.
+#' @param id (string or vector of strings) Name of the ID column from config file or name of multiple IDs if it is
+#' possible to group them. First amplicon will be used as the basis for plot.
 #' @param cut_buffer (numeric) Default is 5, you should specify the same as used in the analysis.
 #' @return (mutation plot) ggplot2 object of mutation plot
 #' @import GenomicRanges
@@ -17,19 +20,19 @@
 #'
 amplican_plot_mutations <- function(alignments, config, id, cut_buffer = 5) {
 
-  idRanges <- alignments[alignments$seqnames == id,]
+  idRanges <- alignments[alignments$seqnames %in% id,]
   idRanges <- idRanges[idRanges$type == "mismatch",]
 
   if (dim(idRanges)[1] == 0) {return(print("No mismatches to plot."))}
 
-  amplicon <- toString(config[which(config$ID == id), "Amplicon"])
+  amplicon <- toString(config[which(config$ID == id[1]), "Amplicon"])
   ampl_len <- nchar(amplicon)
   selcolumns <- c("position", "nucleotide", "upper", "count")
   ampl_df <- data.frame(seq(1, ampl_len), seqinr::s2c(amplicon), seqinr::s2c(toupper(amplicon)), 1)
   names(ampl_df) <- selcolumns
 
   box <- upperGroups(amplicon)
-  xlabels <- if (config[which(config$ID == id), "Strand"] != 1) {
+  xlabels <- if (config[which(config$ID == id[1]), "Strand"] != 1) {
     if (length(box) >= 1) {
       seq(-start(box[1]) + 1, ampl_len-start(box[1]), 4)
     } else {
@@ -45,11 +48,20 @@ amplican_plot_mutations <- function(alignments, config, id, cut_buffer = 5) {
   xbreaks <- seq(1, ampl_len, 4)
   box <- box + cut_buffer
 
-  frPrimer <- toString(config[which(config$ID == id), "Forward_Primer"])
+  frPrimer <- toString(config[which(config$ID == id[1]), "Forward_Primer"])
   frPrimer <- stringr::str_locate(toupper(amplicon), toupper(frPrimer))
-  rwPrimer <- toString(config[which(config$ID == id), "Reverse_Primer"])
+  rwPrimer <- toString(config[which(config$ID == id[1]), "Reverse_Primer"])
   rwPrimer <- stringr::str_locate(toupper(amplicon), toupper(seqinr::c2s(seqinr::comp(rev(seqinr::s2c(rwPrimer))))))
   primers <- stats::na.omit(c(frPrimer, rwPrimer))
+
+  #FILTER EVENTS
+  # forward before primer after amplicon length
+  idRanges <- idRanges[!(idRanges$strand == "+" & idRanges$start < frPrimer[1]),]
+  idRanges <- idRanges[!(idRanges$strand == "+" & idRanges$end > ampl_len),]
+  # reverse before primer and after amplicon start
+  idRanges <- idRanges[!(idRanges$strand == "-" & idRanges$start > rwPrimer[1]),]
+  idRanges <- idRanges[!(idRanges$strand == "-" & idRanges$start == 1),]
+  if (dim(idRanges)[1] == 0) {return(print("No mismatches to plot."))}
 
   amplicon_colors <- c("green3", "red", "gold2", "blue")
   names(amplicon_colors) <- c("A", "C", "G", "T")
@@ -114,12 +126,15 @@ amplican_plot_mutations <- function(alignments, config, id, cut_buffer = 5) {
 }
 
 
+#' Plots deletions using ggplot2 and ggbio.
+#'
 #' This function plots deletions in relation to the amplicon. Top plot is for the forward reads, middle one shows
 #' amplicon sequence, and bottom plot is for reverse reads.
 #'
 #' @param alignments (GRanges object) Loaded alignment information from alignments.csv file.
 #' @param config (data.frame) Loaded table from config_summary.csv file.
-#' @param id (string) Name of the ID column from config file.
+#' @param id (string or vector of strings) Name of the ID column from config file or name of multiple IDs if it is
+#' possible to group them. First amplicon will be used as the basis for plot.
 #' @param cut_buffer (numeric) Default is 5, you should specify the same as used in the analysis.
 #' @return (deletions plot) ggplot2 object of mutation plot
 #' @import GenomicRanges
@@ -133,13 +148,10 @@ amplican_plot_mutations <- function(alignments, config, id, cut_buffer = 5) {
 #'
 amplican_plot_deletions <- function(alignments, config, id, cut_buffer = 5) {
 
-  archRanges <- alignments[alignments$seqnames == id & alignments$type == "deletion",]
+  archRanges <- alignments[alignments$seqnames %in% id & alignments$type == "deletion",]
 
-  amplicon <- toString(config[which(config$ID == id), "Amplicon"])
+  amplicon <- toString(config[which(config$ID == id[1]), "Amplicon"])
   ampl_len <- nchar(amplicon)
-
-  archRanges <- archRanges[!(archRanges$end == ampl_len & archRanges$strand == "+"),]
-  archRanges <- archRanges[!(archRanges$start == 1 & archRanges$strand == "-"),]
 
   if (dim(archRanges)[1] == 0) {return(print("No deletions to plot."))}
   archRanges <- stats::aggregate(cbind(count, frequency, cut) ~ strand + start + end, archRanges, sum)
@@ -149,7 +161,7 @@ amplican_plot_deletions <- function(alignments, config, id, cut_buffer = 5) {
   names(ampl_df) <- selcolumns
 
   box <- upperGroups(amplicon)
-  xlabels <- if (config[which(config$ID == id), "Strand"] != 1) {
+  xlabels <- if (config[which(config$ID == id[1]), "Strand"] != 1) {
     if (length(box) >= 1) {
       seq(-start(box[1]) + 1, ampl_len-start(box[1]), 4)
     } else {
@@ -165,11 +177,20 @@ amplican_plot_deletions <- function(alignments, config, id, cut_buffer = 5) {
   xbreaks <- seq(1, ampl_len, 4)
   box <- box + cut_buffer
 
-  frPrimer <- toString(config[which(config$ID == id), "Forward_Primer"])
+  frPrimer <- toString(config[which(config$ID == id[1]), "Forward_Primer"])
   frPrimer <- stringr::str_locate(toupper(amplicon), toupper(frPrimer))
-  rwPrimer <- toString(config[which(config$ID == id), "Reverse_Primer"])
+  rwPrimer <- toString(config[which(config$ID == id[1]), "Reverse_Primer"])
   rwPrimer <- stringr::str_locate(toupper(amplicon), toupper(seqinr::c2s(seqinr::comp(rev(seqinr::s2c(rwPrimer))))))
   primers <- stats::na.omit(c(frPrimer, rwPrimer))
+  if (dim(archRanges)[1] == 0) {return(print("No deletions to plot."))}
+
+  #FILTER EVENTS
+  # forward before primer after amplicon length
+  archRanges <- archRanges[!(archRanges$strand == "+" & archRanges$start < frPrimer[1]),]
+  archRanges <- archRanges[!(archRanges$strand == "+" & archRanges$end > ampl_len),]
+  # reverse before primer and after amplicon start
+  archRanges <- archRanges[!(archRanges$strand == "-" & archRanges$start > rwPrimer[1]),]
+  archRanges <- archRanges[!(archRanges$strand == "-" & archRanges$start == 1),]
 
   frequency <- cut <- NULL
   arch_plot_fr <- ggplot2::ggplot() + ggbio::geom_arch(data = archRanges[archRanges$strand == "+",],
@@ -228,12 +249,15 @@ amplican_plot_deletions <- function(alignments, config, id, cut_buffer = 5) {
 }
 
 
+#' Plots insertions using ggplot2 and ggbio.
+#'
 #' This function plots insertions in relation to the amplicon. Top plot is for the forward reads, middle one shows
 #' amplicon sequence, and bottom plot is for reverse reads.
 #'
 #' @param alignments (GRanges object) Loaded alignment information from alignments.csv file.
 #' @param config (data.frame) Loaded table from config_summary.csv file.
-#' @param id (string) Name of the ID column from config file.
+#' @param id (string or vector of strings) Name of the ID column from config file or name of multiple IDs if it is
+#' possible to group them. First amplicon will be used as the basis for plot.
 #' @param cut_buffer (numeric) Default is 5, you should specify the same as used in the analysis.
 #' @return (insertions plot) ggplot2 object of mutation plot
 #' @import GenomicRanges
@@ -247,26 +271,29 @@ amplican_plot_deletions <- function(alignments, config, id, cut_buffer = 5) {
 #'
 amplican_plot_insertions <- function(alignments, config, id, cut_buffer = 5) {
 
-  idRanges <- alignments[alignments$seqnames == id & alignments$type == "insertion",]
+  idRanges <- alignments[alignments$seqnames %in% id & alignments$type == "insertion",]
 
-  amplicon <- toString(config[which(config$ID == id), "Amplicon"])
+  amplicon <- toString(config[which(config$ID == id[1]), "Amplicon"])
   ampl_len <- nchar(amplicon)
 
-  idRanges <- idRanges[!(idRanges$strand == "+" & idRanges$start > ampl_len),]
-  idRanges <- idRanges[!(idRanges$strand == "-" & idRanges$start == 1),]
-  if (dim(idRanges)[1] == 0) {
-    return(print("No insertions to plot."))
-  }
+  if (dim(idRanges)[1] == 0) { return(print("No insertions to plot.")) }
 
   selcolumns <- c("position", "nucleotide", "upper", "count")
   ampl_df <- data.frame(seq(1, ampl_len), seqinr::s2c(amplicon), seqinr::s2c(toupper(amplicon)), 1)
   names(ampl_df) <- selcolumns
 
-  frPrimer <- toString(config[which(config$ID == id), "Forward_Primer"])
+  frPrimer <- toString(config[which(config$ID == id[1]), "Forward_Primer"])
   frPrimer <- stringr::str_locate(toupper(amplicon), toupper(frPrimer))
-  rwPrimer <- toString(config[which(config$ID == id), "Reverse_Primer"])
+  rwPrimer <- toString(config[which(config$ID == id[1]), "Reverse_Primer"])
   rwPrimer <- stringr::str_locate(toupper(amplicon), toupper(seqinr::c2s(seqinr::comp(rev(seqinr::s2c(rwPrimer))))))
   primers <- stats::na.omit(c(frPrimer, rwPrimer))
+
+  idRanges <- idRanges[!(idRanges$strand == "+" & idRanges$start < frPrimer[1]),]
+  idRanges <- idRanges[!(idRanges$strand == "+" & idRanges$end > ampl_len),]
+  # reverse before primer and after amplicon start
+  idRanges <- idRanges[!(idRanges$strand == "-" & idRanges$start > rwPrimer[1]),]
+  idRanges <- idRanges[!(idRanges$strand == "-" & idRanges$start == 1),]
+  if (dim(idRanges)[1] == 0) { return(print("No insertions to plot.")) }
 
   #reduce mismatches
   idRangesReduced <- stats::aggregate(frequency ~ strand + start + end, idRanges, sum)
@@ -299,7 +326,7 @@ amplican_plot_insertions <- function(alignments, config, id, cut_buffer = 5) {
   }
 
   box <- upperGroups(amplicon)
-  xlabels <- if (config[which(config$ID == id), "Strand"] != 1) {
+  xlabels <- if (config[which(config$ID == id[1]), "Strand"] != 1) {
     if (length(box) >= 1) {
       seq(-start(box[1]) + 1, ampl_len-start(box[1]), 4)
     } else {

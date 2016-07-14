@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_rmd.R
 \name{write_explanation}
 \alias{write_explanation}
-\title{Writes explanation to the .Rmd report files}
+\title{Writes explanation to the .Rmd report files.}
 \usage{
 write_explanation()
 }
@@ -10,6 +10,6 @@ write_explanation()
 string of the explanation for rmd file
 }
 \description{
-Writes explanation to the .Rmd report files
+Writes explanation to the .Rmd report files.
 }
 
