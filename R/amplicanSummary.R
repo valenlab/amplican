@@ -31,7 +31,7 @@ amplicanSummary <- function(alignments_folder, report_name = "summary_report"){
                  "***\n",
                  "```{r echo = F}",
                  "library(knitr)",
-                 paste0("summaryDF <- read.delim('", alignments_folder, "/barcode_reads_filters.csv')  "),
+                 paste0("summaryDF <- read.csv('", alignments_folder, "/barcode_reads_filters.csv')  "),
                  "kable(summaryDF)",
                  "```\n",
                  "Table 1. Reads distributed for each barcode\n",

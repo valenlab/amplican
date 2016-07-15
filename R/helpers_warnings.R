@@ -65,24 +65,24 @@ checkConfigFile <- function(configTable, fastq_folder){
   goodRows <- stats::complete.cases(configTable)
   if (sum(goodRows) != totalRows) {
     stop(paste0("Config file has bad rows: ",
-                paste(which(goodRows == F)),
+                paste(which(goodRows == F) + 1),
                 " due to NA/NULL values"))
   }
 
   if(length(unique(configTable[, "ID"])) != totalRows){
     stop(paste0("Config file has duplicates IDs in rows:",
-                paste(which(duplicated(configTable[, "ID"])))))
+                paste(which(duplicated(configTable[, "ID"])) + 1)))
   }
 
-  barcode_primers_duple <- duplicated(configTable[c("Barcode", "Forward_Primer", "Reverse_Primer")])
+  barcode_primers_duple <- duplicated(configTable[,c("Barcode", "Forward_Primer", "Reverse_Primer")])
   if(sum(barcode_primers_duple) != 0){
     stop(paste0("Config file has non unique combinations of barcode, forward primer and reverse primer.
-                Duplicated rows: ", paste(which(barcode_primers_duple))))
+                Duplicated rows: ", toString(which(barcode_primers_duple) + 1)))
   }
 
   barcode_files_duple <- duplicated(configTable[c("Barcode")])
   forward_reverse_files_duple <- duplicated(configTable[c("Forward_Reads_File", "Reverse_Reads_File")])
-  fail_barcodes <- which(barcode_files_duple != forward_reverse_files_duple)
+  fail_barcodes <- which(barcode_files_duple != forward_reverse_files_duple) + 1
   if (length(fail_barcodes) > 0) {
     stop(paste0("Each of these rows are malfunctioned in the config file: ", paste(fail_barcodes),
                 " For each barcode there can be only one set of paths for forward and reverse files."))

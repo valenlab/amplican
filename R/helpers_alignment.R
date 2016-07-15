@@ -123,7 +123,7 @@ upperGroups <- function(candidate){
 #' @param cut_buffer (numeric)
 #' @import GenomicRanges
 #' @importFrom seqinr comp s2c c2s
-#' @importFrom utils write.table
+#' @importFrom utils write.csv
 #' @importFrom stats aggregate
 #' @importFrom ShortRead readFastq
 #' @return Void
@@ -377,18 +377,18 @@ makeAlignment <- function(configTable,
     }
 
     if (length(alignmentRanges) > 0) {
-      utils::write.table(as.data.frame(alignmentRanges),
-        paste0(resultsFolder, "/", currentID, "_alignment_ranges.csv") , sep="\t", row.names = F)
+      utils::write.csv(as.data.frame(alignmentRanges),
+        paste0(resultsFolder, "/", currentID, "_alignment_ranges.csv"), row.names = F)
     }
   }
 
   barcodeTable$unassigned_reads <- sum(!uniqueTable$Asigned)
   barcodeTable$assigned_reads <- sum(uniqueTable$Asigned)
-  utils::write.table(uniqueTable[!uniqueTable$Asigned, ],
-              file = paste(resultsFolder, "/unassigned_sequences/", barcode, "_unassigned_reads.txt", sep = ''),
-              quote = FALSE, sep = "\t", row.names = F)
+  utils::write.csv(uniqueTable[!uniqueTable$Asigned, ],
+              file = paste(resultsFolder, "/unassigned_sequences/", barcode, "_unassigned_reads.csv", sep = ''),
+              quote = FALSE, row.names = F)
 
-  utils::write.table(configTable, paste0(resultsFolder, "/", barcode, "_configFile_results.csv") , sep="\t", row.names = F)
-  utils::write.table(barcodeTable, paste0(resultsFolder, "/", barcode, "_reads_filters.csv"), sep="\t", row.names = F)
+  utils::write.csv(configTable, paste0(resultsFolder, "/", barcode, "_configFile_results.csv"), row.names = F)
+  utils::write.csv(barcodeTable, paste0(resultsFolder, "/", barcode, "_reads_filters.csv"), row.names = F)
   return()
 }

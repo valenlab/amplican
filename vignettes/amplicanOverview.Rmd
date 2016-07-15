@@ -26,14 +26,14 @@ which with your fastq samples are only requirements.
 To succesfully run our analysis it is mandatory to have created configuration file. Take a look at our example:
 
 ```{r, echo=FALSE, results = 'asis'}
-config <- read.csv(system.file("extdata", "config.txt", package = "amplican"), sep = "\t")
+config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
 knitr::kable(head(config))
 ```
 
 Configuration file should be a tab delimited text file with information about your experiments. 
 You can find example config file at:
 ```{r, echo=FALSE}
-system.file("extdata", "config.txt", package = "amplican")
+system.file("extdata", "config.csv", package = "amplican")
 ```
 
 **ID** - should be a unique identifier of your experiments  
@@ -60,17 +60,17 @@ To run `amplican` with default options, along with generation of all posible rep
 ```{r amplican_default, echo=TRUE}
 # library(amplican) #don't load for time
 # example MiSeq dataset files
-config <- system.file("extdata", "config.txt", package = "amplican")
-fastq_folder <- system.file("extdata", "", package = "amplican")
-results_folder <- paste0(fastq_folder, "results")
+#config <- system.file("extdata", "config.csv", package = "amplican")
+#fastq_folder <- system.file("extdata", "", package = "amplican")
+#results_folder <- paste0(fastq_folder, "results")
 
 # make sure we have result folder
-dir.create(results_folder)
+#dir.create(results_folder)
 # actual amplican run
 # amplican_default(config, fastq_folder, results_folder) #might be time consuming
 
 # results of the analysis can be found at
-results_folder
+#results_folder
 ```
 
 ## Files created during analysis
@@ -90,9 +90,8 @@ First step of our analysis is to filter out reads that are not complying with ou
 * bad alphabet - by deafult we accept only reads with A,C,T,G bases  
 
 ```{r, echo=FALSE}
-barcodeFilters <- read.csv(system.file("extdata/results", "barcode_reads_filters.csv", 
-                                       package = "amplican"), sep = "\t", header = T)
-knitr::kable(head(barcodeFilters))
+#barcodeFilters <- read.csv(system.file("extdata/results", "barcode_reads_filters.csv", package = "amplican"))
+#knitr::kable(head(barcodeFilters))
 ```
 
 This table is also summarized in one of the reports. As you can see for our example dataset we have two barcodes,
@@ -104,11 +103,10 @@ is unique and we can succesfully asign only 9 reads for the barcode_1 and 21 rea
 Extended version of the config file.
 
 ```{r, echo=FALSE}
-config_summary <- read.csv(system.file("extdata/results", "config_summary.csv", 
-                                       package = "amplican"), sep = "\t", header = T)
-config_summary <- config_summary[,c("ID", "Barcode", "Cut", "Frameshift", 
-                                    "PRIMER_DIMER", "Reads", "Found_Guide", "Found_PAM")]
-knitr::kable(head(config_summary))
+#config_summary <- read.csv(system.file("extdata/results", "config_summary.csv", package = "amplican"))
+#config_summary <- config_summary[,c("ID", "Barcode", "Cut", "Frameshift", 
+#                                    "PRIMER_DIMER", "Reads", "Found_Guide", "Found_PAM")]
+#knitr::kable(head(config_summary))
 ```
 
 We add these fields:  

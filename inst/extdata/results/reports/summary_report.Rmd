@@ -1,0 +1,66 @@
+---
+title: 'Summary Read Report'
+author: amplican
+date: '`r format(Sys.time(), "%d %B %Y")`'
+output:
+  html_document:
+    toc: true
+    theme: paper
+    toc_float: true
+    number_sections: true
+---
+
+# Explanation of variables
+
+***
+
+**read_count** - how many reads belongs to this barcode  
+**bad_base_quality** - how many reads had base quality worse than specified (default is 0)  
+**bad_average_quality** - how many reads had average base quality worse than specified (default is 0)  
+**bad_alphabet** - how many reads had alphabet with bases other than A, C, G, T  
+**filtered_read_count** - how many reads were left after filtering  
+**unique_reads** - how many reads (forward and reverse together) for this barcode is unique  
+**unassigned_reads/assigned_reads** - how many reads have been not assigned/assigned to any of the
+experiments
+
+***
+
+# Summary Table
+
+***
+
+```{r echo = F}
+library(knitr)
+summaryDF <- read.csv('/home/ai/Projects/amplican/inst/extdata/results/barcode_reads_filters.csv')  
+kable(summaryDF)
+```
+
+Table 1. Reads distributed for each barcode
+
+***
+
+# Barplot
+
+***
+
+```{r fig.width=8, fig.height=12, echo = F}
+library(ggplot2)
+library(reshape2)
+summaryDFmelt = melt(summaryDF, id.vars = c("barcode"), measure.vars = c("bad_base_quality",
+                                                                           "bad_average_quality",
+                                                                           "bad_alphabet",
+                                                                           "unassigned_reads",
+                                                                           "assigned_reads"))
+ggplot(data = summaryDFmelt, aes(x = barcode, y = value, fill = variable)) +
+  geom_bar(position="stack", stat="identity") +
+  ylab("number of reads") +
+  theme(legend.position = "top",
+        legend.direction = "horizontal",
+        legend.title = element_blank()) +
+  coord_flip()
+```
+
+Plot 1. Reads distribution for each barcode.
+
+*** 
+

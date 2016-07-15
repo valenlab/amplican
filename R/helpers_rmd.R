@@ -73,8 +73,8 @@ make_id_rmd <- function(results_folder, cut_buffer = 5) {
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'), sep = '\\t')",
-           "config <- read.csv(paste0(results_folder, '/config_summary.csv'), sep = '\\t')",
+           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'))",
+           "config <- read.csv(paste0(results_folder, '/config_summary.csv'))",
            "```\n",
            "***\n",
            "# Description  \n",
@@ -185,7 +185,7 @@ make_id_rmd <- function(results_folder, cut_buffer = 5) {
 #'
 make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
 
-  config <- utils::read.csv(paste0(results_folder, "/config_summary.csv"), sep = "\t")
+  config <- utils::read.csv(paste0(results_folder, "/config_summary.csv"))
   config$AmpliconUpper <- toupper(config$Amplicon)
   uniqueAmlicons <- unique(config$AmpliconUpper)
 
@@ -198,8 +198,8 @@ make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
            "results_folder = '/home/ai/removemelater'",
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'), sep = '\\t')",
-           "config <- read.csv(paste0(results_folder, '/config_summary.csv'), sep = '\\t')",
+           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'))",
+           "config <- read.csv(paste0(results_folder, '/config_summary.csv'))",
            "config$AmpliconUpper <- toupper(config$Amplicon)",
            "uniqueAmlicons <- unique(config$AmpliconUpper)",
            "labels <- sapply(uniqueAmlicons, function(x) {toString(config$ID[config$AmpliconUpper == x])})",
@@ -368,8 +368,8 @@ make_barcode_rmd <- function(results_folder) {
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'), sep = '\\t')",
-           "config <- read.csv(paste0(results_folder, '/config_summary.csv'), sep = '\\t')",
+           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'))",
+           "config <- read.csv(paste0(results_folder, '/config_summary.csv'))",
            "```\n",
            "***\n",
            "# Description  \n",
@@ -496,8 +496,8 @@ make_group_rmd <- function(results_folder) {
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'), sep = '\\t')",
-           "config <- read.csv(paste0(results_folder, '/config_summary.csv'), sep = '\\t')",
+           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'))",
+           "config <- read.csv(paste0(results_folder, '/config_summary.csv'))",
            "```\n",
            "***\n",
            "# Description  \n",
@@ -625,8 +625,8 @@ make_guide_rmd <- function(results_folder) {
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'), sep = '\\t')",
-           "config <- read.csv(paste0(results_folder, '/config_summary.csv'), sep = '\\t')",
+           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'))",
+           "config <- read.csv(paste0(results_folder, '/config_summary.csv'))",
            "```\n",
            "***\n",
            "# Description  \n",
