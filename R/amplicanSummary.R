@@ -15,6 +15,10 @@ amplicanSummary <- function(alignments_folder, report_name = "summary_report"){
   if (isRmdReady) {
 
     fileConn <- file(report_name)
+
+    config <- utils::read.csv(paste0(results_folder, "/config_summary.csv"))
+    height <- plot_height(length(config$Barcode))
+
     writeLines(c(write_head("Summary Read Report"),
                  "# Explanation of variables\n",
                  "***\n",
@@ -38,7 +42,7 @@ amplicanSummary <- function(alignments_folder, report_name = "summary_report"){
                  "***\n",
                  "# Barplot\n",
                  "***\n",
-                 "```{r fig.width=8, fig.height=12, echo = F}",
+                 paste0("```{r fig.width=8, fig.height=", height, ", echo = F}"),
                  "library(ggplot2)",
                  "library(reshape2)",
                  "summaryDFmelt = melt(summaryDF, id.vars = c(\"barcode\"), measure.vars = c(\"bad_base_quality\",",

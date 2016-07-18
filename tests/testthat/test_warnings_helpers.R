@@ -19,6 +19,6 @@ context("Warning functions")
 # Invariant: checkConfigFile
 #
 #    The dataframe must have the following columns:
-#      "ID","Barcode","Forward_Reads_File","Reverse_Reads_File","Experiment_Type", "Target_Primer",
-#      "Forward_Primer","Reverse_Primer","Strand","Genome".
+#      "ID","Barcode","Forward_Reads_File","Reverse_Reads_File","Group", "guideRNA",
+#      "Forward_Primer","Reverse_Primer","Direction","Genome".
 #    The config table is not empty.

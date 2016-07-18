@@ -43,7 +43,7 @@ Table 1. Reads distributed for each barcode
 
 ***
 
-```{r fig.width=8, fig.height=12, echo = F}
+```{r fig.width=8, fig.height=5, echo = F}
 library(ggplot2)
 library(reshape2)
 summaryDFmelt = melt(summaryDF, id.vars = c("barcode"), measure.vars = c("bad_base_quality",

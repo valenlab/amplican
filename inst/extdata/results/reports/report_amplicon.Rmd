@@ -11,7 +11,7 @@ output:
 ---
 
 ```{r load data, message=F, warning=FALSE, include=FALSE}
-results_folder = '/home/ai/removemelater'
+results_folder = '/home/ai/Projects/amplican/inst/extdata/results'
 library(amplican)
 library(ggplot2)
 alignments <- read.csv(paste0(results_folder, '/alignments.csv'))
@@ -41,7 +41,9 @@ in colour
 **Insertions plot** - shows summary of insertions detected after alignments split by forward
 (top plot) and reverse (bottom) reads, insertion is shown as right-angled triangle where size of
 the insertion coresponds to the width of the triangle, size and transparency of traingle reflect on
-the frequency of the insertion
+the frequency of the insertion  
+**Cuts plot** - shows summary of cuts in the amplicon (insertions that are overlaping with 
+specified box of uppercase letters in the amplicon, and are supported by both forward and reverse reads)
 
 ***
 
@@ -51,7 +53,7 @@ the frequency of the insertion
 
 ## Amplicon groups
 
-```{r amplicon groups, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}
+```{r amplicon groups, echo=FALSE, fig.height=4, fig.width=14, message=F, warning=FALSE}
 library(knitr)
 ampliconDF <- data.frame(group = 1:length(uniqueAmlicons), IDs = unname(labels))
 kable(ampliconDF)
@@ -61,7 +63,7 @@ config$group <- match(config$AmpliconUpper, ampliconDF$Amplicon)
 
 ## Read distribution  
 
-```{r plot total reads, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}
+```{r plot total reads, echo=FALSE, fig.height=4, fig.width=14, message=F, warning=FALSE}
 ampliconTable <- aggregate(cbind(Reads, PRIMER_DIMER, Cut, Frameshift) ~ group, data = config, sum)
 
 ggplot(data = ampliconTable, aes(x = group, y = log10(Reads + 1)), order = group) +
@@ -77,7 +79,7 @@ ggplot(data = ampliconTable, aes(x = group, y = log10(Reads + 1)), order = group
 
 ## PRIMER DIMER filter  
 
-```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}
+```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=4, fig.width=14, message=F, warning=FALSE}
 
 ampliconTable$PD_percentage <- ampliconTable$PRIMER_DIMER * 100/ampliconTable$Reads
 ampliconTable$PD_percentage[is.nan(ampliconTable$PD_percentage)] <- 0 
@@ -95,7 +97,7 @@ ggplot(data = ampliconTable, aes(x = group, y = PD_percentage, order = group)) +
 
 ## Cut rates  
 
-```{r plot cut rate, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}
+```{r plot cut rate, echo=FALSE, fig.height=4, fig.width=14, message=F, warning=FALSE}
 ampliconTable$Reads_noPD <- ampliconTable$Reads - ampliconTable$PRIMER_DIMER
 ampliconTable$cut_percentage <- ampliconTable$Cut * 100/ampliconTable$Reads_noPD
 ampliconTable$cut_percentage[is.nan(ampliconTable$cut_percentage)] <- 0  
@@ -113,7 +115,7 @@ ggplot(data = ampliconTable, aes(x = group, y = cut_percentage, order = group)) 
 
 ## Frameshift  
 
-```{r plot frame shift percentage, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}
+```{r plot frame shift percentage, echo=FALSE, fig.height=4, fig.width=14, message=F, warning=FALSE}
 ampliconTable$frameshift_percentage <- ampliconTable$Frameshift * 100/ampliconTable$Reads_noPD
 ampliconTable$frameshift_percentage[is.nan(ampliconTable$frameshift_percentage)] <- 0 
 
@@ -130,7 +132,7 @@ ggplot(data = ampliconTable, aes(x = group, y = frameshift_percentage, order = g
 
 ## Heterogeneity of reads  
 
-```{r plot read heterogeneity, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}
+```{r plot read heterogeneity, echo=FALSE, fig.height=4, fig.width=14, message=F, warning=FALSE}
 alignments$ID_read_id <- paste0(alignments$seqnames, '_', alignments$read_id)
 uniqueReadsByID <- alignments[!duplicated(alignments$ID_read_id), c('seqnames', 'read_id', 'count')]
 uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$seqnames, uniqueReadsByID$count, decreasing = T),]
@@ -202,6 +204,12 @@ amplican_plot_insertions(alignments, config, c('ID_1','ID_3'), 5)
 amplican_plot_mismatches(alignments, config, c('ID_1','ID_3'), 5)
 ```  
 
+### Cuts  
+
+```{r cuts Group 1, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
+amplican_plot_cuts(alignments, config, c('ID_1','ID_3'))
+```  
+
 ## Group 2  
 
 ### Deletions  
@@ -222,6 +230,12 @@ amplican_plot_insertions(alignments, config, c('ID_2'), 5)
 amplican_plot_mismatches(alignments, config, c('ID_2'), 5)
 ```  
 
+### Cuts  
+
+```{r cuts Group 2, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
+amplican_plot_cuts(alignments, config, c('ID_2'))
+```  
+
 ## Group 3  
 
 ### Deletions  
@@ -240,5 +254,11 @@ amplican_plot_insertions(alignments, config, c('ID_4'), 5)
 
 ```{r mismatches Group 3, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
 amplican_plot_mismatches(alignments, config, c('ID_4'), 5)
+```  
+
+### Cuts  
+
+```{r cuts Group 3, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
+amplican_plot_cuts(alignments, config, c('ID_4'))
 ```  
 

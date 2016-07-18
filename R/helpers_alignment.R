@@ -187,8 +187,8 @@ makeAlignment <- function(configTable,
     # Primers and amplicon info
     forwardPrimer <- toString(configTable[i, "Forward_Primer"])
     reversePrimer <- toString(configTable[i, "Reverse_Primer"])
-    guideRNA <- toString(configTable[i, "Target_Primer"])
-    if (configTable[i, "Strand"] == 1) {
+    guideRNA <- toString(configTable[i, "guideRNA"])
+    if (configTable[i, "Direction"] == 1) {
       guideRNA  <-  seqinr::c2s(rev(seqinr::comp(seqinr::s2c(guideRNA), forceToLower = F, ambiguous = T)))
     }
     amplicon <- toString(configTable[i, "Amplicon"])
@@ -211,7 +211,7 @@ makeAlignment <- function(configTable,
     }
 
     #Warnings
-    sublog_file <- paste0(resultsFolder, "/", barcode, "_SUBLOG.txt")
+    sublog_file <- paste0(resultsFolder, "/", currentID, "_SUBLOG.txt")
     if (file.exists(sublog_file)) {file.remove(sublog_file)}
     logFileConn <- file(sublog_file, open = "at")
     configTable$Found_Guide[i]  <- checkTarget(guideRNA, amplicon, currentID, barcode, logFileConn)
@@ -235,7 +235,7 @@ makeAlignment <- function(configTable,
                                                                     ignore.case=TRUE)
     uniqueTable$guideFoundForward <- grepl(guideRNA, uniqueTable$Forward, ignore.case=TRUE)
     uniqueTable$guideFoundReverse <- grepl(seqinr::c2s(rev(seqinr::comp(seqinr::s2c(guideRNA)))),
-                                           uniqueTable$Reverse, ignore.case=TRUE)
+            uniqueTable$Reverse, ignore.case=TRUE)
     primersFound <- uniqueTable$forwardFound & uniqueTable$reverseFound
     if (fastqfiles == 1) { primersFound <- uniqueTable$forwardFound }
     if (fastqfiles == 2) { primersFound <- uniqueTable$reverseFound }

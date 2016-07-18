@@ -39,7 +39,7 @@ config <- read.csv(paste0(results_folder, '/config_summary.csv'))
 
 ## Read distribution  
 
-```{r plot total reads, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}
+```{r plot total reads, echo=FALSE, fig.height=3, fig.width=14, message=F, warning=FALSE}
 ggplot(data = config, aes(x = Barcode, y = log10(Reads + 1), order = Barcode, fill = ID)) +
   geom_bar(position='stack', stat='identity') +
   ylab('Number of reads on log10 scale')  +
@@ -53,7 +53,7 @@ ggplot(data = config, aes(x = Barcode, y = log10(Reads + 1), order = Barcode, fi
 
 ## PRIMER DIMER filter  
 
-```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}
+```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=3, fig.width=14, message=F, warning=FALSE}
 barcodeTable <- aggregate(cbind(Reads, PRIMER_DIMER, Cut, Frameshift) ~ Barcode, data = config, sum)
 barcodeTable$PD_percentage <- barcodeTable$PRIMER_DIMER * 100/barcodeTable$Reads
 barcodeTable$PD_percentage[is.nan(barcodeTable$PD_percentage)] <- 0  
@@ -69,7 +69,7 @@ ggplot(data = barcodeTable, aes(x = Barcode, y = PD_percentage, order = Barcode)
 
 ## Cut rates  
 
-```{r plot cut percentage, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}
+```{r plot cut percentage, echo=FALSE, fig.height=3, fig.width=14, message=F, warning=FALSE}
 barcodeTable$Reads_noPD <- barcodeTable$Reads - barcodeTable$PRIMER_DIMER
 barcodeTable$cut_percentage <- barcodeTable$Cut * 100/barcodeTable$Reads_noPD
 barcodeTable$cut_percentage[is.nan(barcodeTable$cut_percentage)] <- 0  
@@ -85,7 +85,7 @@ ggplot(data = barcodeTable, aes(x = Barcode, y = cut_percentage, order = Barcode
 
 ## Frameshift  
 
-```{r plot frame shift percentage, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}
+```{r plot frame shift percentage, echo=FALSE, fig.height=3, fig.width=14, message=F, warning=FALSE}
 barcodeTable$frameshift_percentage <- barcodeTable$Frameshift * 100/barcodeTable$Reads_noPD
 barcodeTable$frameshift_percentage[is.nan(barcodeTable$frameshift_percentage)] <- 0  
 
@@ -100,7 +100,7 @@ ggplot(data = barcodeTable, aes(x = Barcode, y = frameshift_percentage, order = 
 
 ## Heterogeneity of reads  
 
-```{r plot read heterogeneity, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}
+```{r plot read heterogeneity, echo=FALSE, fig.height=3, fig.width=14, message=F, warning=FALSE}
 alignments$ID_read_id <- paste0(alignments$seqnames, '_', alignments$read_id)
 uniqueReadsByID <- alignments[!duplicated(alignments$ID_read_id), c('seqnames', 'read_id', 'count')]
 uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$seqnames, uniqueReadsByID$count, decreasing = T),]

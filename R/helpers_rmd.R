@@ -1,3 +1,17 @@
+#' Function to calculate figure height
+#' based on number of elements to plot.
+#'
+#' @param x (numeric) number of elements to fit onto height axis
+#' @return (numeric)
+#'
+plot_height <- function(x) {
+  if (x < 10) {
+    x + 1
+  } else {
+    ceiling(9 * log(x))
+  }
+}
+
 #' Writes head of the .Rmd report files.
 #'
 #' @param title (string) title to include in header
@@ -65,8 +79,9 @@ write_alignment_plots <- function(ID, title, cut_buffer = 5) {
 #'
 make_id_rmd <- function(results_folder, cut_buffer = 5) {
 
-  config <- utils::read.csv(paste0(results_folder, "/config_summary.csv"), sep = "\t")
+  config <- utils::read.csv(paste0(results_folder, "/config_summary.csv"))
   id_alignments_plots <- unlist(lapply(config$ID, function(x) write_alignment_plots(x, x, cut_buffer)))
+  height <- plot_height(length(unique(config$ID)))
 
   return(c(write_head("Report breakdown by ID"),
            "```{r load data, message=F, warning=FALSE, include=FALSE}",
@@ -94,7 +109,8 @@ make_id_rmd <- function(results_folder, cut_buffer = 5) {
            "# ID Summary  \n",
            "***\n",
            "## Read distribution  \n",
-           "```{r plot total reads, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot total reads, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "ggplot(data = config, aes(x = ID, y = log10(Reads + 1), order = ID)) +",
            "  geom_bar(stat='identity') +",
            "  ylab('Number of reads log10 scaled')  +",
@@ -104,7 +120,8 @@ make_id_rmd <- function(results_folder, cut_buffer = 5) {
            "  coord_flip()",
            "```\n",
            "## PRIMER DIMER filter  \n",
-           "```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "config$PD_percentage <- config$PRIMER_DIMER * 100/config$Reads",
            "config$PD_percentage[is.nan(config$PD_percentage)] <- 0  \n",
            "ggplot(data = config, aes(x = ID, y = PD_percentage, order = ID)) +",
@@ -116,7 +133,8 @@ make_id_rmd <- function(results_folder, cut_buffer = 5) {
            "  coord_flip()",
            "```  \n",
            "## Cut rates  \n",
-           "```{r plot cut percentage, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot cut percentage, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "config$Reads_noPD <- config$Reads - config$PRIMER_DIMER",
            "config$cut_percentage <- config$Cut * 100/config$Reads_noPD",
            "config$cut_percentage[is.nan(config$cut_percentage)] <- 0  \n",
@@ -129,7 +147,8 @@ make_id_rmd <- function(results_folder, cut_buffer = 5) {
            "  coord_flip()",
            "```  \n",
            "## Frameshift  \n",
-           "```{r plot frame shift percentage, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot frame shift percentage, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "config$frameshift_percentage <- config$Frameshift * 100/config$Reads_noPD",
            "config$frameshift_percentage[is.nan(config$frameshift_percentage)] <- 0  \n",
            "ggplot(data = config, aes(x = ID, y = frameshift_percentage, order = ID)) +",
@@ -141,7 +160,8 @@ make_id_rmd <- function(results_folder, cut_buffer = 5) {
            "  coord_flip()",
            "```  \n",
            "## Heterogeneity of reads  \n",
-           "```{r plot read domination, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot read domination, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "alignments$ID_read_id <- paste0(alignments$seqnames, '_', alignments$read_id)",
            "uniqueReadsByID <- alignments[!duplicated(alignments$ID_read_id), c('seqnames', 'read_id', 'count')]",
            "uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$seqnames, uniqueReadsByID$count, decreasing = T),]  \n",
@@ -188,14 +208,23 @@ make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
   config <- utils::read.csv(paste0(results_folder, "/config_summary.csv"))
   config$AmpliconUpper <- toupper(config$Amplicon)
   uniqueAmlicons <- unique(config$AmpliconUpper)
+  height <- plot_height(length(uniqueAmlicons))
 
   ampl_alignments_plots <- c(mapply(function(x, i) {
-    write_alignment_plots(config$ID[config$AmpliconUpper == x], paste0("Group ", i), cut_buffer)
+
+    ID <- config$ID[config$AmpliconUpper == x]
+    id_pass <- paste0("c('", paste0(ID, collapse = "','"), "')")
+
+    c(write_alignment_plots(ID, paste0("Group ", i), cut_buffer),
+      "### Cuts  \n",
+      paste0("```{r cuts ", paste0("Group ", i), ", echo=F, fig.height=14, fig.width=30, message=F, warning=F}"),
+      paste0("amplican_plot_cuts(alignments, config, ", id_pass, ")"),
+      "```  \n")
   }, uniqueAmlicons, 1:length(uniqueAmlicons)))
 
   return(c(write_head("Report breakdown by Amplicon"),
            "```{r load data, message=F, warning=FALSE, include=FALSE}",
-           "results_folder = '/home/ai/removemelater'",
+           paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
            "alignments <- read.csv(paste0(results_folder, '/alignments.csv'))",
@@ -217,14 +246,17 @@ make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
            "**Insertions plot** - shows summary of insertions detected after alignments split by forward",
            "(top plot) and reverse (bottom) reads, insertion is shown as right-angled triangle where size of",
            "the insertion coresponds to the width of the triangle, size and transparency of traingle reflect on",
-           "the frequency of the insertion\n",
+           "the frequency of the insertion  ",
+           "**Cuts plot** - shows summary of cuts in the amplicon (insertions that are overlaping with ",
+           "specified box of uppercase letters in the amplicon, and are supported by both forward and reverse reads)\n",
            "***\n",
            "# Amplicon Summary  \n",
            "***\n",
 
            "## Amplicon groups\n",
 
-           "```{r amplicon groups, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r amplicon groups, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "library(knitr)",
            "ampliconDF <- data.frame(group = 1:length(uniqueAmlicons), IDs = unname(labels))",
            "kable(ampliconDF)",
@@ -235,7 +267,8 @@ make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
 
            "## Read distribution  \n",
 
-           "```{r plot total reads, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot total reads, echo=FALSE, fig.height=",
+                  height,", fig.width=14, message=F, warning=FALSE}"),
            "ampliconTable <- aggregate(cbind(Reads, PRIMER_DIMER, Cut, Frameshift) ~ group, data = config, sum)\n",
 
            "ggplot(data = ampliconTable, aes(x = group, y = log10(Reads + 1)), order = group) +",
@@ -251,7 +284,8 @@ make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
 
            "## PRIMER DIMER filter  \n",
 
-           "```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}\n",
+           paste0("```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}\n"),
 
            "ampliconTable$PD_percentage <- ampliconTable$PRIMER_DIMER * 100/ampliconTable$Reads",
            "ampliconTable$PD_percentage[is.nan(ampliconTable$PD_percentage)] <- 0 \n",
@@ -269,7 +303,8 @@ make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
 
            "## Cut rates  \n",
 
-           "```{r plot cut rate, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot cut rate, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "ampliconTable$Reads_noPD <- ampliconTable$Reads - ampliconTable$PRIMER_DIMER",
            "ampliconTable$cut_percentage <- ampliconTable$Cut * 100/ampliconTable$Reads_noPD",
            "ampliconTable$cut_percentage[is.nan(ampliconTable$cut_percentage)] <- 0  \n",
@@ -287,7 +322,8 @@ make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
 
            "## Frameshift  \n",
 
-           "```{r plot frame shift percentage, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot frame shift percentage, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "ampliconTable$frameshift_percentage <- ampliconTable$Frameshift * 100/ampliconTable$Reads_noPD",
            "ampliconTable$frameshift_percentage[is.nan(ampliconTable$frameshift_percentage)] <- 0 \n",
 
@@ -304,7 +340,8 @@ make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
 
            "## Heterogeneity of reads  \n",
 
-           "```{r plot read heterogeneity, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot read heterogeneity, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "alignments$ID_read_id <- paste0(alignments$seqnames, '_', alignments$read_id)",
            "uniqueReadsByID <- alignments[!duplicated(alignments$ID_read_id), c('seqnames', 'read_id', 'count')]",
            "uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$seqnames, uniqueReadsByID$count, decreasing = T),]\n",
@@ -363,6 +400,10 @@ make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
 #' @return c() collection of strings to put into rmd file
 #'
 make_barcode_rmd <- function(results_folder) {
+
+  config <- read.csv(paste0(results_folder, '/config_summary.csv'))
+  height <- plot_height(length(unique(config$Barcode)))
+
   return(c(write_head("Report breakdown by Barcode"),
            "```{r load data, message=F, warning=FALSE, include=FALSE}",
            paste0("results_folder = '", results_folder, "'"),
@@ -381,7 +422,7 @@ make_barcode_rmd <- function(results_folder) {
            "***\n",
            "## Read distribution  \n",
 
-           "```{r plot total reads, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot total reads, echo=FALSE, fig.height=", height, ", fig.width=14, message=F, warning=FALSE}"),
            "ggplot(data = config, aes(x = Barcode, y = log10(Reads + 1), order = Barcode, fill = ID)) +",
            "  geom_bar(position='stack', stat='identity') +",
            "  ylab('Number of reads on log10 scale')  +",
@@ -395,7 +436,8 @@ make_barcode_rmd <- function(results_folder) {
 
            "## PRIMER DIMER filter  \n",
 
-           "```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "barcodeTable <- aggregate(cbind(Reads, PRIMER_DIMER, Cut, Frameshift) ~ Barcode, data = config, sum)",
            "barcodeTable$PD_percentage <- barcodeTable$PRIMER_DIMER * 100/barcodeTable$Reads",
            "barcodeTable$PD_percentage[is.nan(barcodeTable$PD_percentage)] <- 0  \n",
@@ -411,7 +453,8 @@ make_barcode_rmd <- function(results_folder) {
 
            "## Cut rates  \n",
 
-           "```{r plot cut percentage, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot cut percentage, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "barcodeTable$Reads_noPD <- barcodeTable$Reads - barcodeTable$PRIMER_DIMER",
            "barcodeTable$cut_percentage <- barcodeTable$Cut * 100/barcodeTable$Reads_noPD",
            "barcodeTable$cut_percentage[is.nan(barcodeTable$cut_percentage)] <- 0  \n",
@@ -427,7 +470,8 @@ make_barcode_rmd <- function(results_folder) {
 
            "## Frameshift  \n",
 
-           "```{r plot frame shift percentage, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot frame shift percentage, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "barcodeTable$frameshift_percentage <- barcodeTable$Frameshift * 100/barcodeTable$Reads_noPD",
            "barcodeTable$frameshift_percentage[is.nan(barcodeTable$frameshift_percentage)] <- 0  \n",
 
@@ -442,7 +486,8 @@ make_barcode_rmd <- function(results_folder) {
 
            "## Heterogeneity of reads  \n",
 
-           "```{r plot read heterogeneity, echo=FALSE, fig.height=30, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot read heterogeneity, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "alignments$ID_read_id <- paste0(alignments$seqnames, '_', alignments$read_id)",
            "uniqueReadsByID <- alignments[!duplicated(alignments$ID_read_id), c('seqnames', 'read_id', 'count')]",
            "uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$seqnames, uniqueReadsByID$count, decreasing = T),]\n",
@@ -491,6 +536,10 @@ make_barcode_rmd <- function(results_folder) {
 #' @return c() collection of strings to put into rmd file
 #'
 make_group_rmd <- function(results_folder) {
+
+  config <- read.csv(paste0(results_folder, '/config_summary.csv'))
+  height <- plot_height(length(unique(config$Group)))
+
   return(c(write_head("Report breakdown by Group"),
            "```{r load data, message=F, warning=FALSE, include=FALSE}",
            paste0("results_folder = '", results_folder, "'"),
@@ -510,68 +559,77 @@ make_group_rmd <- function(results_folder) {
 
            "## Read distribution  \n",
 
-           "```{r plot total reads, echo=FALSE, fig.height=14, fig.width=14, message=F, warning=FALSE}",
-           "ggplot(data = config, aes(x = Experiment_Type, y = log10(Reads + 1), order = Experiment_Type, fill = Experiment_Type)) +",
+           paste0("```{r plot total reads, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
+           "ggplot(data = config, aes(x = Group, y = log10(Reads + 1), order = Group, fill = Group)) +",
            "  geom_boxplot() +",
            "  ylab('Number of reads on log10 scale')  +",
            "  xlab('Group') + ",
            "  theme(legend.position = 'none',",
            "        axis.text = element_text(size = 12),",
-           "        axis.title = element_text(size = 14, face = 'bold'))",
+           "        axis.title = element_text(size = 14, face = 'bold')) +",
+           "  coord_flip()",
            "```\n",
 
            "## PRIMER DIMER filter  \n",
 
-           "```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=14, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "config$PD_percentage <- config$PRIMER_DIMER * 100/config$Reads",
            "config$PD_percentage[is.nan(config$PD_percentage)] <- 0\n",
 
-           "ggplot(data = config, aes(x = Experiment_Type, y = PD_percentage, order = Experiment_Type, fill = Experiment_Type)) +",
+           "ggplot(data = config, aes(x = Group, y = PD_percentage, order = Group, fill = Group)) +",
            "  geom_boxplot() +",
            "  xlab('Group') + ",
            "  ylab('Percentage of reads marked as PRIMER DIMERS')  +",
            "  theme(axis.text = element_text(size=12),",
            "        axis.title = element_text(size=14, face = 'bold'),",
            "        legend.position = 'none') +",
-           "  ylim(0, 100)",
+           "  ylim(0, 100) +",
+           "  coord_flip()",
            "``` \n",
 
            "## Cut rates  \n",
 
-           "```{r plot cut percentage, echo=FALSE, fig.height=14, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot cut percentage, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "config$Reads_noPD <- config$Reads - config$PRIMER_DIMER",
            "config$cut_percentage <- config$Cut * 100/config$Reads_noPD",
            "config$cut_percentage[is.nan(config$cut_percentage)] <- 0  \n",
 
-           "ggplot(data = config, aes(x = Experiment_Type, y = cut_percentage, order = Experiment_Type, fill = Experiment_Type)) +",
+           "ggplot(data = config, aes(x = Group, y = cut_percentage, order = Group, fill = Group)) +",
            "  geom_boxplot() +",
            "  xlab('Group') + ",
            "  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have cut site')  +",
            "  theme(axis.text = element_text(size=12),",
            "        axis.title = element_text(size=14, face = 'bold'),",
            "        legend.position = 'None') +",
-           "  ylim(0,100)",
+           "  ylim(0,100) +",
+           "  coord_flip()",
            "``` \n",
 
            "## Frameshift  \n",
 
-           "```{r plot frame shift percentage, echo=FALSE, fig.height=14, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot frame shift percentage, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "config$frameshift_percentage <- config$Frameshift * 100/config$Reads_noPD",
            "config$frameshift_percentage[is.nan(config$frameshift_percentage)] <- 0  \n",
 
-           "ggplot(data = config, aes(x = Experiment_Type, y = frameshift_percentage, order = Experiment_Type, fill = Experiment_Type)) +",
+           "ggplot(data = config, aes(x = Group, y = frameshift_percentage, order = Group, fill = Group)) +",
            "  geom_boxplot() +",
            "  xlab('Group') + ",
            "  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift')  +",
            "  theme(axis.text = element_text(size=12),",
            "        axis.title = element_text(size=14,face = 'bold'),",
            "        legend.position = 'None') +",
-           "  ylim(0, 100)",
+           "  ylim(0, 100) +",
+           "  coord_flip()",
            "``` \n",
 
            "## Heterogeneity of reads  \n",
 
-           "```{r plot read heterogeneity, echo=FALSE, fig.height=15, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot read heterogeneity, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "alignments$ID_read_id <- paste0(alignments$seqnames, '_', alignments$read_id)",
            "uniqueReadsByID <- alignments[!duplicated(alignments$ID_read_id), c('seqnames', 'read_id', 'count')]",
            "uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$seqnames, uniqueReadsByID$count, decreasing = T),]\n",
@@ -579,28 +637,28 @@ make_group_rmd <- function(results_folder) {
            "howManyTimes <- aggregate(read_id ~ seqnames, data = uniqueReadsByID, length)",
            "howManyTimes <- howManyTimes[match(howManyTimes$seqnames, unique(uniqueReadsByID$seqnames)),] \n",
 
-           "uniqueReadsByID$ex_type <- rep(config$Experiment_Type[match(howManyTimes$seqnames, unique(config$ID))],",
+           "uniqueReadsByID$group <- rep(config$Group[match(howManyTimes$seqnames, unique(config$ID))],",
                                           "times = howManyTimes$read_id)\n",
 
-           "uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$ex_type, uniqueReadsByID$count, decreasing = T),]\n",
+           "uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$group, uniqueReadsByID$count, decreasing = T),]\n",
 
-           "cumsum_list <- tapply(uniqueReadsByID$count, as.vector(uniqueReadsByID$ex_type), FUN = cumsum)",
-           "cumsum_list <- cumsum_list[match(names(cumsum_list), unique(uniqueReadsByID$ex_type))]",
+           "cumsum_list <- tapply(uniqueReadsByID$count, as.vector(uniqueReadsByID$group), FUN = cumsum)",
+           "cumsum_list <- cumsum_list[match(names(cumsum_list), unique(uniqueReadsByID$group))]",
            "uniqueReadsByID$cumsum <- do.call(c, cumsum_list)",
 
            "seq2 <- Vectorize(seq.default, vectorize.args = c('from', 'to'))",
-           "howManyTimes <- table(as.vector(uniqueReadsByID$ex_type))",
-           "howManyTimes <- howManyTimes[match(names(howManyTimes), unique(uniqueReadsByID$ex_type))]",
+           "howManyTimes <- table(as.vector(uniqueReadsByID$group))",
+           "howManyTimes <- howManyTimes[match(names(howManyTimes), unique(uniqueReadsByID$group))]",
            "uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dim(howManyTimes)[1]), to = howManyTimes, by = 1))\n",
 
-           "ids_with_reads <- tapply(uniqueReadsByID$cumsum, as.vector(uniqueReadsByID$ex_type), FUN = max)",
-           "ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$ex_type))]",
+           "ids_with_reads <- tapply(uniqueReadsByID$cumsum, as.vector(uniqueReadsByID$group), FUN = max)",
+           "ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$group))]",
 
            "toDivide <- rep(ids_with_reads, times = howManyTimes)",
            "uniqueReadsByID$read_share_percentage <- uniqueReadsByID$cumsum * 100 / toDivide",
            "uniqueReadsByID$read_share_percentage_normal <- uniqueReadsByID$count * 100 / toDivide  \n",
 
-           "ggplot(data = uniqueReadsByID, aes(x = ex_type, y = read_share_percentage_normal, fill = read_share_percentage_normal)) +",
+           "ggplot(data = uniqueReadsByID, aes(x = group, y = read_share_percentage_normal, fill = read_share_percentage_normal)) +",
            "  geom_bar(position = 'stack', stat = 'identity') +",
            "  theme(legend.position = 'top',",
            "        axis.text = element_text(size=12),",
@@ -609,6 +667,7 @@ make_group_rmd <- function(results_folder) {
            "        legend.title = element_blank()) +",
            "  ylab('Unique reads percentage of contribution') +",
            "  xlab('Group') +",
+           "  coord_flip() +",
            "  coord_flip()",
            "``` \n"))
 }
@@ -620,6 +679,10 @@ make_group_rmd <- function(results_folder) {
 #' @return c() collection of strings to put into rmd file
 #'
 make_guide_rmd <- function(results_folder) {
+
+  config <- read.csv(paste0(results_folder, '/config_summary.csv'))
+  height <- plot_height(length(unique(config$guideRNA)))
+
   return(c(write_head("Report breakdown by guideRNA"),
            "```{r load data, message=F, warning=FALSE, include=FALSE}",
            paste0("results_folder = '", results_folder, "'"),
@@ -639,8 +702,9 @@ make_guide_rmd <- function(results_folder) {
 
            "## Read distribution  \n",
 
-           "```{r plot total reads, echo=FALSE, fig.height=14, fig.width=14, message=F, warning=FALSE}",
-           "ggplot(data = config, aes(x = Target_Primer, y = log10(Reads + 1), order = Target_Primer, fill = Target_Primer)) +",
+           paste0("```{r plot total reads, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
+           "ggplot(data = config, aes(x = guideRNA, y = log10(Reads + 1), order = guideRNA, fill = guideRNA)) +",
            "  geom_boxplot() +",
            "  ylab('Number of reads on log10 scale')  +",
            "  xlab('guideRNA') + ",
@@ -652,11 +716,12 @@ make_guide_rmd <- function(results_folder) {
 
            "## PRIMER DIMER filter  \n",
 
-           "```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=14, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "config$PD_percentage <- config$PRIMER_DIMER * 100/config$Reads",
            "config$PD_percentage[is.nan(config$PD_percentage)] <- 0\n",
 
-           "ggplot(data = config, aes(x = Target_Primer, y = PD_percentage, order = Target_Primer, fill = Target_Primer)) +",
+           "ggplot(data = config, aes(x = guideRNA, y = PD_percentage, order = guideRNA, fill = guideRNA)) +",
            "  geom_boxplot() +",
            "  xlab('guideRNA') + ",
            "  ylab('Percentage of reads marked as PRIMER DIMERS')  +",
@@ -669,12 +734,13 @@ make_guide_rmd <- function(results_folder) {
 
            "## Cut rates  \n",
 
-           "```{r plot cut percentage, echo=FALSE, fig.height=14, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot cut percentage, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "config$Reads_noPD <- config$Reads - config$PRIMER_DIMER",
            "config$cut_percentage <- config$Cut * 100/config$Reads_noPD",
            "config$cut_percentage[is.nan(config$cut_percentage)] <- 0  \n",
 
-           "ggplot(data = config, aes(x = Target_Primer, y = cut_percentage, order = Target_Primer, fill = Target_Primer)) +",
+           "ggplot(data = config, aes(x = guideRNA, y = cut_percentage, order = guideRNA, fill = guideRNA)) +",
            "  geom_boxplot() +",
            "  xlab('guideRNA') + ",
            "  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have cut site')  +",
@@ -687,11 +753,12 @@ make_guide_rmd <- function(results_folder) {
 
            "## Frameshift  ",
 
-           "```{r plot frame shift percentage, echo=FALSE, fig.height=14, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot frame shift percentage, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "config$frameshift_percentage <- config$Frameshift * 100/config$Reads_noPD",
            "config$frameshift_percentage[is.nan(config$frameshift_percentage)] <- 0  \n",
 
-           "ggplot(data = config, aes(x = Target_Primer, y = frameshift_percentage, order = Target_Primer, fill = Target_Primer)) +",
+           "ggplot(data = config, aes(x = guideRNA, y = frameshift_percentage, order = guideRNA, fill = guideRNA)) +",
            "  geom_boxplot() +",
            "  xlab('guideRNA') + ",
            "  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift')  +",
@@ -704,7 +771,8 @@ make_guide_rmd <- function(results_folder) {
 
            "## Heterogeneity of reads  \n",
 
-           "```{r plot read heterogeneity, echo=FALSE, fig.height=15, fig.width=14, message=F, warning=FALSE}",
+           paste0("```{r plot read heterogeneity, echo=FALSE, fig.height=",
+                  height, ", fig.width=14, message=F, warning=FALSE}"),
            "alignments$ID_read_id <- paste0(alignments$seqnames, '_', alignments$read_id)",
            "uniqueReadsByID <- alignments[!duplicated(alignments$ID_read_id), c('seqnames', 'read_id', 'count')]",
            "uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$seqnames, uniqueReadsByID$count, decreasing = T),]\n",
@@ -712,7 +780,7 @@ make_guide_rmd <- function(results_folder) {
            "howManyTimes <- aggregate(read_id ~ seqnames, data = uniqueReadsByID, length)",
            "howManyTimes <- howManyTimes[match(howManyTimes$seqnames, unique(uniqueReadsByID$seqnames)),] \n",
 
-           "uniqueReadsByID$guideRNA <- rep(config$Target_Primer[match(howManyTimes$seqnames, unique(config$ID))], \n",
+           "uniqueReadsByID$guideRNA <- rep(config$guideRNA[match(howManyTimes$seqnames, unique(config$ID))], \n",
            "                                times = howManyTimes$read_id)\n",
 
            "uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$guideRNA, uniqueReadsByID$count, decreasing = T),]\n",

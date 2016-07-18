@@ -95,8 +95,8 @@ amplicanAnalysis <- function(config,
 
   message("Checking configuration file...")
   configTable <- utils::read.csv(config, strip.white = TRUE)
-  colnames(configTable) <- c("ID", "Barcode", "Forward_Reads_File", "Reverse_Reads_File", "Experiment_Type",
-                             "Target_Primer", "Forward_Primer", "Reverse_Primer", "Strand", "Amplicon")
+  colnames(configTable) <- c("ID", "Barcode", "Forward_Reads_File", "Reverse_Reads_File", "Group",
+                             "guideRNA", "Forward_Primer", "Reverse_Primer", "Direction", "Amplicon")
   configTable$Forward_Reads_File <- ifelse(configTable$Forward_Reads_File == "",
                                            "",
                                            paste(fastq_folder, configTable$Forward_Reads_File, sep = "/"))

@@ -39,68 +39,72 @@ config <- read.csv(paste0(results_folder, '/config_summary.csv'))
 
 ## Read distribution  
 
-```{r plot total reads, echo=FALSE, fig.height=14, fig.width=14, message=F, warning=FALSE}
-ggplot(data = config, aes(x = Experiment_Type, y = log10(Reads + 1), order = Experiment_Type, fill = Experiment_Type)) +
+```{r plot total reads, echo=FALSE, fig.height=3, fig.width=14, message=F, warning=FALSE}
+ggplot(data = config, aes(x = Group, y = log10(Reads + 1), order = Group, fill = Group)) +
   geom_boxplot() +
   ylab('Number of reads on log10 scale')  +
   xlab('Group') + 
   theme(legend.position = 'none',
         axis.text = element_text(size = 12),
-        axis.title = element_text(size = 14, face = 'bold'))
+        axis.title = element_text(size = 14, face = 'bold')) +
+  coord_flip()
 ```
 
 ## PRIMER DIMER filter  
 
-```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=14, fig.width=14, message=F, warning=FALSE}
+```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=3, fig.width=14, message=F, warning=FALSE}
 config$PD_percentage <- config$PRIMER_DIMER * 100/config$Reads
 config$PD_percentage[is.nan(config$PD_percentage)] <- 0
 
-ggplot(data = config, aes(x = Experiment_Type, y = PD_percentage, order = Experiment_Type, fill = Experiment_Type)) +
+ggplot(data = config, aes(x = Group, y = PD_percentage, order = Group, fill = Group)) +
   geom_boxplot() +
   xlab('Group') + 
   ylab('Percentage of reads marked as PRIMER DIMERS')  +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14, face = 'bold'),
         legend.position = 'none') +
-  ylim(0, 100)
+  ylim(0, 100) +
+  coord_flip()
 ``` 
 
 ## Cut rates  
 
-```{r plot cut percentage, echo=FALSE, fig.height=14, fig.width=14, message=F, warning=FALSE}
+```{r plot cut percentage, echo=FALSE, fig.height=3, fig.width=14, message=F, warning=FALSE}
 config$Reads_noPD <- config$Reads - config$PRIMER_DIMER
 config$cut_percentage <- config$Cut * 100/config$Reads_noPD
 config$cut_percentage[is.nan(config$cut_percentage)] <- 0  
 
-ggplot(data = config, aes(x = Experiment_Type, y = cut_percentage, order = Experiment_Type, fill = Experiment_Type)) +
+ggplot(data = config, aes(x = Group, y = cut_percentage, order = Group, fill = Group)) +
   geom_boxplot() +
   xlab('Group') + 
   ylab('Percentage of reads (not marked as PRIMER DIMERS) that have cut site')  +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14, face = 'bold'),
         legend.position = 'None') +
-  ylim(0,100)
+  ylim(0,100) +
+  coord_flip()
 ``` 
 
 ## Frameshift  
 
-```{r plot frame shift percentage, echo=FALSE, fig.height=14, fig.width=14, message=F, warning=FALSE}
+```{r plot frame shift percentage, echo=FALSE, fig.height=3, fig.width=14, message=F, warning=FALSE}
 config$frameshift_percentage <- config$Frameshift * 100/config$Reads_noPD
 config$frameshift_percentage[is.nan(config$frameshift_percentage)] <- 0  
 
-ggplot(data = config, aes(x = Experiment_Type, y = frameshift_percentage, order = Experiment_Type, fill = Experiment_Type)) +
+ggplot(data = config, aes(x = Group, y = frameshift_percentage, order = Group, fill = Group)) +
   geom_boxplot() +
   xlab('Group') + 
   ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift')  +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14,face = 'bold'),
         legend.position = 'None') +
-  ylim(0, 100)
+  ylim(0, 100) +
+  coord_flip()
 ``` 
 
 ## Heterogeneity of reads  
 
-```{r plot read heterogeneity, echo=FALSE, fig.height=15, fig.width=14, message=F, warning=FALSE}
+```{r plot read heterogeneity, echo=FALSE, fig.height=3, fig.width=14, message=F, warning=FALSE}
 alignments$ID_read_id <- paste0(alignments$seqnames, '_', alignments$read_id)
 uniqueReadsByID <- alignments[!duplicated(alignments$ID_read_id), c('seqnames', 'read_id', 'count')]
 uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$seqnames, uniqueReadsByID$count, decreasing = T),]
@@ -108,26 +112,26 @@ uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$seqnames, uniqueReadsBy
 howManyTimes <- aggregate(read_id ~ seqnames, data = uniqueReadsByID, length)
 howManyTimes <- howManyTimes[match(howManyTimes$seqnames, unique(uniqueReadsByID$seqnames)),] 
 
-uniqueReadsByID$ex_type <- rep(config$Experiment_Type[match(howManyTimes$seqnames, unique(config$ID))],
+uniqueReadsByID$group <- rep(config$Group[match(howManyTimes$seqnames, unique(config$ID))],
 times = howManyTimes$read_id)
 
-uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$ex_type, uniqueReadsByID$count, decreasing = T),]
+uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$group, uniqueReadsByID$count, decreasing = T),]
 
-cumsum_list <- tapply(uniqueReadsByID$count, as.vector(uniqueReadsByID$ex_type), FUN = cumsum)
-cumsum_list <- cumsum_list[match(names(cumsum_list), unique(uniqueReadsByID$ex_type))]
+cumsum_list <- tapply(uniqueReadsByID$count, as.vector(uniqueReadsByID$group), FUN = cumsum)
+cumsum_list <- cumsum_list[match(names(cumsum_list), unique(uniqueReadsByID$group))]
 uniqueReadsByID$cumsum <- do.call(c, cumsum_list)
 seq2 <- Vectorize(seq.default, vectorize.args = c('from', 'to'))
-howManyTimes <- table(as.vector(uniqueReadsByID$ex_type))
-howManyTimes <- howManyTimes[match(names(howManyTimes), unique(uniqueReadsByID$ex_type))]
+howManyTimes <- table(as.vector(uniqueReadsByID$group))
+howManyTimes <- howManyTimes[match(names(howManyTimes), unique(uniqueReadsByID$group))]
 uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dim(howManyTimes)[1]), to = howManyTimes, by = 1))
 
-ids_with_reads <- tapply(uniqueReadsByID$cumsum, as.vector(uniqueReadsByID$ex_type), FUN = max)
-ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$ex_type))]
+ids_with_reads <- tapply(uniqueReadsByID$cumsum, as.vector(uniqueReadsByID$group), FUN = max)
+ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$group))]
 toDivide <- rep(ids_with_reads, times = howManyTimes)
 uniqueReadsByID$read_share_percentage <- uniqueReadsByID$cumsum * 100 / toDivide
 uniqueReadsByID$read_share_percentage_normal <- uniqueReadsByID$count * 100 / toDivide  
 
-ggplot(data = uniqueReadsByID, aes(x = ex_type, y = read_share_percentage_normal, fill = read_share_percentage_normal)) +
+ggplot(data = uniqueReadsByID, aes(x = group, y = read_share_percentage_normal, fill = read_share_percentage_normal)) +
   geom_bar(position = 'stack', stat = 'identity') +
   theme(legend.position = 'top',
         axis.text = element_text(size=12),
@@ -136,6 +140,7 @@ ggplot(data = uniqueReadsByID, aes(x = ex_type, y = read_share_percentage_normal
         legend.title = element_blank()) +
   ylab('Unique reads percentage of contribution') +
   xlab('Group') +
+  coord_flip() +
   coord_flip()
 ``` 
 
