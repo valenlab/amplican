@@ -3,4 +3,4 @@
 .RData
 .Ruserdata
 inst/doc
-inst/extdata/results/*.html
+inst/extdata/results/reports/*.html

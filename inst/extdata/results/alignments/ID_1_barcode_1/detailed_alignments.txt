@@ -1,786 +1,6 @@
 ID: ID_1 Count: 1 
 
 FORWARD AND AMPLICON:
-****************
-SEQUENCES 
-----------------
-Pattern: AAGCTGACGGCTAAATGAAAAAGCCTCGTGTGTTTGCGCTTGTGTAATT
-Subject: aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaactggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt
-****************
-SCORING INFO 
-----------------
-Score matrix:       NUC44
-Gap opening:        50
-Gap extension:      0
-Gap ending penalty: 0
-****************
-RESULTS 
-----------------
-Alignment Length: 199
-Score: 168
-
-AAGCTGACGGCTAAATGAAAA-----------------------------------------------------------    80
-|||||||||||||||||||||                                                               
-aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaac    
-
---------------------------------------------------------------------------------    160
-                                                                                    
-tggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgtt    
-
------------AGCCTCGTGTGTTTGCGCTTGTGTAATT    199
-           |.||..||||||||||||||||||||||    
-gctgcagccagatccaggtgtgtttgcgcttgtgtaatt    
-****************
-ALIGNMENT INFO 
-----------------
-Total Insertions: 0
-Total Deletions:  1
-Total Mismatches: 3
-----------------
-INSERTIONS: 
-----------------
-
---Insertions respect patterns coordinates-- 
-
-
-----------------
-DELETIONS: 
-----------------
-In Pattern
-START: 22
-END:   171
-
-
---Deletions respect subject coordinates-- 
-
-In Pattern
-START: 22
-END:   171
-
-
-----------------
-MISMATCHES: 
-----------------
-START:    172
-ORIGINAL: t
-MUTATED:  G
-
-START:    175
-ORIGINAL: a
-MUTATED:  T
-
-START:    176
-ORIGINAL: g
-MUTATED:  C
-
-
---Missmatches respect subject coordinates-- 
-
-START:    172
-ORIGINAL: t
-MUTATED:  G
-
-START:    175
-ORIGINAL: a
-MUTATED:  T
-
-START:    176
-ORIGINAL: g
-MUTATED:  C
-
-
-
-****************
-
-REVERSE AND AMPLICON:
-****************
-SEQUENCES 
-----------------
-Pattern: AAGCTGACGGCTAAATGAAAAAGCCTCGTGTGTTTGCGCTTGTGTAATT
-Subject: aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaactggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt
-****************
-SCORING INFO 
-----------------
-Score matrix:       NUC44
-Gap opening:        50
-Gap extension:      0
-Gap ending penalty: 0
-****************
-RESULTS 
-----------------
-Alignment Length: 199
-Score: 168
-
-AAGCTGACGGCTAAATGAAAA-----------------------------------------------------------    80
-|||||||||||||||||||||                                                               
-aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaac    
-
---------------------------------------------------------------------------------    160
-                                                                                    
-tggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgtt    
-
------------AGCCTCGTGTGTTTGCGCTTGTGTAATT    199
-           |.||..||||||||||||||||||||||    
-gctgcagccagatccaggtgtgtttgcgcttgtgtaatt    
-****************
-ALIGNMENT INFO 
-----------------
-Total Insertions: 0
-Total Deletions:  1
-Total Mismatches: 3
-----------------
-INSERTIONS: 
-----------------
-
---Insertions respect patterns coordinates-- 
-
-
-----------------
-DELETIONS: 
-----------------
-In Pattern
-START: 22
-END:   171
-
-
---Deletions respect subject coordinates-- 
-
-In Pattern
-START: 22
-END:   171
-
-
-----------------
-MISMATCHES: 
-----------------
-START:    172
-ORIGINAL: t
-MUTATED:  G
-
-START:    175
-ORIGINAL: a
-MUTATED:  T
-
-START:    176
-ORIGINAL: g
-MUTATED:  C
-
-
---Missmatches respect subject coordinates-- 
-
-START:    172
-ORIGINAL: t
-MUTATED:  G
-
-START:    175
-ORIGINAL: a
-MUTATED:  T
-
-START:    176
-ORIGINAL: g
-MUTATED:  C
-
-
-
-****************
-
-ID: ID_1 Count: 1 
-
-FORWARD AND AMPLICON:
-****************
-SEQUENCES 
-----------------
-Pattern: AAGCTGACGGCTAAATGAAAAAGTCTCGTGTGTTTGCGCTTGTGTAATTCTGTTCTTATACACATCTCCGAGCCCACGAGACTAAGGCGAATCTCGTATGCCGTCTTCTGCTTGAAAAAAAAATATTATTTAAGCATAAGTAGTGATAAAA
-Subject: aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaactggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt
-****************
-SCORING INFO 
-----------------
-Score matrix:       NUC44
-Gap opening:        50
-Gap extension:      0
-Gap ending penalty: 0
-****************
-RESULTS 
-----------------
-Alignment Length: 301
-Score: 100
-
-AAGCTGACGGCTAAATGAAAA-----------------------------------------------------------    80
-|||||||||||||||||||||                                                               
-aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaac    
-
---------------------------------------------------------------------------------    160
-                                                                                    
-tggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgtt    
-
------------AGTCTCGTGTGTTTGCGCTTGTGTAATTCTGTTCTTATACACATCTCCGAGCCCACGAGACTAAGGCGA    240
-           |..|..||||||||||||||||||||||                                             
-gctgcagccagatccaggtgtgtttgcgcttgtgtaatt-----------------------------------------    
-
-ATCTCGTATGCCGTCTTCTGCTTGAAAAAAAAATATTATTTAAGCATAAGTAGTGATAAAA    301
-                                                                 
--------------------------------------------------------------    
-****************
-ALIGNMENT INFO 
-----------------
-Total Insertions: 1
-Total Deletions:  1
-Total Mismatches: 4
-----------------
-INSERTIONS: 
-----------------
-In Pattern
-START: 200
-END:   301
-
-
---Insertions respect patterns coordinates-- 
-
-In Pattern
-START: 50
-END:   151
-
-
-----------------
-DELETIONS: 
-----------------
-In Pattern
-START: 22
-END:   171
-
-
---Deletions respect subject coordinates-- 
-
-In Pattern
-START: 22
-END:   171
-
-
-----------------
-MISMATCHES: 
-----------------
-START:    172
-ORIGINAL: t
-MUTATED:  G
-
-START:    173
-ORIGINAL: c
-MUTATED:  T
-
-START:    175
-ORIGINAL: a
-MUTATED:  T
-
-START:    176
-ORIGINAL: g
-MUTATED:  C
-
-
---Missmatches respect subject coordinates-- 
-
-START:    172
-ORIGINAL: t
-MUTATED:  G
-
-START:    173
-ORIGINAL: c
-MUTATED:  T
-
-START:    175
-ORIGINAL: a
-MUTATED:  T
-
-START:    176
-ORIGINAL: g
-MUTATED:  C
-
-
-
-****************
-
-REVERSE AND AMPLICON:
-****************
-SEQUENCES 
-----------------
-Pattern: AAGCTGACGGCTAAATGAAAAAGTCTCGTGTGTTTGCGCTTGTGTAATT
-Subject: aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaactggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt
-****************
-SCORING INFO 
-----------------
-Score matrix:       NUC44
-Gap opening:        50
-Gap extension:      0
-Gap ending penalty: 0
-****************
-RESULTS 
-----------------
-Alignment Length: 199
-Score: 159
-
-AAGCTGACGGCTAAATGAAAA-----------------------------------------------------------    80
-|||||||||||||||||||||                                                               
-aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaac    
-
---------------------------------------------------------------------------------    160
-                                                                                    
-tggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgtt    
-
------------AGTCTCGTGTGTTTGCGCTTGTGTAATT    199
-           |..|..||||||||||||||||||||||    
-gctgcagccagatccaggtgtgtttgcgcttgtgtaatt    
-****************
-ALIGNMENT INFO 
-----------------
-Total Insertions: 0
-Total Deletions:  1
-Total Mismatches: 4
-----------------
-INSERTIONS: 
-----------------
-
---Insertions respect patterns coordinates-- 
-
-
-----------------
-DELETIONS: 
-----------------
-In Pattern
-START: 22
-END:   171
-
-
---Deletions respect subject coordinates-- 
-
-In Pattern
-START: 22
-END:   171
-
-
-----------------
-MISMATCHES: 
-----------------
-START:    172
-ORIGINAL: t
-MUTATED:  G
-
-START:    173
-ORIGINAL: c
-MUTATED:  T
-
-START:    175
-ORIGINAL: a
-MUTATED:  T
-
-START:    176
-ORIGINAL: g
-MUTATED:  C
-
-
---Missmatches respect subject coordinates-- 
-
-START:    172
-ORIGINAL: t
-MUTATED:  G
-
-START:    173
-ORIGINAL: c
-MUTATED:  T
-
-START:    175
-ORIGINAL: a
-MUTATED:  T
-
-START:    176
-ORIGINAL: g
-MUTATED:  C
-
-
-
-****************
-
-ID: ID_1 Count: 3 
-
-FORWARD AND AMPLICON:
-****************
-SEQUENCES 
-----------------
-Pattern: AAGCTGACGGCTAAATGAAAAATATCAAACATCTGTTCCAGGTGCTGCGTATGCCAGGGCAGAGGAGGTGGTCAGGGAACTGGGATACCCTTTCTTCCCACACCAATGGGGAAAGGAGTCCTGCCAGATGACCATCCCAACTGTGTTG
-Subject: aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaactggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt
-****************
-SCORING INFO 
-----------------
-Score matrix:       NUC44
-Gap opening:        50
-Gap extension:      0
-Gap ending penalty: 0
-****************
-RESULTS 
-----------------
-Alignment Length: 199
-Score: 622
-
-AAGCTGACGGCTAAATGAAAAATATCAAACATCTGTTCCAGGTGCTGCGTATGCCAGGGCAGAGGAGGTGGTCAGGGA--    80
-|||||||||||||||||||||||.||||||||||||||||||||||||||||||||||||||||||||||||||||||      
-aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaac    
-
------------ACTGGGATACCCTTTCTTCCCACACCAATGGGGAAAGGAGTCCTGCCAGATGACCATCCCAACTGTGTT    160
-           |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||    
-tggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgtt    
-
-G--------------------------------------    199
-|                                          
-gctgcagccagatccaggtgtgtttgcgcttgtgtaatt    
-****************
-ALIGNMENT INFO 
-----------------
-Total Insertions: 0
-Total Deletions:  2
-Total Mismatches: 1
-----------------
-INSERTIONS: 
-----------------
-
---Insertions respect patterns coordinates-- 
-
-
-----------------
-DELETIONS: 
-----------------
-In Pattern
-START: 79
-END:   91
-
-In Pattern
-START: 162
-END:   199
-
-
---Deletions respect subject coordinates-- 
-
-In Pattern
-START: 79
-END:   91
-
-In Pattern
-START: 162
-END:   199
-
-
-----------------
-MISMATCHES: 
-----------------
-START:    23
-ORIGINAL: g
-MUTATED:  A
-
-
---Missmatches respect subject coordinates-- 
-
-START:    23
-ORIGINAL: g
-MUTATED:  A
-
-
-
-****************
-
-REVERSE AND AMPLICON:
-****************
-SEQUENCES 
-----------------
-Pattern: TTCCAGGTGCTGCGTATGCCAGGGCAGAGGAGGTGGTCAGGGAACTGGGATACCCTTTCTTCCCACACCAATGGGGAAAGGAGTCCTGCCAGATGACCATCCCAACTGTGTTGCTGCAGCCAGATCCAGGTGTGTTTGCGCTTGTGTAATT
-Subject: aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaactggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt
-****************
-SCORING INFO 
-----------------
-Score matrix:       NUC44
-Gap opening:        50
-Gap extension:      0
-Gap ending penalty: 0
-****************
-RESULTS 
-----------------
-Alignment Length: 199
-Score: 705
-
------------------------------------TTCCAGGTGCTGCGTATGCCAGGGCAGAGGAGGTGGTCAGGGA--    80
-                                   |||||||||||||||||||||||||||||||||||||||||||      
-aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaac    
-
------------ACTGGGATACCCTTTCTTCCCACACCAATGGGGAAAGGAGTCCTGCCAGATGACCATCCCAACTGTGTT    160
-           |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||    
-tggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgtt    
-
-GCTGCAGCCAGATCCAGGTGTGTTTGCGCTTGTGTAATT    199
-|||||||||||||||||||||||||||||||||||||||    
-gctgcagccagatccaggtgtgtttgcgcttgtgtaatt    
-****************
-ALIGNMENT INFO 
-----------------
-Total Insertions: 0
-Total Deletions:  2
-Total Mismatches: 0
-----------------
-INSERTIONS: 
-----------------
-
---Insertions respect patterns coordinates-- 
-
-
-----------------
-DELETIONS: 
-----------------
-In Pattern
-START: 1
-END:   35
-
-In Pattern
-START: 79
-END:   91
-
-
---Deletions respect subject coordinates-- 
-
-In Pattern
-START: 1
-END:   35
-
-In Pattern
-START: 79
-END:   91
-
-
-----------------
-MISMATCHES: 
-----------------
-
---Missmatches respect subject coordinates-- 
-
-
-
-****************
-
-ID: ID_1 Count: 1 
-
-FORWARD AND AMPLICON:
-****************
-SEQUENCES 
-----------------
-Pattern: AAGCTGACGGCTAAATGAAAAATATCTGAAACATCTGTTCCAGGTGCTGCGTATGCAAAAAAAGAGAAGAAGGTCAGGGAAGGTCACTGGAGGTGTTAGGGATACCCTTTCTTCCCACACCAATGGGGAAAGGAGTCCTGCCAGATGACCA
-Subject: aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaactggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt
-****************
-SCORING INFO 
-----------------
-Score matrix:       NUC44
-Gap opening:        50
-Gap extension:      0
-Gap ending penalty: 0
-****************
-RESULTS 
-----------------
-Alignment Length: 203
-Score: 423
-
-AAGCTGACGGCTAAATGAAAAATATCTGAAACATCTGTTCCAGGTGCTGCGTATGCAAAAAAAGAGAAGAAGGTCAGGGA    80
-|||||||||||||||||||||||.||  ||||||||||||||||||||||||||||.|....||||.||..|||||||||    
-aagctgacggctaaatgaaaaatgtc--aaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcaggga    
-
-AGGTCACTGGAGGTGTTAGGGATACCCTTTCTTCCCACACCAATGGGGAAAGGAGTCCTGCCAGATGACCA---------    160
-|  ....|||||||....|||||||||||||||||||||||||||||||||||||||||||||||||||||             
-a--ctggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactg    
-
--------------------------------------------    203
-                                               
-tgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt    
-****************
-ALIGNMENT INFO 
-----------------
-Total Insertions: 2
-Total Deletions:  1
-Total Mismatches: 17
-----------------
-INSERTIONS: 
-----------------
-In Subject
-START: 27
-END:   28
-
-In Subject
-START: 82
-END:   83
-
-
---Insertions respect patterns coordinates-- 
-
-In Subject
-START: 27
-END:   28
-
-In Subject
-START: 82
-END:   83
-
-
-----------------
-DELETIONS: 
-----------------
-In Pattern
-START: 152
-END:   203
-
-
---Deletions respect subject coordinates-- 
-
-In Pattern
-START: 148
-END:   199
-
-
-----------------
-MISMATCHES: 
-----------------
-START:    23
-ORIGINAL: g
-MUTATED:  A
-
-START:    56
-ORIGINAL: c
-MUTATED:  A
-
-START:    58
-ORIGINAL: g
-MUTATED:  A
-
-START:    59
-ORIGINAL: g
-MUTATED:  A
-
-START:    60
-ORIGINAL: g
-MUTATED:  A
-
-START:    61
-ORIGINAL: c
-MUTATED:  A
-
-START:    66
-ORIGINAL: g
-MUTATED:  A
-
-START:    69
-ORIGINAL: g
-MUTATED:  A
-
-START:    70
-ORIGINAL: t
-MUTATED:  A
-
-START:    83
-ORIGINAL: c
-MUTATED:  T
-
-START:    84
-ORIGINAL: t
-MUTATED:  C
-
-START:    85
-ORIGINAL: g
-MUTATED:  A
-
-START:    86
-ORIGINAL: g
-MUTATED:  C
-
-START:    94
-ORIGINAL: c
-MUTATED:  G
-
-START:    95
-ORIGINAL: a
-MUTATED:  T
-
-START:    96
-ORIGINAL: c
-MUTATED:  T
-
-START:    97
-ORIGINAL: t
-MUTATED:  A
-
-
---Missmatches respect subject coordinates-- 
-
-START:    23
-ORIGINAL: g
-MUTATED:  A
-
-START:    54
-ORIGINAL: c
-MUTATED:  A
-
-START:    56
-ORIGINAL: g
-MUTATED:  A
-
-START:    57
-ORIGINAL: g
-MUTATED:  A
-
-START:    58
-ORIGINAL: g
-MUTATED:  A
-
-START:    59
-ORIGINAL: c
-MUTATED:  A
-
-START:    64
-ORIGINAL: g
-MUTATED:  A
-
-START:    67
-ORIGINAL: g
-MUTATED:  A
-
-START:    68
-ORIGINAL: t
-MUTATED:  A
-
-START:    79
-ORIGINAL: c
-MUTATED:  T
-
-START:    80
-ORIGINAL: t
-MUTATED:  C
-
-START:    81
-ORIGINAL: g
-MUTATED:  A
-
-START:    82
-ORIGINAL: g
-MUTATED:  C
-
-START:    90
-ORIGINAL: c
-MUTATED:  G
-
-START:    91
-ORIGINAL: a
-MUTATED:  T
-
-START:    92
-ORIGINAL: c
-MUTATED:  T
-
-START:    93
-ORIGINAL: t
-MUTATED:  A
-
-
-
-****************
 
 REVERSE AND AMPLICON:
 ****************
@@ -978,357 +198,9 @@ MUTATED:  T
 
 ****************
 
-ID: ID_1 Count: 1 
-
-FORWARD AND AMPLICON:
-****************
-SEQUENCES 
-----------------
-Pattern: AAGCTGACGGCTAAATGAAAAATATCTGAAACATCTGTTCCAGGTGCTGCGTATGCCAGGGACAGCACAGAGGAGGTCACTGGGATCCCCTTTCTTCCCACACCAATGGGGAAAGGAGTCCTGCCAGATGACCATCCCAACTGTGTTG
-Subject: aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaactggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt
-****************
-SCORING INFO 
-----------------
-Score matrix:       NUC44
-Gap opening:        50
-Gap extension:      0
-Gap ending penalty: 0
-****************
-RESULTS 
-----------------
-Alignment Length: 207
-Score: 473
-
-AAGCTGACGGCTAAATGAAAAATATCTGAAACATCTGTTCCAGGTGCTGCGTATGCCAGGGACAGCACAGA---------    80
-|||||||||||||||||||||||.||  |||||||||||||||||||||||||||||||||      ||||             
-aagctgacggctaaatgaaaaatgtc--aaacatctgttccaggtgctgcgtatgccaggg------cagaggaggtggt    
-
-------------GGAGGTCACTGGGATCCCCTTTCTTCCCACACCAATGGGGAAAGGAGTCCTGCCAGATGACCATCCCA    160
-            |||||||||||||||.||||||||||||||||||||||||||||||||||||||||||||||||||||    
-cagggaactggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatccca    
-
-ACTGTGTTG--------------------------------------    207
-|||||||||                                          
-actgtgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt    
-****************
-ALIGNMENT INFO 
-----------------
-Total Insertions: 2
-Total Deletions:  2
-Total Mismatches: 2
-----------------
-INSERTIONS: 
-----------------
-In Subject
-START: 27
-END:   28
-
-In Subject
-START: 62
-END:   67
-
-
---Insertions respect patterns coordinates-- 
-
-In Subject
-START: 27
-END:   28
-
-In Subject
-START: 62
-END:   67
-
-
-----------------
-DELETIONS: 
-----------------
-In Pattern
-START: 72
-END:   92
-
-In Pattern
-START: 170
-END:   207
-
-
---Deletions respect subject coordinates-- 
-
-In Pattern
-START: 64
-END:   84
-
-In Pattern
-START: 162
-END:   199
-
-
-----------------
-MISMATCHES: 
-----------------
-START:    23
-ORIGINAL: g
-MUTATED:  A
-
-START:    107
-ORIGINAL: a
-MUTATED:  C
-
-
---Missmatches respect subject coordinates-- 
-
-START:    23
-ORIGINAL: g
-MUTATED:  A
-
-START:    99
-ORIGINAL: a
-MUTATED:  C
-
-
-
-****************
-
-REVERSE AND AMPLICON:
-****************
-SEQUENCES 
-----------------
-Pattern: TGTTCCAGGTGCTGCGTATGCCAGGGACAGCACAGAGGAGGTCACTGGGATCCCCTTTCTTCCCACACCAATGGGGAAAGGAGTCCTGCCAGATGACCATCCCAACTGTGTTGCTGCAGCCAGATCCAGGTGTGTTTGCGCTTGTGTAATT
-Subject: aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaactggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt
-****************
-SCORING INFO 
-----------------
-Score matrix:       NUC44
-Gap opening:        50
-Gap extension:      0
-Gap ending penalty: 0
-****************
-RESULTS 
-----------------
-Alignment Length: 205
-Score: 616
-
----------------------------------TGTTCCAGGTGCTGCGTATGCCAGGGACAGCACAGA-----------    80
-                                 ||||||||||||||||||||||||||      ||||               
-aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccaggg------cagaggaggtggtca    
-
-----------GGAGGTCACTGGGATCCCCTTTCTTCCCACACCAATGGGGAAAGGAGTCCTGCCAGATGACCATCCCAAC    160
-          |||||||||||||||.||||||||||||||||||||||||||||||||||||||||||||||||||||||    
-gggaactggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaac    
-
-TGTGTTGCTGCAGCCAGATCCAGGTGTGTTTGCGCTTGTGTAATT    205
-|||||||||||||||||||||||||||||||||||||||||||||    
-tgtgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt    
-****************
-ALIGNMENT INFO 
-----------------
-Total Insertions: 1
-Total Deletions:  2
-Total Mismatches: 1
-----------------
-INSERTIONS: 
-----------------
-In Subject
-START: 60
-END:   65
-
-
---Insertions respect patterns coordinates-- 
-
-In Subject
-START: 27
-END:   32
-
-
-----------------
-DELETIONS: 
-----------------
-In Pattern
-START: 1
-END:   33
-
-In Pattern
-START: 70
-END:   90
-
-
---Deletions respect subject coordinates-- 
-
-In Pattern
-START: 1
-END:   33
-
-In Pattern
-START: 64
-END:   84
-
-
-----------------
-MISMATCHES: 
-----------------
-START:    105
-ORIGINAL: a
-MUTATED:  C
-
-
---Missmatches respect subject coordinates-- 
-
-START:    99
-ORIGINAL: a
-MUTATED:  C
-
-
-
-****************
-
 ID: ID_1 Count: 3 
 
 FORWARD AND AMPLICON:
-****************
-SEQUENCES 
-----------------
-Pattern: AAGCTGACGGCTAAATGAAAAATATCTGAAACATCTGTTCCAGGTGCTGCGTATGCCAGGGCAGAGAAGAAGGTCAGGGAAGGTCACTGGAGGTCACTGGGATACCCTTTCTTCCCACACCAATGGGGAAAGGAGTCCTGCCAGATGACCA
-Subject: aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaactggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt
-****************
-SCORING INFO 
-----------------
-Score matrix:       NUC44
-Gap opening:        50
-Gap extension:      0
-Gap ending penalty: 0
-****************
-RESULTS 
-----------------
-Alignment Length: 203
-Score: 504
-
-AAGCTGACGGCTAAATGAAAAATATCTGAAACATCTGTTCCAGGTGCTGCGTATGCCAGGGCAGAGAAGAAGGTCAGGGA    80
-|||||||||||||||||||||||.||  ||||||||||||||||||||||||||||||||||||||.||..|||||||||    
-aagctgacggctaaatgaaaaatgtc--aaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcaggga    
-
-AGGTCACTGGAGGTCACTGGGATACCCTTTCTTCCCACACCAATGGGGAAAGGAGTCCTGCCAGATGACCA---------    160
-|  ....||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||             
-a--ctggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactg    
-
--------------------------------------------    203
-                                               
-tgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt    
-****************
-ALIGNMENT INFO 
-----------------
-Total Insertions: 2
-Total Deletions:  1
-Total Mismatches: 8
-----------------
-INSERTIONS: 
-----------------
-In Subject
-START: 27
-END:   28
-
-In Subject
-START: 82
-END:   83
-
-
---Insertions respect patterns coordinates-- 
-
-In Subject
-START: 27
-END:   28
-
-In Subject
-START: 82
-END:   83
-
-
-----------------
-DELETIONS: 
-----------------
-In Pattern
-START: 152
-END:   203
-
-
---Deletions respect subject coordinates-- 
-
-In Pattern
-START: 148
-END:   199
-
-
-----------------
-MISMATCHES: 
-----------------
-START:    23
-ORIGINAL: g
-MUTATED:  A
-
-START:    66
-ORIGINAL: g
-MUTATED:  A
-
-START:    69
-ORIGINAL: g
-MUTATED:  A
-
-START:    70
-ORIGINAL: t
-MUTATED:  A
-
-START:    83
-ORIGINAL: c
-MUTATED:  T
-
-START:    84
-ORIGINAL: t
-MUTATED:  C
-
-START:    85
-ORIGINAL: g
-MUTATED:  A
-
-START:    86
-ORIGINAL: g
-MUTATED:  C
-
-
---Missmatches respect subject coordinates-- 
-
-START:    23
-ORIGINAL: g
-MUTATED:  A
-
-START:    64
-ORIGINAL: g
-MUTATED:  A
-
-START:    67
-ORIGINAL: g
-MUTATED:  A
-
-START:    68
-ORIGINAL: t
-MUTATED:  A
-
-START:    79
-ORIGINAL: c
-MUTATED:  T
-
-START:    80
-ORIGINAL: t
-MUTATED:  C
-
-START:    81
-ORIGINAL: g
-MUTATED:  A
-
-START:    82
-ORIGINAL: g
-MUTATED:  C
-
-
-
-****************
 
 REVERSE AND AMPLICON:
 ****************
@@ -1465,6 +337,382 @@ MUTATED:  C
 START:    161
 ORIGINAL: c
 MUTATED:  T
+
+
+
+****************
+
+ID: ID_1 Count: 1 
+
+FORWARD AND AMPLICON:
+
+REVERSE AND AMPLICON:
+****************
+SEQUENCES 
+----------------
+Pattern: TGTTCCAGGTGCTGCGTATGCCAGGGACAGCACAGAGGAGGTCACTGGGATCCCCTTTCTTCCCACACCAATGGGGAAAGGAGTCCTGCCAGATGACCATCCCAACTGTGTTGCTGCAGCCAGATCCAGGTGTGTTTGCGCTTGTGTAATT
+Subject: aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaactggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt
+****************
+SCORING INFO 
+----------------
+Score matrix:       NUC44
+Gap opening:        50
+Gap extension:      0
+Gap ending penalty: 0
+****************
+RESULTS 
+----------------
+Alignment Length: 205
+Score: 616
+
+---------------------------------TGTTCCAGGTGCTGCGTATGCCAGGGACAGCACAGA-----------    80
+                                 ||||||||||||||||||||||||||      ||||               
+aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccaggg------cagaggaggtggtca    
+
+----------GGAGGTCACTGGGATCCCCTTTCTTCCCACACCAATGGGGAAAGGAGTCCTGCCAGATGACCATCCCAAC    160
+          |||||||||||||||.||||||||||||||||||||||||||||||||||||||||||||||||||||||    
+gggaactggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaac    
+
+TGTGTTGCTGCAGCCAGATCCAGGTGTGTTTGCGCTTGTGTAATT    205
+|||||||||||||||||||||||||||||||||||||||||||||    
+tgtgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt    
+****************
+ALIGNMENT INFO 
+----------------
+Total Insertions: 1
+Total Deletions:  2
+Total Mismatches: 1
+----------------
+INSERTIONS: 
+----------------
+In Subject
+START: 60
+END:   65
+
+
+--Insertions respect patterns coordinates-- 
+
+In Subject
+START: 27
+END:   32
+
+
+----------------
+DELETIONS: 
+----------------
+In Pattern
+START: 1
+END:   33
+
+In Pattern
+START: 70
+END:   90
+
+
+--Deletions respect subject coordinates-- 
+
+In Pattern
+START: 1
+END:   33
+
+In Pattern
+START: 64
+END:   84
+
+
+----------------
+MISMATCHES: 
+----------------
+START:    105
+ORIGINAL: a
+MUTATED:  C
+
+
+--Missmatches respect subject coordinates-- 
+
+START:    99
+ORIGINAL: a
+MUTATED:  C
+
+
+
+****************
+
+ID: ID_1 Count: 3 
+
+FORWARD AND AMPLICON:
+
+REVERSE AND AMPLICON:
+****************
+SEQUENCES 
+----------------
+Pattern: TTCCAGGTGCTGCGTATGCCAGGGCAGAGGAGGTGGTCAGGGAACTGGGATACCCTTTCTTCCCACACCAATGGGGAAAGGAGTCCTGCCAGATGACCATCCCAACTGTGTTGCTGCAGCCAGATCCAGGTGTGTTTGCGCTTGTGTAATT
+Subject: aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaactggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt
+****************
+SCORING INFO 
+----------------
+Score matrix:       NUC44
+Gap opening:        50
+Gap extension:      0
+Gap ending penalty: 0
+****************
+RESULTS 
+----------------
+Alignment Length: 199
+Score: 705
+
+-----------------------------------TTCCAGGTGCTGCGTATGCCAGGGCAGAGGAGGTGGTCAGGGA--    80
+                                   |||||||||||||||||||||||||||||||||||||||||||      
+aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaac    
+
+-----------ACTGGGATACCCTTTCTTCCCACACCAATGGGGAAAGGAGTCCTGCCAGATGACCATCCCAACTGTGTT    160
+           |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||    
+tggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgtt    
+
+GCTGCAGCCAGATCCAGGTGTGTTTGCGCTTGTGTAATT    199
+|||||||||||||||||||||||||||||||||||||||    
+gctgcagccagatccaggtgtgtttgcgcttgtgtaatt    
+****************
+ALIGNMENT INFO 
+----------------
+Total Insertions: 0
+Total Deletions:  2
+Total Mismatches: 0
+----------------
+INSERTIONS: 
+----------------
+
+--Insertions respect patterns coordinates-- 
+
+
+----------------
+DELETIONS: 
+----------------
+In Pattern
+START: 1
+END:   35
+
+In Pattern
+START: 79
+END:   91
+
+
+--Deletions respect subject coordinates-- 
+
+In Pattern
+START: 1
+END:   35
+
+In Pattern
+START: 79
+END:   91
+
+
+----------------
+MISMATCHES: 
+----------------
+
+--Missmatches respect subject coordinates-- 
+
+
+
+****************
+
+ID: ID_1 Count: 1 
+
+FORWARD AND AMPLICON:
+
+REVERSE AND AMPLICON:
+****************
+SEQUENCES 
+----------------
+Pattern: AAGCTGACGGCTAAATGAAAAAGTCTCGTGTGTTTGCGCTTGTGTAATT
+Subject: aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaactggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt
+****************
+SCORING INFO 
+----------------
+Score matrix:       NUC44
+Gap opening:        50
+Gap extension:      0
+Gap ending penalty: 0
+****************
+RESULTS 
+----------------
+Alignment Length: 199
+Score: 159
+
+AAGCTGACGGCTAAATGAAAA-----------------------------------------------------------    80
+|||||||||||||||||||||                                                               
+aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaac    
+
+--------------------------------------------------------------------------------    160
+                                                                                    
+tggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgtt    
+
+-----------AGTCTCGTGTGTTTGCGCTTGTGTAATT    199
+           |..|..||||||||||||||||||||||    
+gctgcagccagatccaggtgtgtttgcgcttgtgtaatt    
+****************
+ALIGNMENT INFO 
+----------------
+Total Insertions: 0
+Total Deletions:  1
+Total Mismatches: 4
+----------------
+INSERTIONS: 
+----------------
+
+--Insertions respect patterns coordinates-- 
+
+
+----------------
+DELETIONS: 
+----------------
+In Pattern
+START: 22
+END:   171
+
+
+--Deletions respect subject coordinates-- 
+
+In Pattern
+START: 22
+END:   171
+
+
+----------------
+MISMATCHES: 
+----------------
+START:    172
+ORIGINAL: t
+MUTATED:  G
+
+START:    173
+ORIGINAL: c
+MUTATED:  T
+
+START:    175
+ORIGINAL: a
+MUTATED:  T
+
+START:    176
+ORIGINAL: g
+MUTATED:  C
+
+
+--Missmatches respect subject coordinates-- 
+
+START:    172
+ORIGINAL: t
+MUTATED:  G
+
+START:    173
+ORIGINAL: c
+MUTATED:  T
+
+START:    175
+ORIGINAL: a
+MUTATED:  T
+
+START:    176
+ORIGINAL: g
+MUTATED:  C
+
+
+
+****************
+
+ID: ID_1 Count: 1 
+
+FORWARD AND AMPLICON:
+
+REVERSE AND AMPLICON:
+****************
+SEQUENCES 
+----------------
+Pattern: AAGCTGACGGCTAAATGAAAAAGCCTCGTGTGTTTGCGCTTGTGTAATT
+Subject: aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaactggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgttgctgcagccagatccaggtgtgtttgcgcttgtgtaatt
+****************
+SCORING INFO 
+----------------
+Score matrix:       NUC44
+Gap opening:        50
+Gap extension:      0
+Gap ending penalty: 0
+****************
+RESULTS 
+----------------
+Alignment Length: 199
+Score: 168
+
+AAGCTGACGGCTAAATGAAAA-----------------------------------------------------------    80
+|||||||||||||||||||||                                                               
+aagctgacggctaaatgaaaaatgtcaaacatctgttccaggtgctgcgtatgccagggcagaggaggtggtcagggaac    
+
+--------------------------------------------------------------------------------    160
+                                                                                    
+tggTGGaggtcactgggataccctttcttcccacaccaatggggaaaggagtcctgccagatgaccatcccaactgtgtt    
+
+-----------AGCCTCGTGTGTTTGCGCTTGTGTAATT    199
+           |.||..||||||||||||||||||||||    
+gctgcagccagatccaggtgtgtttgcgcttgtgtaatt    
+****************
+ALIGNMENT INFO 
+----------------
+Total Insertions: 0
+Total Deletions:  1
+Total Mismatches: 3
+----------------
+INSERTIONS: 
+----------------
+
+--Insertions respect patterns coordinates-- 
+
+
+----------------
+DELETIONS: 
+----------------
+In Pattern
+START: 22
+END:   171
+
+
+--Deletions respect subject coordinates-- 
+
+In Pattern
+START: 22
+END:   171
+
+
+----------------
+MISMATCHES: 
+----------------
+START:    172
+ORIGINAL: t
+MUTATED:  G
+
+START:    175
+ORIGINAL: a
+MUTATED:  T
+
+START:    176
+ORIGINAL: g
+MUTATED:  C
+
+
+--Missmatches respect subject coordinates-- 
+
+START:    172
+ORIGINAL: t
+MUTATED:  G
+
+START:    175
+ORIGINAL: a
+MUTATED:  T
+
+START:    176
+ORIGINAL: g
+MUTATED:  C
 
 
 

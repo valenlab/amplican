@@ -5,8 +5,8 @@
 \title{Prepare reports as .Rmd files.}
 \usage{
 amplicanReport(results_folder, levels = c("id", "barcode", "group", "guide",
-  "amplicon"), report_files = c("report_id", "report_barcode", "report_group",
-  "report_guide", "report_amplicon"))
+  "amplicon", "summary"), report_files = c("report_id", "report_barcode",
+  "report_group", "report_guide", "report_amplicon", "report_summary"))
 }
 \arguments{
 \item{results_folder}{(string) Folder containing results from the \code{\link{amplicanAnalysis}} function,

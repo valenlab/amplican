@@ -13,10 +13,11 @@
 #' @export
 #'
 amplicanReport <- function(results_folder,
-                           levels = c("id", "barcode", "group", "guide", "amplicon"),
-                           report_files = c("report_id", "report_barcode", "report_group", "report_guide", "report_amplicon")){
+                           levels = c("id", "barcode", "group", "guide", "amplicon", "summary"),
+                           report_files = c("report_id", "report_barcode", "report_group",
+                                            "report_guide", "report_amplicon", "report_summary")){
 
-  existing_levels <- c("id", "barcode", "group", "guide", "amplicon")
+  existing_levels <- c("id", "barcode", "group", "guide", "amplicon", "summary")
   invalid_levels <- !levels %in% existing_levels
   if (any(invalid_levels)) {
     stop(paste("Invalid levels:", levels[invalid_levels]))
@@ -36,7 +37,8 @@ amplicanReport <- function(results_folder,
                            "barcode" = make_barcode_rmd(results_folder),
                            "group" = make_group_rmd(results_folder),
                            "guide" = make_guide_rmd(results_folder),
-                           "amplicon" = make_amplicon_rmd(results_folder))
+                           "amplicon" = make_amplicon_rmd(results_folder),
+                           "summary" = make_summary_rmd(results_folder))
       writeLines(rmdContent, fileConn)
       close(fileConn)
 
