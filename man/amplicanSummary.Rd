@@ -4,16 +4,16 @@
 \alias{amplicanSummary}
 \title{Prepare summary report as .Rmd file.}
 \usage{
-amplicanSummary(alignments_folder, report_name = "summary_report")
+amplicanSummary(results_folder, report_name = "summary_report")
 }
 \arguments{
-\item{alignments_folder}{(string) Folder containing results from the \code{\link{amplicanAnalysis}} function,
+\item{results_folder}{(string) Folder containing results from the \code{\link{amplicanAnalysis}} function,
 do not change names of the files.}
 
 \item{report_name}{(string) Name of the summary report.}
 }
 \description{
-amplicanSummary takes alignments_folder as directory of results to prepare
+amplicanSummary takes results_folder as directory of results to prepare
 summary of all filters during read grouping as editable .Rmd file.
 }
 

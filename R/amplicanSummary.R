@@ -1,14 +1,14 @@
 #' Prepare summary report as .Rmd file.
 #'
-#' amplicanSummary takes alignments_folder as directory of results to prepare
+#' amplicanSummary takes results_folder as directory of results to prepare
 #' summary of all filters during read grouping as editable .Rmd file.
-#' @param alignments_folder (string) Folder containing results from the \code{\link{amplicanAnalysis}} function,
+#' @param results_folder (string) Folder containing results from the \code{\link{amplicanAnalysis}} function,
 #' do not change names of the files.
 #' @param report_name (string) Name of the summary report.
 #' @return NULL
 #' @export
 #'
-amplicanSummary <- function(alignments_folder, report_name = "summary_report"){
+amplicanSummary <- function(results_folder, report_name = "summary_report"){
   report_name <- paste0(report_name, ".Rmd")
 
   isRmdReady <- file.create(report_name, showWarnings = T)
