@@ -42,7 +42,7 @@ config <- read.csv(paste0(results_folder, '/config_summary.csv'))
 ```{r plot total reads, echo=FALSE, fig.height=3, fig.width=14, message=F, warning=FALSE}
 ggplot(data = config, aes(x = Group, y = log10(Reads + 1), order = Group, fill = Group)) +
   geom_boxplot() +
-  ylab('Number of reads on log10 scale')  +
+  ylab('Number of reads + 1, log10 scaled')  +
   xlab('Group') + 
   theme(legend.position = 'none',
         axis.text = element_text(size = 12),

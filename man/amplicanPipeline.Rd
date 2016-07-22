@@ -28,6 +28,9 @@ Default is 0.}
 some special cases, you may want to use only the
 forward file, or only the reverse file.
 0 - Use both FASTQ files
+0.5 - Use both FASTQ files, but only for one of the reads (forward or reverse)
+is required to have primer perfectly matched to sequence - eg. use when reverse reads are
+trimmed of primers, but forward reads have forward primer in the sequence
 1 - Use only the forward FASTQ file
 2 - Use only the reverse FASTQ file}
 

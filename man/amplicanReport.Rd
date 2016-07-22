@@ -12,8 +12,8 @@ amplicanReport(results_folder, levels = c("id", "barcode", "group", "guide",
 \item{results_folder}{(string) Folder containing results from the \code{\link{amplicanAnalysis}} function,
 do not change names of the files.}
 
-\item{levels}{(vector) Possible values are: "id", "barcode", "group", "guide", "amplicon". You can also input more
-than one value eg. c("id", "barcode") will create two separate reports for each level.}
+\item{levels}{(vector) Possible values are: "id", "barcode", "group", "guide", "amplicon", "summary".
+You can also input more than one value eg. c("id", "barcode") will create two separate reports for each level.}
 
 \item{report_files}{(vector) You can supply your own names of the files. For each of the levels there has to be one
 file name. Files are created in current working directory by default.}

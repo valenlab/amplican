@@ -118,7 +118,7 @@ upperGroups <- function(candidate){
 #' @param far_indels (bool)
 #' @param configTable (bool)
 #' @param resultsFolder (char)
-#' @param fastqfiles (char)
+#' @param fastqfiles (numeric)
 #' @param PRIMER_DIMER (numeric)
 #' @param cut_buffer (numeric)
 #' @import GenomicRanges
@@ -236,9 +236,15 @@ makeAlignment <- function(configTable,
     uniqueTable$guideFoundForward <- grepl(guideRNA, uniqueTable$Forward, ignore.case=TRUE)
     uniqueTable$guideFoundReverse <- grepl(seqinr::c2s(rev(seqinr::comp(seqinr::s2c(guideRNA)))),
             uniqueTable$Reverse, ignore.case=TRUE)
-    primersFound <- uniqueTable$forwardFound & uniqueTable$reverseFound
-    if (fastqfiles == 1) { primersFound <- uniqueTable$forwardFound }
-    if (fastqfiles == 2) { primersFound <- uniqueTable$reverseFound }
+    primersFound <- if (fastqfiles == 0.5) {
+      uniqueTable$forwardFound | uniqueTable$reverseFound
+    } else if (fastqfiles == 1) {
+      uniqueTable$forwardFound
+    } else if (fastqfiles == 2) {
+      uniqueTable$reverseFound
+    } else {
+      uniqueTable$forwardFound & uniqueTable$reverseFound
+    }
     uniqueTable$Asigned <- uniqueTable$Asigned | primersFound
     IDuniqueTable <- uniqueTable[primersFound, ]
 
@@ -308,7 +314,7 @@ makeAlignment <- function(configTable,
 
         #Frameshift table
         frameshift <- F
-        if (fastqfiles == 0) {
+        if (fastqfiles == 0 | fastqfiles == 0.5) {
           frameshift <- sum(width(forwardDataFiltered[forwardDataFiltered$type == "insertion" |
                                                         forwardDataFiltered$type == "deletion"])) %% 3 != 0 &
                         sum(width(reverseDataFiltered[reverseDataFiltered$type == "insertion" |
@@ -340,7 +346,7 @@ makeAlignment <- function(configTable,
         #cut assessment
         overlapFd <- subsetByOverlaps(ranges(forwardDataFiltered[forwardDataFiltered$type == "deletion"]), cutSites)
         overlapRe <- subsetByOverlaps(ranges(reverseDataFiltered[reverseDataFiltered$type == "deletion"]), cutSites)
-        if (fastqfiles == 0) {
+        if (fastqfiles == 0 | fastqfiles == 0.5) {
           #forward and reverse have to agree on deletion
           overlapFd <- overlapFd[!is.na(match(overlapFd, overlapRe))]
           overlapRe <- overlapRe[!is.na(match(overlapRe, overlapFd))]

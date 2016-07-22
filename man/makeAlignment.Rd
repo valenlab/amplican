@@ -33,7 +33,7 @@ makeAlignment(configTable, resultsFolder, skip_bad_nucleotides = TRUE,
 
 \item{far_indels}{(bool)}
 
-\item{fastqfiles}{(char)}
+\item{fastqfiles}{(numeric)}
 
 \item{PRIMER_DIMER}{(numeric)}
 

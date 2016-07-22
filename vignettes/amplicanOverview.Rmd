@@ -9,10 +9,10 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-Welcome to the `amplican` package. This viginnette will walk you through our main package usage with example MiSeq dataset. 
-You will learn how to interpret results, create summary reports and plot deletions, insertions and mutations with
-our functions. This package, `amplican` is aimed into analysis of MiSeq or HiSeq PCR data, whether paired-end or 
-single-end. 
+Welcome to the `amplican` package. This viginnette will walk you through our main package usage with example MiSeq 
+dataset.  You will learn how to interpret results, create summary reports and plot deletions, 
+insertions and mutations with our functions. 
+This package, `amplican` is for fast and precise analysis of CRISPR experiments.
 
 ## Introduction
 
@@ -25,12 +25,12 @@ which with your fastq samples are only requirements.
 
 To succesfully run our analysis it is mandatory to have created configuration file. Take a look at our example:
 
-```{r, echo=FALSE, results = 'asis'}
+```{r, echo=FALSE}
 config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
 knitr::kable(head(config))
 ```
 
-Configuration file should be a tab delimited text file with information about your experiments. 
+Configuration file should be a "," delimited csv file with information about your experiments. 
 You can find example config file at:
 ```{r, echo=FALSE}
 system.file("extdata", "config.csv", package = "amplican")
@@ -42,8 +42,7 @@ system.file("extdata", "config.csv", package = "amplican")
 .gz, we will unpack them for you  
 **Group** - use this field if you want to group ID by other criteria, here for instance we will group by person that
 performed experiment, on later stage it is possible to generate report with breakdown using this field  
-**guideRNA** - put your guideRNA here, if he has to be reverse complemented put "1" into **Direction** field, 
-we will use this field to make sure your guideRNA is inside the amplicon  
+**guideRNA** - put your guideRNA here, if he has to be reverse complemented to be found in the amplicon put "1" into **Direction** field, we will use this field to make sure your guideRNA is inside the amplicon  
 **Forward_Primer**, **Reverse_Primer** - make sure these primers are correct for each of your IDs  
 **Direction** - here "0" means guide does not requires to be reverse complemented to be matched to the amplicon, 
 "1" means it should be reverse complemented, this field is also used when plotting deletions, mismatches and 
@@ -55,22 +54,23 @@ sequence of the corresponding guideRNA
 ## Default options
 
 To run `amplican` with default options, along with generation of all posible reports you can use
-`amplican_default` function.
+`amplicanPipeline` function. We have already attached results of the default amplican analysis of the
+example dataset, but take a look how you can do that yourself.
 
-```{r amplican_default, echo=TRUE}
-# library(amplican) #don't load for time
+```{r amplicanPipeline, echo=TRUE}
+# library(amplican) #uncomment when running yourself
 # example MiSeq dataset files
-#config <- system.file("extdata", "config.csv", package = "amplican")
-#fastq_folder <- system.file("extdata", "", package = "amplican")
-#results_folder <- paste0(fastq_folder, "results")
+config <- system.file("extdata", "config.csv", package = "amplican")
+fastq_folder <- system.file("extdata", "", package = "amplican")
+results_folder <- paste0(fastq_folder, "results")
 
 # make sure we have result folder
-#dir.create(results_folder)
+# dir.create(results_folder) #uncomment when running yourself
 # actual amplican run
-# amplican_default(config, fastq_folder, results_folder) #might be time consuming
+# amplicanPipeline(config, fastq_folder, results_folder) #uncomment when running yourself
 
 # results of the analysis can be found at
-#results_folder
+results_folder
 ```
 
 ## Files created during analysis
@@ -79,7 +79,9 @@ To run `amplican` with default options, along with generation of all posible rep
 
 Contains information about unpleasant errors and events found during analysis, we also print message on the screen when
 something requires your attention. This file should be empty with our examplary analis on provided dataset. In case 
-something goes wrong you should examin file and follow instructions inside.
+something goes wrong you should examin file and follow instructions inside. This file is also included in "summary" 
+version of the report.
+
 
 ### barcode_reads_filters.csv
 
@@ -90,8 +92,8 @@ First step of our analysis is to filter out reads that are not complying with ou
 * bad alphabet - by deafult we accept only reads with A,C,T,G bases  
 
 ```{r, echo=FALSE}
-#barcodeFilters <- read.csv(system.file("extdata/results", "barcode_reads_filters.csv", package = "amplican"))
-#knitr::kable(head(barcodeFilters))
+barcodeFilters <- read.csv(system.file("extdata/results", "barcode_reads_filters.csv", package = "amplican"))
+knitr::kable(head(barcodeFilters))
 ```
 
 This table is also summarized in one of the reports. As you can see for our example dataset we have two barcodes,
@@ -103,13 +105,13 @@ is unique and we can succesfully asign only 9 reads for the barcode_1 and 21 rea
 Extended version of the config file.
 
 ```{r, echo=FALSE}
-#config_summary <- read.csv(system.file("extdata/results", "config_summary.csv", package = "amplican"))
-#config_summary <- config_summary[,c("ID", "Barcode", "Cut", "Frameshift", 
-#                                    "PRIMER_DIMER", "Reads", "Found_Guide", "Found_PAM")]
-#knitr::kable(head(config_summary))
+config_summary <- read.csv(system.file("extdata/results", "config_summary.csv", package = "amplican"))
+config_summary <- config_summary[,c("ID", "Barcode", "Cut", "Frameshift", 
+                                    "PRIMER_DIMER", "Reads", "Found_Guide", "Found_PAM")]
+knitr::kable(head(config_summary))
 ```
 
-We add these fields:  
+During `amplicanAnalysis` or `amplicanPipeline` these fields are added to the config file:  
 **Cut** - number of insertions overlaping with user specified UPPER CASE group in the amplicon (extended by the buffer)  
 **Frameshift** - number of reads has frameshift (insertions and deletions)  
 **PRIMER_DIMER** - number of reads were classified as PRIMER DIMERs  
@@ -123,11 +125,15 @@ File RunParameters.txt lists all options used for the analysis, this file you mi
 reviewing analyisis from the past where you forgot what kind of options you used. Other than that 
 this file has no purpose. 
 
+```{r, echo=TRUE}
+readLines(system.file("extdata/results", "RunParameters.txt", package = "amplican"))
+```
+
 ### alignments folder
 
-Contains alignments, for each ID there is separate folder. If you specified `write_alignments` as "2" you will
-find here two files, one with just alignment forward read, reverse read and count. Other file will contain very
-detailed information:  
+Contains alignments, for each ID there is separate folder. If you specified `write_alignments` option of the 
+`amplicanAnalysis` as "2" you will find here two files, one with just alignment forward read, reverse read and count. 
+Other file will contain very detailed information:  
 - human readable alignmennt of read and amplicon,  
 - list of deletions, insertions and mismatches,  
 - same information, but relative towards amplicon coordinates

@@ -68,13 +68,14 @@ ampliconTable <- aggregate(cbind(Reads, PRIMER_DIMER, Cut, Frameshift) ~ group, 
 
 ggplot(data = ampliconTable, aes(x = group, y = log10(Reads + 1)), order = group) +
   geom_bar(stat = 'identity') +
-  ylab('Number of reads log10 scaled')  +
+  ylab('Number of reads + 1, log10 scaled')  +
   xlab('Amplicon Group') +
   scale_x_continuous(breaks = 1:length(uniqueAmlicons)) +
   theme(legend.position = 'none',
         axis.text = element_text(size = 12),
         axis.title = element_text(size = 14, face = 'bold')) +
-  coord_flip()
+  coord_flip() +
+  geom_text(aes(x = group, y = log10(Reads + 1), label = Reads), hjust = -1)
 ```
 
 ## PRIMER DIMER filter  
@@ -92,7 +93,8 @@ ggplot(data = ampliconTable, aes(x = group, y = PD_percentage, order = group)) +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14, face = 'bold')) +
   ylim(0, 100) +
-  coord_flip()
+  coord_flip() +
+  geom_text(aes(x = group, y = PD_percentage, label = PRIMER_DIMER), hjust = -1)
 ```  
 
 ## Cut rates  
@@ -110,7 +112,8 @@ ggplot(data = ampliconTable, aes(x = group, y = cut_percentage, order = group)) 
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14, face = 'bold')) +
   ylim(0,100) +
-  coord_flip()
+  coord_flip() +
+  geom_text(aes(x = group, y = cut_percentage, label = Cut), hjust = -1)
 ```  
 
 ## Frameshift  
@@ -127,7 +130,8 @@ ggplot(data = ampliconTable, aes(x = group, y = frameshift_percentage, order = g
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14,face = 'bold')) +
   ylim(0, 100) +
-  coord_flip()
+  coord_flip() +
+  geom_text(aes(x = group, y = frameshift_percentage, label = Frameshift), hjust = -1)
 ```  
 
 ## Heterogeneity of reads  

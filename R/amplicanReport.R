@@ -5,8 +5,8 @@
 #' ID, Barcode, Group or even guideRNA and Amplicon.
 #' @param results_folder (string) Folder containing results from the \code{\link{amplicanAnalysis}} function,
 #' do not change names of the files.
-#' @param levels (vector) Possible values are: "id", "barcode", "group", "guide", "amplicon". You can also input more
-#' than one value eg. c("id", "barcode") will create two separate reports for each level.
+#' @param levels (vector) Possible values are: "id", "barcode", "group", "guide", "amplicon", "summary".
+#' You can also input more than one value eg. c("id", "barcode") will create two separate reports for each level.
 #' @param report_files (vector) You can supply your own names of the files. For each of the levels there has to be one
 #' file name. Files are created in current working directory by default.
 #' @return NULL

@@ -51,11 +51,12 @@ the frequency of the insertion
 ```{r plot total reads, echo=FALSE, fig.height=5, fig.width=14, message=F, warning=FALSE}
 ggplot(data = config, aes(x = ID, y = log10(Reads + 1), order = ID)) +
   geom_bar(stat='identity') +
-  ylab('Number of reads log10 scaled')  +
+  ylab('Number of reads + 1, log10 scaled')  +
   theme(legend.position = 'none',
         axis.text = element_text(size = 12),
         axis.title = element_text(size = 14, face = 'bold')) +
-  coord_flip()
+  coord_flip() +
+  geom_text(aes(x = ID, y = log10(Reads + 1), label = Reads), hjust = -1)
 ```
 
 ## PRIMER DIMER filter  
@@ -70,7 +71,8 @@ ggplot(data = config, aes(x = ID, y = PD_percentage, order = ID)) +
   theme(legend.position = 'none',
         axis.text = element_text(size = 12),
         axis.title = element_text(size = 14, face = 'bold')) +
-  coord_flip()
+  coord_flip() +
+  geom_text(aes(x = ID, y = PD_percentage, label = PRIMER_DIMER), hjust = -1)
 ```  
 
 ## Cut rates  
@@ -86,7 +88,8 @@ ggplot(data = config, aes(x = ID, y = cut_percentage, order = ID)) +
   theme(legend.position = 'none',
         axis.text = element_text(size = 12),
         axis.title = element_text(size = 14, face = 'bold')) +
-  coord_flip()
+  coord_flip() +
+  geom_text(aes(x = ID, y = cut_percentage, label = Cut), hjust = -1)
 ```  
 
 ## Frameshift  
@@ -101,7 +104,8 @@ ggplot(data = config, aes(x = ID, y = frameshift_percentage, order = ID)) +
   theme(legend.position = 'none',
         axis.text = element_text(size = 12),
         axis.title = element_text(size = 14, face = 'bold')) +
-  coord_flip()
+  coord_flip() +
+  geom_text(aes(x = ID, y = frameshift_percentage, label = Frameshift), hjust = -1)
 ```  
 
 ## Heterogeneity of reads  

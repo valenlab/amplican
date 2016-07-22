@@ -42,7 +42,7 @@ config <- read.csv(paste0(results_folder, '/config_summary.csv'))
 ```{r plot total reads, echo=FALSE, fig.height=3, fig.width=14, message=F, warning=FALSE}
 ggplot(data = config, aes(x = Barcode, y = log10(Reads + 1), order = Barcode, fill = ID)) +
   geom_bar(position='stack', stat='identity') +
-  ylab('Number of reads on log10 scale')  +
+  ylab('Number of reads + 1, log10 scaled')  +
   theme(legend.position = 'top',
         legend.direction = 'horizontal',
         axis.text = element_text(size = 12),
@@ -64,7 +64,8 @@ ggplot(data = barcodeTable, aes(x = Barcode, y = PD_percentage, order = Barcode)
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14, face = 'bold')) +
   ylim(0, 100) +
-  coord_flip()
+  coord_flip() +
+  geom_text(aes(x = Barcode, y = PD_percentage, label = PRIMER_DIMER), hjust = -1)
 ``` 
 
 ## Cut rates  
@@ -80,7 +81,8 @@ ggplot(data = barcodeTable, aes(x = Barcode, y = cut_percentage, order = Barcode
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14, face = 'bold')) +
   ylim(0,100) +
-  coord_flip()
+  coord_flip() +
+  geom_text(aes(x = Barcode, y = cut_percentage, label = Cut), hjust = -1)
 ``` 
 
 ## Frameshift  
@@ -95,7 +97,8 @@ ggplot(data = barcodeTable, aes(x = Barcode, y = frameshift_percentage, order = 
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14,face = 'bold')) +
   ylim(0, 100) +
-  coord_flip()
+  coord_flip() +
+  geom_text(aes(x = Barcode, y = frameshift_percentage, label = Frameshift), hjust = -1)
 ``` 
 
 ## Heterogeneity of reads  

@@ -42,7 +42,7 @@ config <- read.csv(paste0(results_folder, '/config_summary.csv'))
 ```{r plot total reads, echo=FALSE, fig.height=4, fig.width=14, message=F, warning=FALSE}
 ggplot(data = config, aes(x = guideRNA, y = log10(Reads + 1), order = guideRNA, fill = guideRNA)) +
   geom_boxplot() +
-  ylab('Number of reads on log10 scale')  +
+  ylab('Number of reads + 1, log10 scaled')  +
   xlab('guideRNA') + 
   theme(legend.position = 'none',
         axis.text = element_text(size = 12),
