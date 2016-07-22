@@ -63,7 +63,7 @@ write_alignment_plots <- function(ID, title, cut_buffer = 5) {
            paste0("```{r insertions ", title, ", echo=F, fig.height=14, fig.width=30, message=F, warning=F}"),
            paste0("amplican_plot_insertions(alignments, config, ", id_pass, ", ", cut_buffer, ")"),
            "```  \n",
-           "### Mutations  \n",
+           "### Mismatches  \n",
            paste0("```{r mismatches ", title, ", echo=F, fig.height=14, fig.width=30, message=F, warning=F}"),
            paste0("amplican_plot_mismatches(alignments, config, ", id_pass, ", ", cut_buffer, ")"),
            "```  \n"))
