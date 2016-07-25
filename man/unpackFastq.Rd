@@ -12,8 +12,8 @@ unpackFastq(configTable, temp_folder)
 \item{temp_folder}{(string) Where to store unzipped files.}
 }
 \value{
-(data.frame) configTable with Forward_File and Reverse_File updated if
-unpacking files was required.
+(data.frame) configTable with Forward_File and Reverse_File updated
+if unpacking files was required.
 }
 \description{
 Unpack fastq files if needed, correct paths to the files in configTable.

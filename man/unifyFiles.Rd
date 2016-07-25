@@ -4,8 +4,8 @@
 \alias{unifyFiles}
 \title{Merge files of given type.}
 \usage{
-unifyFiles(targetFolder, regex, finalFileName, header = T, delete = T,
-  isrecursive = F)
+unifyFiles(targetFolder, regex, finalFileName, header = TRUE, delete = TRUE,
+  isrecursive = FALSE)
 }
 \arguments{
 \item{targetFolder}{(string) The folder where the files are suppose to be.}
@@ -20,7 +20,8 @@ will repeat the header many times.}
 
 \item{delete}{(boolean) If true, it will delete the original files}
 
-\item{isrecursive}{(boolean) If TRUE will search recursively through regex matching folders.}
+\item{isrecursive}{(boolean) If TRUE will search recursively through regex
+matching folders.}
 }
 \value{
 (void)

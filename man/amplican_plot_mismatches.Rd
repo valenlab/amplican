@@ -7,20 +7,32 @@
 amplican_plot_mismatches(alignments, config, id, cut_buffer = 5)
 }
 \arguments{
-\item{alignments}{(GRanges object) Loaded alignment information from alignments.csv file.}
+\item{alignments}{(GRanges object) Loaded alignment information from
+alignments.csv file.}
 
 \item{config}{(data.frame) Loaded table from config_summary.csv file.}
 
-\item{id}{(string or vector of strings) Name of the ID column from config file or name of multiple IDs if it is
-possible to group them. First amplicon will be used as the basis for plot.}
+\item{id}{(string or vector of strings) Name of the ID column from config
+file or name of multiple IDs if it is possible to group them. First amplicon
+will be used as the basis for plot.}
 
-\item{cut_buffer}{(numeric) Default is 5, you should specify the same as used in the analysis.}
+\item{cut_buffer}{(numeric) Default is 5, you should specify the same as
+used in the analysis.}
 }
 \value{
 (mismatches plot) ggplot2 object of mismatches plot
 }
 \description{
-This function plots mismatches in relation to the amplicon. Top plot is for the forward reads, middle one shows
+This function plots mismatches in relation to the amplicon.
+Top plot is for the forward reads, middle one shows
 amplicon sequence, and bottom plot is for reverse reads.
+}
+\examples{
+#example config
+config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
+#example alignments results
+alignments <- read.csv(system.file("extdata/results", "alignments.csv", package = "amplican"))
+amplican_plot_mismatches(alignments, config, c('ID_1','ID_3'), 5)
+
 }
 

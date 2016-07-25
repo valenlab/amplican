@@ -202,7 +202,7 @@ amplican_plot_deletions(alignments, config, c('ID_1','ID_3'), 5)
 amplican_plot_insertions(alignments, config, c('ID_1','ID_3'), 5)
 ```  
 
-### Mutations  
+### Mismatches  
 
 ```{r mismatches Group 1, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
 amplican_plot_mismatches(alignments, config, c('ID_1','ID_3'), 5)
@@ -228,7 +228,7 @@ amplican_plot_deletions(alignments, config, c('ID_2'), 5)
 amplican_plot_insertions(alignments, config, c('ID_2'), 5)
 ```  
 
-### Mutations  
+### Mismatches  
 
 ```{r mismatches Group 2, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
 amplican_plot_mismatches(alignments, config, c('ID_2'), 5)
@@ -254,7 +254,7 @@ amplican_plot_deletions(alignments, config, c('ID_4'), 5)
 amplican_plot_insertions(alignments, config, c('ID_4'), 5)
 ```  
 
-### Mutations  
+### Mismatches  
 
 ```{r mismatches Group 3, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
 amplican_plot_mismatches(alignments, config, c('ID_4'), 5)

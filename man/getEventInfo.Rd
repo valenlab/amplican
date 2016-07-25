@@ -11,7 +11,7 @@ getEventInfo(liteString, ID, strand = "*", read_alignment)
 
 \item{ID}{(string)}
 
-\item{strand}{(string) Either "+", "-" or default "*"}
+\item{strand}{(string) Either '+', '-' or default '*'}
 
 \item{read_alignment}{(string) Sequence of aligned read to amplicon.}
 }
@@ -26,8 +26,8 @@ NNNNNNNNNNN-----NNNNNNN-------NNNNNNNN--------NNNNNNNN------    Subject
 ------NNNNNNNNNNNNNNNNNNNNNNNNN---NNNNNNNNNNNNN---NNNNNNNNNN    Pattern
 }
 \details{
-The RCPP library returns the information regarding the start and ends of the events in the
-following way:
+The RCPP library returns the information regarding the start and ends of the
+events in the following way:
 (Notice that there is a +1 shift in the index)
 
 #returned: @4@12,16*24,30*39,46*55,60*!@3@1,6*31,33*48,50*!@0@

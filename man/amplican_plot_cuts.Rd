@@ -18,8 +18,16 @@ possible to group them. First amplicon will be used as the basis for plot.}
 (cuts plot) ggplot2 object of cuts plot
 }
 \description{
-This function plots cuts in relation to the amplicon with distinction for each ID.
-Top plot is metaplot of all cuts combined with frequee to all reads in the amplicon group.
-Bottom plot shows cuts with facets for each ID.
+This function plots cuts in relation to the amplicon with distinction for
+each ID. Top plot is metaplot of all cuts combined with frequee to all reads
+in the  amplicon group. Bottom plot shows cuts with facets for each ID.
+}
+\examples{
+#example config
+config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
+#example alignments results
+alignments <- read.csv(system.file("extdata/results", "alignments.csv", package = "amplican"))
+amplican_plot_cuts(alignments, config, c('ID_1','ID_3'))
+
 }
 

@@ -11,38 +11,79 @@ makeAlignment(configTable, resultsFolder, skip_bad_nucleotides = TRUE,
   PRIMER_DIMER = 30, cut_buffer = 5)
 }
 \arguments{
-\item{configTable}{(bool)}
+\item{configTable}{config file as data table}
 
-\item{resultsFolder}{(char)}
+\item{resultsFolder}{(string) path to resultsFolder}
 
-\item{skip_bad_nucleotides}{(bool)}
+\item{skip_bad_nucleotides}{(logical) Some sequences have faulty nucleotides
+labels with N. If we find a sequence like that in either forwards or
+reverse, we skip that aligment. Default is TRUE.}
 
-\item{average_quality}{(int)}
+\item{average_quality}{(numeric) The FASTQ file have a quality for each
+nucleotide, being ! the lower and ~ the highest. In ASCII :
+                             !'#$%&'()*+,-./0123456789:;<=>?@
+                             ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`
+                             abcdefghijklmnopqrstuvwxyz{|}~
 
-\item{min_quality}{(int)}
+This quality variable goes from 0 to 100, being 0 the lowest quality and
+100 the highest. You can write whatever number in between, and the program
+will find out the apropiate character encoding. The filter works by
+converting each character to a number, and then finding the average. If the
+average fall above this threshold then we take the sequence. Default is 0.}
 
-\item{write_alignments}{(bool)}
+\item{min_quality}{(numeric)  Similar as in average_quality, but this is
+the minimum quality for ALL nucleotides. If one of them has quality BELLOW
+this threshold, then the sequence is skipped. Default is 0.}
 
-\item{scoring_matrix}{(char)}
+\item{write_alignments}{(numeric) How to write the aligments results
+into disk:
+                        0 - Write nothing
+                        1 - Write only the summary file
+                        2 - Write also a verbose file with all the alignments
+                            in the same .txt file (Default option)}
 
-\item{gap_opening}{(bool)}
+\item{scoring_matrix}{(string) For now the only option is 'NUC44'.}
 
-\item{gap_extension}{(int)}
+\item{gap_opening}{(numeric) The opening gap score. Default is 50.}
 
-\item{gap_ending}{(bool)}
+\item{gap_extension}{(numeric) The gap extension score. Default is 0.}
 
-\item{far_indels}{(bool)}
+\item{gap_ending}{(boolean) If you want that the ending gap count for the
+alignment score set this to TRUE. Default is FALSE.}
 
-\item{fastqfiles}{(numeric)}
+\item{far_indels}{(boolean) If the ending/starting gap should be considered
+to be an indel. Default is TRUE. If you want to filter these out from the
+plots, there is an option to do so in the plot function. You don't need to
+do it here.}
 
-\item{PRIMER_DIMER}{(numeric)}
+\item{fastqfiles}{(numeric) Normally you want to use both FASTQ files. But in
+some special cases, you may want to use only the
+forward file, or only the reverse file.
+0 - Use both FASTQ files
+0.5 - Use both FASTQ files,
+but only for one of the reads (forward or reverse)
+is required to have primer perfectly matched to
+sequence - eg. use when reverse reads are
+trimmed of primers, but forward reads have
+forward primer in the sequence
+1 - Use only the forward FASTQ file
+2 - Use only the reverse FASTQ file}
 
-\item{cut_buffer}{(numeric)}
+\item{PRIMER_DIMER}{(numeric) Value specyfying buffer for PRIMER DIMER
+detection. For a given read it will be recognized as PRIMER DIMER when
+alignment will introduce gap of size bigger than:
+length of amplicon - (lenghts of PRIMERS + PRIMER_DIMER value)}
+
+\item{cut_buffer}{(numeric) Value specyfying a buffer for PAM, this will add
+from both sides to a window defined from uppercase letters in the amplicon.
+Deletions overlapping this window will be considered a
+valid cut (if confirmed by both forward and rewerse reads).}
 }
 \value{
 Void
 }
 \description{
-Main functionality of the package, aligning reads to the amplicon using gotoh implementation.
+Main functionality of the package, aligning reads to the amplicon using
+gotoh implementation.
 }
 

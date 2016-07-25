@@ -49,7 +49,7 @@ gap counts as deletion/insertion. FALSE othewise.
                  - Pattern subject string.
 
                  You can split each part using
-                 the substring "++++" (four plus symbols).
+                 the substring '++++' (four plus symbols).
 
                  The parts mean the following:
 
@@ -181,9 +181,9 @@ gap counts as deletion/insertion. FALSE othewise.
 
                   aaddttaaaa
 #@examples
-#gRCPP("aaaaa", "aaddttaaaa")
-#gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5)
-#gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5, TRUE, TRUE)
+#gRCPP('aaaaa', 'aaddttaaaa')
+#gRCPP('aaaaa', 'aaddttaaaa', 'NUC44', 30, 5)
+#gRCPP('aaaaa', 'aaddttaaaa', 'NUC44', 30, 5, TRUE, TRUE)
 }
 \description{
 \code{gRCPP} This is the main aligning fucntion. The function allocate

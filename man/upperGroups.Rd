@@ -10,11 +10,12 @@ upperGroups(candidate)
 \item{candidate}{(string) A string with the nucleotide sequence.}
 }
 \value{
-(Ranges) A Ranges object with uppercases groups for given candidate string
+(Ranges) A Ranges object with uppercases groups for given candidate
+string
 }
 \description{
-For a given string, detect how many groups of uppercases is inside, where are
-they, and how long they are.
+For a given string, detect how many groups of uppercases is inside, where
+are they, and how long they are.
 }
 \details{
 For example:

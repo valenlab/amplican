@@ -7,12 +7,14 @@
 deleteFiles(configTable)
 }
 \arguments{
-\item{configTable}{(data.frame) Contains Forward_Reads_File and Reverse_Reads_File to be removed}
+\item{configTable}{(data.frame) Contains Forward_Reads_File and
+Reverse_Reads_File to be removed}
 }
 \value{
 (void) In case of fail, prints err.
 }
 \description{
-Delete files from configTables Forward_Reads_File and Reverse_Reads_File (fastq files).
+Delete files from configTables Forward_Reads_File and
+Reverse_Reads_File (fastq files).
 }
 

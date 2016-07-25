@@ -7,7 +7,7 @@ Description: `amplican` creates report of deletions, insertions, frameshifts,
     and automates analysis across different experiments. `amplican` maintains
     elasticity through configuration file, which with your fastq samples are only
     requirements.
-Version: 0.99.0
+Version: 1.0.0
 Authors@R: c(
     person("Kornel", "Labun", email = "kornel.labun@gmail.com", role = "aut"),
     person(c("Rafael", "Nozal"), "Canyadas", email = "rca025@uib.no",  role = "ctr"),
@@ -15,6 +15,7 @@ Authors@R: c(
   )
 URL: https://bitbucket.org/valenlab/amplican
 BugReports: https://bitbucket.org/valenlab/amplican/issues
+biocViews: Technology, qPCR
 License: GPL-3
 LazyData: TRUE
 LinkingTo: Rcpp
@@ -41,13 +42,13 @@ Suggests:
 Collate:
     'RcppExports.R'
     'amplican.R'
-    'helpers_directory.R'
     'helpers_warnings.R'
     'helpers_filters.R'
     'helpers_alignment.R'
     'gotoh.R'
     'amplicanAnalysis.R'
     'amplicanReport.R'
+    'helpers_directory.R'
     'helpers_plots.R'
     'helpers_rmd.R'
 VignetteBuilder: knitr

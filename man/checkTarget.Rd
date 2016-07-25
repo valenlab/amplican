@@ -7,15 +7,18 @@
 checkTarget(targetPrimer, amplicon, ID, barcode, logFileConn)
 }
 \arguments{
-\item{targetPrimer}{(string) A sequence of nucleotides in a string format representing the target}
+\item{targetPrimer}{(string) A sequence of nucleotides in a string format
+representing the target}
 
-\item{amplicon}{(string) A sequence of nucleotides in a string format representing the amplicon}
+\item{amplicon}{(string) A sequence of nucleotides in a string format
+representing the amplicon}
 
 \item{ID}{(string) The ID from where this target and amplicon came.}
 
 \item{barcode}{(string) The barcode from where this target and amplicon came.}
 
-\item{logFileConn}{(connection) A file descriptor in R which is pointing to the log file.}
+\item{logFileConn}{(connection) A file descriptor in R which is pointing to
+the log file.}
 }
 \value{
 (boolean) TRUE when target is in amplicon

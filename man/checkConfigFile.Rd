@@ -2,7 +2,8 @@
 % Please edit documentation in R/helpers_warnings.R
 \name{checkConfigFile}
 \alias{checkConfigFile}
-\title{This function pre-process a config file and checks that everything is in order.}
+\title{This function pre-process a config file and checks that everything is in
+order.}
 \usage{
 checkConfigFile(configTable, fastq_folder)
 }

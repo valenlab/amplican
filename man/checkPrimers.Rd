@@ -7,25 +7,30 @@
 checkPrimers(forwardPrimer, reversePrimerRC, amplicon, ID, barcode, logFileConn)
 }
 \arguments{
-\item{forwardPrimer}{(string) A sequence of nucleotides in a string format representing the forward primer}
+\item{forwardPrimer}{(string) A sequence of nucleotides in a string format
+representing the forward primer}
 
-\item{reversePrimerRC}{(string) A sequence of nucleotides in a string format representing the reverse primer. Usually
-you want to reverse complement this BEFORE giving it to the function. The function WILL NOT
-reverse complement it for you.}
+\item{reversePrimerRC}{(string) A sequence of nucleotides in a string format
+representing the reverse primer. Usually you want to reverse complement this
+BEFORE giving it to the function. The function WILL NOT reverse complement
+it for you.}
 
-\item{amplicon}{(string) A sequence of nucleotides in a string format representing the amplicon}
+\item{amplicon}{(string) A sequence of nucleotides in a string format
+representing the amplicon}
 
 \item{ID}{(string) The ID from where this target and amplicon came.}
 
 \item{barcode}{(string) The barcode from where this target and amplicon came.}
 
-\item{logFileConn}{(connection) The location on disk where you can find the config file with this ID and barcode.}
+\item{logFileConn}{(connection) The location on disk where you can find the
+config file with this ID and barcode.}
 }
 \value{
 (boolean) TRUE when both primers are found in the amplicon
 }
 \description{
-The forward primer should be the one coming from the configuration file, while the reverse primer should be
-reverse and complementary. This function DOES NOT reverse complements the input.
+The forward primer should be the one coming from the configuration file,
+while the reverse primer should be reverse and complementary.
+This function DOES NOT reverse complements the input.
 }
 

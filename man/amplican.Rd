@@ -11,11 +11,12 @@ It has three main goals:
 \details{
 \itemize{
 \item Alignment and analysis of the MiSeq or HiSeq data.
-\item Prepare automatic reports as .Rmd files that are flexible and open for manipulation.
+\item Prepare automatic reports as .Rmd files that are flexible
+and open for manipulation.
 \item Provide specialized plots for deletions, insertions, mismatches.
 }
 
 To learn more about amplican, start with the vignettes:
-\code{browseVignettes(package = "amplican")}
+\code{browseVignettes(package = 'amplican')}
 }
 

@@ -40,7 +40,7 @@
 #'                  - Pattern subject string.
 #'
 #'                  You can split each part using
-#'                  the substring "++++" (four plus symbols).
+#'                  the substring '++++' (four plus symbols).
 #'
 #'                  The parts mean the following:
 #'
@@ -172,15 +172,25 @@
 #'
 #'                   aaddttaaaa
 #' #@examples
-#' #gRCPP("aaaaa", "aaddttaaaa")
-#' #gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5)
-#' #gRCPP("aaaaa", "aaddttaaaa", "NUC44", 30, 5, TRUE, TRUE)
-#' @useDynLib amplican
+#' #gRCPP('aaaaa', 'aaddttaaaa')
+#' #gRCPP('aaaaa', 'aaddttaaaa', 'NUC44', 30, 5)
+#' #gRCPP('aaaaa', 'aaddttaaaa', 'NUC44', 30, 5, TRUE, TRUE)
+#' @useDynLib amplican, .registration = TRUE
 #' @importFrom Rcpp sourceCpp
-gRCPP <- function(pattern, subject, scoringMatrix="NUC44", gapOpening = 50,
-                  gapExtension = 0, gapEnding = FALSE, farIndels = TRUE){
+gRCPP <- function(pattern,
+                  subject,
+                  scoringMatrix = "NUC44",
+                  gapOpening = 50,
+                  gapExtension = 0,
+                  gapEnding = FALSE,
+                  farIndels = TRUE) {
 
-  result <- gotohRCPP(pattern, subject, scoringMatrix, gapOpening,
-                      gapExtension, gapEnding, farIndels)
-  return (result)
+    result <- gotohRCPP(pattern,
+                        subject,
+                        scoringMatrix,
+                        gapOpening,
+                        gapExtension,
+                        gapEnding,
+                        farIndels)
+    return(result)
 }

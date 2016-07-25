@@ -18,7 +18,7 @@
  *
  * @section DESCRIPTION
  *
- * 	Rcpp script for aligning several sequences with a single subject                
+ * 	Rcpp script for aligning several sequences with a single subject
  *	sequence, one by one.
  *
  *	The script allocate memory for one matrix only. After an alignment,
@@ -26,7 +26,7 @@
  *
  *  The results are given in a string witht the following format:
  *
- *	SUBJECT SEQUENCE@SEQUENCE 1 
+ *	SUBJECT SEQUENCE@SEQUENCE 1
  *	Indels:
  *	Start@End@<Pattern,Subject>
  *	Mismatches:
@@ -48,7 +48,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <cstdlib>
-#include <list> 
+#include <list>
 #include <algorithm> //reverse() when reverse the traceback result
 #include <limits>    // in limits<int>:min()
 #include <typeinfo>  //in printMatrix<T>, string or int
@@ -59,7 +59,7 @@
 					         //privelege to do that.
 
 // Enable C++11 via this plugin (Rcpp 0.10.3 or later)
-// [[Rcpp::plugins("cpp11")]]						 
+// [[Rcpp::plugins("cpp11")]]
 
 using namespace std;
 
@@ -94,7 +94,7 @@ class Mutation_Info{
 			START:    <start>
 			ORIGINAL: <original>
 			MUTATED:  <mutated>
-			
+
 			@return string with the specified format.
 		*/
 		string to_string() const{
@@ -153,8 +153,8 @@ refers if the indel is in the pattern or the subject. For example:
 
          0123456789012345678
          -------------------
-Pattern  AATATAAC----GCACGTG 
-Subject  AA--TAACGGAAGCACGTG 
+Pattern  AATATAAC----GCACGTG
+Subject  AA--TAACGGAAGCACGTG
 
 The Pattern have an insertion from 2 to 3.
 The Pattern have a deletion from 8 to 11.
@@ -170,13 +170,13 @@ The Subject have an insertion from 8 to 11.
 
 */
 class Indel_Info{
-	
+
 	private:
 		const unsigned int start;
 		const unsigned int end;
 		const bool pattern;
 	public:
-	
+
 		/**
 		Constructor of the class, set atttributes to s,e and p.
 
@@ -239,7 +239,7 @@ class Indel_Info{
 
 			@return const bool with the pattern
 		*/
-		inline const bool get_pattern(){return pattern;};	
+		inline const bool get_pattern(){return pattern;};
 
 };
 
@@ -250,7 +250,7 @@ class are described here:
 
 	@see Indel_Info, in here you will find information about how the list of
 					  indels is actually implemented.
-					  
+
 	@todo Is there actually a standard way to describe members?
 
     const string pattern: One of the sequences that are aligned.
@@ -260,7 +260,7 @@ class are described here:
     const int gapOpening:     Score given for opening gaps.
     const int gapExtension:   Score given for extending gaps.
 
-    const int alignmentLength: How long are both alignments counting gaps. 
+    const int alignmentLength: How long are both alignments counting gaps.
     const int score:           Final score of the alignment.
 
 	const string patternAlignment: Alignment of the pattern.
@@ -278,7 +278,7 @@ class are described here:
 
 	const std::list<Indel_Info> insertions: List with the insertions information
 	const std::list<Indel_Info> deletions:  List with the deletions information.
-  
+
 
 	@invariant: length(patternAlignment) = length(subjectAignment) =
 	            length(markup) = alignmentLength
@@ -307,7 +307,7 @@ many RCPP dependencies.
 
 	Originally I thought of making this arrays for insertions and deletions
 
-	const Indel_Info* insertions: 
+	const Indel_Info* insertions:
 	const Indel_Info* deletions:
 
 	I realized that we don't know indel in advance and until we finish the grid
@@ -317,7 +317,7 @@ many RCPP dependencies.
 
 */
 class Alignment_Result{
-	
+
 	private:
 		const string pattern;
 		const string subject;
@@ -343,7 +343,7 @@ class Alignment_Result{
 
 		const std::list<Indel_Info> insertionsPattern;
 		const std::list<Indel_Info> deletionsSubject;
-		
+
 		const std::list<Mutation_Info> mutations;
 		const std::list<Mutation_Info> mutationsRelative;
 
@@ -407,7 +407,7 @@ class Alignment_Result{
 		string to_string(){
 
 			string toReturn =  "";
-			
+
 			if(this==NULL){
 
 				toReturn = "WARNING: Alignment_Result init to NULL";
@@ -485,7 +485,7 @@ class Alignment_Result{
 				for (list<Indel_Info>::const_iterator it = insertions.begin();
 				     it!=insertions.end(); it++){
 
-					indelInfoPiece += (*it).to_string() + "\n";					
+					indelInfoPiece += (*it).to_string() + "\n";
 				}
 
 				toReturn = toReturn + indelInfoPiece + "\n" +
@@ -498,23 +498,23 @@ class Alignment_Result{
 				for (list<Indel_Info>::const_iterator it = insertionsPattern.begin();
 				     it!=insertionsPattern.end(); it++){
 
-					indelInfoPiece += (*it).to_string() + "\n";					
+					indelInfoPiece += (*it).to_string() + "\n";
 				}
 
 				toReturn += indelInfoPiece + "\n" +
 
-				
+
 				"----------------\n"+
 				"DELETIONS: \n"+
 				"----------------\n";
-				
+
 				indelInfoPiece = "";
 
 				//Show the list of all deletions
 				for (list<Indel_Info>::const_iterator it = deletions.begin();
 				     it!=deletions.end(); it++){
 
-					indelInfoPiece += (*it).to_string() + "\n";					
+					indelInfoPiece += (*it).to_string() + "\n";
 				}
 
 				toReturn = toReturn + indelInfoPiece + "\n" +
@@ -522,16 +522,16 @@ class Alignment_Result{
 				"--Deletions respect subject coordinates-- \n\n";
 
 				indelInfoPiece = "";
-				
+
 				//Show the list of all deletions from the subject coordinates.
 				for (list<Indel_Info>::const_iterator it = deletionsSubject.begin();
 				     it!=deletionsSubject.end(); it++){
 
-					indelInfoPiece += (*it).to_string() + "\n";					
+					indelInfoPiece += (*it).to_string() + "\n";
 				}
 
 				toReturn += indelInfoPiece + "\n" +
-			
+
 				"----------------\n"+
 				"MISMATCHES: \n"+
 				"----------------\n";
@@ -542,7 +542,7 @@ class Alignment_Result{
 				for (list<Mutation_Info>::const_iterator it = mutations.begin();
 				     it!=mutations.end(); it++){
 
-					indelInfoPiece += (*it).to_string() + "\n";					
+					indelInfoPiece += (*it).to_string() + "\n";
 				}
 
 				toReturn = toReturn + indelInfoPiece + "\n" +
@@ -555,18 +555,18 @@ class Alignment_Result{
 				for (list<Mutation_Info>::const_iterator it = mutationsRelative.begin();
 				     it!=mutationsRelative.end(); it++){
 
-					indelInfoPiece += (*it).to_string() + "\n";					
+					indelInfoPiece += (*it).to_string() + "\n";
 				}
 
 				toReturn += indelInfoPiece + "\n" +
-				
+
 				"\n"+
 				"****************\n";
 			}
-			
+
 			return toReturn;
 		}
-		
+
 		/**
 			This function return an string representation of the object. In this
 			case the information given is the minimum that ggplot2 needs to draw
@@ -587,7 +587,7 @@ class Alignment_Result{
 			 @todo info to ggplot2 specifications
 			 @see ampliCan.R
 			 @todo link to specific lines of code in the R script
-			 @todo CIGAR 
+			 @todo CIGAR
 
 		*/
 		string to_ggplot2_string(){
@@ -670,7 +670,7 @@ class Alignment_Result{
 
 			for (list<Mutation_Info>::const_iterator it = mutationsRelative.begin();
 				it!=mutationsRelative.end(); it++){
-					
+
 				toReturn += (*it).to_string_lite() + "*";
 			}
 
@@ -687,7 +687,7 @@ class Alignment_Result{
 		/**
 			Return only the insertions information in a string format:
 			Start@End@<Pattern,Subject>
-		*/		
+		*/
 		string delitions_to_string(){return "";}
 
 		string get_pattern_alignment(){ return patternAlignment ;}
@@ -712,7 +712,7 @@ class Alignment_Result{
     @param T** matrix: The matrix we want to print on standard output
     @param string sequencePattern: String with the pattern sequence
 	@param string sequenceSubject: String with the subject sequence
-	
+
     @return VOID
 */
 template <class T>
@@ -732,7 +732,7 @@ void printMatrix(T** matrix, const string &sequencePattern,
 
 	//Print the rest of the lines starting with the subject nucleotide
 	for(int i=0;i<=lengthSubject;i++){
-		
+
 		//If it is the first character, show the subject nucleotide
 		if(i>0){
 			cout <<sequenceSubject[i-1]<< " ";
@@ -781,7 +781,7 @@ inline int maxRow(int** matrix, const int &columnIndex, const int &totalRows,
 
 	int maximum = matrix[offset][columnIndex];
 	maximumIndex = offset;
-	
+
 	//For each of the elements in the row
     for(int i=offset+1; i<=totalRows; i++){ //+1, maximum is [i][0], start in [i][1]
 		if(maximum < matrix[i][columnIndex]){
@@ -789,7 +789,7 @@ inline int maxRow(int** matrix, const int &columnIndex, const int &totalRows,
 			maximum = matrix[i][columnIndex];
 			maximumIndex = i;
 
-		}		
+		}
 	}
 
 	return maximum;
@@ -807,7 +807,7 @@ inline int maxColumn(int** matrix, const int &rowIndex, const int &totalColumns,
 
 	int maximum = matrix[rowIndex][offset];
 	maximumIndex = offset;
-	
+
 	//For each of the elements in the row
     for(int i=offset+1; i<=totalColumns; i++){ //+1, maximum is [i][0], start in [i][1]
 
@@ -816,7 +816,7 @@ inline int maxColumn(int** matrix, const int &rowIndex, const int &totalColumns,
 			maximum = matrix[rowIndex][i];
 			maximumIndex = i;
 
-		}		
+		}
 	}
 
 	return maximum;
@@ -824,10 +824,10 @@ inline int maxColumn(int** matrix, const int &rowIndex, const int &totalColumns,
 }
 
 /**
-	
+
 	Return the maximum of three integers. The character indicates
 	the direction of the traceback matrix propagation, like this:
-	 
+
 	-----------
 	| B  |  A |
 	-----------
@@ -840,7 +840,7 @@ inline int maxColumn(int** matrix, const int &rowIndex, const int &totalColumns,
 	@param direction: A character that represent the direction that we shall
 					  follow from X in order to get to the maximum. '-' for C
 					  '\' for B and '|' for A. WILL BE MODIFY.
-					  
+
     @return int max: A copy of either, A, B or C.
 */
 inline int max(int A, int B, int C, char &direction){
@@ -859,24 +859,24 @@ inline int max(int A, int B, int C, char &direction){
         direction = '-' ;
 	}
 
-    return  max ;   
+    return  max ;
 }
 
 /**
-	
+
 	Return the maximum of three integers. The character indicates the direction
 	of the traceback matrix propagation. A '\' character means that we continue
 	in the traceback grid matrix. A 'V' character means that we should go to the
 	vertical traceback matrix. A 'H' chracter means that we should go to the
 	horizontal traceback matrix.
-	 
+
     @param int grid,vertical,horizontal: Integers from where we get the maximum,
 										 which will max(G,V,H).
 
 	@param direction: A character that represent the direction that we shall
 					  follow in order to get to the maximum. 'H' for horizontal
 					  '\' for grid and 'V' for vertical. WILL BE MODIFY.
-					  
+
     @return int max: A copy of either, grid, vertical or horizontal.
 */
 inline int max3D(int grid, int vertical, int horizontal, char &direction){
@@ -895,7 +895,7 @@ inline int max3D(int grid, int vertical, int horizontal, char &direction){
         direction = 'V' ;
 	}
 
-    return  max ;   
+    return  max ;
 }
 
 /**
@@ -928,8 +928,8 @@ inline int maxHorizontal(const int &open, const int &extend, char &direction){
 		max = extend;
         direction = '-';
 	}
-	
-    return  max ;   
+
+    return  max ;
 }
 
 /**
@@ -962,8 +962,8 @@ inline int maxVertical(const int &open, const int &extend, char &direction){
 		max = extend;
         direction = '|';
 	}
-	
-    return  max ;   
+
+    return  max ;
 }
 
 /**
@@ -996,7 +996,7 @@ inline int maxVertical(const int &open, const int &extend, char &direction){
 	tracebackGrid[0][j] = H (representing "go to horizontal matrix") (j!=0)
 	tracebackGrid[i][0] = V (representing "go to vertical   matrix") (i!=0)
 
-	tracebackVertical[0][j] = G (representing "go to grid") 
+	tracebackVertical[0][j] = G (representing "go to grid")
 	tracebackVertical[i][0] = | (representing "go up     ") (i!=0)
 
 	tracebackHorizontal[i][0] = G (representing "go to grid")
@@ -1007,7 +1007,7 @@ inline int maxVertical(const int &open, const int &extend, char &direction){
 	Gap extension = -2
 
 	GRID:
-	    
+
 	-----------------------------------------
 	|   |   | A | T | C | G | G | G | A | G |
 	-----------------------------------------
@@ -1023,7 +1023,7 @@ inline int maxVertical(const int &open, const int &extend, char &direction){
 	-----------------------------------------
 
 	VERTICAL:
-	    
+
 	-----------------------------------------
 	|   |   | A | T | C | G | G | G | A | G |
 	-----------------------------------------
@@ -1039,7 +1039,7 @@ inline int maxVertical(const int &open, const int &extend, char &direction){
 	-----------------------------------------
 
 	HORIZONTAL:
-	    
+
 	-----------------------------------------
 	|   |   | A | T | C | G | G | G | A | G |
 	-----------------------------------------
@@ -1100,7 +1100,7 @@ inline int maxVertical(const int &open, const int &extend, char &direction){
 	| C | G |   |   |   |   |   |   |   |   |
 	-----------------------------------------
  	| G | G |   |   |   |   |   |   |   |   |
-	-----------------------------------------	
+	-----------------------------------------
 
 
 	NOTE: Since integer are a finite set in C++, we are using the upper or lower
@@ -1120,12 +1120,12 @@ inline int maxVertical(const int &open, const int &extend, char &direction){
 	number. Again, with a 16 bit integer representation it will set around the
 	number - ~16K. This means that, the worse case scenario is an alignment of
 	similarity 0% that has length subject+pattern, ie:
-	
+
 		----AAAAAAA
 		TTTT-------
 
 	We are expecting sequences of 500 nucleotides.
-	
+
 	- Worse case where all nucleotides are align but difference gives us a score
 	  of 500 * (-4) = -2500 (again, no problem here).
 
@@ -1135,14 +1135,14 @@ inline int maxVertical(const int &open, const int &extend, char &direction){
 		2*O + 1000*E > -16K => O + 500*E > -8K. This give us a margin of around
 		gap extension ~= 16. This is something worth discussing for minimal
 		memory comsumption if 16bits representation of integer is used.
-		
+
 
 	NOTE2: The char** matrices are implemented with chars, only for the user
 	convinience. The horizontal and vertical are possible to implement with a
 	bool since they only have two states (go <up,left> or go to grid). The grid
 	traceback needs THREE states that can be accomplished with only a double
 	bool struct. After testing, it would be great to optimize that.
-	
+
 
   @param int** grid, horizontal, vertical: The three scoring matrices that
 											 were PREVIOUSLY CREATED which we
@@ -1181,7 +1181,7 @@ void  initialize(int** grid, int** vertical, int** horizontal,
 
     const int lengthPattern = sequencePattern.length();
     const int lengthSubject = sequenceSubject.length();
-	
+
 	//Initialize grid
 	grid[0][0] = 0 ;
 
@@ -1195,7 +1195,7 @@ void  initialize(int** grid, int** vertical, int** horizontal,
 		//grid[i][0] = -(gapOpening + gapExtension * i);
 		grid[i][0] = 0;
 	}
-	
+
 	if(DEBUG==true){
 		cout<<"Grid initialized"<<endl;
 	}
@@ -1211,19 +1211,19 @@ void  initialize(int** grid, int** vertical, int** horizontal,
 	if(DEBUG==true){
 		cout<<"Horizontal initialized"<<endl;
 	}
-	
+
 	//Initialize vertical
     for(i=1; i<=lengthSubject; i++){
-		vertical[i][0] = -(gapOpening + gapExtension * i);		
+		vertical[i][0] = -(gapOpening + gapExtension * i);
 	}
 	for(i=0; i<=lengthPattern; i++){
-		vertical[0][i] = MINUS_INF;		
+		vertical[0][i] = MINUS_INF;
 	}
 
 	if(DEBUG==true){
 		cout<<"Vertical initialized"<<endl;
 	}
-	
+
 	//Initialize tracebackGrid
 	tracebackGrid[0][0] = 'x';
 
@@ -1260,7 +1260,7 @@ void  initialize(int** grid, int** vertical, int** horizontal,
 		cout<<"Vertical matrix"<<endl;
 		printMatrix(vertical, sequencePattern, sequenceSubject);
 		cout<<endl;
-		cout<<"Horizontal matrix"<<endl; 
+		cout<<"Horizontal matrix"<<endl;
 		printMatrix(horizontal, sequencePattern, sequenceSubject);
 		cout<<endl;
 		cout<<"Traceback Grid matrix"<<endl;
@@ -1282,7 +1282,7 @@ void  initialize(int** grid, int** vertical, int** horizontal,
     This function allow you to align two sequences, provided that the grid
     matrices and the traceback matrices are inicialized.
 
-    @param 
+    @param
     @return 0 if everything goes well
             1 if you choose a wrong scoring matrix;
               this will swap to NUC44 and run the function anyway
@@ -1328,7 +1328,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
   //Scoring variables
   unsigned int maximumIndex=0;
   int maxScore = 0;
-    
+
   //The result of the alignment is store in here
   string patternResult = "";
   string subjectResult = "";
@@ -1361,7 +1361,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
   char currentNucleotide  = 'x';
 
 	//Scoring matrix structure (init to NUC44 by default)
-	int  scoreMatrix[4][4] = {{ 5, -4, -4, -4 },    
+	int  scoreMatrix[4][4] = {{ 5, -4, -4, -4 },
 							  {-4,  5, -4, -4 },
 							  {-4, -4,  5, -4 },
 							  {-4, -4, -4,  5}};
@@ -1414,17 +1414,17 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 			//Finding for the horizontal
 			newGap = grid[i][j-1] - (gapOpening + gapExtension);
 			extendGap = horizontal[i][j-1] - gapExtension;
-			
+
 			horizontal[i][j] = maxHorizontal(newGap,extendGap,direction);
 			tracebackHorizontal[i][j] = direction;
 
 			//Finding for the vertical
 			newGap = grid[i-1][j] - (gapOpening + gapExtension);
 			extendGap = vertical[i-1][j] - gapExtension;
-			
+
 			vertical[i][j] = maxVertical(newGap,extendGap,direction);
 			tracebackVertical[i][j] = direction;
-			
+
 			//Find the score from the three directions
 			up       = horizontal[i-1][j-1];
 			diagonal = grid[i-1][j-1];
@@ -1432,7 +1432,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 
 			//Get the biggest one and write it into the grid
             grid[i][j] = max3D(diagonal,up,left,direction) + scoreMatrix[x][y];
-            
+
 			//Write the direction into the traceback matrix
             tracebackGrid[i][j] = direction;
 		}
@@ -1479,7 +1479,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 		//Get the maximum of the right column
 		int maximumColumn = maxRow(grid,j,i,maximumIndex,0);
 		unsigned int rowIndex = maximumIndex;
-		
+
 		//Get the maximum of the bottom row
 		int maximumRow = maxColumn(grid,i,j,maximumIndex,0);
 		unsigned int columnIndex = maximumIndex;
@@ -1492,12 +1492,12 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 
 				//Adjust the alignments and the traceback start
 				while(i!=rowIndex){
-					
-					patternResult += '-'; 
+
+					patternResult += '-';
 					subjectResult += sequenceSubject[i-1];
-					markup += ' ';  
+					markup += ' ';
 					i--;
-					
+
 				}
 
 			}
@@ -1505,12 +1505,12 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 
 				//Adjust the alignments and the traceback start
 				while(j!=columnIndex){
-					
-					patternResult += sequencePattern[j-1]; 
+
+					patternResult += sequencePattern[j-1];
 					subjectResult += '-';
-					markup += ' ';  
+					markup += ' ';
 					j--;
-					
+
 				}
 
 			}
@@ -1525,10 +1525,10 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 
 		}
 
-		
 
 
-	
+
+
 	}
 
 	if(DEBUG==true){
@@ -1539,7 +1539,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 		cout<<"Grid matrix"<<endl;
 		printMatrix(grid, sequencePattern, sequenceSubject);
 		cout<<endl;
-		cout<<"Horizontal matrix"<<endl; 
+		cout<<"Horizontal matrix"<<endl;
 		printMatrix(horizontal, sequencePattern, sequenceSubject);
 		cout<<endl;
 		cout<<"Vertical matrix"<<endl;
@@ -1548,7 +1548,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 		cout<<"Traceback Grid matrix"<<endl;
 		printMatrix(tracebackGrid, sequencePattern, sequenceSubject);
 		cout<<endl;
-		cout<<"Traceback Horizontal matrix"<<endl; 
+		cout<<"Traceback Horizontal matrix"<<endl;
 		printMatrix(tracebackHorizontal, sequencePattern, sequenceSubject);
 		cout<<endl;
 		cout<<"Traceback Vertical matrix"<<endl;
@@ -1574,12 +1574,12 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 			cout<<subjectResult<<endl;
 
 		}
-		
+
 		switch(tracebackGrid[i][j]){
 
 			//The easiest case, just go on diagonal.
 			case '\\':
-				patternResult += sequencePattern[j-1]; 
+				patternResult += sequencePattern[j-1];
                 subjectResult += sequenceSubject[i-1];
 				if(toupper(sequencePattern[j-1]) == toupper(sequenceSubject[i-1])){
 					markup += '|';
@@ -1597,7 +1597,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 					cin.ignore().get();
 
 				}
-				
+
                 i--;
                 j--;
                 break;
@@ -1612,9 +1612,9 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 				 So we need to mark one last pair, then follow the vertical
 				 path until it tell us to come back to grid.
 				*/
-								
+
 				//First, lets mark the alignment with the insertion
-				patternResult += sequencePattern[j-1]; 
+				patternResult += sequencePattern[j-1];
                 subjectResult += sequenceSubject[i-1];
                 if(toupper(sequencePattern[j-1]) == toupper(sequenceSubject[i-1])){
 					markup += '|';
@@ -1632,7 +1632,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 
 				}
 
-				
+
                 //indelEnd = i;
                 i--;
                 j--;
@@ -1641,18 +1641,18 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 
 
                 /*
-                
+
 				Now we need to continue UP in the VERTICAL TRACEBACK MATRIX
 				until we find the reference that transport us back to the
 				TRACEBACK GRID.
 
 				*/
                 direction = tracebackVertical[i][j];
-                
+
 				while(i>0 && direction!='G'){
-					subjectResult += sequenceSubject[i-1]; 
+					subjectResult += sequenceSubject[i-1];
 					patternResult += '-';
-					markup += ' ';  
+					markup += ' ';
 					i--;
 					direction = tracebackVertical[i][j];
 				}
@@ -1664,13 +1664,13 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 					to the LEFT
 				*/
 
-				subjectResult += sequenceSubject[i-1]; 
+				subjectResult += sequenceSubject[i-1];
 				patternResult += '-';
-				markup += ' ';  
+				markup += ' ';
 				i--;
 
 				break;
-				
+
 			//If the traceback tell us to go horizontal
 			case 'H':
 
@@ -1681,9 +1681,9 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 				 So we need to mark one last pair, then follow the horizontal
 				 path until it tell us to come back to grid.
 				*/
-				
+
 				//First, lets mark the alignment with the insertion
-				patternResult += sequencePattern[j-1]; 
+				patternResult += sequencePattern[j-1];
                 subjectResult += sequenceSubject[i-1];
                 if(toupper(sequencePattern[j-1]) == toupper(sequenceSubject[i-1])){
 					markup += '|';
@@ -1701,24 +1701,24 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 
 				}
 
-				
+
                 //indelEnd = j;
                 i--;
                 j--;
 
                 /*
-                
+
 				Now we need to continue LEFT in the HORIZONTAL TRACEBACK MATRIX
 				until we find the reference that transport us back to the
 				TRACEBACK GRID.
 
 				*/
                 direction = tracebackHorizontal[i][j];
-                
+
 				while(j>0 && direction!='G'){
-					patternResult += sequencePattern[j-1]; 
+					patternResult += sequencePattern[j-1];
 					subjectResult += '-';
-					markup += ' ';  
+					markup += ' ';
 					j--;
 					direction = tracebackHorizontal[i][j];
 
@@ -1730,7 +1730,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 						cout<<subjectResult<<endl;
 
 					}
-					
+
 				}
 
 				/*
@@ -1740,9 +1740,9 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 					to the LEFT
 				*/
 
-				patternResult += sequencePattern[j-1]; 
+				patternResult += sequencePattern[j-1];
 				subjectResult += '-';
-				markup += ' ';  
+				markup += ' ';
 				j--;
 
 				break;
@@ -1752,28 +1752,28 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 			case '-':
 
 				while(j>0){
-					patternResult += sequencePattern[j-1]; 
+					patternResult += sequencePattern[j-1];
 					subjectResult += '-';
-					markup += ' ';  
+					markup += ' ';
 					j--;
 				}
-			
+
 				break;
 
 			//If we reach the left of the traceback grid (NOT THE VERTICAL!)
 			case '|':
 
 				while(i>0){
-					subjectResult += sequenceSubject[i-1]; 
+					subjectResult += sequenceSubject[i-1];
 					patternResult += '-';
-					markup += ' ';  
+					markup += ' ';
 					i--;
 				}
 
-				break;				
+				break;
 
 		}
-		
+
 	}
 
 	//The final result is the traceback path, but reversed
@@ -1804,7 +1804,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 		if(patternResult[i] != '-'){
 
 			patternIndex = patternIndex + 1;
-			
+
 		}
 
 		//We found the beggining of a new gap
@@ -1832,16 +1832,16 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 					Indel_Info newInsertion(indelStart,indelEnd,false);
 					Indel_Info newInsertionPattern(indelPatternStart,
 												   indelPatternEnd,false);
-												   
+
 					insertions.push_back(newInsertion);
 					insertionsPattern.push_back(newInsertionPattern);
 
-					
+
 				}
 			}
 		}
 	}
-	
+
 	//If we count the far right/left indels,we need to close the right insertion
 	//if there is one and the pattern alignment ends in gaps.
 	if(farIndels==true && gapFound==true){
@@ -1850,10 +1850,10 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 
 		Indel_Info newInsertion(indelStart,indelEnd,true);
 		Indel_Info newInsertionPattern(indelPatternStart,indelPatternEnd,true);
-		
+
 		insertions.push_back(newInsertion);
 		insertionsPattern.push_back(newInsertionPattern);
-	}	
+	}
 
 	//Find the deletions (look in pattern)
 	gapFound = false;
@@ -1880,12 +1880,12 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 			 The third 'T' has index 12 in the subject, but 19 in the alignment.
 
 		  So we only count +1 if we don't have a gap.
-			
+
 		*/
 		if(subjectResult[i] != '-'){
 
 			subjectIndex = subjectIndex + 1;
-			
+
 		}
 
 		//We found the beggining of a new gap
@@ -1916,7 +1916,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 					If farIndels == TRUE
 
 					(ie: ----AA CCCCAA, valid indel)
-					
+
 				*/
 				if(indelStart != 1 || farIndels==true){
 
@@ -1925,7 +1925,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 
 					Indel_Info newDeletion(indelStart,indelEnd,true);
 					Indel_Info newDeletionSubject(indelSubjectStart,
-												  indelSubjectEnd,true); 
+												  indelSubjectEnd,true);
 					deletions.push_back(newDeletion);
 					deletionsSubject.push_back(newDeletionSubject);
 				}
@@ -1940,7 +1940,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 
 		Indel_Info newDeletion(indelStart,indelEnd,true);
 		Indel_Info newDeletionSubject(indelSubjectStart,indelSubjectEnd,true);
-		
+
 		deletions.push_back(newDeletion);
 		deletionsSubject.push_back(newDeletionSubject);
 	}
@@ -1966,7 +1966,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 
 				Mutation_Info newMutationRelative(subjectIndex,subjectResult[i],patternResult[i]);
 				mutationsRelative.push_back(newMutationRelative);
-				
+
 			}
 
 		}
@@ -1985,18 +1985,18 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 			 The third 'T' has index 12 in the subject, but 19 in the alignment.
 
 		  So we only count +1 if we don't have a gap.
-			
+
 		*/
 		if(subjectResult[i] != '-'){
 
 			subjectIndex = subjectIndex + 1;
-			
+
 		}
 
 	}
 
 
-	
+
 
 	//Construct a new alignment object
 	myResult = new Alignment_Result(sequencePattern, sequenceSubject, matrix,
@@ -2007,7 +2007,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 									mutations.size(), insertions, deletions,
 									insertionsPattern, deletionsSubject,
 									mutations, mutationsRelative);
-	
+
 
 	if(DEBUG==true){
 		cout<<"Final result"<<endl;
@@ -2047,7 +2047,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 			These two strings are the string representation of the sequences
 			that we want to align. Passed as constant references (don't
 			duplicate and don't modify).
-    
+
 
 	@param string matrix: Select a scoring matrix for the nucleotides. The
 						  default matrix is NUC44. You can choose from the
@@ -2062,19 +2062,19 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 
 	@param bool gapEnding: Set to TRUE if you want that the score is affected by
 						   the gaps at the end of the alignment. FALSE for
-						   otherwise. (FALSE default)										 
+						   otherwise. (FALSE default)
 
 	@param bool debug: Set to true if you want to print verbose information
 					   about the matrices in the standard output.
 
     @return int with 0 if everything goes according to plan.
-    
+
 */
 int gotoh(const string &sequencePattern,const string &sequenceSubject,
           const string &matrix, const int &gapOpening,
           const int &gapExtension, const bool &gapEnding,
           const bool &farIndels, Alignment_Result* &myResult){
-	
+
     int lengthPattern = sequencePattern.length();
     int lengthSubject = sequenceSubject.length();
 
@@ -2111,7 +2111,7 @@ int gotoh(const string &sequencePattern,const string &sequenceSubject,
 
 	//Show the matrices if we are debugging
 	if(DEBUG == true){
-		
+
 		cout<<"NW DEBUG"<<endl;
 		cout<<"Grid matrix"<<endl;
 		printMatrix(grid, sequencePattern, sequenceSubject);
@@ -2129,7 +2129,7 @@ int gotoh(const string &sequencePattern,const string &sequenceSubject,
 		cout<<"END NW DEBUG"<<endl<<endl;
 
 	}
-    
+
     //Do the alignment
 	align(grid, vertical, horizontal, tracebackGrid, tracebackVertical,
 	      tracebackHorizontal, sequencePattern, sequenceSubject, matrix,
@@ -2149,8 +2149,8 @@ int gotoh(const string &sequencePattern,const string &sequenceSubject,
 	delete[] horizontal;
 	delete[] tracebackGrid;
 	delete[] tracebackVertical;
-	delete[] tracebackHorizontal;	
-	
+	delete[] tracebackHorizontal;
+
     return 0;
 }
 
@@ -2187,33 +2187,33 @@ int gotoh(const string &sequencePattern,const string &sequenceSubject,
     want to align. Passed as constant references (don't duplicate and don't
     modify).
 
-	@param (string) matrix 
-  
+	@param (string) matrix
+
     Select a scoring matrix for the nucleotides. The default matrix is NUC44.
     You can choose from the following matrices:
     - NUC44 (+5 for match, -4 for miss)
     - (More to come)
 
 	@param (int) gapOpening
-  
+
     The score penalty for the gaps, the default values are 50.
-  
+
   @param (int) gapExtension
-  
+
     The score penalty for the extending the gap. Default is 0.
 
 	@param (bool) gapEnding
-  
+
      Set to TRUE if you want that the score is affected by the gaps at the end
      of the alignment. FALSE for otherwise. (FALSE default)
 
 	@param (bool) debug
-  
+
      Set to true if you want to print verbose information about the matrices in
      the standard output.
 
   @return (string)
-  
+
     With the following format:
     (note: (at) stands for an at symbol. Otherwise doxygen goes crazy)
 
@@ -2224,7 +2224,7 @@ int gotoh(const string &sequencePattern,const string &sequenceSubject,
 		Possition(at)Subject Base(at)Pattern Base
 
 	@todo : Fix the const and default in Rcpp (see bellow)
-    
+
 */
 /*
 
@@ -2281,7 +2281,7 @@ std::string gotohRCPP(std::string sequencePattern, std::string sequenceSubject,
 		result += myResult->get_pattern_alignment() + "\n";
 		result += "++++\n";
 		result += myResult->get_subject_alignment() + "\n";
-		
+
 	}
 	//Otherwise return an string error
 	else{

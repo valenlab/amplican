@@ -10,9 +10,10 @@ goodAvgQuality(reads, avg = 0)
 \item{reads}{(ShortRead object) Loaded reads from fastq.}
 
 \item{avg}{(numeric) This is what the average score of the quality of
-sequence should be. For example, if we have a sequence with nucleotides which have
-quality 70-70-70, the average would be 70. If set the average to 70 or less the sequence will
-pass. If we set the average to 71 the sequence will not pass. The average is set to 0 by default.}
+sequence should be. For example, if we have a sequence with nucleotides which
+have quality 70-70-70, the average would be 70. If set the average to 70 or
+less the sequence will pass. If we set the average to 71 the sequence will
+not pass. The average is set to 0 by default.}
 }
 \value{
 (boolean) Logical vector with the valid rows as TRUE.

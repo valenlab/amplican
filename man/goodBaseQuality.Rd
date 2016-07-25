@@ -10,9 +10,9 @@ goodBaseQuality(reads, min = 0)
 \item{reads}{(ShortRead object) Loaded reads from fastq.}
 
 \item{min}{(numeric) This is the minimum quality that we accept for
-every nucleotide. For example, if we have a sequence with nucleotides which have quality
-50-50-50-50-10, and we set the minimum to 30, the whole sequence will be a bad sequence.
-The minimum is set to 0 by default.}
+every nucleotide. For example, if we have a sequence with nucleotides which
+have quality 50-50-50-50-10, and we set the minimum to 30, the whole sequence
+will be a bad sequence. The minimum is set to 0 by default.}
 }
 \value{
 (boolean) Logical vector with the valid rows as TRUE.
