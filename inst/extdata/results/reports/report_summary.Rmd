@@ -14,6 +14,7 @@ output:
 
 ***
 
+**experiment_count** - how many IDs belongs to this barcode  
 **read_count** - how many reads belongs to this barcode  
 **bad_base_quality** - how many reads had base quality worse than specified (default is 0)  
 **bad_average_quality** - how many reads had average base quality worse than specified (default is 0)  
@@ -27,10 +28,10 @@ experiments
 
 # Warnings and errors
 
-
 ***
 
 There were no warnings. 'alignmentLog.txt' file is empty.  
+
 ***
 
 # Summary Table

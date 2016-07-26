@@ -151,10 +151,8 @@ makeAlignment <- function(configTable, resultsFolder,
     message(paste0("Aligning reads for ", barcode))
 
     # Read Reads for this Barcode
-    forwardsTable <- if (fastqfiles == 2)
-        NULL else ShortRead::readFastq(configTable$Forward_Reads_File[1])
-    reversesTable <- if (fastqfiles == 1)
-        NULL else ShortRead::readFastq(configTable$Reverse_Reads_File[1])
+    forwardsTable <- if (fastqfiles == 2) NULL else ShortRead::readFastq(configTable$Forward_Reads_File[1])
+    reversesTable <- if (fastqfiles == 1) NULL else ShortRead::readFastq(configTable$Reverse_Reads_File[1])
     if (fastqfiles == 1) {
         rewersesTable <- rep(TRUE, length(forwardsTable))
     }
@@ -163,14 +161,13 @@ makeAlignment <- function(configTable, resultsFolder,
     }
 
     # Filter Reads
-    goodq <- goodBaseQuality(forwardsTable, min = min_quality) &
-        goodBaseQuality(reversesTable, min = min_quality)
-    avrq <- goodAvgQuality(forwardsTable, avg = average_quality) &
-        goodAvgQuality(reversesTable, avg = average_quality)
+    goodq <- goodBaseQuality(forwardsTable, min = min_quality) & goodBaseQuality(reversesTable, min = min_quality)
+    avrq <- goodAvgQuality(forwardsTable, avg = average_quality) & goodAvgQuality(reversesTable, avg = average_quality)
     nucq <- alphabetQuality(forwardsTable) & alphabetQuality(reversesTable)
     goodReads <- goodq & avrq & nucq
 
     barcodeTable <- data.frame(barcode = barcode,
+                               experiment_count = configTable$ExperimentsCount[1],
                                read_count = length(goodReads),
                                bad_base_quality = sum(!goodq),
                                bad_average_quality = sum(!avrq),
@@ -181,16 +178,13 @@ makeAlignment <- function(configTable, resultsFolder,
     reversesTable <- reversesTable[goodReads]
 
     # Unique reads
-    uniqueTable <- data.frame(if (fastqfiles == 2)
-        "" else as.character(forwardsTable@sread), if (fastqfiles == 1)
-            "" else as.character(reversesTable@sread))
+    uniqueTable <- data.frame(if (fastqfiles == 2) "" else as.character(forwardsTable@sread),
+                              if (fastqfiles == 1) "" else as.character(reversesTable@sread))
     colnames(uniqueTable) <- c("Forward", "Reverse")
     uniqueTable$Total <- paste0(uniqueTable$Forward, uniqueTable$Reverse)
-    uniqueTable <- stats::aggregate(Total ~ Reverse + Forward, uniqueTable,
-                                    length)
-    uniqueTable$BarcodeFrequency <- uniqueTable$Total/sum(uniqueTable$Total)
-    uniqueTable <- uniqueTable[order(uniqueTable$Forward, uniqueTable$Reverse),
-                               ]
+    uniqueTable <- stats::aggregate(Total ~ Reverse + Forward, uniqueTable, length)
+    uniqueTable$BarcodeFrequency <- uniqueTable$Total / sum(uniqueTable$Total)
+    uniqueTable <- uniqueTable[order(uniqueTable$Forward, uniqueTable$Reverse), ]
     uniqueTable$Asigned <- FALSE
     uniqueTable$PRIMER_DIMER <- FALSE
 
@@ -205,15 +199,13 @@ makeAlignment <- function(configTable, resultsFolder,
         reversePrimer <- toString(configTable[i, "Reverse_Primer"])
         guideRNA <- toString(configTable[i, "guideRNA"])
         if (configTable[i, "Direction"] == 1) {
-            guideRNA <- seqinr::c2s(
-                rev(seqinr::comp(seqinr::s2c(guideRNA),
-                                 forceToLower = FALSE,
-                                 ambiguous = TRUE)))
+            guideRNA <- seqinr::c2s(rev(seqinr::comp(seqinr::s2c(guideRNA),
+                                                     forceToLower = FALSE,
+                                                     ambiguous = TRUE)))
         }
         amplicon <- toString(configTable[i, "Amplicon"])
         # Names of files and folders
-        currentIDFolderName <- paste0(resultsFolder, "/", currentID, "_",
-                                      barcode)
+        currentIDFolderName <- paste0(resultsFolder, "/", currentID, "_", barcode)
         if (!dir.exists(currentIDFolderName)) {
             dir.create(file.path(currentIDFolderName), showWarnings = FALSE)
         }
@@ -227,14 +219,11 @@ makeAlignment <- function(configTable, resultsFolder,
             masterFileConn <- file(algn_file, open = "at")
         }
         if (write_alignments >= 2) {
-            algn_detail_file <- paste0(currentIDFolderName,
-                                       "/detailed_alignments.txt")
+            algn_detail_file <- paste0(currentIDFolderName, "/detailed_alignments.txt")
             if (file.exists(algn_detail_file)) {
                 file.remove(algn_detail_file)
             }
-            uberAlignmentFD <- file(paste0(currentIDFolderName,
-                                           "/detailed_alignments.txt"),
-                                    open = "at")
+            uberAlignmentFD <- file(paste0(currentIDFolderName, "/detailed_alignments.txt"), open = "at")
         }
 
         # Warnings
@@ -258,11 +247,11 @@ makeAlignment <- function(configTable, resultsFolder,
                     Find more information in the log file.")
             writeLines(paste0("Couldn't find upper case groups (PAM)
                               position in amplicon.",
-                              "/nFor ID: ",
+                              "\nFor ID: ",
                               currentID,
                               " and barcode: ",
                               barcode,
-                              "/n"),
+                              "\n"),
                        logFileConn)
             configTable$Found_PAM[i] <- 0
             cutSites <- IRanges(start = 1, width = nchar(amplicon))
@@ -477,10 +466,8 @@ makeAlignment <- function(configTable, resultsFolder,
             configTable$Reads[i] <- sum(IDuniqueTable$Total)
             # fill frequency
             if (length(alignmentRanges) > 0) {
-                reads_count_filtered <- configTable$Reads[i] -
-                    configTable$PRIMER_DIMER[i]
-                alignmentRanges$frequency <- alignmentRanges$count/
-                    reads_count_filtered
+                reads_count_filtered <- configTable$Reads[i] - configTable$PRIMER_DIMER[i]
+                alignmentRanges$frequency <- alignmentRanges$count / reads_count_filtered
             }
         }
 

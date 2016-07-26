@@ -30,7 +30,6 @@ config <- read.csv(paste0(results_folder, '/config_summary.csv'))
 **Frameshift** - plot shows what percentage of reads that have frameshift  
 **Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads  
 
-
 ***
 
 # Barcode Summary  

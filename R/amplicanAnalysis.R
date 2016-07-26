@@ -181,6 +181,8 @@ amplicanAnalysis <- function(config,
 
     uBarcode <- unique(configTable$Barcode)
 
+    configTable$ExperimentsCount <- table(configTable$Barcode)[configTable$Barcode]
+
     # Several statistics about deletions, cuts and reads
     configTable$Cut <- 0
     configTable$Frameshift <- 0
