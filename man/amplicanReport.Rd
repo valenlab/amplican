@@ -39,4 +39,8 @@ amplicanReport(results_folder, report_files = paste0(paste0(results_folder, "/re
                                                        "/report_summary")))
 
 }
+\seealso{
+Other analysis steps: \code{\link{amplicanAnalysis}},
+  \code{\link{amplicanPipeline}}
+}
 

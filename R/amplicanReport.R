@@ -13,6 +13,7 @@
 #' in current working directory by default.
 #' @return NULL All results are written into current dir with specified names.
 #' @export
+#' @family analysis steps
 #' @examples
 #' results_folder <- system.file("extdata", "results", package = "amplican") #output folder
 #' amplicanReport(results_folder, report_files = paste0(paste0(results_folder, "/reports"),

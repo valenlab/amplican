@@ -9,7 +9,7 @@
 It has three main goals:
 }
 \details{
-\itemize{
+\enumerate{
 \item Alignment and analysis of the MiSeq or HiSeq data.
 \item Prepare automatic reports as .Rmd files that are flexible
 and open for manipulation.

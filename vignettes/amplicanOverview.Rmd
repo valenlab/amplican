@@ -1,10 +1,11 @@
 ---
 title: "amplican overview"
-author: "Kornel Labun"
-date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+author: "Kornel Labun & Eivind Valen"
+date: "`r doc_date()`"
+package: "`r pkg_ver('amplican')`"
+output: BiocStyle::html_document
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{amplican overview}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,16 +15,14 @@ dataset.  You will learn how to interpret results, create summary reports and pl
 insertions and mutations with our functions. 
 This package, `amplican` is for fast and precise analysis of CRISPR experiments.
 
-## Introduction
+# Introduction
 
-`amplican` creates raports of deletions, insertions, frameshifts, cut rates and other metrics in user selected format 
-(preffered html). `amplican` uses vary fast C implementation of Gotoh alhoritm to align your fastq samples and 
-automates analysis across different experiments. `amplican` maintains elasticity through configuration file, 
-which with your fastq samples are only requirements.
+`amplican` creates raports of deletions, insertions, frameshifts, cut rates and other metrics in *knitable* to html style. `amplican` uses vary fast C implementation of Gotoh alhoritm to align your fastq samples and
+automates analysis across different experiments. `amplican` maintains elasticity through configuration file, which with your fastq samples are only requirements.
 
-## Configuration file
+# Configuration file
 
-To succesfully run our analysis it is mandatory to have created configuration file. Take a look at our example:
+To succesfully run our analysis it is mandatory to have a configuration file. Take a look at our example:
 
 ```{r, echo=FALSE}
 config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
@@ -31,11 +30,9 @@ knitr::kable(head(config))
 ```
 
 Configuration file should be a "," delimited csv file with information about your experiments. 
-You can find example config file at:
-```{r, echo=FALSE}
-system.file("extdata", "config.csv", package = "amplican")
-```
+You can find example config file at: `r system.file("extdata", "config.csv", package = "amplican")`
 
+Columns of the config file:  
 **ID** - should be a unique identifier of your experiments  
 **Barcode** - use this to group experiments with the same barcode  
 **Forward_Reads**, **Reverse_Reads** - put names of your files in these fields, you can put here files compressed to 
@@ -51,38 +48,34 @@ insertions
 expected cut site, you should specify at least one cut site, here for example we specify in uppercase letter PAM 
 sequence of the corresponding guideRNA  
 
-## Default options
+# Default options
 
 To run `amplican` with default options, along with generation of all posible reports you can use
 `amplicanPipeline` function. We have already attached results of the default amplican analysis of the
 example dataset, but take a look how you can do that yourself.
 
 ```{r amplicanPipeline, echo=TRUE}
-# library(amplican) #uncomment when running yourself
 # example MiSeq dataset files
 config <- system.file("extdata", "config.csv", package = "amplican") #path to example config file
 fastq_folder <- system.file("extdata", "", package = "amplican") #path to example fastq files
 results_folder <- paste0(fastq_folder, "results") #output folder
 
-# make sure we have result folder
+# make sure we have results folder
 # dir.create(results_folder) #uncomment when running yourself
 # actual amplican run
 # amplicanPipeline(config, fastq_folder, results_folder) #uncomment when running yourself
 
 # results of the analysis can be found at
-results_folder
+message(results_folder)
 ```
 
-## Files created during analysis
+# Files created during analysis
 
-### alignmentLog.txt
+## alignmentLog.txt
 
-Contains information about unpleasant errors and events found during analysis, we also print message on the screen when
-something requires your attention. This file should be empty with our examplary analis on provided dataset. In case 
-something goes wrong you should examin file and follow instructions inside. This file is also included in "summary" 
-version of the report.
+Contains information about unpleasant errors and events found during analysis, we also print message on the screen when something requires your attention. This file should be empty with our example analisys on provided dataset. In case something goes wrong you should examin file and follow instructions inside. This file is also included in "summary" version of the report.
 
-### barcode_reads_filters.csv
+## barcode_reads_filters.csv
 
 First step of our analysis is to filter out reads that are not complying with our default restrictions:  
 
@@ -95,18 +88,11 @@ barcodeFilters <- read.csv(system.file("extdata/results", "barcode_reads_filters
 knitr::kable(head(barcodeFilters))
 ```
 
-This table is also summarized in one of the reports. As you can see for our example dataset we have two barcodes,
-to which corespond 17 and 29 reads. Two reads are rejected for barcode_1 due to bad alphabet. Each of the barcodes has
-unique reads, which means forward and reverse reads are compacted when they are identical. There is 11 unique reads for 
-barcode_1 and 20 for barcode_2. We can succesfully asign all the reads for each barcode as this is artificial dataset.
-Normally you will probably see only half of your reads being assigned to the barcodes. Reads are assigned when for 
-forward read we can find forward primer and for reverse read we can find reverse primer. Primers have to be perfectly
-matched. Nevertheless, there is option `fastqreads = 0.5` which changes method of assigning reads to each IDs. With 
-this option specified only one of the reads (forward or reverse) have to have primer perfectly matched.
+This table is also summarized in one of the reports. As you can see for our example dataset we have two barcodes, to which corespond 17 and 29 reads. Two reads are rejected for barcode_1 due to bad alphabet. Each of the barcodes has unique reads, which means forward and reverse reads are compacted when they are identical. There is 11 unique reads for barcode_1 and 20 for barcode_2. We can succesfully asign all the reads for each barcode as this is artificial dataset. Normally you will probably see only half of your reads being assigned to the barcodes. Reads are assigned when for forward read we can find forward primer and for reverse read we can find reverse primer. Primers have to be perfectly matched. Nevertheless, there is option `fastqreads = 0.5` which changes method of assigning reads to each IDs. With this option specified only one of the reads (forward or reverse) have to have primer perfectly matched.
 
-### config_summary.csv
+## config_summary.csv
 
-Extended version of the config file.
+`config_summary.csv` contains extended version of the config file. It should provide you additional look at raw numbers which we use for various plots in reports. Take a look at example extension:
 
 ```{r, echo=FALSE}
 config_summary <- read.csv(system.file("extdata/results", "config_summary.csv", package = "amplican"))
@@ -115,7 +101,7 @@ config_summary <- config_summary[,c("ID", "Barcode", "Cut", "Frameshift",
 knitr::kable(head(config_summary))
 ```
 
-During `amplicanAnalysis` or `amplicanPipeline` these fields are added to the config file:  
+During `amplicanAnalysis` or `amplicanPipeline` these columns are added to the config file:  
 **Cut** - number of insertions overlaping with user specified UPPER CASE group in the amplicon (extended by the buffer)  
 **Frameshift** - number of reads has frameshift (insertions and deletions)  
 **PRIMER_DIMER** - number of reads were classified as PRIMER DIMERs  
@@ -123,7 +109,7 @@ During `amplicanAnalysis` or `amplicanPipeline` these fields are added to the co
 **Found_Guide** - whether we found guide on the amplicon  
 **Found_PAM** - whether amplicon has UPPER GROUP specified (advised)  
 
-### RunParameters.txt
+## RunParameters.txt
 
 File RunParameters.txt lists all options used for the analysis, this file you might find usefull when 
 reviewing analyisis from the past where you forgot what kind of options you used. Other than that 
@@ -133,7 +119,7 @@ this file has no purpose.
 readLines(system.file("extdata/results", "RunParameters.txt", package = "amplican")) #path to example RunParameters.txt
 ```
 
-### alignments folder
+## "alignments" folder
 
 Contains alignments, for each ID there is separate folder. If you specified `write_alignments` option of the 
 `amplicanAnalysis` as "2", which is default, you will find here two files, one with just alignment forward read, 
@@ -147,35 +133,30 @@ Other file will contain very detailed information:
 system.file("extdata", "results/alignments", package = "amplican")
 ```
 
-In `unassigned_sequences` folder you can find detailed information about unassigned reads. In example dataset there
-is no unassigned reads.
+In `unassigned_sequences` folder you can find detailed information about unassigned reads. In example dataset there is no unassigned reads.
 
-### reports folder
+## reports folder
 
-Reports are automated for the convenience of the users. We provide 6 different reports. Reports are .Rmd files
-which can be easly crafted through `rmarkdown::render(path_to_report)` or by clicking `Knit` in Rstudio to make html
-version of the report. If you have runned our example analysis, then you can open one of the reports with Rstudio and 
-try kniting it now! Otherwise you should change the path at the top of this file to match your path to the package, as
-you have pregenerated path (running `amplicanPipeline` does that for you). 
+Reports are automated for the convenience of the users. We provide 6 different reports. Reports are .Rmd files which can be easly crafted through `rmarkdown::render(path_to_report)` or by clicking `Knit` in Rstudio to make html version of the report. If you have runned our example analysis, then you can open one of the reports with Rstudio and  try kniting it now! Otherwise you should change the path at the top of this file to match your path to the package, as you have pregenerated path (running `amplicanPipeline` does that for you). 
 
 ```{r, echo=TRUE}
 system.file("extdata", "results/reports", package = "amplican") #folder with example reports
 
-# you can run for example:
-# rmarkdown::render(system.file("extdata", "results/reports/report_id.Rmd", package = "amplican")) #might be time consuming
+# you can run this as example how to knit file:
+# rmarkdown::render(system.file("extdata", "results/reports/report_id.Rmd", package = "amplican"))
 ```
 
-## Detailed analysis
+# Detailed analysis
 
-### Aligning reads
+## Aligning reads
 
 Each of the reads, that is assigned to unique ID, is aligned with usage of the Gotoh alghoritm 
 implemented in C for speed. When you want to have more control over alignments and you need more advanced options use `amplicanAnalysis`. This function has many parameters which can be used to bend our pipeline to your needs. 
 Read more about `amplicanAnalysis` on the help page `?amplican::amplicanAnalysis`.
 
-### Making reports
+## Making reports
 
-Reports are made for user convienience, they are powerfull and they:
+Reports are made for user convienience, they are powerfull as they:
 
 * contain reproducible code
 * make plots ready for publication
@@ -199,7 +180,7 @@ we use this field to group experiments by the users. That will allow us to asses
 * **Summary** - Contains overall statistics gathered during reads assesment. Can contain only barcode level
 information, but shows which parts of reads is being filtered.
 
-### Plotting alignments events
+## Plotting alignments events
 
 We provide specialized plots for each type of the alignment events. 
 

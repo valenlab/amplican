@@ -23,6 +23,7 @@
 #' @importFrom stringr str_locate
 #' @importFrom stats na.omit aggregate
 #' @export
+#' @family specialized plots
 #' @examples
 #' #example config
 #' config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
@@ -230,6 +231,7 @@ amplican_plot_mismatches <- function(alignments, config, id, cut_buffer = 5) {
 #' @importFrom ggbio tracks geom_arch xlim
 #' @importFrom stats na.omit
 #' @export
+#' @family specialized plots
 #' @examples
 #' #example config
 #' config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
@@ -415,6 +417,7 @@ amplican_plot_deletions <- function(alignments, config, id, cut_buffer = 5) {
 #' @importFrom ggbio tracks xlim
 #' @importFrom stats na.omit aggregate
 #' @export
+#' @family specialized plots
 #' @examples
 #' #example config
 #' config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
@@ -630,6 +633,7 @@ amplican_plot_insertions <- function(alignments, config, id, cut_buffer = 5) {
 #' @importFrom ggbio tracks geom_arch xlim
 #' @importFrom stats na.omit
 #' @export
+#' @family specialized plots
 #' @examples
 #' #example config
 #' config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))

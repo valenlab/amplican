@@ -30,4 +30,9 @@ alignments <- read.csv(system.file("extdata/results", "alignments.csv", package 
 amplican_plot_cuts(alignments, config, c('ID_1','ID_3'))
 
 }
+\seealso{
+Other specialized plots: \code{\link{amplican_plot_deletions}},
+  \code{\link{amplican_plot_insertions}},
+  \code{\link{amplican_plot_mismatches}}
+}
 

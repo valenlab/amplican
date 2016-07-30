@@ -65,4 +65,8 @@ results_folder <- paste0(fastq_folder, "results") #output folder
 amplicanPipeline(config, fastq_folder, results_folder)
 
 }
+\seealso{
+Other analysis steps: \code{\link{amplicanAnalysis}},
+  \code{\link{amplicanReport}}
+}
 

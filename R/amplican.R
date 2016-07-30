@@ -2,7 +2,7 @@
 #'
 #' It has three main goals:
 #'
-#' \itemize{
+#' \enumerate{
 #' \item Alignment and analysis of the MiSeq or HiSeq data.
 #' \item Prepare automatic reports as .Rmd files that are flexible
 #' and open for manipulation.
@@ -34,6 +34,7 @@ NULL
 #' @inheritParams amplicanAnalysis
 #' @return NULL All results are created in specified results_folder.
 #' @export
+#' @family analysis steps
 #' @examples
 #' config <- system.file("extdata", "config.csv", package = "amplican") #example config file
 #' fastq_folder <- system.file("extdata", "", package = "amplican") #path to example fastq files

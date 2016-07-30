@@ -81,6 +81,7 @@
 #' @import doParallel foreach GenomicRanges
 #' @importFrom utils read.csv
 #' @export
+#' @family analysis steps
 #' @examples
 #' config <- system.file("extdata", "config.csv", package = "amplican") #example config
 #' fastq_folder <- system.file("extdata", "", package = "amplican") #path to example fastq files
