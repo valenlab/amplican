@@ -7,7 +7,7 @@
 make_summary_rmd(results_folder)
 }
 \arguments{
-\item{results_folder}{(string) Folder containing results from the \code{\link{amplicanAnalysis}} function,
+\item{results_folder}{(string) Folder containing results from the \code{\link{amplicanAlign}} function,
 do not change names of the files.}
 }
 \value{

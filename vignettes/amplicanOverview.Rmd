@@ -13,12 +13,14 @@ vignette: >
 Welcome to the `amplican` package. This viginnette will walk you through our main package usage with example MiSeq 
 dataset.  You will learn how to interpret results, create summary reports and plot deletions, 
 insertions and mutations with our functions. 
-This package, `amplican` is for fast and precise analysis of CRISPR experiments.
+This package, `amplican`, is for fast and precise analysis of CRISPR experiments.
 
 # Introduction
 
 `amplican` creates raports of deletions, insertions, frameshifts, cut rates and other metrics in *knitable* to html style. `amplican` uses vary fast C implementation of Gotoh alhoritm to align your fastq samples and
 automates analysis across different experiments. `amplican` maintains elasticity through configuration file, which with your fastq samples are only requirements.
+
+For those inpatient people who want to see an example of our whole pipeline analysis on our example data start [here](#default-options).
 
 # Configuration file
 
@@ -52,22 +54,27 @@ sequence of the corresponding guideRNA
 
 To run `amplican` with default options, along with generation of all posible reports you can use
 `amplicanPipeline` function. We have already attached results of the default amplican analysis of the
-example dataset, but take a look how you can do that yourself.
+example dataset, but take a look how you can do that yourself. Be prepared to grab a coffe when running
+`amplicanPipeline` with `knit_files = TRUE` as this will take some time. You will understand it is worth waiting when reports will be ready. We don't ship with these reports as they take up too much space to be included in R package.
 
 ```{r amplicanPipeline, echo=TRUE}
 # example MiSeq dataset files
 config <- system.file("extdata", "config.csv", package = "amplican") #path to example config file
 fastq_folder <- system.file("extdata", "", package = "amplican") #path to example fastq files
-results_folder <- paste0(fastq_folder, "results") #output folder
+results_folder <- paste0(getwd(), "/amplican_example") #output folder
 
-# make sure we have results folder
+## make sure we have results folder
 # dir.create(results_folder) #uncomment when running yourself
-# actual amplican run
+##  actual amplican run
 # amplicanPipeline(config, fastq_folder, results_folder) #uncomment when running yourself
 
 # results of the analysis can be found at
 message(results_folder)
 ```
+
+Take a look into "amplican_example" folder. Here you can find `.Rmd` files that are our reports for example dataset. We already crafted `.html` versions and you can find them in the "html" folder. Open one of the reports with your favourite browser now. To zoom on an image just open it in new window (right mouse click options). 
+
+`amplicanPipeline` just crafted very detailed reports for you, but this is not all, if you need something different e.g. different plot colours, just change the `.Rmd` file and `knit` it again. This way you have all the power over plotting.
 
 # Files created during analysis
 
@@ -101,7 +108,7 @@ config_summary <- config_summary[,c("ID", "Barcode", "Cut", "Frameshift",
 knitr::kable(head(config_summary))
 ```
 
-During `amplicanAnalysis` or `amplicanPipeline` these columns are added to the config file:  
+During `amplicanAlign` or `amplicanPipeline` these columns are added to the config file:  
 **Cut** - number of insertions overlaping with user specified UPPER CASE group in the amplicon (extended by the buffer)  
 **Frameshift** - number of reads has frameshift (insertions and deletions)  
 **PRIMER_DIMER** - number of reads were classified as PRIMER DIMERs  
@@ -122,7 +129,7 @@ readLines(system.file("extdata/results", "RunParameters.txt", package = "amplica
 ## "alignments" folder
 
 Contains alignments, for each ID there is separate folder. If you specified `write_alignments` option of the 
-`amplicanAnalysis` as "2", which is default, you will find here two files, one with just alignment forward read, 
+`amplicanAlign` as "2", which is default, you will find here two files, one with just alignment forward read, 
 reverse read and count.
 Other file will contain very detailed information:  
 - human readable alignmennt of read and amplicon,  
@@ -151,8 +158,8 @@ system.file("extdata", "results/reports", package = "amplican") #folder with exa
 ## Aligning reads
 
 Each of the reads, that is assigned to unique ID, is aligned with usage of the Gotoh alghoritm 
-implemented in C for speed. When you want to have more control over alignments and you need more advanced options use `amplicanAnalysis`. This function has many parameters which can be used to bend our pipeline to your needs. 
-Read more about `amplicanAnalysis` on the help page `?amplican::amplicanAnalysis`.
+implemented in C for speed. When you want to have more control over alignments and you need more advanced options use `amplicanAlign`. This function has many parameters which can be used to bend our pipeline to your needs. 
+Read more about `amplicanAlign` on the help page `?amplican::amplicanAlign`.
 
 ## Making reports
 

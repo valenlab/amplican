@@ -88,7 +88,7 @@ make_id_rmd <- function(results_folder, cut_buffer = 5) {
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'))",
+           "alignments <- read.csv(paste0(results_folder, '/alignments_events.csv'))",
            "config <- read.csv(paste0(results_folder, '/config_summary.csv'))",
            "```\n",
            "***\n",
@@ -231,7 +231,7 @@ make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'))",
+           "alignments <- read.csv(paste0(results_folder, '/alignments_events.csv'))",
            "config <- read.csv(paste0(results_folder, '/config_summary.csv'))",
            "config$AmpliconUpper <- toupper(config$Amplicon)",
            "uniqueAmlicons <- unique(config$AmpliconUpper)",
@@ -417,7 +417,7 @@ make_barcode_rmd <- function(results_folder) {
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'))",
+           "alignments <- read.csv(paste0(results_folder, '/alignments_events.csv'))",
            "config <- read.csv(paste0(results_folder, '/config_summary.csv'))",
            "```\n",
            "***\n",
@@ -555,7 +555,7 @@ make_group_rmd <- function(results_folder) {
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'))",
+           "alignments <- read.csv(paste0(results_folder, '/alignments_events.csv'))",
            "config <- read.csv(paste0(results_folder, '/config_summary.csv'))",
            "```\n",
            "***\n",
@@ -698,7 +698,7 @@ make_guide_rmd <- function(results_folder) {
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments.csv'))",
+           "alignments <- read.csv(paste0(results_folder, '/alignments_events.csv'))",
            "config <- read.csv(paste0(results_folder, '/config_summary.csv'))",
            "```\n",
            "***\n",
@@ -827,7 +827,7 @@ make_guide_rmd <- function(results_folder) {
 
 #' Prepare summary report as .Rmd file.
 #'
-#' @param results_folder (string) Folder containing results from the \code{\link{amplicanAnalysis}} function,
+#' @param results_folder (string) Folder containing results from the \code{\link{amplicanAlign}} function,
 #' do not change names of the files.
 #' @return (string) contents to write to filess
 #'

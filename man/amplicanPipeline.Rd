@@ -4,8 +4,9 @@
 \alias{amplicanPipeline}
 \title{Wraps main package functionality into one function.}
 \usage{
-amplicanPipeline(config, fastq_folder, results_folder, total_processors = 1,
-  min_quality = 0, fastqfiles = 2, PRIMER_DIMER = 30, cut_buffer = 5)
+amplicanPipeline(config, fastq_folder, results_folder, knit_files = TRUE,
+  total_processors = 1, min_quality = 0, fastqfiles = 2,
+  PRIMER_DIMER = 30, cut_buffer = 5)
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
@@ -17,6 +18,9 @@ FASTQ files should be in the same directory as config file.}
 \item{results_folder}{(string) Where do you want your results to be stored.
 The package will create files in that folder so make sure you have writing
 permissions.}
+
+\item{knit_files}{(bolean) whether we should "knit" all reports automatically for you
+(it is time consuming)}
 
 \item{total_processors}{(numeric) Set this to the number of processors you
 want to use. Default is 1. Works only if you have 'doParallel' installed
@@ -54,7 +58,7 @@ NULL All results are created in specified results_folder.
 }
 \description{
 amplican_pipeline is convinient wrapper around all most popular settings of
-\code{\link{amplicanAnalysis}} and \code{\link{amplicanReport}}.
+\code{\link{amplicanAlign}} and \code{\link{amplicanReport}}.
 It will generate all results in the \code{result_folder} and also print
 prepared reports into 'reports' folder.
 }
@@ -62,11 +66,13 @@ prepared reports into 'reports' folder.
 config <- system.file("extdata", "config.csv", package = "amplican") #example config file
 fastq_folder <- system.file("extdata", "", package = "amplican") #path to example fastq files
 results_folder <- paste0(fastq_folder, "results") #output folder
-amplicanPipeline(config, fastq_folder, results_folder)
+
+#full analysis, not kniting files automatically
+amplicanPipeline(config, fastq_folder, results_folder, knit_files = FALSE)
 
 }
 \seealso{
-Other analysis steps: \code{\link{amplicanAnalysis}},
+Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanReport}}
 }
 

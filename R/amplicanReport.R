@@ -4,7 +4,7 @@
 #' to prepare summary as editable .Rmd file. You can specify whether you want
 #' to make summaries based on ID, Barcode, Group or even guideRNA and Amplicon.
 #' @param results_folder (string) Folder containing results from the
-#' \code{\link{amplicanAnalysis}} function, do not change names of the files.
+#' \code{\link{amplicanAlign}} function, do not change names of the files.
 #' @param levels (vector) Possible values are: 'id', 'barcode', 'group',
 #' 'guide', 'amplicon', 'summary'. You can also input more than one value
 #' eg. c('id', 'barcode') will create two separate reports for each level.

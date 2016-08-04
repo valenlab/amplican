@@ -125,7 +125,7 @@ upperGroups <- function(candidate) {
 #' gotoh implementation.
 #' @param configTable config file as data table
 #' @param resultsFolder (string) path to resultsFolder
-#' @inheritParams amplicanAnalysis
+#' @inheritParams amplicanAlign
 #' @import GenomicRanges
 #' @importFrom seqinr comp s2c c2s
 #' @importFrom utils write.csv
@@ -265,7 +265,8 @@ makeAlignment <- function(configTable, resultsFolder,
         uniqueTable$reverseFound <- if (fastqfiles == 1) {
             FALSE
         } else grepl(reversePrimer, uniqueTable$Reverse, ignore.case = TRUE)
-        uniqueTable$guideFoundForward <- grepl(guideRNA, uniqueTable$Forward,
+        uniqueTable$guideFoundForward <- grepl(guideRNA,
+                                               uniqueTable$Forward,
                                                ignore.case = TRUE)
         uniqueTable$guideFoundReverse <- grepl(
             seqinr::c2s(rev(seqinr::comp(seqinr::s2c(guideRNA)))),

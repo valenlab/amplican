@@ -25,13 +25,14 @@ NULL
 #' Wraps main package functionality into one function.
 #'
 #' amplican_pipeline is convinient wrapper around all most popular settings of
-#' \code{\link{amplicanAnalysis}} and \code{\link{amplicanReport}}.
+#' \code{\link{amplicanAlign}} and \code{\link{amplicanReport}}.
 #' It will generate all results in the \code{result_folder} and also print
 #' prepared reports into 'reports' folder.
 #'
-#' @param config (string) The path to your configuration file. For example:
-#' \code{system.file('extdata', 'config.txt', package = 'amplican')}
-#' @inheritParams amplicanAnalysis
+#' @param knit_files (bolean) whether we should "knit" all reports automatically for you
+#' (it is time consuming)
+#' @inheritParams amplicanAlign
+#' @importFrom rmarkdown render
 #' @return NULL All results are created in specified results_folder.
 #' @export
 #' @family analysis steps
@@ -39,25 +40,28 @@ NULL
 #' config <- system.file("extdata", "config.csv", package = "amplican") #example config file
 #' fastq_folder <- system.file("extdata", "", package = "amplican") #path to example fastq files
 #' results_folder <- paste0(fastq_folder, "results") #output folder
-#' amplicanPipeline(config, fastq_folder, results_folder)
+#'
+#' #full analysis, not kniting files automatically
+#' amplicanPipeline(config, fastq_folder, results_folder, knit_files = FALSE)
 #'
 amplicanPipeline <- function(config,
                              fastq_folder,
                              results_folder,
+                             knit_files = TRUE,
                              total_processors = 1,
                              min_quality = 0,
                              fastqfiles = 2,
                              PRIMER_DIMER = 30,
                              cut_buffer = 5) {
 
-    amplicanAnalysis(config,
-                     fastq_folder,
-                     results_folder,
-                     total_processors = total_processors,
-                     min_quality = min_quality,
-                     fastqfiles = fastqfiles,
-                     PRIMER_DIMER = PRIMER_DIMER,
-                     cut_buffer = cut_buffer)
+    amplicanAlign(config,
+                  fastq_folder,
+                  results_folder,
+                  total_processors = total_processors,
+                  min_quality = min_quality,
+                  fastqfiles = fastqfiles,
+                  PRIMER_DIMER = PRIMER_DIMER,
+                  cut_buffer = cut_buffer)
 
     reportsFolder <- paste0(results_folder, "/reports")
     if (!dir.exists(reportsFolder)) {
@@ -71,4 +75,19 @@ amplicanPipeline <- function(config,
                                                            "/report_guide",
                                                            "/report_amplicon",
                                                            "/report_summary")))
+
+    if (knit_files) {
+        rmarkdown::render(paste0(reportsFolder, "/report_id.Rmd"),
+                          output_dir = paste0(reportsFolder, "/html"))
+        rmarkdown::render(paste0(reportsFolder, "/report_barcode.Rmd"),
+                          output_dir = paste0(reportsFolder, "/html"))
+        rmarkdown::render(paste0(reportsFolder, "/report_group.Rmd"),
+                          output_dir = paste0(reportsFolder, "/html"))
+        rmarkdown::render(paste0(reportsFolder, "/report_guide.Rmd"),
+                          output_dir = paste0(reportsFolder, "/html"))
+        rmarkdown::render(paste0(reportsFolder, "/report_amplicon.Rmd"),
+                          output_dir = paste0(reportsFolder, "/html"))
+        rmarkdown::render(paste0(reportsFolder, "/report_summary.Rmd"),
+                          output_dir = paste0(reportsFolder, "/html"))
+    }
 }

@@ -33,12 +33,12 @@ Imports:
     ggplot2,
     ggbio,
     stringr,
-    stats
+    stats,
+    rmarkdown,
+    knitr
 RoxygenNote: 5.0.1
 Suggests:
     testthat,
-    knitr,
-    rmarkdown,
     BiocStyle
 Collate:
     'RcppExports.R'
@@ -47,7 +47,7 @@ Collate:
     'helpers_filters.R'
     'helpers_alignment.R'
     'gotoh.R'
-    'amplicanAnalysis.R'
+    'amplicanAlign.R'
     'amplicanReport.R'
     'helpers_directory.R'
     'helpers_plots.R'

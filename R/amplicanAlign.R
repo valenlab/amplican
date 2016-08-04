@@ -1,10 +1,10 @@
-#' Prepare alignments.
+#' Align reads to amplicons.
 #'
-#' amplicanAnalysis takes a configuration files, fastq reads and output
+#' amplicanAlign takes a configuration files, fastq reads and output
 #' directory to prepare alignments and summary. Finally it return a GRanges
-#' object containing all missmatches, indels and insertions from our alinments.
+#' object containing all missmatches, indels and insertions from our alignments.
 #' @param config (string) The path to your configuration file. For example:
-#'                      /Home/johndoe/.../AmpliCan/res/Cas9_toy/run11.txt
+#' \code{system.file('extdata', 'config.txt', package = 'amplican')}
 #' @param fastq_folder (string) Path to FASTQ files. If not specified,
 #' FASTQ files should be in the same directory as config file.
 #' @param results_folder (string) Where do you want your results to be stored.
@@ -86,9 +86,9 @@
 #' config <- system.file("extdata", "config.csv", package = "amplican") #example config
 #' fastq_folder <- system.file("extdata", "", package = "amplican") #path to example fastq files
 #' results_folder <- paste0(fastq_folder, "results") #output folder
-#' amplicanAnalysis(config, fastq_folder, results_folder)
+#' amplicanAlign(config, fastq_folder, results_folder)
 #'
-amplicanAnalysis <- function(config,
+amplicanAlign <- function(config,
                              fastq_folder,
                              results_folder,
                              total_processors = 1,
@@ -167,17 +167,20 @@ amplicanAnalysis <- function(config,
     }
     logFileConn <- file(logFileName, open = "at")
     writeLines(paste("Config file:           ", config), logFileConn)
-    writeLines(paste("Total Processors:      ", total_processors), logFileConn)
+    writeLines(paste("Processors used:       ", total_processors), logFileConn)
     writeLines(paste("Skip Bad Nucleotides:  ", skip_bad_nucleotides),
                logFileConn)
     writeLines(paste("Average Quality:       ", average_quality), logFileConn)
     writeLines(paste("Minimum Quality:       ", min_quality), logFileConn)
     writeLines(paste("Write Alignments Mode: ", write_alignments), logFileConn)
+    writeLines(paste("Fastq files Mode:      ", fastqfiles), logFileConn)
     writeLines(paste("Scoring Matrix:        ", scoring_matrix), logFileConn)
     writeLines(paste("Gap Opening:           ", gap_opening), logFileConn)
     writeLines(paste("Gap Extension:         ", gap_extension), logFileConn)
     writeLines(paste("Gap Ending:            ", gap_ending), logFileConn)
     writeLines(paste("Far Indels:            ", far_indels), logFileConn)
+    writeLines(paste("PRIMER DIMER buffer:   ", PRIMER_DIMER), logFileConn)
+    writeLines(paste("Cut buffer:            ", cut_buffer), logFileConn)
     close(logFileConn)
 
     uBarcode <- unique(configTable$Barcode)
@@ -261,7 +264,7 @@ amplicanAnalysis <- function(config,
                paste0(results_folder, "/config_summary.csv"))
     unifyFiles(resultsFolder,
                "alignment_ranges",
-               paste0(results_folder, "/alignments.csv"))
+               paste0(results_folder, "/alignments_events.csv"))
     unifyFiles(resultsFolder,
                "reads_filters.csv",
                paste0(results_folder, "/barcode_reads_filters.csv"))

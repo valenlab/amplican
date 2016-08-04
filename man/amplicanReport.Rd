@@ -10,7 +10,7 @@ amplicanReport(results_folder, levels = c("id", "barcode", "group", "guide",
 }
 \arguments{
 \item{results_folder}{(string) Folder containing results from the
-\code{\link{amplicanAnalysis}} function, do not change names of the files.}
+\code{\link{amplicanAlign}} function, do not change names of the files.}
 
 \item{levels}{(vector) Possible values are: 'id', 'barcode', 'group',
 'guide', 'amplicon', 'summary'. You can also input more than one value
@@ -40,7 +40,7 @@ amplicanReport(results_folder, report_files = paste0(paste0(results_folder, "/re
 
 }
 \seealso{
-Other analysis steps: \code{\link{amplicanAnalysis}},
+Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanPipeline}}
 }
 
