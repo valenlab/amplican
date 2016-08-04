@@ -5,7 +5,7 @@
 \title{Wraps main package functionality into one function.}
 \usage{
 amplicanPipeline(config, fastq_folder, results_folder, knit_files = TRUE,
-  total_processors = 1, min_quality = 0, fastqfiles = 2,
+  total_processors = 1, min_quality = 0, fastqfiles = 0,
   PRIMER_DIMER = 30, cut_buffer = 5)
 }
 \arguments{

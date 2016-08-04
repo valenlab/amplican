@@ -408,161 +408,153 @@ class Alignment_Result{
 
 			string toReturn =  "";
 
-			if(this==NULL){
+		    int totalChunks = 0;
+		    int lastChunkLength = 0;
+		    string patternPiece = "";
+		    string markupPiece  = "";
+		    string subjectPiece = "";
+		    string indelInfoPiece = "";
 
-				toReturn = "WARNING: Alignment_Result init to NULL";
+		    toReturn = toReturn +
+		        "****************\n"+
+		        "SEQUENCES \n"+
+		        "----------------\n"+
+		        "Pattern: "+pattern + "\n"+
+		        "Subject: "+subject + "\n"+
+		        "****************\n"+
+		        "SCORING INFO \n"+
+		        "----------------\n"+
+		        "Score matrix:       "+scoreMatrix+"\n"+
+		        "Gap opening:        "+std::to_string(gapOpening)+"\n"+
+		        "Gap extension:      "+std::to_string(gapExtension)+"\n"+
+		        "Gap ending penalty: "+std::to_string(gapEnding)+"\n"+
+		        "****************\n"+
+		        "RESULTS \n"+
+		        "----------------\n"+
+		        "Alignment Length: "+std::to_string(alignmentLength)+"\n"+
+		        "Score: "+std::to_string(score) + "\n\n";
 
-			}
-			else{
+		    //Now lets separate the aligns in chunks of lenght 80
+		    totalChunks = alignmentLength/80;
+		    lastChunkLength = alignmentLength%80;
 
-				int totalChunks = 0;
-				int lastChunkLength = 0;
-				string patternPiece = "";
-				string markupPiece  = "";
-				string subjectPiece = "";
-				string indelInfoPiece = "";
+		    //Print all the chunks of length 80
+		    for(int i=0; i<totalChunks; i++){
+		        patternPiece = patternAlignment.substr(80*i,80);
+		        markupPiece  = markup.substr(80*i,80);
+		        subjectPiece = subjectAlignment.substr(80*i,80);
 
-				toReturn = toReturn +
-				"****************\n"+
-				"SEQUENCES \n"+
-				"----------------\n"+
-				"Pattern: "+pattern + "\n"+
-				"Subject: "+subject + "\n"+
-				"****************\n"+
-				"SCORING INFO \n"+
-				"----------------\n"+
-				"Score matrix:       "+scoreMatrix+"\n"+
-				"Gap opening:        "+std::to_string(gapOpening)+"\n"+
-				"Gap extension:      "+std::to_string(gapExtension)+"\n"+
-				"Gap ending penalty: "+std::to_string(gapEnding)+"\n"+
-				"****************\n"+
-				"RESULTS \n"+
-				"----------------\n"+
-				"Alignment Length: "+std::to_string(alignmentLength)+"\n"+
-				"Score: "+std::to_string(score) + "\n\n";
+		        toReturn = toReturn +
+		            patternPiece + "    " + std::to_string(80*(i+1)) + "\n"+
+		            markupPiece + "    \n"+
+		            subjectPiece + "    \n\n";
+		    }
 
-				//Now lets separate the aligns in chunks of lenght 80
-				totalChunks = alignmentLength/80;
-				lastChunkLength = alignmentLength%80;
+		    //Print the last chunk that didn't reach to 80
+		    if(lastChunkLength>0){
+		        patternPiece = patternAlignment.substr(totalChunks*80,lastChunkLength);
+		        markupPiece  = markup.substr(totalChunks*80,lastChunkLength);
+		        subjectPiece = subjectAlignment.substr(totalChunks*80,lastChunkLength);
 
-				//Print all the chunks of length 80
-				for(int i=0; i<totalChunks; i++){
-					patternPiece = patternAlignment.substr(80*i,80);
-					markupPiece  = markup.substr(80*i,80);
-					subjectPiece = subjectAlignment.substr(80*i,80);
-
-					toReturn = toReturn +
-					patternPiece + "    " + std::to_string(80*(i+1)) + "\n"+
-					markupPiece + "    \n"+
-					subjectPiece + "    \n\n";
-				}
-
-				//Print the last chunk that didn't reach to 80
-				if(lastChunkLength>0){
-					patternPiece = patternAlignment.substr(totalChunks*80,lastChunkLength);
-					markupPiece  = markup.substr(totalChunks*80,lastChunkLength);
-					subjectPiece = subjectAlignment.substr(totalChunks*80,lastChunkLength);
-
-					toReturn = toReturn +
-					patternPiece + "    " + std::to_string(alignmentLength) + "\n"+
-					markupPiece + "    \n"+
-					subjectPiece + "    \n";
-				}
+		        toReturn = toReturn +
+		            patternPiece + "    " + std::to_string(alignmentLength) + "\n"+
+		            markupPiece + "    \n"+
+		            subjectPiece + "    \n";
+		    }
 
 
-				toReturn = toReturn +
-				"****************\n"+
-				"ALIGNMENT INFO \n"+
-				"----------------\n"+
-				"Total Insertions: "+std::to_string(totalInsertions)+"\n"+
-				"Total Deletions:  "+std::to_string(totalDeletions)  +"\n"+
-				"Total Mismatches: "+std::to_string(totalMismatches) +"\n"+
-				"----------------\n"+
-				"INSERTIONS: \n"+
-				"----------------\n";
+		    toReturn = toReturn +
+		        "****************\n"+
+		        "ALIGNMENT INFO \n"+
+		        "----------------\n"+
+		        "Total Insertions: "+std::to_string(totalInsertions)+"\n"+
+		        "Total Deletions:  "+std::to_string(totalDeletions)  +"\n"+
+		        "Total Mismatches: "+std::to_string(totalMismatches) +"\n"+
+		        "----------------\n"+
+		        "INSERTIONS: \n"+
+		        "----------------\n";
 
-				//Show the list of all insertions
-				for (list<Indel_Info>::const_iterator it = insertions.begin();
-				     it!=insertions.end(); it++){
+		    //Show the list of all insertions
+		    for (list<Indel_Info>::const_iterator it = insertions.begin();
+                it!=insertions.end(); it++){
 
-					indelInfoPiece += (*it).to_string() + "\n";
-				}
+		        indelInfoPiece += (*it).to_string() + "\n";
+		    }
 
-				toReturn = toReturn + indelInfoPiece + "\n" +
+		    toReturn = toReturn + indelInfoPiece + "\n" +
 
-				"--Insertions respect patterns coordinates-- \n\n";
+		        "--Insertions respect patterns coordinates-- \n\n";
 
-				indelInfoPiece = "";
+		    indelInfoPiece = "";
 
-				//Show the list of all deletions from the subject coordinates.
-				for (list<Indel_Info>::const_iterator it = insertionsPattern.begin();
-				     it!=insertionsPattern.end(); it++){
+		    //Show the list of all deletions from the subject coordinates.
+		    for (list<Indel_Info>::const_iterator it = insertionsPattern.begin();
+                it!=insertionsPattern.end(); it++){
 
-					indelInfoPiece += (*it).to_string() + "\n";
-				}
+		        indelInfoPiece += (*it).to_string() + "\n";
+		    }
 
-				toReturn += indelInfoPiece + "\n" +
+		    toReturn += indelInfoPiece + "\n" +
 
 
-				"----------------\n"+
-				"DELETIONS: \n"+
-				"----------------\n";
+		        "----------------\n"+
+		        "DELETIONS: \n"+
+		        "----------------\n";
 
-				indelInfoPiece = "";
+		    indelInfoPiece = "";
 
-				//Show the list of all deletions
-				for (list<Indel_Info>::const_iterator it = deletions.begin();
-				     it!=deletions.end(); it++){
+		    //Show the list of all deletions
+		    for (list<Indel_Info>::const_iterator it = deletions.begin();
+                it!=deletions.end(); it++){
 
-					indelInfoPiece += (*it).to_string() + "\n";
-				}
+		        indelInfoPiece += (*it).to_string() + "\n";
+		    }
 
-				toReturn = toReturn + indelInfoPiece + "\n" +
+		    toReturn = toReturn + indelInfoPiece + "\n" +
 
-				"--Deletions respect subject coordinates-- \n\n";
+		        "--Deletions respect subject coordinates-- \n\n";
 
-				indelInfoPiece = "";
+		    indelInfoPiece = "";
 
-				//Show the list of all deletions from the subject coordinates.
-				for (list<Indel_Info>::const_iterator it = deletionsSubject.begin();
-				     it!=deletionsSubject.end(); it++){
+		    //Show the list of all deletions from the subject coordinates.
+		    for (list<Indel_Info>::const_iterator it = deletionsSubject.begin();
+           it!=deletionsSubject.end(); it++){
 
-					indelInfoPiece += (*it).to_string() + "\n";
-				}
+		        indelInfoPiece += (*it).to_string() + "\n";
+		    }
 
-				toReturn += indelInfoPiece + "\n" +
+		    toReturn += indelInfoPiece + "\n" +
 
-				"----------------\n"+
-				"MISMATCHES: \n"+
-				"----------------\n";
+		        "----------------\n"+
+		        "MISMATCHES: \n"+
+		        "----------------\n";
 
-				indelInfoPiece = "";
+		    indelInfoPiece = "";
 
-				//Show the list of all missmatches
-				for (list<Mutation_Info>::const_iterator it = mutations.begin();
-				     it!=mutations.end(); it++){
+		    //Show the list of all missmatches
+		    for (list<Mutation_Info>::const_iterator it = mutations.begin();
+                it!=mutations.end(); it++){
 
-					indelInfoPiece += (*it).to_string() + "\n";
-				}
+		        indelInfoPiece += (*it).to_string() + "\n";
+		    }
 
-				toReturn = toReturn + indelInfoPiece + "\n" +
+		    toReturn = toReturn + indelInfoPiece + "\n" +
 
-				"--Missmatches respect subject coordinates-- \n\n";
+		        "--Missmatches respect subject coordinates-- \n\n";
 
-				indelInfoPiece = "";
+		    indelInfoPiece = "";
 
-				//Show the list of all missmatches
-				for (list<Mutation_Info>::const_iterator it = mutationsRelative.begin();
-				     it!=mutationsRelative.end(); it++){
+		    //Show the list of all missmatches
+		    for (list<Mutation_Info>::const_iterator it = mutationsRelative.begin();
+                it!=mutationsRelative.end(); it++){
 
-					indelInfoPiece += (*it).to_string() + "\n";
-				}
+		        indelInfoPiece += (*it).to_string() + "\n";
+		    }
 
-				toReturn += indelInfoPiece + "\n" +
+		    toReturn += indelInfoPiece + "\n" +
 
-				"\n"+
-				"****************\n";
-			}
+		        "\n"+
+		        "****************\n";
 
 			return toReturn;
 		}
