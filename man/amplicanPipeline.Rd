@@ -65,7 +65,7 @@ prepared reports into 'reports' folder.
 \examples{
 config <- system.file("extdata", "config.csv", package = "amplican") #example config file
 fastq_folder <- system.file("extdata", "", package = "amplican") #path to example fastq files
-results_folder <- paste0(fastq_folder, "results") #output folder
+results_folder <- paste0(fastq_folder, "/results") #output folder
 
 #full analysis, not kniting files automatically
 amplicanPipeline(config, fastq_folder, results_folder, knit_files = FALSE)
