@@ -57,22 +57,22 @@ To run `amplican` with default options, along with generation of all posible rep
 example dataset, but take a look how you can do that yourself. Be prepared to grab a coffe when running
 `amplicanPipeline` with `knit_files = TRUE` as this will take some time. You will understand it is worth waiting when reports will be ready. We don't ship with these reports as they take up too much space to be included in R package.
 
-```{r amplicanPipeline, echo=TRUE}
+```{r amplicanPipeline, echo=TRUE, eval=FALSE}
 # example MiSeq dataset files
 config <- system.file("extdata", "config.csv", package = "amplican") #path to example config file
 fastq_folder <- system.file("extdata", "", package = "amplican") #path to example fastq files
 results_folder <- paste0(getwd(), "/amplican_example") #output folder
 
 ## make sure we have results folder
-# dir.create(results_folder) #uncomment when running yourself
+dir.create(results_folder)
 ##  actual amplican run
-# amplicanPipeline(config, fastq_folder, results_folder) #uncomment when running yourself
+amplicanPipeline(config, fastq_folder, results_folder)
 
 # results of the analysis can be found at
 message(results_folder)
 ```
 
-Take a look into "amplican_example" folder. Here you can find `.Rmd` files that are our reports for example dataset. We already crafted `.html` versions and you can find them in the "html" folder. Open one of the reports with your favourite browser now. To zoom on an image just open it in new window (right mouse click options). 
+Take a look into "results_folder" folder. Here you can find `.Rmd` files that are our reports for example dataset. We already crafted `.html` versions and you can find them in the "html" folder. Open one of the reports with your favourite browser now. To zoom on an image just open it in new window (right mouse click options). 
 
 `amplicanPipeline` just crafted very detailed reports for you, but this is not all, if you need something different e.g. different plot colours, just change the `.Rmd` file and `knit` it again. This way you have all the power over plotting.
 
@@ -136,7 +136,8 @@ Other file will contain very detailed information:
 - list of deletions, insertions and mismatches,  
 - same information, but relative towards amplicon coordinates
 
-```{r, echo=FALSE}
+```{r, echo=TRUE, eval=FALSE}
+# path to the example alignments folder
 system.file("extdata", "results/alignments", package = "amplican")
 ```
 
@@ -146,11 +147,12 @@ In `unassigned_sequences` folder you can find detailed information about unassig
 
 Reports are automated for the convenience of the users. We provide 6 different reports. Reports are .Rmd files which can be easly crafted through `rmarkdown::render(path_to_report)` or by clicking `Knit` in Rstudio to make html version of the report. If you have runned our example analysis, then you can open one of the reports with Rstudio and  try kniting it now! Otherwise you should change the path at the top of this file to match your path to the package, as you have pregenerated path (running `amplicanPipeline` does that for you). 
 
-```{r, echo=TRUE}
+```{r, echo=TRUE, eval=FALSE}
+# path to example resports folder
 system.file("extdata", "results/reports", package = "amplican") #folder with example reports
 
-# you can run this as example how to knit file:
-# rmarkdown::render(system.file("extdata", "results/reports/report_id.Rmd", package = "amplican"))
+# you can run code below as example how to knit file:
+rmarkdown::render(system.file("extdata", "results/reports/report_id.Rmd", package = "amplican"))
 ```
 
 # Detailed analysis
@@ -200,6 +202,7 @@ usefull when anaylisng what kind of cuts were introduced in the amplicon
 
 You can take a look at all these plots by *kniting* amplicon report file located here:
 
-```{r, echo=FALSE}
+```{r, echo=TRUE, eval=FALSE}
+# path to example knitable report
 system.file("extdata", "results/reports/report_amplicon.Rmd", package = "amplican")
 ```

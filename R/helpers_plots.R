@@ -225,7 +225,7 @@ amplican_plot_mismatches <- function(alignments, config, id, cut_buffer = 5) {
 #' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle
 #' scale_colour_manual
 #' scale_fill_manual scale_x_continuous geom_vline scale_y_reverse
-#' element_blank unit geom_text ylab ylim
+#' element_blank unit geom_text ylab ylim scale_colour_gradientn
 #' @importFrom seqinr s2c comp
 #' @importFrom stringr str_locate
 #' @importFrom ggbio tracks geom_arch xlim
@@ -250,8 +250,8 @@ amplican_plot_deletions <- function(alignments, config, id, cut_buffer = 5) {
     if (dim(archRanges)[1] == 0) {
         return(print("No deletions to plot."))
     }
-    archRanges <- stats::aggregate(
-        cbind(count, frequency, cut) ~ strand + start + end, archRanges, sum)
+    archRanges <- stats::aggregate(cbind(count, frequency, cut) ~ strand + start + end, archRanges, sum)
+    archRanges$cut <- archRanges$cut > 0
 
     selcolumns <- c("position", "nucleotide", "upper", "count")
     ampl_df <- data.frame(seq(1, ampl_len),
@@ -309,6 +309,9 @@ amplican_plot_deletions <- function(alignments, config, id, cut_buffer = 5) {
     }
 
     frequency <- cut <- NULL
+    isCutPalette <- c("#CC79A7", "#0072B2")
+    names(isCutPalette) <- c("FALSE", "TRUE")
+
     arch_plot_fr <- ggplot2::ggplot() +
         ggbio::geom_arch(data = archRanges[archRanges$strand == "+", ],
                          ggplot2::aes(height = frequency,
@@ -331,7 +334,8 @@ amplican_plot_deletions <- function(alignments, config, id, cut_buffer = 5) {
                             colour = "black") +
         ggplot2::geom_vline(xintercept = primers,
                             linetype = "dotdash",
-                            colour = "blue")
+                            colour = "blue") +
+        ggplot2::scale_colour_manual(values = isCutPalette)
 
     arch_plot_re <- ggplot2::ggplot() +
         ggbio::geom_arch(data = archRanges[archRanges$strand == "-", ],
@@ -356,7 +360,8 @@ amplican_plot_deletions <- function(alignments, config, id, cut_buffer = 5) {
         ggplot2::geom_vline(xintercept = primers,
                             linetype = "dotdash",
                             colour = "blue") +
-        ggplot2::scale_y_reverse()
+        ggplot2::scale_y_reverse() +
+        ggplot2::scale_colour_manual(values = isCutPalette)
 
     amplicon_colors <- c("green3", "red", "gold2", "blue",
                          "green3", "red", "gold2", "blue")
@@ -559,10 +564,8 @@ amplican_plot_insertions <- function(alignments, config, id, cut_buffer = 5) {
                                            y = frequency,
                                            group = group,
                                            alpha = frequency,
-                                           order = frequency,
-                                           size = frequency)) +
-        ggplot2::scale_fill_manual(values = amplicon_colors) +
-        ggbio::xlim(1, ampl_len) + # ylim(0, 1) +
+                                           size = frequency),
+                              fill = "red") +
         ggplot2::theme_bw() +
         ggplot2::theme(panel.margin = unit(0, "cm"),
                        legend.position = "none",
@@ -584,8 +587,8 @@ amplican_plot_insertions <- function(alignments, config, id, cut_buffer = 5) {
                                            group = group,
                                            alpha = frequency,
                                            order = frequency,
-                                           size = frequency)) +
-        ggplot2::scale_fill_manual(values = amplicon_colors) +
+                                           size = frequency),
+                              fill = "red") +
         ggbio::xlim(1, ampl_len) + # ylim(0, 1) +
         ggplot2::theme_bw() +
         ggplot2::theme(panel.margin = unit(0, "cm"),
@@ -722,7 +725,8 @@ amplican_plot_cuts <- function(alignments, config, id) {
                                       order = frequency,
                                       size = frequency,
                                       x = start,
-                                      xend = end)) +
+                                      xend = end),
+                         colour = "#0072B2") +
         ggplot2::scale_color_manual(values = c("dogerblue2")) +
         ggbio::xlim(1, ampl_len) +
         ggplot2::theme_bw() +
@@ -743,7 +747,8 @@ amplican_plot_cuts <- function(alignments, config, id) {
                                       order = frequency,
                                       size = frequency,
                                       x = start,
-                                      xend = end)) +
+                                      xend = end),
+                         colour = "#0072B2") +
         ggplot2::facet_grid(seqnames ~ .) +
         ggbio::xlim(1, ampl_len) +
         ggplot2::theme_bw() +
