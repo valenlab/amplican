@@ -1,0 +1,55 @@
+Package: amplican
+Type: Package
+Title: fast and precise analysis of CRISPR experiments
+Description: `amplican` creates report of deletions, insertions, frameshifts,
+    cut rates and other metrics in user selected format (preffered html). `amplican`
+    uses vary fast C implementation of Gotoh alhoritm to align your fastq samples
+    and automates analysis across different experiments. `amplican` maintains
+    elasticity through configuration file, which with your fastq samples are only
+    requirements.
+Version: 1.0.0
+Authors@R: c(
+    person("Kornel", "Labun", email = "kornel.labun@gmail.com", role = "aut"),
+    person(c("Rafael", "Nozal"), "Canyadas", email = "rafanozal@gmail.com",  role = "ctr"),
+    person("Eivind", "Valen", email = "eivind.valen@gmail.com", role = c("cph", "cre"))
+  )
+URL: https://bitbucket.org/valenlab/amplican
+BugReports: https://bitbucket.org/valenlab/amplican/issues
+biocViews: Technology, qPCR
+License: GPL-3
+LazyData: TRUE
+LinkingTo: Rcpp
+Imports:
+    Rcpp,
+    utils,
+    R.utils,
+    seqinr,
+    ShortRead,
+    IRanges,
+    GenomicRanges,
+    S4Vectors,
+    doParallel,
+    foreach,
+    ggplot2,
+    ggbio,
+    stringr,
+    stats,
+    rmarkdown,
+    knitr
+RoxygenNote: 5.0.1
+Suggests:
+    testthat,
+    BiocStyle
+Collate:
+    'RcppExports.R'
+    'amplican.R'
+    'helpers_warnings.R'
+    'helpers_filters.R'
+    'helpers_alignment.R'
+    'gotoh.R'
+    'amplicanAlign.R'
+    'amplicanReport.R'
+    'helpers_directory.R'
+    'helpers_plots.R'
+    'helpers_rmd.R'
+VignetteBuilder: knitr

@@ -1,0 +1,146 @@
+---
+title: 'Report breakdown by guideRNA'
+author: amplican
+date: '`r format(Sys.time(), "%d %B %Y")`'
+output:
+  html_document:
+    toc: true
+    theme: paper
+    toc_float: true
+    number_sections: true
+---
+
+```{r load data, message=F, warning=FALSE, include=FALSE}
+results_folder = '/home/ai/Projects/amplican/inst/extdata/results'
+library(amplican)
+library(ggplot2)
+alignments <- read.csv(paste0(results_folder, '/alignments.csv'))
+config <- read.csv(paste0(results_folder, '/config_summary.csv'))
+```
+
+***
+
+# Description  
+
+***
+
+**Read distribution plot** - plot shows number of reads assigned during read grouping  
+**PRIMER DIMER filter** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS  
+**Cutting rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have cut  
+**Frameshift** - plot shows what percentage of reads that have frameshift  
+**Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads  
+
+
+***
+
+# guideRNA Summary  
+
+***
+
+## Read distribution  
+
+```{r plot total reads, echo=FALSE, fig.height=4, fig.width=14, message=F, warning=FALSE}
+ggplot(data = config, aes(x = guideRNA, y = log10(Reads + 1), order = guideRNA, fill = guideRNA)) +
+  geom_boxplot() +
+  ylab('Number of reads + 1, log10 scaled')  +
+  xlab('guideRNA') + 
+  theme(legend.position = 'none',
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = 'bold')) +
+  coord_flip()
+```
+
+## PRIMER DIMER filter  
+
+```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=4, fig.width=14, message=F, warning=FALSE}
+config$PD_percentage <- config$PRIMER_DIMER * 100/config$Reads
+config$PD_percentage[is.nan(config$PD_percentage)] <- 0
+
+ggplot(data = config, aes(x = guideRNA, y = PD_percentage, order = guideRNA, fill = guideRNA)) +
+  geom_boxplot() +
+  xlab('guideRNA') + 
+  ylab('Percentage of reads marked as PRIMER DIMERS')  +
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=14, face = 'bold'),
+        legend.position = 'none') +
+  ylim(0, 100) + 
+  coord_flip()
+``` 
+
+## Cut rates  
+
+```{r plot cut percentage, echo=FALSE, fig.height=4, fig.width=14, message=F, warning=FALSE}
+config$Reads_noPD <- config$Reads - config$PRIMER_DIMER
+config$cut_percentage <- config$Cut * 100/config$Reads_noPD
+config$cut_percentage[is.nan(config$cut_percentage)] <- 0  
+
+ggplot(data = config, aes(x = guideRNA, y = cut_percentage, order = guideRNA, fill = guideRNA)) +
+  geom_boxplot() +
+  xlab('guideRNA') + 
+  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have cut site')  +
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=14, face = 'bold'),
+        legend.position = 'None') +
+  ylim(0,100) + 
+  coord_flip()
+``` 
+
+## Frameshift  
+```{r plot frame shift percentage, echo=FALSE, fig.height=4, fig.width=14, message=F, warning=FALSE}
+config$frameshift_percentage <- config$Frameshift * 100/config$Reads_noPD
+config$frameshift_percentage[is.nan(config$frameshift_percentage)] <- 0  
+
+ggplot(data = config, aes(x = guideRNA, y = frameshift_percentage, order = guideRNA, fill = guideRNA)) +
+  geom_boxplot() +
+  xlab('guideRNA') + 
+  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift')  +
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=14,face = 'bold'),
+        legend.position = 'None') +
+  ylim(0, 100) + 
+  coord_flip()
+``` 
+
+## Heterogeneity of reads  
+
+```{r plot read heterogeneity, echo=FALSE, fig.height=4, fig.width=14, message=F, warning=FALSE}
+alignments$ID_read_id <- paste0(alignments$seqnames, '_', alignments$read_id)
+uniqueReadsByID <- alignments[!duplicated(alignments$ID_read_id), c('seqnames', 'read_id', 'count')]
+uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$seqnames, uniqueReadsByID$count, decreasing = T),]
+
+howManyTimes <- aggregate(read_id ~ seqnames, data = uniqueReadsByID, length)
+howManyTimes <- howManyTimes[match(howManyTimes$seqnames, unique(uniqueReadsByID$seqnames)),] 
+
+uniqueReadsByID$guideRNA <- rep(config$guideRNA[match(howManyTimes$seqnames, unique(config$ID))], 
+
+                                times = howManyTimes$read_id)
+
+uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$guideRNA, uniqueReadsByID$count, decreasing = T),]
+
+cumsum_list <- tapply(uniqueReadsByID$count, as.vector(uniqueReadsByID$guideRNA), FUN = cumsum)
+cumsum_list <- cumsum_list[match(names(cumsum_list), unique(uniqueReadsByID$guideRNA))]
+uniqueReadsByID$cumsum <- do.call(c, cumsum_list)
+seq2 <- Vectorize(seq.default, vectorize.args = c('from', 'to'))
+howManyTimes <- table(as.vector(uniqueReadsByID$guideRNA))
+howManyTimes <- howManyTimes[match(names(howManyTimes), unique(uniqueReadsByID$guideRNA))]
+uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dim(howManyTimes)[1]), to = howManyTimes, by = 1))
+
+ids_with_reads <- tapply(uniqueReadsByID$cumsum, as.vector(uniqueReadsByID$guideRNA), FUN = max)
+ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$guideRNA))]
+
+toDivide <- rep(ids_with_reads, times = howManyTimes)
+uniqueReadsByID$read_share_percentage <- uniqueReadsByID$cumsum * 100 / toDivide
+uniqueReadsByID$read_share_percentage_normal <- uniqueReadsByID$count * 100 / toDivide  
+
+ggplot(data = uniqueReadsByID, aes(x = guideRNA, y = read_share_percentage_normal, fill = read_share_percentage_normal)) +
+  geom_bar(position = 'stack', stat = 'identity') +
+  theme(legend.position = 'top',
+        axis.text = element_text(size=12),
+        axis.title=element_text(size=14,face = 'bold'),
+        legend.direction = 'horizontal', 
+        legend.title = element_blank()) +
+  ylab('Unique reads percentage of contribution') +
+  xlab('guideRNA') +
+  coord_flip()
+``` 
+
