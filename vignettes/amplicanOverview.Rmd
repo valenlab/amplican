@@ -32,7 +32,10 @@ knitr::kable(head(config))
 ```
 
 Configuration file should be a "," delimited csv file with information about your experiments. 
-You can find example config file at: `r system.file("extdata", "config.csv", package = "amplican")`
+You can find example config file path by running: 
+```{r configPath, echo=TRUE, eval=FALSE}
+system.file("extdata", "config.csv", package = "amplican")
+```
 
 Columns of the config file:  
 **ID** - should be a unique identifier of your experiments  
