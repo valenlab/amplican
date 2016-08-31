@@ -11,7 +11,7 @@ Our R package’s main function performs alignment of the amplicon reads, calcul
 
 When final version of the package will be realeasted, it will be available on Bioconductor. For this version dependencies must be installed by the users:
 
-- When on windows, make sure you have latest Rtools.
+- When on windows, make sure you have latest Rtools. When installing Rtools, it is sufficient to choose the “Package authoring installation” option. Also during the installation, you must tick the “edit system PATH” box.
 - Dependencies from CRAN:  
 ```r
 install.packages(c("Rcpp", "R.utils", "doParallel", "foreach", "ggplot2", "stringr", "rmarkdown", "knitr", "devtools"))
