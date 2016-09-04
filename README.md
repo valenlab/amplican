@@ -19,7 +19,7 @@ install.packages(c("Rcpp", "R.utils", "doParallel", "foreach", "ggplot2", "strin
 - Dependencies from Bioconductor:  
 ```r
 source("https://bioconductor.org/biocLite.R")  
-biocLite(c("seqinr", "ShortRead", "IRanges", "GenomicRanges", "S4Vectors", "ggbio"))
+biocLite(c("seqinr", "ShortRead", "IRanges", "GenomicRanges", "S4Vectors", "ggbio", "BiocStyle"))
 ```  
 - Install amplican using devtools:  
 ```r
