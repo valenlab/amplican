@@ -7,7 +7,7 @@ Description: `amplican` creates report of deletions, insertions, frameshifts,
     and automates analysis across different experiments. `amplican` maintains
     elasticity through configuration file, which with your fastq samples are only
     requirements.
-Version: 1.0.0
+Version: 0.99.0
 Authors@R: c(
     person("Kornel", "Labun", email = "kornel.labun@gmail.com", role = "aut"),
     person(c("Rafael", "Nozal"), "Canyadas", email = "rafanozal@gmail.com",  role = "ctr"),
@@ -15,10 +15,11 @@ Authors@R: c(
   )
 URL: https://bitbucket.org/valenlab/amplican
 BugReports: https://bitbucket.org/valenlab/amplican/issues
-biocViews: Technology, qPCR
+biocViews: Technology, qPCR, CRISPR
 License: GPL-3
 LazyData: TRUE
 LinkingTo: Rcpp
+Depends: R (>= 3.3.0)
 Imports:
     Rcpp,
     utils,
@@ -35,7 +36,8 @@ Imports:
     stringr,
     stats,
     rmarkdown,
-    knitr
+    knitr,
+    methods
 RoxygenNote: 5.0.1
 Suggests:
     testthat,

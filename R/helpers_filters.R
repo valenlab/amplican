@@ -7,6 +7,7 @@
 #' will be a bad sequence. The minimum is set to 0 by default.
 #' @return (boolean) Logical vector with the valid rows as TRUE.
 #' @importFrom ShortRead ShortReadQ
+#' @importFrom methods as slot
 #'
 goodBaseQuality <- function(reads, min = 0) {
     if (is.logical(reads)) {
@@ -29,6 +30,7 @@ goodBaseQuality <- function(reads, min = 0) {
 #' not pass. The average is set to 0 by default.
 #' @return (boolean) Logical vector with the valid rows as TRUE.
 #' @importFrom ShortRead ShortReadQ
+#' @importFrom methods as slot
 #'
 goodAvgQuality <- function(reads, avg = 0) {
     if (is.logical(reads)) {
@@ -46,6 +48,7 @@ goodAvgQuality <- function(reads, avg = 0) {
 #' @param reads (ShortRead object) Loaded reads from fastq.
 #' @return (boolean) Logical vector with the valid rows as TRUE.
 #' @importFrom stringr str_detect
+#' @importFrom methods as slot
 #'
 alphabetQuality <- function(reads) {
     if (is.logical(reads)) {

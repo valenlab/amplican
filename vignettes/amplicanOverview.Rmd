@@ -146,6 +146,24 @@ system.file("extdata", "results/alignments", package = "amplican")
 
 In `unassigned_sequences` folder you can find detailed information about unassigned reads. In example dataset there is no unassigned reads.
 
+Take a look at the alignment events file which contains all the insertions, deletions, cuts and mutations. This file can be used in varius ways. Examples you can find in `.Rmd` files we prepare using `amplicanReport`. These can be easly converted into `GRanges` and used for further analysis!
+```{r, echo=FALSE}
+alignments <- read.csv(system.file("extdata", "results/alignments.csv", package = "amplican"))
+knitr::kable(head(alignments))
+```
+
+Human readable alignments format gives information about forward and reverse reads. First line is coresponding to the forward alignment and second line is always for the reverse read alignment. This alignment does not shows amplicon, just similarity between two alignments (forward and reverse). Human readable format looks like this:
+```{r, echo=FALSE}
+readLines(system.file("extdata", "results/alignments/ID_1_barcode_1/alignments.txt", package = "amplican"), n = 6)
+```
+
+
+Human readable detailed alignments format gives more information. To make more detailed alignment files `amplicanPipeline` or `amplicanAlign` should have option `write_alignments == 2` specified (Default behaviour), but it adds a little to the computational time.
+```{r, echo=FALSE}
+readLines(system.file("extdata", "results/alignments/ID_1_barcode_1/detailed_alignments.txt", package = "amplican"), n = 89)
+```
+
+
 ## reports folder
 
 Reports are automated for the convenience of the users. We provide 6 different reports. Reports are .Rmd files which can be easly crafted through `rmarkdown::render(path_to_report)` or by clicking `Knit` in Rstudio to make html version of the report. If you have runned our example analysis, then you can open one of the reports with Rstudio and  try kniting it now! Otherwise you should change the path at the top of this file to match your path to the package, as you have pregenerated path (running `amplicanPipeline` does that for you). 

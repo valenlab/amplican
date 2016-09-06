@@ -33,6 +33,7 @@ NULL
 #' (it is time consuming)
 #' @inheritParams amplicanAlign
 #' @importFrom rmarkdown render
+#' @import knitr
 #' @return NULL All results are created in specified results_folder.
 #' @export
 #' @family analysis steps
