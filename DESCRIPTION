@@ -1,7 +1,7 @@
 Package: amplican
 Type: Package
 Title: fast and precise analysis of CRISPR experiments
-Description: `amplican` creates report of deletions, insertions, frameshifts,
+Description: `amplican` creates reports of deletions, insertions, frameshifts,
     cut rates and other metrics in user selected format (preffered html). `amplican`
     uses vary fast C implementation of Gotoh alhoritm to align your fastq samples
     and automates analysis across different experiments. `amplican` maintains
@@ -13,8 +13,8 @@ Authors@R: c(
     person(c("Rafael", "Nozal"), "Canyadas", email = "rafanozal@gmail.com",  role = "ctr"),
     person("Eivind", "Valen", email = "eivind.valen@gmail.com", role = c("cph", "cre"))
   )
-URL: https://bitbucket.org/valenlab/amplican
-BugReports: https://bitbucket.org/valenlab/amplican/issues
+URL: https://github.com/valenlab/amplican
+BugReports: https://github.com/valenlab/amplican/issues
 biocViews: Technology, qPCR, CRISPR
 License: GPL-3
 LazyData: TRUE

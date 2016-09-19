@@ -11,7 +11,7 @@ Our R package’s main function performs alignment of the amplicon reads, calcul
 
 When final version of the package will be realeasted, it will be available on Bioconductor. For this version dependencies must be installed by the users:
 
-- When on windows, make sure you have latest Rtools. When installing Rtools, it is sufficient to choose the “Package authoring installation” option. Also during the installation, you must tick the “edit system PATH” box.
+- When on windows, make sure you have latest Rtools. When installing Rtools, it is sufficient to choose the “Package authoring installation” option. Also during the installation, you must tick the “edit system PATH” box. Make sure you use the same version of R and Rtools (both must be at least version 3.3.0).
 - Dependencies from CRAN:  
 ```r
 install.packages(c("Rcpp", "R.utils", "doParallel", "foreach", "ggplot2", "stringr", "rmarkdown", "knitr", "devtools"))
@@ -23,7 +23,7 @@ biocLite(c("seqinr", "ShortRead", "IRanges", "GenomicRanges", "S4Vectors", "ggbi
 ```  
 - Install amplican using devtools:  
 ```r
-devtools::install_bitbucket("valenlab/amplican", build_vignettes = TRUE)
+devtools::install_git("https://github.com/valenlab/amplican", build_vignettes = TRUE)
 ```  
 
 #### More information
