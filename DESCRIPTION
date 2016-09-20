@@ -7,7 +7,7 @@ Description: `amplican` creates reports of deletions, insertions, frameshifts,
     and automates analysis across different experiments. `amplican` maintains
     elasticity through configuration file, which with your fastq samples are only
     requirements.
-Version: 0.99.1
+Version: 0.99.2
 Authors@R: c(
     person("Kornel", "Labun", email = "kornel.labun@gmail.com", role = "aut"),
     person(c("Rafael", "Nozal"), "Canyadas", email = "rafanozal@gmail.com",  role = "ctr"),

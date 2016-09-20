@@ -112,7 +112,7 @@ object containing all missmatches, indels and insertions from our alignments.
 }
 \examples{
 config <- system.file("extdata", "config.csv", package = "amplican") #example config
-fastq_folder <- system.file("extdata", "", package = "amplican") #path to example fastq files
+fastq_folder <- system.file("extdata", "/", package = "amplican") #path to example fastq files
 results_folder <- paste0(fastq_folder, "results") #output folder
 amplicanAlign(config, fastq_folder, results_folder)
 
