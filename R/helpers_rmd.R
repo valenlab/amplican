@@ -244,14 +244,14 @@ make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
            "**Deletions plot** - shows summary of deletions detected after alignments with distinction",
            "for forward (top plot) and reverse (bottom) reads, blue dotted lines represent primers as black",
            "dotted line represents cut site box, for deletions overlapping with cut site box there is distinction",
-           "in colour  ",
+           "in color  ",
            "**Mismatches plot** - shows summary of mismatches detected after alignments split by forward",
            "(top plot) and reverse (bottom) reads, mismatches are colored in the same manner as amplicon  ",
            "**Insertions plot** - shows summary of insertions detected after alignments split by forward",
            "(top plot) and reverse (bottom) reads, insertion is shown as right-angled triangle where size of",
-           "the insertion coresponds to the width of the triangle, size and transparency of traingle reflect on",
+           "the insertion corresponds to the width of the triangle, size and transparency of triangle reflect on",
            "the frequency of the insertion  ",
-           "**Cuts plot** - shows summary of cuts in the amplicon (insertions that are overlaping with ",
+           "**Cuts plot** - shows summary of cuts in the amplicon (insertions that are overlapping with ",
            "specified box of uppercase letters in the amplicon, and are supported by both forward and reverse reads)\n",
            "***\n",
            "# Amplicon Summary  \n",
@@ -829,7 +829,7 @@ make_guide_rmd <- function(results_folder) {
 #'
 #' @param results_folder (string) Folder containing results from the \code{\link{amplicanAlign}} function,
 #' do not change names of the files.
-#' @return (string) contents to write to filess
+#' @return (string) contents to write to files
 #'
 make_summary_rmd <- function(results_folder) {
 
