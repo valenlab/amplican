@@ -1,8 +1,9 @@
 #' Align reads to amplicons.
+
 #'
 #' amplicanAlign takes a configuration files, fastq reads and output
 #' directory to prepare alignments and summary. Finally it return a GRanges
-#' object containing all missmatches, indels and insertions from our alignments.
+#' object containing all mismatches, indels and insertions from our alignments.
 #' @param config (string) The path to your configuration file. For example:
 #' \code{system.file('extdata', 'config.txt', package = 'amplican')}
 #' @param fastq_folder (string) Path to FASTQ files. If not specified,
@@ -15,7 +16,7 @@
 #' and accessible.
 #' @param skip_bad_nucleotides (logical) Some sequences have faulty nucleotides
 #' labels with N. If we find a sequence like that in either forwards or
-#' reverse, we skip that aligment. Default is TRUE.
+#' reverse, we skip that alignment. Default is TRUE.
 #' @param average_quality (numeric) The FASTQ file have a quality for each
 #' nucleotide, being ! the lower and ~ the highest. In ASCII :
 #'                              !'#$%&'()*+,-./0123456789:;<=>?@
@@ -24,13 +25,13 @@
 #'
 #' This quality variable goes from 0 to 100, being 0 the lowest quality and
 #' 100 the highest. You can write whatever number in between, and the program
-#' will find out the apropiate character encoding. The filter works by
+#' will find out the appropriate character encoding. The filter works by
 #' converting each character to a number, and then finding the average. If the
 #' average fall above this threshold then we take the sequence. Default is 0.
 #' @param min_quality (numeric)  Similar as in average_quality, but this is
 #' the minimum quality for ALL nucleotides. If one of them has quality BELLOW
 #' this threshold, then the sequence is skipped. Default is 0.
-#' @param write_alignments (numeric) How to write the aligments results
+#' @param write_alignments (numeric) How to write the alignments results
 #' into disk:
 #'                         0 - Write nothing
 #'                         1 - Write only the summary file
@@ -67,14 +68,14 @@
 #'                         forward primer in the sequence
 #'                         1 - Use only the forward FASTQ file
 #'                         2 - Use only the reverse FASTQ file
-#' @param PRIMER_DIMER (numeric) Value specyfying buffer for PRIMER DIMER
+#' @param PRIMER_DIMER (numeric) Value specifying buffer for PRIMER DIMER
 #' detection. For a given read it will be recognized as PRIMER DIMER when
 #' alignment will introduce gap of size bigger than:
-#' length of amplicon - (lenghts of PRIMERS + PRIMER_DIMER value)
-#' @param cut_buffer (numeric) Value specyfying a buffer for PAM, this will add
+#' length of amplicon - (lengths of PRIMERS + PRIMER_DIMER value)
+#' @param cut_buffer (numeric) Value specifying a buffer for PAM, this will add
 #' from both sides to a window defined from uppercase letters in the amplicon.
 #' Deletions overlapping this window will be considered a
-#' valid cut (if confirmed by both forward and rewerse reads).
+#' valid cut (if confirmed by both forward and reverse reads).
 #' @return NULL All results are written into results_folder.
 #' @include gotoh.R helpers_alignment.R helpers_filters.R helpers_warnings.R
 #' helpers_directory.R

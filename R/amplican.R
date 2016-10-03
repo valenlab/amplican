@@ -24,12 +24,12 @@ NULL
 
 #' Wraps main package functionality into one function.
 #'
-#' amplican_pipeline is convinient wrapper around all most popular settings of
+#' amplican_pipeline is convenient wrapper around all most popular settings of
 #' \code{\link{amplicanAlign}} and \code{\link{amplicanReport}}.
 #' It will generate all results in the \code{result_folder} and also print
 #' prepared reports into 'reports' folder.
 #'
-#' @param knit_files (bolean) whether we should "knit" all reports automatically for you
+#' @param knit_files (boolean) whether we should "knit" all reports automatically for you
 #' (it is time consuming)
 #' @inheritParams amplicanAlign
 #' @importFrom rmarkdown render
@@ -42,7 +42,7 @@ NULL
 #' fastq_folder <- system.file("extdata", "", package = "amplican") #path to example fastq files
 #' results_folder <- paste0(fastq_folder, "/results") #output folder
 #'
-#' #full analysis, not kniting files automatically
+#' #full analysis, not knitting files automatically
 #' amplicanPipeline(config, fastq_folder, results_folder, knit_files = FALSE)
 #'
 amplicanPipeline <- function(config,

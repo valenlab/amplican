@@ -2,8 +2,8 @@ Package: amplican
 Type: Package
 Title: fast and precise analysis of CRISPR experiments
 Description: `amplican` creates reports of deletions, insertions, frameshifts,
-    cut rates and other metrics in user selected format (preffered html). `amplican`
-    uses vary fast C implementation of Gotoh alhoritm to align your fastq samples
+    cut rates and other metrics in user selected format (preferred HTML). `amplican`
+    uses vary fast C implementation of Gotoh algorithm to align your fastq samples
     and automates analysis across different experiments. `amplican` maintains
     elasticity through configuration file, which with your fastq samples are only
     requirements.

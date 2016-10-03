@@ -24,7 +24,7 @@
  *	The script allocate memory for one matrix only. After an alignment,
  *	the subject sequence remain in place an a new sequence is given.
  *
- *  The results are given in a string witht the following format:
+ *  The results are given in a string with the following format:
  *
  *	SUBJECT SEQUENCE@SEQUENCE 1
  *	Indels:
@@ -56,7 +56,7 @@
 
 #include <Rcpp.h>  //If you are not working with R, comment this line
 					         //otherwise you have to install Rcpp.h and you need admin
-					         //privelege to do that.
+					         //privilege to do that.
 
 // Enable C++11 via this plugin (Rcpp 0.10.3 or later)
 // [[Rcpp::plugins("cpp11")]]
@@ -79,7 +79,7 @@ class Mutation_Info{
 	public:
 
 		/**
-		Constructor of the class, set atttributes to s,o and m.
+		Constructor of the class, set attributes to s,o and m.
 
 		Use example:
 			Mutation_Info example(20,C,G)
@@ -159,7 +159,7 @@ Subject  AA--TAACGGAAGCACGTG
 The Pattern have an insertion from 2 to 3.
 The Pattern have a deletion from 8 to 11.
 
-The Subject have the oposite respect the pattern:
+The Subject have the opposite respect the pattern:
 
 The Subject have a deletion from 2 to 3.
 The Subject have an insertion from 8 to 11.
@@ -178,7 +178,7 @@ class Indel_Info{
 	public:
 
 		/**
-		Constructor of the class, set atttributes to s,e and p.
+		Constructor of the class, set attributes to s,e and p.
 
 		Use example:
 			Indel_Info example(20,30,false)
@@ -531,7 +531,7 @@ class Alignment_Result{
 
 		    indelInfoPiece = "";
 
-		    //Show the list of all missmatches
+		    //Show the list of all mismatches
 		    for (list<Mutation_Info>::const_iterator it = mutations.begin();
                 it!=mutations.end(); it++){
 
@@ -544,7 +544,7 @@ class Alignment_Result{
 
 		    indelInfoPiece = "";
 
-		    //Show the list of all missmatches
+		    //Show the list of all mismatches
 		    for (list<Mutation_Info>::const_iterator it = mutationsRelative.begin();
                 it!=mutationsRelative.end(); it++){
 
@@ -859,7 +859,7 @@ inline int max(int A, int B, int C, char &direction){
 	Return the maximum of three integers. The character indicates the direction
 	of the traceback matrix propagation. A '\' character means that we continue
 	in the traceback grid matrix. A 'V' character means that we should go to the
-	vertical traceback matrix. A 'H' chracter means that we should go to the
+	vertical traceback matrix. A 'H' character means that we should go to the
 	horizontal traceback matrix.
 
     @param int grid,vertical,horizontal: Integers from where we get the maximum,
@@ -980,7 +980,7 @@ inline int maxVertical(const int &open, const int &extend, char &direction){
 	horizontal[i][0] = - (gapOpening + gapExtension*i)
 	horizontal[0][j] = - infinity (j!=0)
 
-	The other ones represent the direction of the propagatation. Encoded
+	The other ones represent the direction of the propagation. Encoded
 	in chars with an ASCII style.
 
 	They are initialize as:
@@ -1106,7 +1106,7 @@ inline int maxVertical(const int &open, const int &extend, char &direction){
 	run into an OVERFLOW situation (which would be around 6500 nucleotides)
 
 	However, for the lower limit std::numeric_limits<int>::min(), we need to
-	make an slight ajustment. The minimum will OVERFLOW as soon as we find the
+	make an slight adjustment. The minimum will OVERFLOW as soon as we find the
 	score of min()-gapOpening. For that reason, the -infinity is going to be
 	represented as anything bellow min()/2. We will initialize -infinity to that
 	number. Again, with a 16 bit integer representation it will set around the
@@ -1126,11 +1126,11 @@ inline int maxVertical(const int &open, const int &extend, char &direction){
 		the minimum set for - infinity. In the case where we set up for -16K:
 		2*O + 1000*E > -16K => O + 500*E > -8K. This give us a margin of around
 		gap extension ~= 16. This is something worth discussing for minimal
-		memory comsumption if 16bits representation of integer is used.
+		memory consumption if 16 bits representation of integer is used.
 
 
 	NOTE2: The char** matrices are implemented with chars, only for the user
-	convinience. The horizontal and vertical are possible to implement with a
+	convenience. The horizontal and vertical are possible to implement with a
 	bool since they only have two states (go <up,left> or go to grid). The grid
 	traceback needs THREE states that can be accomplished with only a double
 	bool struct. After testing, it would be great to optimize that.
@@ -1177,7 +1177,7 @@ void  initialize(int** grid, int** vertical, int** horizontal,
 	//Initialize grid
 	grid[0][0] = 0 ;
 
-	//We have two diferent inicializations, depending if we count the ending
+	//We have two different initializations, depending if we count the ending
 	//of the alignments as 0 or whatever gap penalty.
 	for(i=1; i<=lengthPattern; i++){
 		//grid[0][i] = -(gapOpening + gapExtension * i);
@@ -1272,7 +1272,7 @@ void  initialize(int** grid, int** vertical, int** horizontal,
 
 /**
     This function allow you to align two sequences, provided that the grid
-    matrices and the traceback matrices are inicialized.
+    matrices and the traceback matrices are initialized.
 
     @param
     @return 0 if everything goes well
@@ -1435,7 +1435,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
     /*
 		In here we can actually find out the insertions and deletions.
 		Every time we come back from the vertical we have a deletion (pattern
-		respect	the subject), and everytime we combe back from the horizontal
+		respect	the subject), and every time we come back from the horizontal
 		we have an insertion (pattern respect the subject).
     */
     i--;
@@ -1453,7 +1453,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 		Otherwise, what we do is to find the maximum score in the last column
 		xor row, depending of if the bigger sequence is the pattern or the
 		subject. Once we find the maximum we adjust the i xor j index so we
-		start tracebacking from there. Also adjust the result string accordingly
+		start backtracking from there. Also adjust the result string accordingly
 	*/
 	if(gapEnding == false){
 
@@ -1799,7 +1799,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 
 		}
 
-		//We found the beggining of a new gap
+		//We found the beginning of a new gap
 		if(gapFound == false && currentNucleotide == '-'){
 
 			indelStart = i+1;
@@ -1937,9 +1937,9 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 		deletionsSubject.push_back(newDeletionSubject);
 	}
 
-	//Find the missmatches (look in both)
+	//Find the mismatches (look in both)
 	//We can optimize this by looking in the insertion / deletions; but for now
-	//we are prioritazing readability
+	//we are prioritizing readability
 	subjectIndex = 0;
 
 	for(i=0; i<patternResult.size(); i++){
@@ -2014,15 +2014,15 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 }
 
 /**
-	This is the main aligning fucntion. The function allocate memory for six
+	This is the main aligning function. The function allocate memory for six
     matrices of size N+1 x M+1 , where N and M are the length of the two
     sequences that you want to align. The function return a string
-    representation with verbose information about the alignmnent, indels and
-    missmaches, possition of those, length, etc... This information is latter
+    representation with verbose information about the alignment, indels and
+    mismatches, position of those, length, etc... This information is latter
     to be processed in R.
 
 	@see documentation.pdf: Accompany this code there is a verbose explanation
-							on how this algortihm works. The function runs in
+							on how this algorithm works. The function runs in
 							time O(N²) instead of the classic O(N³) where you
 							check for the whole line and column for alignment
 							extension score.
@@ -2148,15 +2148,15 @@ int gotoh(const string &sequencePattern,const string &sequenceSubject,
 
 
 /**
-    This is the main aligning fucntion. The function allocate memory for six
+    This is the main aligning function. The function allocate memory for six
     matrices of size N+1 x M+1 , where N and M are the length of the two
     sequences that you want to align. The function return a string
-    representation with verbose information about the alignmnent, indels and
-    missmaches, possition of those, length, etc... This information is latter
+    representation with verbose information about the alignment, indels and
+    mismatches, position of those, length, etc... This information is latter
     to be processed in R.
 
 	@see documentation.pdf: Accompany this code there is a verbose explanation
-							            on how this algortihm works. The function runs in
+							            on how this algorithm works. The function runs in
 							            time O(N^2) instead of the classic O(N^3) where you
 							            check for the whole line and column for alignment
 							            extension score.
@@ -2212,8 +2212,8 @@ int gotoh(const string &sequencePattern,const string &sequenceSubject,
 		SUBJECT SEQUENCE ALIGNMENT(at)PATTERN SEQUENCE ALIGNMENT
 		Indels:
 		Start(at)End(at)<Pattern,Subject>
-		Missmatches:
-		Possition(at)Subject Base(at)Pattern Base
+		Mismatches:
+		Position(at)Subject Base(at)Pattern Base
 
 	@todo : Fix the const and default in Rcpp (see bellow)
 

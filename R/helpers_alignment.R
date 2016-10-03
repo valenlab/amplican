@@ -16,7 +16,7 @@
 #' @param ID (string)
 #' @param strand (string) Either '+', '-' or default '*'
 #' @param read_alignment (string) Sequence of aligned read to amplicon.
-#' @return (GRanges) Object with metadata for insertion, deletion, mismatch
+#' @return (GRanges) Object with meta-data for insertion, deletion, mismatch
 #' @import GenomicRanges
 #' @importFrom S4Vectors Rle
 #'

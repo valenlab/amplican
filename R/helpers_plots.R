@@ -619,7 +619,7 @@ amplican_plot_insertions <- function(alignments, config, id, cut_buffer = 5) {
 #' Plots cuts using ggplot2 and ggbio.
 #'
 #' This function plots cuts in relation to the amplicon with distinction for
-#' each ID. Top plot is metaplot of all cuts combined with frequee to all reads
+#' each ID. Top plot is meta-plot of all cuts combined with frequencies for all reads
 #' in the  amplicon group. Bottom plot shows cuts with facets for each ID.
 #'
 #' @param alignments (GRanges object) Loaded alignment information from alignments.csv file.

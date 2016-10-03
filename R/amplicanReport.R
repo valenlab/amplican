@@ -11,7 +11,7 @@
 #' @param report_files (vector) You can supply your own names of the files.
 #' For each of the levels there has to be one file name. Files are created
 #' in current working directory by default.
-#' @return NULL All results are written into current dir with specified names.
+#' @return NULL All results are written into current directory with specified names.
 #' @export
 #' @family analysis steps
 #' @examples

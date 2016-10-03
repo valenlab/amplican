@@ -1,11 +1,11 @@
-#' This function uses the Gotoh algorith to align two nucleotides sequences.
+#' This function uses the Gotoh algorithm to align two nucleotides sequences.
 #'
-#' \code{gRCPP} This is the main aligning fucntion. The function allocate
+#' \code{gRCPP} This is the main aligning function. The function allocate
 #'              memory for six matrices of size N+1 x M+1 , where N and M
 #'              are the length of the two sequences that you want to align. The
 #'              function return a string representation with verbose
-#'              information about the alignmnent, indels and missmaches,
-#'              possition of those, length, etc... This information is latter
+#'              information about the alignment, indels and mismatches,
+#'              position of those, length, etc... This information is latter
 #'              to be processed in R.
 #' @param pattern (string) See subject.
 #' @param subject (string) These two strings are the string representation of
@@ -49,7 +49,7 @@
 #'                  In here you will find a verbose and comprehensive summary
 #'                  of the alignment. With all the variables logged,
 #'                  the comparison between the pattern and the subject, and the
-#'                  list of insertions, deletions, and missmatches.
+#'                  list of insertions, deletions, and mismatches.
 #'                  Example:
 #'
 #'                   ****************
@@ -99,14 +99,14 @@
 #'                   START:    5
 #'                   ORIGINAL: t
 #'                   MUTATED:  a
-#'                   --Missmatches respect subject coordinates--
+#'                   --Mismatches respect subject coordinates--
 #'                   START:    5
 #'                   ORIGINAL: t
 #'                   MUTATED:  a
 #'                   ****************
 #'                   -- List of events from the alignment perspective --
 #'                   The next string is compact representation of the
-#'                   insertions, deletions, and missmatches. The representaion
+#'                   insertions, deletions, and mismatches. The representation
 #'                   follows the following format:
 #'                   (at) <total N insertions> (at)
 #'                   <insertion 1, start position>,<insertion 1, end position>
@@ -122,14 +122,14 @@
 #'                   *
 #'                   <deletion M, start position>,<deletion M, end position>
 #'                   !
-#'                   (at) <total P missmatches> (at)
-#'                   <missmatch 1, position>,
+#'                   (at) <total P mismatches> (at)
+#'                   <mismatch 1, position>,
 #'                   <character of the original nucleotide>,
 #'                   <character of the new nucleotide>,
 #'                   *
 #'                   ...
 #'                   *
-#'                   <missmatch P, position>,
+#'                   <mismatch P, position>,
 #'                   <character of the original nucleotide>,
 #'                   <character of the new nucleotide>,
 #'
@@ -137,7 +137,7 @@
 #'                   (at)0(at)!(at)1(at)1,5*!(at)1(at)5,t,a*
 #'                   -- List of events from the subject perspective --
 #'                   The next string is compact representation of the
-#'                   insertions, deletions, and missmatches. The twist here is
+#'                   insertions, deletions, and mismatches. The twist here is
 #'                   that the information is given from the subject coordinates
 #'                   instead of the alignment coordinates.
 #'

@@ -44,7 +44,7 @@ write_explanation <- function() {
 }
 
 
-#' Writes alignment plots - aggregate on the amplicon: deltion, insertion and mismatch.
+#' Writes alignment plots - aggregate on the amplicon: deletion, insertion and mismatch.
 #'
 #' @param ID (string or vector of strings)
 #' @param title (string) title for the alignment plots
@@ -98,12 +98,12 @@ make_id_rmd <- function(results_folder, cut_buffer = 5) {
            "**Deletions plot** - shows summary of deletions detected after alignments with distinction",
            "for forward (top plot) and reverse (bottom) reads, blue dotted lines represent primers as black",
            "dotted line represents cut site box, for deletions overlapping with cut site box there is distinction",
-           "in colour  ",
+           "in color  ",
            "**Mismatches plot** - shows summary of mismatches detected after alignments split by forward",
            "(top plot) and reverse (bottom) reads, mismatches are colored in the same manner as amplicon  ",
            "**Insertions plot** - shows summary of insertions detected after alignments split by forward",
            "(top plot) and reverse (bottom) reads, insertion is shown as right-angled triangle where size of",
-           "the insertion coresponds to the width of the triangle, size and transparency of traingle reflect on",
+           "the insertion corresponds to the width of the triangle, size and transparency of triangle reflect on",
            "the frequency of the insertion\n",
            "***\n",
            "# ID Summary  \n",

@@ -4,12 +4,12 @@
 
 #### About
 
-Our R package’s main function performs alignment of the amplicon reads, calculates multiple statistics (eg. cut rates, frameshifts) and presents results in form of html pages. Whole analysis starting from fastq files, ending with html reports is compacted to one simple function. Each report contains plots and tables in high quality format, that can be immediately further used by users. We provide a wide range of reports that allow breakdown of experiments by different constraints. We support experiment, barcode, group/user defined, guide and amplicon as possible levels of statistics aggregation. 
+Our R package’s main function performs alignment of the amplicon reads, calculates multiple statistics (eg. cut rates, frameshifts) and presents results in form of HTML pages. Whole analysis starting from fastq files, ending with HTML reports is compacted to one simple function. Each report contains plots and tables in high quality format, that can be immediately further used by users. We provide a wide range of reports that allow breakdown of experiments by different constraints. We support experiment, barcode, group/user defined, guide and amplicon as possible levels of statistics aggregation. 
 
 
 #### Installation
 
-When final version of the package will be realeasted, it will be available on Bioconductor. For this version dependencies must be installed by the users:
+When final version of the package will be released, it will be available on Bioconductor. For this version dependencies must be installed by the users:
 
 - When on windows, make sure you have latest Rtools. When installing Rtools, it is sufficient to choose the “Package authoring installation” option. Also during the installation, you must tick the “edit system PATH” box. Make sure you use the same version of R and Rtools (both must be at least version 3.3.0).
 - Dependencies from CRAN:  
@@ -45,4 +45,4 @@ browseVignettes("amplican")
 
 #### Feedback
 
-Please feel free to provide feedback or wanted functionality. My contact adress is Kornel.Labun at uib.no.
+Please feel free to provide feedback or wanted functionality. My contact address is Kornel.Labun at uib.no.
