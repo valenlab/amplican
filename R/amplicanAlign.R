@@ -1,11 +1,10 @@
 #' Align reads to amplicons.
-
 #'
 #' amplicanAlign takes a configuration files, fastq reads and output
-#' directory to prepare alignments and summary. Finally it return a GRanges
+#' directory to prepare alignments and summary. Finally, it returns a GRanges
 #' object containing all mismatches, indels and insertions from our alignments.
 #' @param config (string) The path to your configuration file. For example:
-#' \code{system.file('extdata', 'config.txt', package = 'amplican')}
+#' \code{system.file("extdata", "config.txt", package = "amplican")}
 #' @param fastq_folder (string) Path to FASTQ files. If not specified,
 #' FASTQ files should be in the same directory as config file.
 #' @param results_folder (string) Where do you want your results to be stored.
@@ -84,196 +83,197 @@
 #' @export
 #' @family analysis steps
 #' @examples
-#' config <- system.file("extdata", "config.csv", package = "amplican") #example config
-#' fastq_folder <- system.file("extdata", "", package = "amplican") #path to example fastq files
-#' results_folder <- system.file("extdata", "results", package = "amplican") #output folder
+#' # path to example config file
+#' config <- system.file("extdata", "config.csv", package = "amplican")
+#' # path to example fastq files
+#' fastq_folder <- system.file("extdata", package = "amplican")
+#' # output folder
+#' results_folder <- temp_dir()
 #' amplicanAlign(config, fastq_folder, results_folder)
 #'
 amplicanAlign <- function(config,
-                             fastq_folder,
-                             results_folder,
-                             total_processors = 1,
-                             skip_bad_nucleotides = TRUE,
-                             average_quality = 0,
-                             min_quality = 0,
-                             write_alignments = 2,
-                             scoring_matrix = "NUC44",
-                             gap_opening = 50,
-                             gap_extension = 0,
-                             gap_ending = FALSE,
-                             far_indels = TRUE,
-                             deletefq = FALSE,
-                             temp_folder = "",
-                             fastqfiles = 0,
-                             PRIMER_DIMER = 30,
-                             cut_buffer = 5) {
+                          fastq_folder,
+                          results_folder,
+                          total_processors = 1,
+                          skip_bad_nucleotides = TRUE,
+                          average_quality = 0,
+                          min_quality = 0,
+                          write_alignments = 2,
+                          scoring_matrix = "NUC44",
+                          gap_opening = 50,
+                          gap_extension = 0,
+                          gap_ending = FALSE,
+                          far_indels = TRUE,
+                          deletefq = FALSE,
+                          temp_folder = "",
+                          fastqfiles = 0,
+                          PRIMER_DIMER = 30,
+                          cut_buffer = 5) {
 
-    message("Checking write access...")
-    checkFileWriteAccess(results_folder)
-    if (temp_folder != "") {
-        checkFileWriteAccess(temp_folder)
+  message("Checking write access...")
+  checkFileWriteAccess(results_folder)
+  if (temp_folder != "") {
+    checkFileWriteAccess(temp_folder)
+  }
+
+  message("Checking configuration file...")
+  configTable <- utils::read.csv(config, strip.white = TRUE)
+  colnames(configTable) <- c("ID",
+                             "Barcode",
+                             "Forward_Reads_File",
+                             "Reverse_Reads_File",
+                             "Group",
+                             "guideRNA",
+                             "Forward_Primer",
+                             "Reverse_Primer",
+                             "Direction",
+                             "Amplicon")
+  configTable$Forward_Reads_File <-
+    if (configTable$Forward_Reads_File == "") {
+      ""
+    } else {
+      file.path(fastq_folder, configTable$Forward_Reads_File)
+    }
+  configTable$Reverse_Reads_File <-
+    if (configTable$Reverse_Reads_File == "") {
+      ""
+    } else {
+      file.path(fastq_folder, configTable$Reverse_Reads_File)
     }
 
-    message("Checking configuration file...")
-    configTable <- utils::read.csv(config, strip.white = TRUE)
-    colnames(configTable) <- c("ID",
-                               "Barcode",
-                               "Forward_Reads_File",
-                               "Reverse_Reads_File",
-                               "Group",
-                               "guideRNA",
-                               "Forward_Primer",
-                               "Reverse_Primer",
-                               "Direction",
-                               "Amplicon")
-    configTable$Forward_Reads_File <- ifelse(
-        configTable$Forward_Reads_File == "",
-        "",
-        paste(fastq_folder, configTable$Forward_Reads_File, sep = "/"))
-    configTable$Reverse_Reads_File <- ifelse(
-        configTable$Reverse_Reads_File == "",
-        "",
-        paste(fastq_folder, configTable$Reverse_Reads_File, sep = "/"))
-    if (sum(configTable$Reverse_Reads_File == "") > 0) {
-        message("Reverse_Reads_File has empty rows.
-                Changing fastqfiles parameter to 1, operating only on forward
-                reads.")
-        fastqfiles <- 1
-    }
-    if (sum(configTable$Forward_Reads_File == "") > 0) {
-        message("Forward_Reads_File has empty rows.
+  if (sum(configTable$Reverse_Reads_File == "") > 0) {
+    message("Reverse_Reads_File has empty rows.
+            Changing fastqfiles parameter to 1,
+            operating only on forward reads.")
+    fastqfiles <- 1
+  }
+  if (sum(configTable$Forward_Reads_File == "") > 0) {
+    message("Forward_Reads_File has empty rows.
                 Changing fastqfiles parameter to 2,
                 operating only on reverse reads.")
-        fastqfiles <- 2
+    fastqfiles <- 2
+  }
+  checkConfigFile(configTable, fastq_folder)
+
+  message("Preparing FASTQ files...")
+  configTable <- unpackFastq(configTable, temp_folder)
+
+  resultsFolder <- file.path(results_folder, "alignments")
+  if (!dir.exists(resultsFolder)) {
+    dir.create(resultsFolder)
+  }
+
+  unassignedFolder <- file.path(resultsFolder, "unassigned_sequences")
+  if (!dir.exists(unassignedFolder)) {
+    dir.create(file.path(unassignedFolder))
+  }
+
+  # Parameters
+  logFileName <- file.path(results_folder, "RunParameters.txt")
+  if (file.exists(logFileName)) {
+    file.remove(logFileName)
+  }
+  logFileConn <- file(logFileName, open = "at")
+  writeLines(c(paste("Config file:           ", config),
+               paste("Processors used:       ", total_processors),
+               paste("Skip Bad Nucleotides:  ", skip_bad_nucleotides),
+               paste("Average Quality:       ", average_quality),
+               paste("Minimum Quality:       ", min_quality),
+               paste("Write Alignments Mode: ", write_alignments),
+               paste("Fastq files Mode:      ", fastqfiles),
+               paste("Scoring Matrix:        ", scoring_matrix),
+               paste("Gap Opening:           ", gap_opening),
+               paste("Gap Extension:         ", gap_extension),
+               paste("Gap Ending:            ", gap_ending),
+               paste("Far Indels:            ", far_indels),
+               paste("PRIMER DIMER buffer:   ", PRIMER_DIMER),
+               paste("Cut buffer:            ", cut_buffer)), logFileConn)
+  close(logFileConn)
+
+  uBarcode <- unique(configTable$Barcode)
+  configTable$ExperimentsCount <- table(configTable$Barcode)[configTable$Barcode]
+
+  # Several statistics about deletions, cuts and reads
+  configTable$Cut <- 0
+  configTable$Frameshift <- 0
+  configTable$PRIMER_DIMER <- 0
+  configTable$Reads <- 0
+
+  # Warnings
+  configTable$Found_Guide <- 0
+  configTable$Found_PAM <- 1
+
+  if (requireNamespace("doParallel", quietly = TRUE) & total_processors > 1) {
+    cl <- parallel::makeCluster(total_processors, outfile = "")
+    doParallel::registerDoParallel(cl)
+
+    foreach::foreach(j = 1:length(uBarcode),
+                     .export = c("getEventInfo",
+                                 "upperGroups",
+                                 "checkTarget",
+                                 "checkPrimers",
+                                 "goodBaseQuality",
+                                 "goodAvgQuality",
+                                 "alphabetQuality",
+                                 "gRCPP"),
+                     .combine = c,
+                     .packages = c("Rcpp",
+                                   "R.utils",
+                                   "GenomicRanges",
+                                   "ShortRead",
+                                   "seqinr")) %dopar% {
+                                     makeAlignment(configTable[configTable$Barcode == uBarcode[j],],
+                                                   resultsFolder,
+                                                   skip_bad_nucleotides,
+                                                   average_quality,
+                                                   min_quality,
+                                                   write_alignments,
+                                                   scoring_matrix,
+                                                   gap_opening,
+                                                   gap_extension,
+                                                   gap_ending,
+                                                   far_indels,
+                                                   fastqfiles,
+                                                   PRIMER_DIMER,
+                                                   cut_buffer)
+                                   }
+    parallel::stopCluster(cl)
+  } else {
+    for (j in 1:length(uBarcode)) {
+      makeAlignment(configTable[configTable$Barcode == uBarcode[j], ],
+                    resultsFolder,
+                    skip_bad_nucleotides,
+                    average_quality,
+                    min_quality,
+                    write_alignments,
+                    scoring_matrix,
+                    gap_opening,
+                    gap_extension,
+                    gap_ending,
+                    far_indels,
+                    fastqfiles,
+                    PRIMER_DIMER,
+                    cut_buffer)
     }
-    checkConfigFile(configTable, fastq_folder)
+  }
 
-    message("Preparing FASTQ files...")
-    configTable <- unpackFastq(configTable, temp_folder)
+  message("Alignments done. Creating results files...")
 
-    resultsFolder <- paste0(results_folder, "/alignments/")
-    if (!dir.exists(resultsFolder)) {
-        dir.create(resultsFolder)
-    }
+  # Put all the logs and all the configs together
+  unifyFiles(resultsFolder, "SUBLOG",
+             file.path(results_folder, "alignmentLog.txt"),
+             header = FALSE)
+  unifyFiles(resultsFolder, "configFile_results",
+             file.path(results_folder, "config_summary.csv"))
+  unifyFiles(resultsFolder, "alignment_ranges",
+             file.path(results_folder, "alignments_events.csv"))
+  unifyFiles(resultsFolder, "reads_filters.csv",
+             file.path(results_folder, "barcode_reads_filters.csv"))
 
-    unassignedFolder <- paste0(resultsFolder, "/unassigned_sequences")
-    if (!dir.exists(unassignedFolder)) {
-        dir.create(file.path(unassignedFolder))
-    }
-
-    # Parameters
-    logFileName <- paste(results_folder, "/RunParameters.txt", sep = "")
-    if (file.exists(logFileName)) {
-        file.remove(logFileName)
-    }
-    logFileConn <- file(logFileName, open = "at")
-    writeLines(paste("Config file:           ", config), logFileConn)
-    writeLines(paste("Processors used:       ", total_processors), logFileConn)
-    writeLines(paste("Skip Bad Nucleotides:  ", skip_bad_nucleotides),
-               logFileConn)
-    writeLines(paste("Average Quality:       ", average_quality), logFileConn)
-    writeLines(paste("Minimum Quality:       ", min_quality), logFileConn)
-    writeLines(paste("Write Alignments Mode: ", write_alignments), logFileConn)
-    writeLines(paste("Fastq files Mode:      ", fastqfiles), logFileConn)
-    writeLines(paste("Scoring Matrix:        ", scoring_matrix), logFileConn)
-    writeLines(paste("Gap Opening:           ", gap_opening), logFileConn)
-    writeLines(paste("Gap Extension:         ", gap_extension), logFileConn)
-    writeLines(paste("Gap Ending:            ", gap_ending), logFileConn)
-    writeLines(paste("Far Indels:            ", far_indels), logFileConn)
-    writeLines(paste("PRIMER DIMER buffer:   ", PRIMER_DIMER), logFileConn)
-    writeLines(paste("Cut buffer:            ", cut_buffer), logFileConn)
-    close(logFileConn)
-
-    uBarcode <- unique(configTable$Barcode)
-
-    configTable$ExperimentsCount <- table(configTable$Barcode)[configTable$Barcode]
-
-    # Several statistics about deletions, cuts and reads
-    configTable$Cut <- 0
-    configTable$Frameshift <- 0
-    configTable$PRIMER_DIMER <- 0
-    configTable$Reads <- 0
-
-    # Warnings
-    configTable$Found_Guide <- 0
-    configTable$Found_PAM <- 1
-
-    if (requireNamespace("doParallel", quietly = TRUE) & total_processors > 1) {
-        cl <- parallel::makeCluster(total_processors, outfile = "")
-        doParallel::registerDoParallel(cl)
-
-        foreach::foreach(j = 1:length(uBarcode), .export = c("getEventInfo",
-                                                             "upperGroups",
-                                                             "checkTarget",
-                                                             "checkPrimers",
-                                                             "goodBaseQuality",
-                                                             "goodAvgQuality",
-                                                             "alphabetQuality",
-                                                             "gRCPP"),
-                         .combine = c,
-                         .packages = c("Rcpp",
-                                       "R.utils",
-                                       "GenomicRanges",
-                                       "ShortRead",
-                                       "seqinr")) %dopar% {
-                                           makeAlignment(
-                                               configTable[
-                                                   configTable$Barcode ==
-                                                       uBarcode[j],],
-                                               resultsFolder,
-                                               skip_bad_nucleotides,
-                                               average_quality,
-                                               min_quality,
-                                               write_alignments,
-                                               scoring_matrix,
-                                               gap_opening,
-                                               gap_extension,
-                                               gap_ending,
-                                               far_indels,
-                                               fastqfiles,
-                                               PRIMER_DIMER,
-                                               cut_buffer)
-                                       }
-        parallel::stopCluster(cl)
-    } else {
-        for (j in 1:length(uBarcode)) {
-            makeAlignment(configTable[configTable$Barcode == uBarcode[j], ],
-                          resultsFolder,
-                          skip_bad_nucleotides,
-                          average_quality,
-                          min_quality,
-                          write_alignments,
-                          scoring_matrix,
-                          gap_opening,
-                          gap_extension,
-                          gap_ending,
-                          far_indels,
-                          fastqfiles,
-                          PRIMER_DIMER,
-                          cut_buffer)
-        }
-    }
-
-    message("Alignments done. Creating results files...")
-
-    # Put all the logs and all the configs together
-    unifyFiles(resultsFolder, "SUBLOG",
-               paste0(results_folder, "/alignmentLog.txt"),
-               header = FALSE)
-    unifyFiles(resultsFolder,
-               "configFile_results",
-               paste0(results_folder, "/config_summary.csv"))
-    unifyFiles(resultsFolder,
-               "alignment_ranges",
-               paste0(results_folder, "/alignments_events.csv"))
-    unifyFiles(resultsFolder,
-               "reads_filters.csv",
-               paste0(results_folder, "/barcode_reads_filters.csv"))
-
-    # If the user want to delete the uncompressed results, do it now.
-    if (deletefq == TRUE) {
-        message("Deleting temporary files...")
-        deleteFiles(configTable)
-    }
-    message("Finished.")
+  # If the user want to delete the uncompressed results, do it now.
+  if (deletefq == TRUE) {
+    message("Deleting temporary files...")
+    deleteFiles(configTable)
+  }
+  message("Finished.")
 }

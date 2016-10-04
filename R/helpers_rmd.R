@@ -648,7 +648,7 @@ make_group_rmd <- function(results_folder) {
            "howManyTimes <- howManyTimes[match(howManyTimes$seqnames, unique(uniqueReadsByID$seqnames)),] \n",
 
            "uniqueReadsByID$group <- rep(config$Group[match(howManyTimes$seqnames, unique(config$ID))],",
-                                          "times = howManyTimes$read_id)\n",
+           "times = howManyTimes$read_id)\n",
 
            "uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$group, uniqueReadsByID$count, decreasing = T),]\n",
 

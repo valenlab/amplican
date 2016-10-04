@@ -63,8 +63,8 @@ example dataset, but take a look how you can do that yourself. Be prepared to gr
 ```{r amplicanPipeline, echo=TRUE, eval=FALSE}
 # example MiSeq dataset files
 config <- system.file("extdata", "config.csv", package = "amplican") #path to example config file
-fastq_folder <- system.file("extdata", "", package = "amplican") #path to example fastq files
-results_folder <- paste0(getwd(), "/amplican_example") #output folder
+fastq_folder <- system.file("extdata", package = "amplican") #path to example fastq files
+results_folder <- file.path(getwd(), "amplican_example") #output folder
 
 ## make sure we have results folder
 dir.create(results_folder)
@@ -94,7 +94,8 @@ First step of our analysis is to filter out reads that are not complying with ou
 * bad alphabet - by default we accept only reads with A,C,T,G bases  
 
 ```{r, echo=FALSE}
-barcodeFilters <- read.csv(system.file("extdata/results", "barcode_reads_filters.csv", package = "amplican"))
+barcodeFilters <- system.file("extdata", "results", "barcode_reads_filters.csv", package = "amplican")
+barcodeFilters <- read.csv(barcodeFilters)
 knitr::kable(head(barcodeFilters))
 ```
 
@@ -105,7 +106,8 @@ This table is also summarized in one of the reports. As you can see for our exam
 `config_summary.csv` contains extended version of the config file. It should provide you additional look at raw numbers which we use for various plots in reports. Take a look at example extension:
 
 ```{r, echo=FALSE}
-config_summary <- read.csv(system.file("extdata/results", "config_summary.csv", package = "amplican"))
+config_summary <- system.file("extdata", "results", "config_summary.csv", package = "amplican")
+config_summary <- read.csv(config_summary)
 config_summary <- config_summary[,c("ID", "Barcode", "Cut", "Frameshift", 
                                     "PRIMER_DIMER", "Reads", "Found_Guide", "Found_PAM")]
 knitr::kable(head(config_summary))
@@ -126,7 +128,7 @@ reviewing analysis from the past where you forgot what kind of options you used.
 this file has no purpose. 
 
 ```{r, echo=TRUE}
-readLines(system.file("extdata/results", "RunParameters.txt", package = "amplican")) #path to example RunParameters.txt
+readLines(system.file("extdata", "results", "RunParameters.txt", package = "amplican")) #path to example RunParameters.txt
 ```
 
 ## "alignments" folder
@@ -141,26 +143,26 @@ Other file will contain very detailed information:
 
 ```{r, echo=TRUE, eval=FALSE}
 # path to the example alignments folder
-system.file("extdata", "results/alignments", package = "amplican")
+system.file("extdata", "results", "alignments", package = "amplican")
 ```
 
 In `unassigned_sequences` folder you can find detailed information about unassigned reads. In example dataset there is no unassigned reads.
 
 Take a look at the alignment events file which contains all the insertions, deletions, cuts and mutations. This file can be used in various ways. Examples you can find in `.Rmd` files we prepare using `amplicanReport`. These can be easily converted into `GRanges` and used for further analysis!
 ```{r, echo=FALSE}
-alignments <- read.csv(system.file("extdata", "results/alignments.csv", package = "amplican"))
+alignments <- read.csv(system.file("extdata", "results", "alignments.csv", package = "amplican"))
 knitr::kable(head(alignments))
 ```
 
 Human readable alignments format gives information about forward and reverse reads. First line is corresponding to the forward alignment and second line is always for the reverse read alignment. This alignment does not shows amplicon, just similarity between two alignments (forward and reverse). Human readable format looks like this:
 ```{r, echo=FALSE}
-readLines(system.file("extdata", "results/alignments/ID_1_barcode_1/alignments.txt", package = "amplican"), n = 6)
+readLines(system.file("extdata", "results", "alignments", "ID_1_barcode_1", "alignments.txt", package = "amplican"), n = 6)
 ```
 
 
 Human readable detailed alignments format gives more information. To make more detailed alignment files `amplicanPipeline` or `amplicanAlign` should have option `write_alignments == 2` specified (Default behavior), but it adds a little to the computational time.
 ```{r, echo=FALSE}
-readLines(system.file("extdata", "results/alignments/ID_1_barcode_1/detailed_alignments.txt", package = "amplican"), n = 89)
+readLines(system.file("extdata", "results", "alignments", "ID_1_barcode_1", "detailed_alignments.txt", package = "amplican"), n = 89)
 ```
 
 
@@ -170,10 +172,10 @@ Reports are automated for the convenience of the users. We provide 6 different r
 
 ```{r, echo=TRUE, eval=FALSE}
 # path to example reports folder
-system.file("extdata", "results/reports", package = "amplican") #folder with example reports
+system.file("extdata", "results", "reports", package = "amplican") #folder with example reports
 
 # you can run code below as example how to knit file:
-rmarkdown::render(system.file("extdata", "results/reports/report_id.Rmd", package = "amplican"))
+rmarkdown::render(system.file("extdata", "results", "reports", "report_id.Rmd", package = "amplican"))
 ```
 
 # Detailed analysis
@@ -225,5 +227,5 @@ You can take a look at all these plots by *knitting* amplicon report file locate
 
 ```{r, echo=TRUE, eval=FALSE}
 # path to example knitable report
-system.file("extdata", "results/reports/report_amplicon.Rmd", package = "amplican")
+system.file("extdata", "results", "reports", "report_amplicon.Rmd", package = "amplican")
 ```

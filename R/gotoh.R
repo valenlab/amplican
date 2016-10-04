@@ -185,12 +185,12 @@ gRCPP <- function(pattern,
                   gapEnding = FALSE,
                   farIndels = TRUE) {
 
-    result <- gotohRCPP(pattern,
-                        subject,
-                        scoringMatrix,
-                        gapOpening,
-                        gapExtension,
-                        gapEnding,
-                        farIndels)
-    return(result)
+  result <- gotohRCPP(pattern,
+                      subject,
+                      scoringMatrix,
+                      gapOpening,
+                      gapExtension,
+                      gapEnding,
+                      farIndels)
+  return(result)
 }
