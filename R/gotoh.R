@@ -7,6 +7,8 @@
 #'              information about the alignment, indels and mismatches,
 #'              position of those, length, etc... This information is latter
 #'              to be processed in R.
+#' @references Gotoh O. An improved algorithm for matching biological sequences.
+#' J Mol Biol. 1982;162(3):705-8.
 #' @param pattern (string) See subject.
 #' @param subject (string) These two strings are the string representation of
 #'                          the sequences that we want to align. Passed as

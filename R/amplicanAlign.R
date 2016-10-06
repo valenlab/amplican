@@ -75,7 +75,7 @@
 #' from both sides to a window defined from uppercase letters in the amplicon.
 #' Deletions overlapping this window will be considered a
 #' valid cut (if confirmed by both forward and reverse reads).
-#' @return NULL All results are written into results_folder.
+#' @return (string) Path to  results_folder.
 #' @include gotoh.R helpers_alignment.R helpers_filters.R helpers_warnings.R
 #' helpers_directory.R
 #' @import doParallel foreach GenomicRanges
@@ -88,7 +88,7 @@
 #' # path to example fastq files
 #' fastq_folder <- system.file("extdata", package = "amplican")
 #' # output folder
-#' results_folder <- temp_dir()
+#' results_folder <- tempdir()
 #' amplicanAlign(config, fastq_folder, results_folder)
 #'
 amplicanAlign <- function(config,
@@ -207,7 +207,7 @@ amplicanAlign <- function(config,
     cl <- parallel::makeCluster(total_processors, outfile = "")
     doParallel::registerDoParallel(cl)
 
-    foreach::foreach(j = 1:length(uBarcode),
+    foreach::foreach(j = seq_along(uBarcode),
                      .export = c("getEventInfo",
                                  "upperGroups",
                                  "checkTarget",
@@ -239,7 +239,7 @@ amplicanAlign <- function(config,
                                    }
     parallel::stopCluster(cl)
   } else {
-    for (j in 1:length(uBarcode)) {
+    for (j in seq_along(uBarcode)) {
       makeAlignment(configTable[configTable$Barcode == uBarcode[j], ],
                     resultsFolder,
                     skip_bad_nucleotides,
@@ -276,4 +276,6 @@ amplicanAlign <- function(config,
     deleteFiles(configTable)
   }
   message("Finished.")
+
+  invisible(results_folder)
 }

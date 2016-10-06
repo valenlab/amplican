@@ -11,12 +11,12 @@
 #' @param report_files (vector) You can supply your own names of the files.
 #' For each of the levels there has to be one file name. Files are created
 #' in current working directory by default.
-#' @return NULL All results are written into current directory with specified names.
+#' @return (string) Path to the folder with results.
 #' @export
 #' @family analysis steps
 #' @examples
 #' # output folder
-#' results_folder <- temp_dir()
+#' results_folder <- tempdir()
 #' amplicanReport(results_folder, report_files = file.path(results_folder,
 #'                                                         "reports",
 #'                                                         c("report_id",
@@ -50,8 +50,8 @@ amplicanReport <- function(results_folder,
     stop("report_files must provide name for each of the levels")
   }
 
-  for (i in 1:length(levels)) {
-    report_name <- file.path(report_files[i], ".Rmd")
+  for (i in seq_along(levels)) {
+    report_name <- paste0(report_files[i], ".Rmd")
     isRmdReady <- file.create(report_name, showWarnings = TRUE)
     if (isRmdReady) {
 
@@ -70,4 +70,6 @@ amplicanReport <- function(results_folder,
       stop(isRmdReady)
     }
   }
+
+  invisible(results_folder)
 }

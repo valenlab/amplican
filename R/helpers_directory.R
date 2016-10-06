@@ -26,7 +26,7 @@ unifyFiles <- function(targetFolder, regex, finalFileName, header = TRUE,
     }
     finalFileFD <- file(finalFileName, open = "w")
 
-    for (i in 1:length(candidates)) {
+    for (i in seq_along(candidates)) {
       candidateName <- file.path(targetFolder, allFiles[candidates[i]])
       # Read the file into a string variable
       textFile <- readLines(candidateName, encoding = "UTF-8")
@@ -55,7 +55,7 @@ unifyFiles <- function(targetFolder, regex, finalFileName, header = TRUE,
 #' @return (void) In case of fail, prints err.
 #'
 deleteFiles <- function(configTable) {
-  for (i in 1:dim(configTable)[1]) {
+  for (i in seq_len(dim(configTable)[1])) {
     file.remove(configTable$Forward_Reads_File[i])
     file.remove(configTable$Reverse_Reads_File[i])
   }
@@ -71,7 +71,7 @@ deleteFiles <- function(configTable) {
 #' @importFrom R.utils isGzipped gunzip
 #'
 unpackFastq <- function(configTable, temp_folder) {
-  for (i in 1:dim(configTable)[1]) {
+  for (i in seq_len(dim(configTable)[1])) {
     forward <- configTable$Forward_Reads_File[i]
     rewerse <- configTable$Reverse_Reads_File[i]
     if (isGzipped(forward)) {

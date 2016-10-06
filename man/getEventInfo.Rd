@@ -16,7 +16,7 @@ getEventInfo(liteString, ID, strand = "*", read_alignment)
 \item{read_alignment}{(string) Sequence of aligned read to amplicon.}
 }
 \value{
-(GRanges) Object with metadata for insertion, deletion, mismatch
+(GRanges) Object with meta-data for insertion, deletion, mismatch
 }
 \description{
 For the given example:

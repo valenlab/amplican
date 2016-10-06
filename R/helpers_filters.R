@@ -13,10 +13,8 @@ goodBaseQuality <- function(reads, min = 0) {
   if (is.logical(reads)) {
     return(reads)
   }
-  return(apply(as(slot(reads, "quality"), "matrix"),
-               1,
-               min,
-               na.rm = TRUE) >= min)
+  return(matrixStats::rowMins(as(quality(reads), "matrix"),
+                              na.rm = TRUE) >= min)
 }
 
 
@@ -36,10 +34,8 @@ goodAvgQuality <- function(reads, avg = 0) {
   if (is.logical(reads)) {
     return(reads)
   }
-  return(apply(as(slot(reads, "quality"), "matrix"),
-               1,
-               mean,
-               na.rm = TRUE) >= avg)
+  return(matrixStats::rowMeans(as(quality(reads), "matrix"),
+                               na.rm = TRUE) >= avg)
 }
 
 
@@ -59,7 +55,7 @@ alphabetQuality <- function(reads) {
     nucq <- ShortRead::polynFilter(nuc = c("A", "C", "T", "G"))
     return(!as.logical(nucq(reads)))
   }, error = function(cond) {
-    return(sapply(slot(reads, "sread"), stringr::str_detect, "^[ATCG]+$"))
+    return(grepl("^[ATCG]+$", sread(reads)))
   })
   return(filt)
 }

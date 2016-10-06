@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_rmd.R
 \name{write_alignment_plots}
 \alias{write_alignment_plots}
-\title{Writes alignment plots - aggregate on the amplicon: deltion, insertion and mismatch.}
+\title{Writes alignment plots - aggregate on the amplicon: deletion, insertion and mismatch.}
 \usage{
 write_alignment_plots(ID, title, cut_buffer = 5)
 }
@@ -17,6 +17,6 @@ write_alignment_plots(ID, title, cut_buffer = 5)
 string to include in rmd file
 }
 \description{
-Writes alignment plots - aggregate on the amplicon: deltion, insertion and mismatch.
+Writes alignment plots - aggregate on the amplicon: deletion, insertion and mismatch.
 }
 

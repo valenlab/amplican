@@ -13,7 +13,7 @@ vignette: >
 Welcome to the `amplican` package. This vignette will walk you through our main package usage with example MiSeq 
 dataset.  You will learn how to interpret results, create summary reports and plot deletions, 
 insertions and mutations with our functions. 
-This package, `amplican`, is for fast and precise analysis of CRISPR experiments.
+This package, `amplican`, is created for fast and precise analysis of CRISPR experiments.
 
 # Introduction
 
@@ -27,7 +27,8 @@ For those inpatient people who want to see an example of our whole pipeline anal
 To successfully run our analysis it is mandatory to have a configuration file. Take a look at our example:
 
 ```{r, echo=FALSE}
-config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
+config <- system.file("extdata", "config.csv", package = "amplican")
+config <- read.csv(config)
 knitr::kable(head(config))
 ```
 
@@ -62,13 +63,11 @@ example dataset, but take a look how you can do that yourself. Be prepared to gr
 
 ```{r amplicanPipeline, echo=TRUE, eval=FALSE}
 # example MiSeq dataset files
-config <- system.file("extdata", "config.csv", package = "amplican") #path to example config file
-fastq_folder <- system.file("extdata", package = "amplican") #path to example fastq files
-results_folder <- file.path(getwd(), "amplican_example") #output folder
+config <- system.file("extdata", "config.csv", package = "amplican")  # path to example config file
+fastq_folder <- system.file("extdata", package = "amplican")  # path to example fastq files
+results_folder <- tempdir()  # output folder
 
-## make sure we have results folder
-dir.create(results_folder)
-##  actual amplican run
+#  run amplican
 amplicanPipeline(config, fastq_folder, results_folder)
 
 # results of the analysis can be found at
@@ -128,7 +127,10 @@ reviewing analysis from the past where you forgot what kind of options you used.
 this file has no purpose. 
 
 ```{r, echo=TRUE}
-readLines(system.file("extdata", "results", "RunParameters.txt", package = "amplican")) #path to example RunParameters.txt
+# path to example RunParameters.txt
+run_params <- system.file("extdata", "results", "RunParameters.txt", package = "amplican")
+# show contents of the file
+readLines(run_params) 
 ```
 
 ## "alignments" folder
@@ -150,19 +152,22 @@ In `unassigned_sequences` folder you can find detailed information about unassig
 
 Take a look at the alignment events file which contains all the insertions, deletions, cuts and mutations. This file can be used in various ways. Examples you can find in `.Rmd` files we prepare using `amplicanReport`. These can be easily converted into `GRanges` and used for further analysis!
 ```{r, echo=FALSE}
-alignments <- read.csv(system.file("extdata", "results", "alignments.csv", package = "amplican"))
+alignments <- system.file("extdata", "results", "alignments.csv", package = "amplican")
+alignments <- read.csv(alignments)
 knitr::kable(head(alignments))
 ```
 
 Human readable alignments format gives information about forward and reverse reads. First line is corresponding to the forward alignment and second line is always for the reverse read alignment. This alignment does not shows amplicon, just similarity between two alignments (forward and reverse). Human readable format looks like this:
 ```{r, echo=FALSE}
-readLines(system.file("extdata", "results", "alignments", "ID_1_barcode_1", "alignments.txt", package = "amplican"), n = 6)
+hr_alignments <- system.file("extdata", "results", "alignments", "ID_1_barcode_1", "alignments.txt", package = "amplican")
+readLines(hr_alignments, n = 6)
 ```
 
 
 Human readable detailed alignments format gives more information. To make more detailed alignment files `amplicanPipeline` or `amplicanAlign` should have option `write_alignments == 2` specified (Default behavior), but it adds a little to the computational time.
 ```{r, echo=FALSE}
-readLines(system.file("extdata", "results", "alignments", "ID_1_barcode_1", "detailed_alignments.txt", package = "amplican"), n = 89)
+hrd_alignments <- system.file("extdata", "results", "alignments", "ID_1_barcode_1", "detailed_alignments.txt", package = "amplican")
+readLines(hrd_alignments, n = 89)
 ```
 
 
@@ -172,10 +177,11 @@ Reports are automated for the convenience of the users. We provide 6 different r
 
 ```{r, echo=TRUE, eval=FALSE}
 # path to example reports folder
-system.file("extdata", "results", "reports", package = "amplican") #folder with example reports
+system.file("extdata", "results", "reports", package = "amplican")
 
 # you can run code below as example how to knit file:
-rmarkdown::render(system.file("extdata", "results", "reports", "report_id.Rmd", package = "amplican"))
+report_id <- system.file("extdata", "results", "reports", "report_id.Rmd", package = "amplican")
+rmarkdown::render(report_id)
 ```
 
 # Detailed analysis

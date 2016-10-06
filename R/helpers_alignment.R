@@ -142,7 +142,8 @@ upperGroups <- function(candidate) {
 #' @importFrom ShortRead readFastq
 #' @return Void
 #'
-makeAlignment <- function(configTable, resultsFolder,
+makeAlignment <- function(configTable,
+                          resultsFolder,
                           skip_bad_nucleotides = TRUE,
                           average_quality = 0,
                           min_quality = 0,
@@ -199,7 +200,7 @@ makeAlignment <- function(configTable, resultsFolder,
 
   barcodeTable$unique_reads <- nrow(uniqueTable)
 
-  for (i in 1:dim(configTable)[1]) {
+  for (i in seq_len(dim(configTable)[1])) {
     # for each id
     alignmentRanges <- GRanges()
     currentID <- configTable[i, "ID"]
@@ -293,7 +294,7 @@ makeAlignment <- function(configTable, resultsFolder,
     IDuniqueTable <- uniqueTable[primersFound, ]
 
     if (dim(IDuniqueTable)[1] > 0) {
-      for (r in 1:dim(IDuniqueTable)[1]) {
+      for (r in seq_len(dim(IDuniqueTable)[1])) {
         forwardString <- toupper(toString(IDuniqueTable[r, "Forward"]))
         reverseString <- toupper(
           seqinr::c2s(rev(

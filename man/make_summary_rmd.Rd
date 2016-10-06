@@ -11,7 +11,7 @@ make_summary_rmd(results_folder)
 do not change names of the files.}
 }
 \value{
-(string) contents to write to filess
+(string) contents to write to files
 }
 \description{
 Prepare summary report as .Rmd file.
