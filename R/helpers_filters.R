@@ -7,13 +7,14 @@
 #' will be a bad sequence. The minimum is set to 0 by default.
 #' @return (boolean) Logical vector with the valid rows as TRUE.
 #' @importFrom ShortRead ShortReadQ
+#' @importFrom matrixStats rowMins
 #' @importFrom methods as slot
 #'
 goodBaseQuality <- function(reads, min = 0) {
   if (is.logical(reads)) {
     return(reads)
   }
-  return(matrixStats::rowMins(as(quality(reads), "matrix"),
+  return(matrixStats::rowMins(as(slot(reads, "quality"), "matrix"),
                               na.rm = TRUE) >= min)
 }
 
@@ -28,14 +29,15 @@ goodBaseQuality <- function(reads, min = 0) {
 #' not pass. The average is set to 0 by default.
 #' @return (boolean) Logical vector with the valid rows as TRUE.
 #' @importFrom ShortRead ShortReadQ
+#' @importFrom Matrix rowMeans
 #' @importFrom methods as slot
 #'
 goodAvgQuality <- function(reads, avg = 0) {
   if (is.logical(reads)) {
     return(reads)
   }
-  return(matrixStats::rowMeans(as(quality(reads), "matrix"),
-                               na.rm = TRUE) >= avg)
+  return(Matrix::rowMeans(as(slot(reads, "quality"), "matrix"),
+                          na.rm = TRUE) >= avg)
 }
 
 
@@ -43,8 +45,7 @@ goodAvgQuality <- function(reads, avg = 0) {
 #'
 #' @param reads (ShortRead object) Loaded reads from fastq.
 #' @return (boolean) Logical vector with the valid rows as TRUE.
-#' @importFrom stringr str_detect
-#' @importFrom methods as slot
+#' @importFrom ShortRead ShortReadQ sread
 #'
 alphabetQuality <- function(reads) {
   if (is.logical(reads)) {

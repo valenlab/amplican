@@ -38,7 +38,9 @@ Imports:
     stats,
     rmarkdown,
     knitr,
-    methods
+    methods,
+    matrixStats,
+    Matrix
 RoxygenNote: 5.0.1
 Suggests:
     testthat,

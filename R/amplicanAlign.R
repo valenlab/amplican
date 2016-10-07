@@ -75,7 +75,7 @@
 #' from both sides to a window defined from uppercase letters in the amplicon.
 #' Deletions overlapping this window will be considered a
 #' valid cut (if confirmed by both forward and reverse reads).
-#' @return (string) Path to  results_folder.
+#' @return (string) Path to results_folder.
 #' @include gotoh.R helpers_alignment.R helpers_filters.R helpers_warnings.R
 #' helpers_directory.R
 #' @import doParallel foreach GenomicRanges
@@ -128,18 +128,12 @@ amplicanAlign <- function(config,
                              "Reverse_Primer",
                              "Direction",
                              "Amplicon")
-  configTable$Forward_Reads_File <-
-    if (configTable$Forward_Reads_File == "") {
-      ""
-    } else {
-      file.path(fastq_folder, configTable$Forward_Reads_File)
-    }
-  configTable$Reverse_Reads_File <-
-    if (configTable$Reverse_Reads_File == "") {
-      ""
-    } else {
-      file.path(fastq_folder, configTable$Reverse_Reads_File)
-    }
+  configTable$Forward_Reads_File <- ifelse(configTable$Forward_Reads_File == "",
+                                           "",
+                                           file.path(fastq_folder, configTable$Forward_Reads_File))
+  configTable$Reverse_Reads_File <- ifelse(configTable$Reverse_Reads_File == "",
+                                           "",
+                                           file.path(fastq_folder, configTable$Reverse_Reads_File))
 
   if (sum(configTable$Reverse_Reads_File == "") > 0) {
     message("Reverse_Reads_File has empty rows.
