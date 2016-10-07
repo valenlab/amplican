@@ -8,7 +8,7 @@ Description: `amplican` creates reports of deletions, insertions, frameshifts,
     analysis across different experiments. `amplican` maintains elasticity
     through configuration file, which with your fastq samples are only
     requirements.
-Version: 0.99.3
+Version: 0.99.4
 Authors@R: c(
     person("Kornel", "Labun", email = "kornel.labun@gmail.com", role = "aut"),
     person(c("Rafael", "Nozal"), "Canyadas", email = "rafanozal@gmail.com",  role = "ctr"),
@@ -24,7 +24,6 @@ Depends: R (>= 3.3.0)
 Imports:
     Rcpp,
     utils,
-    R.utils,
     ShortRead,
     IRanges,
     GenomicRanges,
