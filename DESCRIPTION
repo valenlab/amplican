@@ -41,7 +41,8 @@ Imports:
     methods,
     matrixStats,
     Matrix,
-    Biostrings
+    Biostrings,
+    BiocParallel
 RoxygenNote: 5.0.1
 Suggests:
     testthat,

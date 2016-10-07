@@ -14,7 +14,7 @@ output:
 results_folder = '/home/ai/Projects/amplican/inst/extdata/results'
 library(amplican)
 library(ggplot2)
-alignments <- read.csv(paste0(results_folder, '/alignments.csv'))
+alignments <- read.csv(paste0(results_folder, '/alignments_events.csv'))
 config <- read.csv(paste0(results_folder, '/config_summary.csv'))
 ```
 

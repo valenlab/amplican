@@ -224,8 +224,8 @@ makeAlignment <- function(configTable,
 
   for (i in seq_len(dim(configTable)[1])) {
 
-    if (write_alignments >= 1) algn_file_con <- c()
-    if (write_alignments >= 2) algn_det_file_con <- c()
+    if (write_alignments >= 1) algn_file_con <- ""
+    if (write_alignments >= 2) algn_det_file_con <- ""
     sublog_file_con <- ""
     # for each experiment
     alignmentRanges <- GRanges()

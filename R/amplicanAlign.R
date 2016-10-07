@@ -69,6 +69,7 @@
 #' @include gotoh.R helpers_alignment.R helpers_filters.R helpers_warnings.R
 #' helpers_directory.R
 #' @import doParallel foreach GenomicRanges
+#' @import BiocParallel
 #' @importFrom utils read.csv
 #' @export
 #' @family analysis steps
@@ -179,40 +180,25 @@ amplicanAlign <- function(config,
   configTable$Found_Guide <- 0
   configTable$Found_PAM <- 1
 
-  if (requireNamespace("doParallel", quietly = TRUE) & total_processors > 1) {
+  if (total_processors > 1) {
     cl <- parallel::makeCluster(total_processors, outfile = "")
     doParallel::registerDoParallel(cl)
-
-    foreach::foreach(j = seq_along(uBarcode),
-                     .export = c("getEventInfo",
-                                 "upperGroups",
-                                 "checkTarget",
-                                 "checkPrimers",
-                                 "goodBaseQuality",
-                                 "goodAvgQuality",
-                                 "alphabetQuality",
-                                 "gRCPP"),
-                     .combine = c,
-                     .packages = c("Rcpp",
-                                   "R.utils",
-                                   "GenomicRanges",
-                                   "ShortRead",
-                                   "Biostrings")) %dopar% {
-                                     makeAlignment(configTable[configTable$Barcode == uBarcode[j],],
-                                                   resultsFolder,
-                                                   skip_bad_nucleotides,
-                                                   average_quality,
-                                                   min_quality,
-                                                   write_alignments,
-                                                   scoring_matrix,
-                                                   gap_opening,
-                                                   gap_extension,
-                                                   gap_ending,
-                                                   far_indels,
-                                                   fastqfiles,
-                                                   PRIMER_DIMER,
-                                                   cut_buffer)
-                                   }
+    p <- DoparParam()
+    configSplit <- split(configTable, f = configTable$Barcode)
+    bplapply(configSplit, FUN = makeAlignment,
+             resultsFolder,
+             skip_bad_nucleotides,
+             average_quality,
+             min_quality,
+             write_alignments,
+             scoring_matrix,
+             gap_opening,
+             gap_extension,
+             gap_ending,
+             far_indels,
+             fastqfiles,
+             PRIMER_DIMER,
+             cut_buffer, BPPARAM=p)
     parallel::stopCluster(cl)
   } else {
     for (j in seq_along(uBarcode)) {

@@ -11,8 +11,7 @@
 checkTarget <- function(targetPrimer, amplicon, ID, barcode) {
   targetPositions <- grepl(targetPrimer, amplicon, ignore.case = TRUE)
   if (!targetPositions) {
-    message("Warning: guideRNA has not been found in the amplicon.
-                Check the log file for more information.")
+    message("Warning: guideRNA has not been found in the amplicon. Check the log file for more information.")
     return(paste0("Couldn't find the guideRNA in amplicon: ",
                   targetPrimer,
                   "\nFor ID: ",
@@ -48,8 +47,7 @@ checkPrimers <- function(forwardPrimer, reversePrimerRC, amplicon, ID,
   forwardPrimerPosition <- grepl(forwardPrimer, amplicon, ignore.case = TRUE)
   reversePrimerPosition <- grepl(reversePrimerRC, amplicon, ignore.case = TRUE)
   if (!(forwardPrimerPosition | reversePrimerPosition)) {
-    message("Warning: One of primer was not found in the amplicon.
-                Check the log file for more information.")
+    message("Warning: One of primers was not found in the amplicon. Check the log file for more information.")
     return(paste0("Couldn't find the forward primer: ",
                       toString(forwardPrimer),
                       "\nor reverse primer: ",
@@ -98,8 +96,7 @@ checkConfigFile <- function(configTable, fastq_folder) {
                                                       "Forward_Primer",
                                                       "Reverse_Primer")])
   if (sum(barcode_primers_duple) != 0) {
-    stop(paste0("Config file has non unique combinations of barcode,
-                    forward primer and reverse primer. Duplicated rows: ",
+    stop(paste0("Config file has non unique combinations of barcode, forward primer and reverse primer. Duplicated rows: ",
                 toString(which(barcode_primers_duple) + 1)))
   }
 

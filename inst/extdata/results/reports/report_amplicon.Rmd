@@ -14,7 +14,7 @@ output:
 results_folder = '/home/ai/Projects/amplican/inst/extdata/results'
 library(amplican)
 library(ggplot2)
-alignments <- read.csv(paste0(results_folder, '/alignments.csv'))
+alignments <- read.csv(paste0(results_folder, '/alignments_events.csv'))
 config <- read.csv(paste0(results_folder, '/config_summary.csv'))
 config$AmpliconUpper <- toupper(config$Amplicon)
 uniqueAmlicons <- unique(config$AmpliconUpper)
@@ -35,14 +35,14 @@ labels <- sapply(uniqueAmlicons, function(x) {toString(config$ID[config$Amplicon
 **Deletions plot** - shows summary of deletions detected after alignments with distinction
 for forward (top plot) and reverse (bottom) reads, blue dotted lines represent primers as black
 dotted line represents cut site box, for deletions overlapping with cut site box there is distinction
-in colour  
+in color  
 **Mismatches plot** - shows summary of mismatches detected after alignments split by forward
 (top plot) and reverse (bottom) reads, mismatches are colored in the same manner as amplicon  
 **Insertions plot** - shows summary of insertions detected after alignments split by forward
 (top plot) and reverse (bottom) reads, insertion is shown as right-angled triangle where size of
-the insertion coresponds to the width of the triangle, size and transparency of traingle reflect on
+the insertion corresponds to the width of the triangle, size and transparency of triangle reflect on
 the frequency of the insertion  
-**Cuts plot** - shows summary of cuts in the amplicon (insertions that are overlaping with 
+**Cuts plot** - shows summary of cuts in the amplicon (insertions that are overlapping with 
 specified box of uppercase letters in the amplicon, and are supported by both forward and reverse reads)
 
 ***
