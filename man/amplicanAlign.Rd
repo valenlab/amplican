@@ -8,8 +8,7 @@ amplicanAlign(config, fastq_folder, results_folder, total_processors = 1,
   skip_bad_nucleotides = TRUE, average_quality = 0, min_quality = 0,
   write_alignments = 2, scoring_matrix = "NUC44", gap_opening = 50,
   gap_extension = 0, gap_ending = FALSE, far_indels = TRUE,
-  deletefq = FALSE, temp_folder = "", fastqfiles = 0, PRIMER_DIMER = 30,
-  cut_buffer = 5)
+  fastqfiles = 0, PRIMER_DIMER = 30, cut_buffer = 5)
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
@@ -67,18 +66,6 @@ to be an indel. Default is TRUE. If you want to filter these out from the
 plots, there is an option to do so in the plot function. You don't need to
 do it here.}
 
-\item{deletefq}{(boolean) If you have fastq.gz files they will be
-uncompressed into the same directory. Set this to true if you want to delete
-uncompressed files afterwards. Default is FALSE.}
-
-\item{temp_folder}{(string) Your FASTQ files can be compressed in a file. If
-this happens, the program needs to uncompress them first. In order to do so,
-we need a folder where they will be placed. In here, you can specify the
-path where you want these files to be placed. If you don't specify a path,
-they will be placed in the same folder where the original files are. You
-you will need writing permissions in the folder in order to uncompress
-everything.}
-
 \item{fastqfiles}{(numeric) Normally you want to use both FASTQ files. But in
 some special cases, you may want to use only the
 forward file, or only the reverse file.
@@ -103,7 +90,7 @@ Deletions overlapping this window will be considered a
 valid cut (if confirmed by both forward and reverse reads).}
 }
 \value{
-(string) Path to  results_folder.
+(string) Path to results_folder.
 }
 \description{
 amplicanAlign takes a configuration files, fastq reads and output

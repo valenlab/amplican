@@ -45,16 +45,6 @@
 #' to be an indel. Default is TRUE. If you want to filter these out from the
 #' plots, there is an option to do so in the plot function. You don't need to
 #' do it here.
-#' @param deletefq (boolean) If you have fastq.gz files they will be
-#' uncompressed into the same directory. Set this to true if you want to delete
-#' uncompressed files afterwards. Default is FALSE.
-#' @param temp_folder (string) Your FASTQ files can be compressed in a file. If
-#' this happens, the program needs to uncompress them first. In order to do so,
-#' we need a folder where they will be placed. In here, you can specify the
-#' path where you want these files to be placed. If you don't specify a path,
-#' they will be placed in the same folder where the original files are. You
-#' you will need writing permissions in the folder in order to uncompress
-#' everything.
 #' @param fastqfiles (numeric) Normally you want to use both FASTQ files. But in
 #'                         some special cases, you may want to use only the
 #'                         forward file, or only the reverse file.
@@ -104,17 +94,12 @@ amplicanAlign <- function(config,
                           gap_extension = 0,
                           gap_ending = FALSE,
                           far_indels = TRUE,
-                          deletefq = FALSE,
-                          temp_folder = "",
                           fastqfiles = 0,
                           PRIMER_DIMER = 30,
                           cut_buffer = 5) {
 
   message("Checking write access...")
   checkFileWriteAccess(results_folder)
-  if (temp_folder != "") {
-    checkFileWriteAccess(temp_folder)
-  }
 
   message("Checking configuration file...")
   configTable <- utils::read.csv(config, strip.white = TRUE)
@@ -143,14 +128,11 @@ amplicanAlign <- function(config,
   }
   if (sum(configTable$Forward_Reads_File == "") > 0) {
     message("Forward_Reads_File has empty rows.
-                Changing fastqfiles parameter to 2,
-                operating only on reverse reads.")
+            Changing fastqfiles parameter to 2,
+            operating only on reverse reads.")
     fastqfiles <- 2
   }
   checkConfigFile(configTable, fastq_folder)
-
-  message("Preparing FASTQ files...")
-  configTable <- unpackFastq(configTable, temp_folder)
 
   resultsFolder <- file.path(results_folder, "alignments")
   if (!dir.exists(resultsFolder)) {
@@ -263,12 +245,6 @@ amplicanAlign <- function(config,
              file.path(results_folder, "alignments_events.csv"))
   unifyFiles(resultsFolder, "reads_filters.csv",
              file.path(results_folder, "barcode_reads_filters.csv"))
-
-  # If the user want to delete the uncompressed results, do it now.
-  if (deletefq == TRUE) {
-    message("Deleting temporary files...")
-    deleteFiles(configTable)
-  }
   message("Finished.")
 
   invisible(results_folder)

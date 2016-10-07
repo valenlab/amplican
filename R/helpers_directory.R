@@ -61,56 +61,6 @@ deleteFiles <- function(configTable) {
   }
 }
 
-
-#' Unpack fastq files if needed, correct paths to the files in configTable.
-#'
-#' @param configTable (data.frame) Contains configuration file.
-#' @param temp_folder (string) Where to store unzipped files.
-#' @return (data.frame) configTable with Forward_File and Reverse_File updated
-#' if unpacking files was required.
-#' @importFrom R.utils isGzipped gunzip
-#'
-unpackFastq <- function(configTable, temp_folder) {
-  for (i in seq_len(dim(configTable)[1])) {
-    forward <- configTable$Forward_Reads_File[i]
-    rewerse <- configTable$Reverse_Reads_File[i]
-    if (isGzipped(forward)) {
-      for_name <- sub(".gz", "", forward, fixed = TRUE)
-      for_destname <- if (temp_folder != "") {
-        file.path(temp_folder, basename(for_name))
-      } else {
-        for_name
-      }
-      gunzip(
-        forward,
-        destname = for_destname,
-        skip = TRUE,
-        overwrite = FALSE,
-        remove = FALSE
-      )
-      configTable$Forward_Reads_File[i] <- for_destname
-    }
-    if (isGzipped(rewerse)) {
-      rew_name <- sub(".gz", "", rewerse, fixed = TRUE)
-      rew_destname <- if (temp_folder != "") {
-        file.path(temp_folder, basename(rew_name))
-      } else {
-        rew_name
-      }
-      gunzip(
-        rewerse,
-        destname = rew_destname,
-        skip = TRUE,
-        overwrite = FALSE,
-        remove = FALSE
-      )
-      configTable$Reverse_Reads_File[i] <- rew_destname
-    }
-  }
-  return(configTable)
-}
-
-
 #' This function checks if the given directory exist and can be written to.
 #'
 #' @param filePath (string) A string the path to the file.
