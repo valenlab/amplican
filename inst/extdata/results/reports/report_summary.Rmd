@@ -30,7 +30,8 @@ experiments
 
 ***
 
-There were no warnings. 'alignmentLog.txt' file is empty.  
+
+
 
 ***
 

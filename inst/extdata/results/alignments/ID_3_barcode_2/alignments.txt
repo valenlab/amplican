@@ -1,3 +1,4 @@
+
 ID: ID_3 Count: 1
 AAGCTGACGGCTAAATGAAAAAAAAAAAAAAAACTTTGCTTTTCGCGATGCGTGTGTGTG-------------------------------------------------------------------------------------------------------------------TGTATGTGTGTTTGCGCTTGTGTAATT
 AAGCTGACGGCTAAATGAAAAAAAAAAAAAAAACTTTGCTTTTCGCGATGCGTGTGTGTG-------------------------------------------------------------------------------------------------------------------TGTATGTGTGTTTGCGCTTGTGTAATT

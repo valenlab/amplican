@@ -8,12 +8,11 @@ amplicanAlign(config, fastq_folder, results_folder, total_processors = 1,
   skip_bad_nucleotides = TRUE, average_quality = 0, min_quality = 0,
   write_alignments = 2, scoring_matrix = "NUC44", gap_opening = 50,
   gap_extension = 0, gap_ending = FALSE, far_indels = TRUE,
-  deletefq = FALSE, temp_folder = "", fastqfiles = 0, PRIMER_DIMER = 30,
-  cut_buffer = 5)
+  fastqfiles = 0, PRIMER_DIMER = 30, cut_buffer = 5)
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
-\code{system.file('extdata', 'config.txt', package = 'amplican')}}
+\code{system.file("extdata", "config.txt", package = "amplican")}}
 
 \item{fastq_folder}{(string) Path to FASTQ files. If not specified,
 FASTQ files should be in the same directory as config file.}
@@ -28,7 +27,7 @@ and accessible.}
 
 \item{skip_bad_nucleotides}{(logical) Some sequences have faulty nucleotides
 labels with N. If we find a sequence like that in either forwards or
-reverse, we skip that aligment. Default is TRUE.}
+reverse, we skip that alignment. Default is TRUE.}
 
 \item{average_quality}{(numeric) The FASTQ file have a quality for each
 nucleotide, being ! the lower and ~ the highest. In ASCII :
@@ -38,7 +37,7 @@ nucleotide, being ! the lower and ~ the highest. In ASCII :
 
 This quality variable goes from 0 to 100, being 0 the lowest quality and
 100 the highest. You can write whatever number in between, and the program
-will find out the apropiate character encoding. The filter works by
+will find out the appropriate character encoding. The filter works by
 converting each character to a number, and then finding the average. If the
 average fall above this threshold then we take the sequence. Default is 0.}
 
@@ -46,7 +45,7 @@ average fall above this threshold then we take the sequence. Default is 0.}
 the minimum quality for ALL nucleotides. If one of them has quality BELLOW
 this threshold, then the sequence is skipped. Default is 0.}
 
-\item{write_alignments}{(numeric) How to write the aligments results
+\item{write_alignments}{(numeric) How to write the alignments results
 into disk:
                         0 - Write nothing
                         1 - Write only the summary file
@@ -67,18 +66,6 @@ to be an indel. Default is TRUE. If you want to filter these out from the
 plots, there is an option to do so in the plot function. You don't need to
 do it here.}
 
-\item{deletefq}{(boolean) If you have fastq.gz files they will be
-uncompressed into the same directory. Set this to true if you want to delete
-uncompressed files afterwards. Default is FALSE.}
-
-\item{temp_folder}{(string) Your FASTQ files can be compressed in a file. If
-this happens, the program needs to uncompress them first. In order to do so,
-we need a folder where they will be placed. In here, you can specify the
-path where you want these files to be placed. If you don't specify a path,
-they will be placed in the same folder where the original files are. You
-you will need writing permissions in the folder in order to uncompress
-everything.}
-
 \item{fastqfiles}{(numeric) Normally you want to use both FASTQ files. But in
 some special cases, you may want to use only the
 forward file, or only the reverse file.
@@ -92,28 +79,31 @@ forward primer in the sequence
 1 - Use only the forward FASTQ file
 2 - Use only the reverse FASTQ file}
 
-\item{PRIMER_DIMER}{(numeric) Value specyfying buffer for PRIMER DIMER
+\item{PRIMER_DIMER}{(numeric) Value specifying buffer for PRIMER DIMER
 detection. For a given read it will be recognized as PRIMER DIMER when
 alignment will introduce gap of size bigger than:
-length of amplicon - (lenghts of PRIMERS + PRIMER_DIMER value)}
+length of amplicon - (lengths of PRIMERS + PRIMER_DIMER value)}
 
-\item{cut_buffer}{(numeric) Value specyfying a buffer for PAM, this will add
+\item{cut_buffer}{(numeric) Value specifying a buffer for PAM, this will add
 from both sides to a window defined from uppercase letters in the amplicon.
 Deletions overlapping this window will be considered a
-valid cut (if confirmed by both forward and rewerse reads).}
+valid cut (if confirmed by both forward and reverse reads).}
 }
 \value{
-NULL All results are written into results_folder.
+(string) Path to results_folder.
 }
 \description{
 amplicanAlign takes a configuration files, fastq reads and output
-directory to prepare alignments and summary. Finally it return a GRanges
-object containing all missmatches, indels and insertions from our alignments.
+directory to prepare alignments and summary. Finally, it returns a GRanges
+object containing all mismatches, indels and insertions from our alignments.
 }
 \examples{
-config <- system.file("extdata", "config.csv", package = "amplican") #example config
-fastq_folder <- system.file("extdata", "", package = "amplican") #path to example fastq files
-results_folder <- system.file("extdata", "results", package = "amplican") #output folder
+# path to example config file
+config <- system.file("extdata", "config.csv", package = "amplican")
+# path to example fastq files
+fastq_folder <- system.file("extdata", package = "amplican")
+# output folder
+results_folder <- tempdir()
 amplicanAlign(config, fastq_folder, results_folder)
 
 }

@@ -7,16 +7,15 @@
 #' will be a bad sequence. The minimum is set to 0 by default.
 #' @return (boolean) Logical vector with the valid rows as TRUE.
 #' @importFrom ShortRead ShortReadQ
+#' @importFrom matrixStats rowMins
 #' @importFrom methods as slot
 #'
 goodBaseQuality <- function(reads, min = 0) {
-    if (is.logical(reads)) {
-        return(reads)
-    }
-    return(apply(as(slot(reads, "quality"), "matrix"),
-                 1,
-                 min,
-                 na.rm = TRUE) >= min)
+  if (is.logical(reads)) {
+    return(reads)
+  }
+  return(matrixStats::rowMins(as(slot(reads, "quality"), "matrix"),
+                              na.rm = TRUE) >= min)
 }
 
 
@@ -30,16 +29,15 @@ goodBaseQuality <- function(reads, min = 0) {
 #' not pass. The average is set to 0 by default.
 #' @return (boolean) Logical vector with the valid rows as TRUE.
 #' @importFrom ShortRead ShortReadQ
+#' @importFrom Matrix rowMeans
 #' @importFrom methods as slot
 #'
 goodAvgQuality <- function(reads, avg = 0) {
-    if (is.logical(reads)) {
-        return(reads)
-    }
-    return(apply(as(slot(reads, "quality"), "matrix"),
-                 1,
-                 mean,
-                 na.rm = TRUE) >= avg)
+  if (is.logical(reads)) {
+    return(reads)
+  }
+  return(Matrix::rowMeans(as(slot(reads, "quality"), "matrix"),
+                          na.rm = TRUE) >= avg)
 }
 
 
@@ -47,19 +45,18 @@ goodAvgQuality <- function(reads, avg = 0) {
 #'
 #' @param reads (ShortRead object) Loaded reads from fastq.
 #' @return (boolean) Logical vector with the valid rows as TRUE.
-#' @importFrom stringr str_detect
-#' @importFrom methods as slot
+#' @importFrom ShortRead ShortReadQ sread
 #'
 alphabetQuality <- function(reads) {
-    if (is.logical(reads)) {
-        return(reads)
-    }
-    filt <- tryCatch({
-        # possible c stack limits -> trycatch
-        nucq <- ShortRead::polynFilter(nuc = c("A", "C", "T", "G"))
-        return(!as.logical(nucq(reads)))
-    }, error = function(cond) {
-        return(sapply(slot(reads, "sread"), stringr::str_detect, "^[ATCG]+$"))
-    })
-    return(filt)
+  if (is.logical(reads)) {
+    return(reads)
+  }
+  filt <- tryCatch({
+    # possible c stack limits -> trycatch
+    nucq <- ShortRead::polynFilter(nuc = c("A", "C", "T", "G"))
+    return(!as.logical(nucq(reads)))
+  }, error = function(cond) {
+    return(grepl("^[ATCG]+$", sread(reads)))
+  })
+  return(filt)
 }

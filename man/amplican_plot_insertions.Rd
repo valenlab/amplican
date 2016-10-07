@@ -31,7 +31,7 @@ amplicon sequence, and bottom plot is for reverse reads.
 #example config
 config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
 #example alignments results
-alignments <- read.csv(system.file("extdata/results", "alignments.csv", package = "amplican"))
+alignments <- read.csv(system.file("extdata", "results", "alignments.csv", package = "amplican"))
 amplican_plot_insertions(alignments, config, c('ID_1','ID_3'), 5)
 
 }

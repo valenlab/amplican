@@ -24,7 +24,8 @@ will repeat the header many times.}
 matching folders.}
 }
 \value{
-(void)
+(boolean) When file was created empty returns invisible TRUE, FALSE
+otherwise
 }
 \description{
 This function takes all the files in a given folder that match a regex

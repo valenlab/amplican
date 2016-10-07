@@ -10,24 +10,25 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-Welcome to the `amplican` package. This viginnette will walk you through our main package usage with example MiSeq 
+Welcome to the `amplican` package. This vignette will walk you through our main package usage with example MiSeq 
 dataset.  You will learn how to interpret results, create summary reports and plot deletions, 
 insertions and mutations with our functions. 
-This package, `amplican`, is for fast and precise analysis of CRISPR experiments.
+This package, `amplican`, is created for fast and precise analysis of CRISPR experiments.
 
 # Introduction
 
-`amplican` creates raports of deletions, insertions, frameshifts, cut rates and other metrics in *knitable* to html style. `amplican` uses vary fast C implementation of Gotoh alhoritm to align your fastq samples and
+`amplican` creates reports of deletions, insertions, frameshifts, cut rates and other metrics in *knitable* to HTML style. `amplican` uses vary fast C implementation of Gotoh algorithm to align your fastq samples and
 automates analysis across different experiments. `amplican` maintains elasticity through configuration file, which with your fastq samples are only requirements.
 
 For those inpatient people who want to see an example of our whole pipeline analysis on our example data start [here](#default-options).
 
 # Configuration file
 
-To succesfully run our analysis it is mandatory to have a configuration file. Take a look at our example:
+To successfully run our analysis it is mandatory to have a configuration file. Take a look at our example:
 
 ```{r, echo=FALSE}
-config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
+config <- system.file("extdata", "config.csv", package = "amplican")
+config <- read.csv(config)
 knitr::kable(head(config))
 ```
 
@@ -62,13 +63,11 @@ example dataset, but take a look how you can do that yourself. Be prepared to gr
 
 ```{r amplicanPipeline, echo=TRUE, eval=FALSE}
 # example MiSeq dataset files
-config <- system.file("extdata", "config.csv", package = "amplican") #path to example config file
-fastq_folder <- system.file("extdata", "", package = "amplican") #path to example fastq files
-results_folder <- paste0(getwd(), "/amplican_example") #output folder
+config <- system.file("extdata", "config.csv", package = "amplican")  # path to example config file
+fastq_folder <- system.file("extdata", package = "amplican")  # path to example fastq files
+results_folder <- tempdir()  # output folder
 
-## make sure we have results folder
-dir.create(results_folder)
-##  actual amplican run
+#  run amplican
 amplicanPipeline(config, fastq_folder, results_folder)
 
 # results of the analysis can be found at
@@ -83,7 +82,7 @@ Take a look into "results_folder" folder. Here you can find `.Rmd` files that ar
 
 ## alignmentLog.txt
 
-Contains information about unpleasant errors and events found during analysis, we also print message on the screen when something requires your attention. This file should be empty with our example analisys on provided dataset. In case something goes wrong you should examin file and follow instructions inside. This file is also included in "summary" version of the report.
+Contains information about unpleasant errors and events found during analysis, we also print message on the screen when something requires your attention. This file should be empty with our example analysis on provided dataset. In case something goes wrong you should examine file and follow instructions inside. This file is also included in "summary" version of the report.
 
 ## barcode_reads_filters.csv
 
@@ -91,28 +90,30 @@ First step of our analysis is to filter out reads that are not complying with ou
 
 * bad base quality - default minimum base quality is 0  
 * bad average quality - default minimum average quality is 0  
-* bad alphabet - by deafult we accept only reads with A,C,T,G bases  
+* bad alphabet - by default we accept only reads with A,C,T,G bases  
 
 ```{r, echo=FALSE}
-barcodeFilters <- read.csv(system.file("extdata/results", "barcode_reads_filters.csv", package = "amplican"))
+barcodeFilters <- system.file("extdata", "results", "barcode_reads_filters.csv", package = "amplican")
+barcodeFilters <- read.csv(barcodeFilters)
 knitr::kable(head(barcodeFilters))
 ```
 
-This table is also summarized in one of the reports. As you can see for our example dataset we have two barcodes, to which corespond 17 and 29 reads. Two reads are rejected for barcode_1 due to bad alphabet. Each of the barcodes has unique reads, which means forward and reverse reads are compacted when they are identical. There is 11 unique reads for barcode_1 and 20 for barcode_2. We can succesfully asign all the reads for each barcode as this is artificial dataset. Normally you will probably see only half of your reads being assigned to the barcodes. Reads are assigned when for forward read we can find forward primer and for reverse read we can find reverse primer. Primers have to be perfectly matched. Nevertheless, there is option `fastqreads = 0.5` which changes method of assigning reads to each IDs. With this option specified only one of the reads (forward or reverse) have to have primer perfectly matched.
+This table is also summarized in one of the reports. As you can see for our example dataset we have two barcodes, to which correspond 17 and 29 reads. Two reads are rejected for barcode_1 due to bad alphabet. Each of the barcodes has unique reads, which means forward and reverse reads are compacted when they are identical. There is 11 unique reads for barcode_1 and 20 for barcode_2. We can successfully assign all the reads for each barcode as this is artificial dataset. Normally you will probably see only half of your reads being assigned to the barcodes. Reads are assigned when for forward read we can find forward primer and for reverse read we can find reverse primer. Primers have to be perfectly matched. Nevertheless, there is option `fastqreads = 0.5` which changes method of assigning reads to each IDs. With this option specified only one of the reads (forward or reverse) have to have primer perfectly matched.
 
 ## config_summary.csv
 
 `config_summary.csv` contains extended version of the config file. It should provide you additional look at raw numbers which we use for various plots in reports. Take a look at example extension:
 
 ```{r, echo=FALSE}
-config_summary <- read.csv(system.file("extdata/results", "config_summary.csv", package = "amplican"))
+config_summary <- system.file("extdata", "results", "config_summary.csv", package = "amplican")
+config_summary <- read.csv(config_summary)
 config_summary <- config_summary[,c("ID", "Barcode", "Cut", "Frameshift", 
                                     "PRIMER_DIMER", "Reads", "Found_Guide", "Found_PAM")]
 knitr::kable(head(config_summary))
 ```
 
 During `amplicanAlign` or `amplicanPipeline` these columns are added to the config file:  
-**Cut** - number of insertions overlaping with user specified UPPER CASE group in the amplicon (extended by the buffer)  
+**Cut** - number of insertions overlapping with user specified UPPER CASE group in the amplicon (extended by the buffer)  
 **Frameshift** - number of reads has frameshift (insertions and deletions)  
 **PRIMER_DIMER** - number of reads were classified as PRIMER DIMERs  
 **Reads** - number of reads assigned to this ID  
@@ -121,12 +122,15 @@ During `amplicanAlign` or `amplicanPipeline` these columns are added to the conf
 
 ## RunParameters.txt
 
-File RunParameters.txt lists all options used for the analysis, this file you might find usefull when 
-reviewing analyisis from the past where you forgot what kind of options you used. Other than that 
+File RunParameters.txt lists all options used for the analysis, this file you might find useful when 
+reviewing analysis from the past where you forgot what kind of options you used. Other than that 
 this file has no purpose. 
 
 ```{r, echo=TRUE}
-readLines(system.file("extdata/results", "RunParameters.txt", package = "amplican")) #path to example RunParameters.txt
+# path to example RunParameters.txt
+run_params <- system.file("extdata", "results", "RunParameters.txt", package = "amplican")
+# show contents of the file
+readLines(run_params) 
 ```
 
 ## "alignments" folder
@@ -135,64 +139,68 @@ Contains alignments, for each ID there is separate folder. If you specified `wri
 `amplicanAlign` as "2", which is default, you will find here two files, one with just alignment forward read, 
 reverse read and count.
 Other file will contain very detailed information:  
-- human readable alignmennt of read and amplicon,  
+- human readable alignment of read and amplicon,  
 - list of deletions, insertions and mismatches,  
 - same information, but relative towards amplicon coordinates
 
 ```{r, echo=TRUE, eval=FALSE}
 # path to the example alignments folder
-system.file("extdata", "results/alignments", package = "amplican")
+system.file("extdata", "results", "alignments", package = "amplican")
 ```
 
 In `unassigned_sequences` folder you can find detailed information about unassigned reads. In example dataset there is no unassigned reads.
 
-Take a look at the alignment events file which contains all the insertions, deletions, cuts and mutations. This file can be used in varius ways. Examples you can find in `.Rmd` files we prepare using `amplicanReport`. These can be easly converted into `GRanges` and used for further analysis!
+Take a look at the alignment events file which contains all the insertions, deletions, cuts and mutations. This file can be used in various ways. Examples you can find in `.Rmd` files we prepare using `amplicanReport`. These can be easily converted into `GRanges` and used for further analysis!
 ```{r, echo=FALSE}
-alignments <- read.csv(system.file("extdata", "results/alignments.csv", package = "amplican"))
+alignments <- system.file("extdata", "results", "alignments.csv", package = "amplican")
+alignments <- read.csv(alignments)
 knitr::kable(head(alignments))
 ```
 
-Human readable alignments format gives information about forward and reverse reads. First line is coresponding to the forward alignment and second line is always for the reverse read alignment. This alignment does not shows amplicon, just similarity between two alignments (forward and reverse). Human readable format looks like this:
+Human readable alignments format gives information about forward and reverse reads. First line is corresponding to the forward alignment and second line is always for the reverse read alignment. This alignment does not shows amplicon, just similarity between two alignments (forward and reverse). Human readable format looks like this:
 ```{r, echo=FALSE}
-readLines(system.file("extdata", "results/alignments/ID_1_barcode_1/alignments.txt", package = "amplican"), n = 6)
+hr_alignments <- system.file("extdata", "results", "alignments", "ID_1_barcode_1", "alignments.txt", package = "amplican")
+readLines(hr_alignments, n = 6)
 ```
 
 
-Human readable detailed alignments format gives more information. To make more detailed alignment files `amplicanPipeline` or `amplicanAlign` should have option `write_alignments == 2` specified (Default behaviour), but it adds a little to the computational time.
+Human readable detailed alignments format gives more information. To make more detailed alignment files `amplicanPipeline` or `amplicanAlign` should have option `write_alignments == 2` specified (Default behavior), but it adds a little to the computational time.
 ```{r, echo=FALSE}
-readLines(system.file("extdata", "results/alignments/ID_1_barcode_1/detailed_alignments.txt", package = "amplican"), n = 89)
+hrd_alignments <- system.file("extdata", "results", "alignments", "ID_1_barcode_1", "detailed_alignments.txt", package = "amplican")
+readLines(hrd_alignments, n = 89)
 ```
 
 
 ## reports folder
 
-Reports are automated for the convenience of the users. We provide 6 different reports. Reports are .Rmd files which can be easly crafted through `rmarkdown::render(path_to_report)` or by clicking `Knit` in Rstudio to make html version of the report. If you have runned our example analysis, then you can open one of the reports with Rstudio and  try kniting it now! Otherwise you should change the path at the top of this file to match your path to the package, as you have pregenerated path (running `amplicanPipeline` does that for you). 
+Reports are automated for the convenience of the users. We provide 6 different reports. Reports are .Rmd files which can be easily crafted through `rmarkdown::render(path_to_report)` or by clicking `Knit` in Rstudio to make HTML version of the report. If you have run our example analysis, then you can open one of the reports with Rstudio and  try knitting it now! Otherwise you should change the path at the top of this file to match your path to the package, as you have pre-generated path (running `amplicanPipeline` does that for you). 
 
 ```{r, echo=TRUE, eval=FALSE}
-# path to example resports folder
-system.file("extdata", "results/reports", package = "amplican") #folder with example reports
+# path to example reports folder
+system.file("extdata", "results", "reports", package = "amplican")
 
 # you can run code below as example how to knit file:
-rmarkdown::render(system.file("extdata", "results/reports/report_id.Rmd", package = "amplican"))
+report_id <- system.file("extdata", "results", "reports", "report_id.Rmd", package = "amplican")
+rmarkdown::render(report_id)
 ```
 
 # Detailed analysis
 
 ## Aligning reads
 
-Each of the reads, that is assigned to unique ID, is aligned with usage of the Gotoh alghoritm 
+Each of the reads, that is assigned to unique ID, is aligned with usage of the Gotoh algorithm 
 implemented in C for speed. When you want to have more control over alignments and you need more advanced options use `amplicanAlign`. This function has many parameters which can be used to bend our pipeline to your needs. 
 Read more about `amplicanAlign` on the help page `?amplican::amplicanAlign`.
 
 ## Making reports
 
-Reports are made for user convienience, they are powerfull as they:
+Reports are made for user convenience, they are powerful as they:
 
 * contain reproducible code
 * make plots ready for publication
 * show how to use results of our pipeline
 * are easy to share
-* allow quick, but detailed assesment of the data
+* allow quick, but detailed assessment of the data
 
 We decided to separate reports into 6 different types. Function `amplicanReport` is made for automated report creation.
 
@@ -204,7 +212,7 @@ are being found for each of the IDs.
 during alignment.
 * **Barcode** - Grouped by Barcode, instead of the information about alignment events you can find here histograms 
 explaining cut rates, frameshifts etc.
-* **Group** - This field is for your convienience and allows you to group IDs by anything you want. In our example dataset
+* **Group** - This field is for your convenience and allows you to group IDs by anything you want. In our example dataset
 we use this field to group experiments by the users. That will allow us to asses performance of our technicians.
 * **Guide** - Unique guideRNAs are being summarized by boxplots showing cut rates across all experiments. 
 * **Summary** - Contains overall statistics gathered during reads assesment. Can contain only barcode level
@@ -214,16 +222,16 @@ information, but shows which parts of reads is being filtered.
 
 We provide specialized plots for each type of the alignment events. 
 
-`amplican_plot_mismatches` - plots mismatches as stacked barplot over the amplicon, top plot is for the forward and
+`amplican_plot_mismatches` - plots mismatches as stacked bar-plot over the amplicon, top plot is for the forward and
 bottom is for reverse reads  
-`amplican_plot_deletions` - plots deletions as archplot from the ggbio package  
+`amplican_plot_deletions` - plots deletions as arch-plot from the ggbio package  
 `amplican_plot_insertions` - each insertion is represented by triangle over the amplicon  
-`amplican_plot_cuts` - gathers cuts from each of the experiments and overlays multiple archplots on top of eachother,
-usefull when anaylisng what kind of cuts were introduced in the amplicon  
+`amplican_plot_cuts` - gathers cuts from each of the experiments and overlays multiple arch-plots on top of each other,
+useful when analyzing what kind of cuts were introduced in the amplicon  
 
-You can take a look at all these plots by *kniting* amplicon report file located here:
+You can take a look at all these plots by *knitting* amplicon report file located here:
 
 ```{r, echo=TRUE, eval=FALSE}
 # path to example knitable report
-system.file("extdata", "results/reports/report_amplicon.Rmd", package = "amplican")
+system.file("extdata", "results", "reports", "report_amplicon.Rmd", package = "amplican")
 ```

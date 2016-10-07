@@ -17,6 +17,6 @@ and open for manipulation.
 }
 
 To learn more about amplican, start with the vignettes:
-\code{browseVignettes(package = 'amplican')}
+\code{browseVignettes(package = "amplican")}
 }
 

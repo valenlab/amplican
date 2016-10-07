@@ -2,12 +2,13 @@ Package: amplican
 Type: Package
 Title: fast and precise analysis of CRISPR experiments
 Description: `amplican` creates reports of deletions, insertions, frameshifts,
-    cut rates and other metrics in user selected format (preffered html). `amplican`
-    uses vary fast C implementation of Gotoh alhoritm to align your fastq samples
-    and automates analysis across different experiments. `amplican` maintains
-    elasticity through configuration file, which with your fastq samples are only
+    cut rates and other metrics in user selected format (preferred HTML).
+    `amplican` uses vary fast C implementation of Gotoh algorithm
+    <doi:10.1016/0022-2836(82)90398-9> to align your fastq samples and automates
+    analysis across different experiments. `amplican` maintains elasticity
+    through configuration file, which with your fastq samples are only
     requirements.
-Version: 0.99.3
+Version: 0.99.4
 Authors@R: c(
     person("Kornel", "Labun", email = "kornel.labun@gmail.com", role = "aut"),
     person(c("Rafael", "Nozal"), "Canyadas", email = "rafanozal@gmail.com",  role = "ctr"),
@@ -23,11 +24,10 @@ Depends: R (>= 3.3.0)
 Imports:
     Rcpp,
     utils,
-    R.utils,
-    seqinr,
     ShortRead,
     IRanges,
     GenomicRanges,
+    GenomeInfoDb,
     S4Vectors,
     doParallel,
     foreach,
@@ -37,7 +37,11 @@ Imports:
     stats,
     rmarkdown,
     knitr,
-    methods
+    methods,
+    matrixStats,
+    Matrix,
+    Biostrings,
+    BiocParallel
 RoxygenNote: 5.0.1
 Suggests:
     testthat,

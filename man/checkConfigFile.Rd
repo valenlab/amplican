@@ -13,7 +13,7 @@ checkConfigFile(configTable, fastq_folder)
 \item{fastq_folder}{(string) Path to fastq folder.}
 }
 \value{
-(void) If anything goes wrong stops and prints error.
+(boolean) TRUE, If anything goes wrong stops and prints error.
 }
 \description{
 Its takes care of the following:

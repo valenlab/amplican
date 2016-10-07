@@ -10,7 +10,7 @@ amplicanPipeline(config, fastq_folder, results_folder, knit_files = TRUE,
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
-\code{system.file('extdata', 'config.txt', package = 'amplican')}}
+\code{system.file("extdata", "config.txt", package = "amplican")}}
 
 \item{fastq_folder}{(string) Path to FASTQ files. If not specified,
 FASTQ files should be in the same directory as config file.}
@@ -19,8 +19,8 @@ FASTQ files should be in the same directory as config file.}
 The package will create files in that folder so make sure you have writing
 permissions.}
 
-\item{knit_files}{(bolean) whether we should "knit" all reports automatically for you
-(it is time consuming)}
+\item{knit_files}{(boolean) whether function should "knit" all reports
+automatically for you (it is time consuming, but shows progress)}
 
 \item{total_processors}{(numeric) Set this to the number of processors you
 want to use. Default is 1. Works only if you have 'doParallel' installed
@@ -43,31 +43,34 @@ forward primer in the sequence
 1 - Use only the forward FASTQ file
 2 - Use only the reverse FASTQ file}
 
-\item{PRIMER_DIMER}{(numeric) Value specyfying buffer for PRIMER DIMER
+\item{PRIMER_DIMER}{(numeric) Value specifying buffer for PRIMER DIMER
 detection. For a given read it will be recognized as PRIMER DIMER when
 alignment will introduce gap of size bigger than:
-length of amplicon - (lenghts of PRIMERS + PRIMER_DIMER value)}
+length of amplicon - (lengths of PRIMERS + PRIMER_DIMER value)}
 
-\item{cut_buffer}{(numeric) Value specyfying a buffer for PAM, this will add
+\item{cut_buffer}{(numeric) Value specifying a buffer for PAM, this will add
 from both sides to a window defined from uppercase letters in the amplicon.
 Deletions overlapping this window will be considered a
-valid cut (if confirmed by both forward and rewerse reads).}
+valid cut (if confirmed by both forward and reverse reads).}
 }
 \value{
-NULL All results are created in specified results_folder.
+(string) results_folder path
 }
 \description{
-amplican_pipeline is convinient wrapper around all most popular settings of
+amplicanPipeline is convenient wrapper around all most popular settings of
 \code{\link{amplicanAlign}} and \code{\link{amplicanReport}}.
 It will generate all results in the \code{result_folder} and also print
 prepared reports into 'reports' folder.
 }
 \examples{
-config <- system.file("extdata", "config.csv", package = "amplican") #example config file
-fastq_folder <- system.file("extdata", "", package = "amplican") #path to example fastq files
-results_folder <- paste0(fastq_folder, "/results") #output folder
+# path to example config file
+config <- system.file("extdata", "config.csv", package = "amplican")
+# path to example fastq files
+fastq_folder <- system.file("extdata", package = "amplican")
+# output folder
+results_folder <- tempdir()
 
-#full analysis, not kniting files automatically
+#full analysis, not knitting files automatically
 amplicanPipeline(config, fastq_folder, results_folder, knit_files = FALSE)
 
 }

@@ -24,7 +24,7 @@
  *	The script allocate memory for one matrix only. After an alignment,
  *	the subject sequence remain in place an a new sequence is given.
  *
- *  The results are given in a string witht the following format:
+ *  The results are given in a string with the following format:
  *
  *	SUBJECT SEQUENCE@SEQUENCE 1
  *	Indels:
@@ -55,8 +55,8 @@
 #include <ctype.h>   // characters to uppercase
 
 #include <Rcpp.h>  //If you are not working with R, comment this line
-					         //otherwise you have to install Rcpp.h and you need admin
-					         //privelege to do that.
+//otherwise you have to install Rcpp.h and you need admin
+//privilege to do that.
 
 // Enable C++11 via this plugin (Rcpp 0.10.3 or later)
 // [[Rcpp::plugins("cpp11")]]
@@ -64,81 +64,81 @@
 using namespace std;
 
 //Some constant declarations
-const int MINUS_INF = std::numeric_limits<int>::min()/2;
+const int MINUS_INF = std::numeric_limits<int>::min() / 2;
 const int DEBUG = false;
 string PAUSE = "x";
 
 
-class Mutation_Info{
+class Mutation_Info {
 
-	private:
-		const unsigned int start;
-		const char original;
-		const char mutated;
+private:
+	const unsigned int start;
+	const char original;
+	const char mutated;
 
-	public:
+public:
 
-		/**
-		Constructor of the class, set atttributes to s,o and m.
+	/**
+	Constructor of the class, set attributes to s,o and m.
 
-		Use example:
-			Mutation_Info example(20,C,G)
-			cout<<example.to_string()<<endl;
-		*/
-		Mutation_Info(const int s, const char o, const char m):start(s),original(o),mutated(m){}
+	Use example:
+		Mutation_Info example(20,C,G)
+		cout<<example.to_string()<<endl;
+	*/
+	Mutation_Info(const int s, const char o, const char m): start(s), original(o), mutated(m) {}
 
-		/**
-			This function return an string representation of the object.
+	/**
+		This function return an string representation of the object.
 
-			The string returned has the following format:
-			START:    <start>
-			ORIGINAL: <original>
-			MUTATED:  <mutated>
+		The string returned has the following format:
+		START:    <start>
+		ORIGINAL: <original>
+		MUTATED:  <mutated>
 
-			@return string with the specified format.
-		*/
-		string to_string() const{
+		@return string with the specified format.
+	*/
+	string to_string() const {
 
-			string toReturn="START:    " + std::to_string(start) + "\n"+
-							"ORIGINAL: " + original              + "\n"+
-							"MUTATED:  " + mutated               + "\n";
+		string toReturn = "START:    " + std::to_string(start) + "\n" +
+		                  "ORIGINAL: " + original              + "\n" +
+		                  "MUTATED:  " + mutated               + "\n";
 
-			return toReturn;
-		};
+		return toReturn;
+	};
 
-		/**
+	/**
 
-			This function return a string representation of the mutationl object
-			in a compact format, like this:
-			<start>,<original>,<mutated>
+		This function return a string representation of the mutationl object
+		in a compact format, like this:
+		<start>,<original>,<mutated>
 
-		*/
-		string to_string_lite() const{
+	*/
+	string to_string_lite() const {
 
-			return std::to_string(start) +","+ original +","+ mutated;
+		return std::to_string(start) + "," + original + "," + mutated;
 
-		};
+	};
 
-		/**
-			Get the 'start' attribute of the class.
+	/**
+		Get the 'start' attribute of the class.
 
-			@return const unsigned int with the start
-		*/
-		inline const unsigned int get_start(){return start;};
+		@return const unsigned int with the start
+	*/
+	inline const unsigned int get_start() {return start;};
 
-		/**
-			Get the 'original' attribute of the class.
+	/**
+		Get the 'original' attribute of the class.
 
-			@return const char with the original nucleotide
-		*/
-		inline const unsigned int get_original(){return original;};
+		@return const char with the original nucleotide
+	*/
+	inline const unsigned int get_original() {return original;};
 
-		/**
-			Get the 'mutated' attribute of the class.
+	/**
+		Get the 'mutated' attribute of the class.
 
-			@return const char with the mutation nucleotide
-		*/
-		inline const bool get_pattern(){return mutated;};
+		@return const char with the mutation nucleotide
+	*/
+	inline const bool get_pattern() {return mutated;};
 
 };
 
@@ -159,7 +159,7 @@ Subject  AA--TAACGGAAGCACGTG
 The Pattern have an insertion from 2 to 3.
 The Pattern have a deletion from 8 to 11.
 
-The Subject have the oposite respect the pattern:
+The Subject have the opposite respect the pattern:
 
 The Subject have a deletion from 2 to 3.
 The Subject have an insertion from 8 to 11.
@@ -169,77 +169,77 @@ The Subject have an insertion from 8 to 11.
 @invariant : the length of the indel would be end-start+1
 
 */
-class Indel_Info{
+class Indel_Info {
 
-	private:
-		const unsigned int start;
-		const unsigned int end;
-		const bool pattern;
-	public:
+private:
+	const unsigned int start;
+	const unsigned int end;
+	const bool pattern;
+public:
 
-		/**
-		Constructor of the class, set atttributes to s,e and p.
+	/**
+	Constructor of the class, set attributes to s,e and p.
 
-		Use example:
-			Indel_Info example(20,30,false)
-			cout<<example.to_string()<<endl;
-		*/
-		Indel_Info(const int s, const int e, const bool p):start(s),end(e),pattern(p){}
+	Use example:
+		Indel_Info example(20,30,false)
+		cout<<example.to_string()<<endl;
+	*/
+	Indel_Info(const int s, const int e, const bool p): start(s), end(e), pattern(p) {}
 
-		/**
-			This function return an string representation of the object.
+	/**
+		This function return an string representation of the object.
 
-			The string returned has the following format:
-			START: <start>
-			END:   <end>
-			<"In Pattern","In Subject">
+		The string returned has the following format:
+		START: <start>
+		END:   <end>
+		<"In Pattern","In Subject">
 
-			@return string with the specified format.
-		*/
-		string to_string() const{
+		@return string with the specified format.
+	*/
+	string to_string() const {
 
-			string toReturn="START: "+std::to_string(start)+"\n"+
-							"END:   "+std::to_string(end)  +"\n";
+		string toReturn = "START: " + std::to_string(start) + "\n" +
+		                  "END:   " + std::to_string(end)  + "\n";
 
-			if(pattern==true){ toReturn = "In Pattern\n" + toReturn;}
-			else{              toReturn = "In Subject\n" + toReturn;}
+		if (pattern == true) { toReturn = "In Pattern\n" + toReturn;}
+		else {              toReturn = "In Subject\n" + toReturn;}
 
-			return toReturn;
-		};
+		return toReturn;
+	};
 
-		/**
+	/**
 
-			This function return a string representation of the indel object in
-			a compact format, like this:
-			<start>,<end>
+		This function return a string representation of the indel object in
+		a compact format, like this:
+		<start>,<end>
 
-		*/
-		string to_string_lite() const{
+	*/
+	string to_string_lite() const {
 
-			return std::to_string(start)+","+ std::to_string(end);
+		return std::to_string(start) + "," + std::to_string(end);
 
-		}
+	}
 
-		/**
-			Get the 'start' attribute of the class.
+	/**
+		Get the 'start' attribute of the class.
 
-			@return const unsigned int with the start
-		*/
-		inline const unsigned int get_start(){return start;};
+		@return const unsigned int with the start
+	*/
+	inline const unsigned int get_start() {return start;};
 
-		/**
-			Get the 'end' attribute of the class.
+	/**
+		Get the 'end' attribute of the class.
 
-			@return const unsigned int with the end
-		*/
-		inline const unsigned int get_end(){return end;};
+		@return const unsigned int with the end
+	*/
+	inline const unsigned int get_end() {return end;};
 
-		/**
-			Get the 'pattern' attribute of the class.
+	/**
+		Get the 'pattern' attribute of the class.
 
-			@return const bool with the pattern
-		*/
-		inline const bool get_pattern(){return pattern;};
+		@return const bool with the pattern
+	*/
+	inline const bool get_pattern() {return pattern;};
 
 };
 
@@ -316,374 +316,374 @@ many RCPP dependencies.
 	and save the time for the second allocation.
 
 */
-class Alignment_Result{
+class Alignment_Result {
 
-	private:
-		const string pattern;
-		const string subject;
+private:
+	const string pattern;
+	const string subject;
 
-		const string scoreMatrix;
-		const int gapOpening;
-		const int gapExtension;
-		const bool gapEnding;
+	const string scoreMatrix;
+	const int gapOpening;
+	const int gapExtension;
+	const bool gapEnding;
 
-		const int alignmentLength;
-		const int score;
+	const int alignmentLength;
+	const int score;
 
-		const string patternAlignment;
-		const string markup;
-		const string subjectAlignment;
+	const string patternAlignment;
+	const string markup;
+	const string subjectAlignment;
 
-		const int totalInsertions;
-		const int totalDeletions;
-		const int totalMismatches;
+	const int totalInsertions;
+	const int totalDeletions;
+	const int totalMismatches;
 
-		const std::list<Indel_Info> insertions;
-		const std::list<Indel_Info> deletions;
+	const std::list<Indel_Info> insertions;
+	const std::list<Indel_Info> deletions;
 
-		const std::list<Indel_Info> insertionsPattern;
-		const std::list<Indel_Info> deletionsSubject;
+	const std::list<Indel_Info> insertionsPattern;
+	const std::list<Indel_Info> deletionsSubject;
 
-		const std::list<Mutation_Info> mutations;
-		const std::list<Mutation_Info> mutationsRelative;
+	const std::list<Mutation_Info> mutations;
+	const std::list<Mutation_Info> mutationsRelative;
 
-	public:
-		/**
-			Constructor of the class. Every element is initialize as const
-			since the result is fixed.
-		*/
-		//This is ugly :-(
-		Alignment_Result(const string pattern, const string subject,
-						 const string scoreMatrix, const int gapOpening,
-						 const int gapExtension, const bool gapEnding,
-						 const int alignmentLength,
-						 const int score, const string patternAlignment,
-						 const string markup, const string subjectAlignment,
-						 const int totalInsertions,	const int totalDeletions,
-						 const int totalMismatches,
-						 const std::list<Indel_Info> insertions,
-						 const std::list<Indel_Info> deletions,
-						 const std::list<Indel_Info> insertionsPattern,
-						 const std::list<Indel_Info> deletionsSubject,
-						 const std::list<Mutation_Info> mutations,
-						 const std::list<Mutation_Info> mutationsRelative
-						 ):
+public:
+	/**
+		Constructor of the class. Every element is initialize as const
+		since the result is fixed.
+	*/
+	//This is ugly :-(
+	Alignment_Result(const string pattern, const string subject,
+	                 const string scoreMatrix, const int gapOpening,
+	                 const int gapExtension, const bool gapEnding,
+	                 const int alignmentLength,
+	                 const int score, const string patternAlignment,
+	                 const string markup, const string subjectAlignment,
+	                 const int totalInsertions,	const int totalDeletions,
+	                 const int totalMismatches,
+	                 const std::list<Indel_Info> insertions,
+	                 const std::list<Indel_Info> deletions,
+	                 const std::list<Indel_Info> insertionsPattern,
+	                 const std::list<Indel_Info> deletionsSubject,
+	                 const std::list<Mutation_Info> mutations,
+	                 const std::list<Mutation_Info> mutationsRelative
+	                ):
 
-						 pattern(pattern),subject(subject),
-						 scoreMatrix(scoreMatrix),gapOpening(gapOpening),
-						 gapExtension(gapExtension), gapEnding(gapEnding),
-						 alignmentLength(alignmentLength),score(score),
-						 patternAlignment(patternAlignment), markup(markup),
-						 subjectAlignment(subjectAlignment),
-						 totalInsertions(totalInsertions),
-						 totalDeletions(totalDeletions),
-						 totalMismatches(totalMismatches),insertions(insertions)
-						 ,deletions(deletions),
-						 insertionsPattern(insertionsPattern),
-						 deletionsSubject(deletionsSubject),
-						 mutations(mutations),
-						 mutationsRelative(mutationsRelative){}
+		pattern(pattern), subject(subject),
+		scoreMatrix(scoreMatrix), gapOpening(gapOpening),
+		gapExtension(gapExtension), gapEnding(gapEnding),
+		alignmentLength(alignmentLength), score(score),
+		patternAlignment(patternAlignment), markup(markup),
+		subjectAlignment(subjectAlignment),
+		totalInsertions(totalInsertions),
+		totalDeletions(totalDeletions),
+		totalMismatches(totalMismatches), insertions(insertions)
+		, deletions(deletions),
+		insertionsPattern(insertionsPattern),
+		deletionsSubject(deletionsSubject),
+		mutations(mutations),
+		mutationsRelative(mutationsRelative) {}
 
-		/**
-			This function return an string representation of the object.
+	/**
+		This function return an string representation of the object.
 
-			The string returned has the following format:
+		The string returned has the following format:
 
-			*********************
-			SEQUENCES INFORMATION
-			*********************
-			SCORING INFORMATION
-			*********************
-			RESULTS
-			*********************
-			INDELS AND MUTATIONS
-			*********************
+		*********************
+		SEQUENCES INFORMATION
+		*********************
+		SCORING INFORMATION
+		*********************
+		RESULTS
+		*********************
+		INDELS AND MUTATIONS
+		*********************
 
-			If the instance of the object is initialize to NULL it return a
-			warning string message
+		If the instance of the object is initialize to NULL it return a
+		warning string message
 
-			@return string with the specified format.
-		*/
-		string to_string(){
+		@return string with the specified format.
+	*/
+	string to_string() {
 
-			string toReturn =  "";
+		string toReturn =  "";
 
-		    int totalChunks = 0;
-		    int lastChunkLength = 0;
-		    string patternPiece = "";
-		    string markupPiece  = "";
-		    string subjectPiece = "";
-		    string indelInfoPiece = "";
+		int totalChunks = 0;
+		int lastChunkLength = 0;
+		string patternPiece = "";
+		string markupPiece  = "";
+		string subjectPiece = "";
+		string indelInfoPiece = "";
 
-		    toReturn = toReturn +
-		        "****************\n"+
-		        "SEQUENCES \n"+
-		        "----------------\n"+
-		        "Pattern: "+pattern + "\n"+
-		        "Subject: "+subject + "\n"+
-		        "****************\n"+
-		        "SCORING INFO \n"+
-		        "----------------\n"+
-		        "Score matrix:       "+scoreMatrix+"\n"+
-		        "Gap opening:        "+std::to_string(gapOpening)+"\n"+
-		        "Gap extension:      "+std::to_string(gapExtension)+"\n"+
-		        "Gap ending penalty: "+std::to_string(gapEnding)+"\n"+
-		        "****************\n"+
-		        "RESULTS \n"+
-		        "----------------\n"+
-		        "Alignment Length: "+std::to_string(alignmentLength)+"\n"+
-		        "Score: "+std::to_string(score) + "\n\n";
+		toReturn = toReturn +
+		           "****************\n" +
+		           "SEQUENCES \n" +
+		           "----------------\n" +
+		           "Pattern: " + pattern + "\n" +
+		           "Subject: " + subject + "\n" +
+		           "****************\n" +
+		           "SCORING INFO \n" +
+		           "----------------\n" +
+		           "Score matrix:       " + scoreMatrix + "\n" +
+		           "Gap opening:        " + std::to_string(gapOpening) + "\n" +
+		           "Gap extension:      " + std::to_string(gapExtension) + "\n" +
+		           "Gap ending penalty: " + std::to_string(gapEnding) + "\n" +
+		           "****************\n" +
+		           "RESULTS \n" +
+		           "----------------\n" +
+		           "Alignment Length: " + std::to_string(alignmentLength) + "\n" +
+		           "Score: " + std::to_string(score) + "\n\n";
 
-		    //Now lets separate the aligns in chunks of lenght 80
-		    totalChunks = alignmentLength/80;
-		    lastChunkLength = alignmentLength%80;
+		//Now lets separate the aligns in chunks of lenght 80
+		totalChunks = alignmentLength / 80;
+		lastChunkLength = alignmentLength % 80;
 
-		    //Print all the chunks of length 80
-		    for(int i=0; i<totalChunks; i++){
-		        patternPiece = patternAlignment.substr(80*i,80);
-		        markupPiece  = markup.substr(80*i,80);
-		        subjectPiece = subjectAlignment.substr(80*i,80);
+		//Print all the chunks of length 80
+		for (int i = 0; i < totalChunks; i++) {
+			patternPiece = patternAlignment.substr(80 * i, 80);
+			markupPiece  = markup.substr(80 * i, 80);
+			subjectPiece = subjectAlignment.substr(80 * i, 80);
 
-		        toReturn = toReturn +
-		            patternPiece + "    " + std::to_string(80*(i+1)) + "\n"+
-		            markupPiece + "    \n"+
-		            subjectPiece + "    \n\n";
-		    }
-
-		    //Print the last chunk that didn't reach to 80
-		    if(lastChunkLength>0){
-		        patternPiece = patternAlignment.substr(totalChunks*80,lastChunkLength);
-		        markupPiece  = markup.substr(totalChunks*80,lastChunkLength);
-		        subjectPiece = subjectAlignment.substr(totalChunks*80,lastChunkLength);
-
-		        toReturn = toReturn +
-		            patternPiece + "    " + std::to_string(alignmentLength) + "\n"+
-		            markupPiece + "    \n"+
-		            subjectPiece + "    \n";
-		    }
-
-
-		    toReturn = toReturn +
-		        "****************\n"+
-		        "ALIGNMENT INFO \n"+
-		        "----------------\n"+
-		        "Total Insertions: "+std::to_string(totalInsertions)+"\n"+
-		        "Total Deletions:  "+std::to_string(totalDeletions)  +"\n"+
-		        "Total Mismatches: "+std::to_string(totalMismatches) +"\n"+
-		        "----------------\n"+
-		        "INSERTIONS: \n"+
-		        "----------------\n";
-
-		    //Show the list of all insertions
-		    for (list<Indel_Info>::const_iterator it = insertions.begin();
-                it!=insertions.end(); it++){
-
-		        indelInfoPiece += (*it).to_string() + "\n";
-		    }
-
-		    toReturn = toReturn + indelInfoPiece + "\n" +
-
-		        "--Insertions respect patterns coordinates-- \n\n";
-
-		    indelInfoPiece = "";
-
-		    //Show the list of all deletions from the subject coordinates.
-		    for (list<Indel_Info>::const_iterator it = insertionsPattern.begin();
-                it!=insertionsPattern.end(); it++){
-
-		        indelInfoPiece += (*it).to_string() + "\n";
-		    }
-
-		    toReturn += indelInfoPiece + "\n" +
-
-
-		        "----------------\n"+
-		        "DELETIONS: \n"+
-		        "----------------\n";
-
-		    indelInfoPiece = "";
-
-		    //Show the list of all deletions
-		    for (list<Indel_Info>::const_iterator it = deletions.begin();
-                it!=deletions.end(); it++){
-
-		        indelInfoPiece += (*it).to_string() + "\n";
-		    }
-
-		    toReturn = toReturn + indelInfoPiece + "\n" +
-
-		        "--Deletions respect subject coordinates-- \n\n";
-
-		    indelInfoPiece = "";
-
-		    //Show the list of all deletions from the subject coordinates.
-		    for (list<Indel_Info>::const_iterator it = deletionsSubject.begin();
-           it!=deletionsSubject.end(); it++){
-
-		        indelInfoPiece += (*it).to_string() + "\n";
-		    }
-
-		    toReturn += indelInfoPiece + "\n" +
-
-		        "----------------\n"+
-		        "MISMATCHES: \n"+
-		        "----------------\n";
-
-		    indelInfoPiece = "";
-
-		    //Show the list of all missmatches
-		    for (list<Mutation_Info>::const_iterator it = mutations.begin();
-                it!=mutations.end(); it++){
-
-		        indelInfoPiece += (*it).to_string() + "\n";
-		    }
-
-		    toReturn = toReturn + indelInfoPiece + "\n" +
-
-		        "--Missmatches respect subject coordinates-- \n\n";
-
-		    indelInfoPiece = "";
-
-		    //Show the list of all missmatches
-		    for (list<Mutation_Info>::const_iterator it = mutationsRelative.begin();
-                it!=mutationsRelative.end(); it++){
-
-		        indelInfoPiece += (*it).to_string() + "\n";
-		    }
-
-		    toReturn += indelInfoPiece + "\n" +
-
-		        "\n"+
-		        "****************\n";
-
-			return toReturn;
+			toReturn = toReturn +
+			           patternPiece + "    " + std::to_string(80 * (i + 1)) + "\n" +
+			           markupPiece + "    \n" +
+			           subjectPiece + "    \n\n";
 		}
 
-		/**
-			This function return an string representation of the object. In this
-			case the information given is the minimum that ggplot2 needs to draw
-			the information about the alignments
+		//Print the last chunk that didn't reach to 80
+		if (lastChunkLength > 0) {
+			patternPiece = patternAlignment.substr(totalChunks * 80, lastChunkLength);
+			markupPiece  = markup.substr(totalChunks * 80, lastChunkLength);
+			subjectPiece = subjectAlignment.substr(totalChunks * 80, lastChunkLength);
 
-			The string returned have this format:
-
-			<number of insertions>@<insertion 0 start>,<insertion 0 end>*
-			<insertion 1 start>,<insertion 1 end>*...,<insertion N end>*!
-			<number of deletions>@<deletion 0 start>,<deletion 0 end>*
-			<deletion 1 start>,<deletion 1 end>*...,<deletion M end>*!
-			<number of mutations>@<mutation 0 start>,<mutation 0 original>,
-			<mutation 0 mutated>*<mutation 1 start>,<mutation 1 original>,
-			<mutation 1 mutated>*...,<mutation X start>,<mutation X original>,
-			<mutation X mutated>*
-
-			 @see ggplot2
-			 @todo info to ggplot2 specifications
-			 @see ampliCan.R
-			 @todo link to specific lines of code in the R script
-			 @todo CIGAR
-
-		*/
-		string to_ggplot2_string(){
-
-			string toReturn = "";
-
-			int totalInsertions = insertions.size();
-			int totalDeletions = deletions.size();
-
-			//Add the insertions info
-			toReturn += "@" + std::to_string(totalInsertions) + "@";
-
-			for (list<Indel_Info>::const_iterator it = insertions.begin();
-				it!=insertions.end(); it++){
-
-				toReturn += (*it).to_string_lite() + "*";
-			}
-
-			//Make a character that separate the insertions from deletions
-			toReturn += "!";
-
-			//Add the deletions info
-			toReturn += "@" + std::to_string(totalDeletions) + "@";
-
-			for (list<Indel_Info>::const_iterator it = deletions.begin();
-				it!=deletions.end(); it++){
-
-				toReturn += (*it).to_string_lite() + "*";
-			}
-
-			//Make a character that separate the deletions from mutations
-			toReturn += "!";
-
-			//Add the mutations info
-			toReturn += "@" + std::to_string(totalMismatches) + "@";
-
-			for (list<Mutation_Info>::const_iterator it = mutations.begin();
-				it!=mutations.end(); it++){
-
-				toReturn += (*it).to_string_lite() + "*";
-			}
-
-			 return toReturn;
-
+			toReturn = toReturn +
+			           patternPiece + "    " + std::to_string(alignmentLength) + "\n" +
+			           markupPiece + "    \n" +
+			           subjectPiece + "    \n";
 		}
 
-		string to_subject_coordiantes_string(){
 
-			string toReturn = "";
+		toReturn = toReturn +
+		           "****************\n" +
+		           "ALIGNMENT INFO \n" +
+		           "----------------\n" +
+		           "Total Insertions: " + std::to_string(totalInsertions) + "\n" +
+		           "Total Deletions:  " + std::to_string(totalDeletions)  + "\n" +
+		           "Total Mismatches: " + std::to_string(totalMismatches) + "\n" +
+		           "----------------\n" +
+		           "INSERTIONS: \n" +
+		           "----------------\n";
 
-			int totalInsertions = insertions.size();
-			int totalDeletions = deletions.size();
+		//Show the list of all insertions
+		for (list<Indel_Info>::const_iterator it = insertions.begin();
+		        it != insertions.end(); it++) {
 
-			//Add the insertions info
-			toReturn += "@" + std::to_string(totalInsertions) + "@";
-
-			for (list<Indel_Info>::const_iterator it = insertions.begin();
-				it!=insertions.end(); it++){
-
-				toReturn += (*it).to_string_lite() + "*";
-			}
-
-			//Make a character that separate the insertions from deletions
-			toReturn += "!";
-
-			//Add the deletions info
-			toReturn += "@" + std::to_string(totalDeletions) + "@";
-
-			for (list<Indel_Info>::const_iterator it = deletionsSubject.begin();
-				it!=deletionsSubject.end(); it++){
-
-				toReturn += (*it).to_string_lite() + "*";
-			}
-
-			//Make a character that separate the deletions from mutations
-			toReturn += "!";
-
-			//Add the mutations info
-			toReturn += "@" + std::to_string(totalMismatches) + "@";
-
-			for (list<Mutation_Info>::const_iterator it = mutationsRelative.begin();
-				it!=mutationsRelative.end(); it++){
-
-				toReturn += (*it).to_string_lite() + "*";
-			}
-
-			 return toReturn;
-
+			indelInfoPiece += (*it).to_string() + "\n";
 		}
 
-		/**
-			Return only the insertions information in a string format:
-			Start@End@<Pattern,Subject>
-		*/
-		string insertions_to_string(){return "";}
+		toReturn = toReturn + indelInfoPiece + "\n" +
 
-		/**
-			Return only the insertions information in a string format:
-			Start@End@<Pattern,Subject>
-		*/
-		string delitions_to_string(){return "";}
+		           "--Insertions respect patterns coordinates-- \n\n";
 
-		string get_pattern_alignment(){ return patternAlignment ;}
-		string get_subject_alignment(){ return subjectAlignment ;}
+		indelInfoPiece = "";
+
+		//Show the list of all deletions from the subject coordinates.
+		for (list<Indel_Info>::const_iterator it = insertionsPattern.begin();
+		        it != insertionsPattern.end(); it++) {
+
+			indelInfoPiece += (*it).to_string() + "\n";
+		}
+
+		toReturn += indelInfoPiece + "\n" +
+
+
+		            "----------------\n" +
+		            "DELETIONS: \n" +
+		            "----------------\n";
+
+		indelInfoPiece = "";
+
+		//Show the list of all deletions
+		for (list<Indel_Info>::const_iterator it = deletions.begin();
+		        it != deletions.end(); it++) {
+
+			indelInfoPiece += (*it).to_string() + "\n";
+		}
+
+		toReturn = toReturn + indelInfoPiece + "\n" +
+
+		           "--Deletions respect subject coordinates-- \n\n";
+
+		indelInfoPiece = "";
+
+		//Show the list of all deletions from the subject coordinates.
+		for (list<Indel_Info>::const_iterator it = deletionsSubject.begin();
+		        it != deletionsSubject.end(); it++) {
+
+			indelInfoPiece += (*it).to_string() + "\n";
+		}
+
+		toReturn += indelInfoPiece + "\n" +
+
+		            "----------------\n" +
+		            "MISMATCHES: \n" +
+		            "----------------\n";
+
+		indelInfoPiece = "";
+
+		//Show the list of all mismatches
+		for (list<Mutation_Info>::const_iterator it = mutations.begin();
+		        it != mutations.end(); it++) {
+
+			indelInfoPiece += (*it).to_string() + "\n";
+		}
+
+		toReturn = toReturn + indelInfoPiece + "\n" +
+
+		           "--Missmatches respect subject coordinates-- \n\n";
+
+		indelInfoPiece = "";
+
+		//Show the list of all mismatches
+		for (list<Mutation_Info>::const_iterator it = mutationsRelative.begin();
+		        it != mutationsRelative.end(); it++) {
+
+			indelInfoPiece += (*it).to_string() + "\n";
+		}
+
+		toReturn += indelInfoPiece + "\n" +
+
+		            "\n" +
+		            "****************\n";
+
+		return toReturn;
+	}
+
+	/**
+		This function return an string representation of the object. In this
+		case the information given is the minimum that ggplot2 needs to draw
+		the information about the alignments
+
+		The string returned have this format:
+
+		<number of insertions>@<insertion 0 start>,<insertion 0 end>*
+		<insertion 1 start>,<insertion 1 end>*...,<insertion N end>*!
+		<number of deletions>@<deletion 0 start>,<deletion 0 end>*
+		<deletion 1 start>,<deletion 1 end>*...,<deletion M end>*!
+		<number of mutations>@<mutation 0 start>,<mutation 0 original>,
+		<mutation 0 mutated>*<mutation 1 start>,<mutation 1 original>,
+		<mutation 1 mutated>*...,<mutation X start>,<mutation X original>,
+		<mutation X mutated>*
+
+		 @see ggplot2
+		 @todo info to ggplot2 specifications
+		 @see ampliCan.R
+		 @todo link to specific lines of code in the R script
+		 @todo CIGAR
+
+	*/
+	string to_ggplot2_string() {
+
+		string toReturn = "";
+
+		int totalInsertions = insertions.size();
+		int totalDeletions = deletions.size();
+
+		//Add the insertions info
+		toReturn += "@" + std::to_string(totalInsertions) + "@";
+
+		for (list<Indel_Info>::const_iterator it = insertions.begin();
+		        it != insertions.end(); it++) {
+
+			toReturn += (*it).to_string_lite() + "*";
+		}
+
+		//Make a character that separate the insertions from deletions
+		toReturn += "!";
+
+		//Add the deletions info
+		toReturn += "@" + std::to_string(totalDeletions) + "@";
+
+		for (list<Indel_Info>::const_iterator it = deletions.begin();
+		        it != deletions.end(); it++) {
+
+			toReturn += (*it).to_string_lite() + "*";
+		}
+
+		//Make a character that separate the deletions from mutations
+		toReturn += "!";
+
+		//Add the mutations info
+		toReturn += "@" + std::to_string(totalMismatches) + "@";
+
+		for (list<Mutation_Info>::const_iterator it = mutations.begin();
+		        it != mutations.end(); it++) {
+
+			toReturn += (*it).to_string_lite() + "*";
+		}
+
+		return toReturn;
+
+	}
+
+	string to_subject_coordiantes_string() {
+
+		string toReturn = "";
+
+		int totalInsertions = insertions.size();
+		int totalDeletions = deletions.size();
+
+		//Add the insertions info
+		toReturn += "@" + std::to_string(totalInsertions) + "@";
+
+		for (list<Indel_Info>::const_iterator it = insertions.begin();
+		        it != insertions.end(); it++) {
+
+			toReturn += (*it).to_string_lite() + "*";
+		}
+
+		//Make a character that separate the insertions from deletions
+		toReturn += "!";
+
+		//Add the deletions info
+		toReturn += "@" + std::to_string(totalDeletions) + "@";
+
+		for (list<Indel_Info>::const_iterator it = deletionsSubject.begin();
+		        it != deletionsSubject.end(); it++) {
+
+			toReturn += (*it).to_string_lite() + "*";
+		}
+
+		//Make a character that separate the deletions from mutations
+		toReturn += "!";
+
+		//Add the mutations info
+		toReturn += "@" + std::to_string(totalMismatches) + "@";
+
+		for (list<Mutation_Info>::const_iterator it = mutationsRelative.begin();
+		        it != mutationsRelative.end(); it++) {
+
+			toReturn += (*it).to_string_lite() + "*";
+		}
+
+		return toReturn;
+
+	}
+
+	/**
+		Return only the insertions information in a string format:
+		Start@End@<Pattern,Subject>
+	*/
+	string insertions_to_string() {return "";}
+
+	/**
+		Return only the insertions information in a string format:
+		Start@End@<Pattern,Subject>
+	*/
+	string delitions_to_string() {return "";}
+
+	string get_pattern_alignment() { return patternAlignment ;}
+	string get_subject_alignment() { return subjectAlignment ;}
 
 };
 
@@ -709,56 +709,56 @@ class Alignment_Result{
 */
 template <class T>
 void printMatrix(T** matrix, const string &sequencePattern,
-                  const string &sequenceSubject){
+                 const string &sequenceSubject) {
 
 	//Get the length of each sequence
 	int lengthPattern = sequencePattern.length();
-    int lengthSubject = sequenceSubject.length();
+	int lengthSubject = sequenceSubject.length();
 
 	//Print the first row which is the pattern on top
-    cout << "    ";
-    for(int i=0; i<lengthPattern;i++){
+	cout << "    ";
+	for (int i = 0; i < lengthPattern; i++) {
 		cout << sequencePattern[i] << " ";
 	}
-    cout << "\n";
+	cout << "\n";
 
 	//Print the rest of the lines starting with the subject nucleotide
-	for(int i=0;i<=lengthSubject;i++){
+	for (int i = 0; i <= lengthSubject; i++) {
 
 		//If it is the first character, show the subject nucleotide
-		if(i>0){
-			cout <<sequenceSubject[i-1]<< " ";
+		if (i > 0) {
+			cout << sequenceSubject[i - 1] << " ";
 		}
 		//Otherwise leave a nice spacing from the nucleotide
-		else{
-			cout<<"  ";
+		else {
+			cout << "  ";
 		}
 
 		//Continue with the rest of the row
-		for(int j = 0; j<=lengthPattern; j++){
+		for (int j = 0; j <= lengthPattern; j++) {
 
 			//If we are printing numbers
-			if (typeid(T) == typeid(int)){
+			if (typeid(T) == typeid(int)) {
 
-				if(matrix[i][j] <= MINUS_INF){   //If the number is very low
-												 //is the same as -infinity
-					cout<<"-∞ ";
+				if (matrix[i][j] <= MINUS_INF) { //If the number is very low
+					//is the same as -infinity
+					cout << "-∞ ";
 				}
-				else{
+				else {
 					//Positives numbers carry a "+" to compensate aligning
 					//with negatives numbers that carry a "-" symbol.
-					if(matrix[i][j]>=0){
-						cout<<"+";
+					if (matrix[i][j] >= 0) {
+						cout << "+";
 					}
-					cout<<matrix[i][j]<< " ";
+					cout << matrix[i][j] << " ";
 				}
 			}
 			//If we print something else
-			else{
-				cout<<matrix[i][j]<< " ";
+			else {
+				cout << matrix[i][j] << " ";
 			}
 		}
-		cout<<"\n";
+		cout << "\n";
 	}
 }
 
@@ -768,15 +768,15 @@ void printMatrix(T** matrix, const string &sequencePattern,
 
 */
 inline int maxRow(int** matrix, const int &columnIndex, const int &totalRows,
-				  unsigned int &maximumIndex, const int &offset = 0){
+                  unsigned int &maximumIndex, const int &offset = 0) {
 
 
 	int maximum = matrix[offset][columnIndex];
 	maximumIndex = offset;
 
 	//For each of the elements in the row
-    for(int i=offset+1; i<=totalRows; i++){ //+1, maximum is [i][0], start in [i][1]
-		if(maximum < matrix[i][columnIndex]){
+	for (int i = offset + 1; i <= totalRows; i++) { //+1, maximum is [i][0], start in [i][1]
+		if (maximum < matrix[i][columnIndex]) {
 
 			maximum = matrix[i][columnIndex];
 			maximumIndex = i;
@@ -794,16 +794,16 @@ inline int maxRow(int** matrix, const int &columnIndex, const int &totalRows,
 
 */
 inline int maxColumn(int** matrix, const int &rowIndex, const int &totalColumns,
-				  unsigned int &maximumIndex, const int &offset = 0){
+                     unsigned int &maximumIndex, const int &offset = 0) {
 
 
 	int maximum = matrix[rowIndex][offset];
 	maximumIndex = offset;
 
 	//For each of the elements in the row
-    for(int i=offset+1; i<=totalColumns; i++){ //+1, maximum is [i][0], start in [i][1]
+	for (int i = offset + 1; i <= totalColumns; i++) { //+1, maximum is [i][0], start in [i][1]
 
-		if(maximum < matrix[rowIndex][i]){
+		if (maximum < matrix[rowIndex][i]) {
 
 			maximum = matrix[rowIndex][i];
 			maximumIndex = i;
@@ -835,23 +835,23 @@ inline int maxColumn(int** matrix, const int &rowIndex, const int &totalColumns,
 
     @return int max: A copy of either, A, B or C.
 */
-inline int max(int A, int B, int C, char &direction){
+inline int max(int A, int B, int C, char &direction) {
 	int  max = -999999 ;
 
-	if(B>=A && B>=C){
+	if (B >= A && B >= C) {
 		max = B ;
-        direction = '\\' ;
+		direction = '\\' ;
 	}
-    else if(A>=C){
+	else if (A >= C) {
 		max = A;
-        direction = '|';
+		direction = '|';
 	}
-    else{
+	else {
 		max = C ;
-        direction = '-' ;
+		direction = '-' ;
 	}
 
-    return  max ;
+	return  max ;
 }
 
 /**
@@ -859,7 +859,7 @@ inline int max(int A, int B, int C, char &direction){
 	Return the maximum of three integers. The character indicates the direction
 	of the traceback matrix propagation. A '\' character means that we continue
 	in the traceback grid matrix. A 'V' character means that we should go to the
-	vertical traceback matrix. A 'H' chracter means that we should go to the
+	vertical traceback matrix. A 'H' character means that we should go to the
 	horizontal traceback matrix.
 
     @param int grid,vertical,horizontal: Integers from where we get the maximum,
@@ -871,23 +871,23 @@ inline int max(int A, int B, int C, char &direction){
 
     @return int max: A copy of either, grid, vertical or horizontal.
 */
-inline int max3D(int grid, int vertical, int horizontal, char &direction){
+inline int max3D(int grid, int vertical, int horizontal, char &direction) {
 	int  max = -999999 ;
 
-    if(grid>=vertical && grid>=horizontal){
+	if (grid >= vertical && grid >= horizontal) {
 		max = grid;
-        direction = '\\';
+		direction = '\\';
 	}
-    else if(vertical>=horizontal){
+	else if (vertical >= horizontal) {
 		max = vertical ;
-        direction = 'H' ;
+		direction = 'H' ;
 	}
-    else{
+	else {
 		max = horizontal ;
-        direction = 'V' ;
+		direction = 'V' ;
 	}
 
-    return  max ;
+	return  max ;
 }
 
 /**
@@ -908,20 +908,20 @@ inline int max3D(int grid, int vertical, int horizontal, char &direction){
 							 we follow; 'G' for open, and '|' for extend.
 							 WILL BE MODIFY.
 */
-inline int maxHorizontal(const int &open, const int &extend, char &direction){
+inline int maxHorizontal(const int &open, const int &extend, char &direction) {
 
 	int  max = -999999 ;
 
-    if(open>=extend){
+	if (open >= extend) {
 		max = open;
-        direction = 'G';
+		direction = 'G';
 	}
-    else{
+	else {
 		max = extend;
-        direction = '-';
+		direction = '-';
 	}
 
-    return  max ;
+	return  max ;
 }
 
 /**
@@ -942,20 +942,20 @@ inline int maxHorizontal(const int &open, const int &extend, char &direction){
 							 we follow; 'G' for open, and '-' for extend.
 							 WILL BE MODIFY.
 */
-inline int maxVertical(const int &open, const int &extend, char &direction){
+inline int maxVertical(const int &open, const int &extend, char &direction) {
 
 	int  max = -999999;
 
-    if(open>=extend){
+	if (open >= extend) {
 		max = open;
-        direction = 'G';
+		direction = 'G';
 	}
-    else{
+	else {
 		max = extend;
-        direction = '|';
+		direction = '|';
 	}
 
-    return  max ;
+	return  max ;
 }
 
 /**
@@ -980,7 +980,7 @@ inline int maxVertical(const int &open, const int &extend, char &direction){
 	horizontal[i][0] = - (gapOpening + gapExtension*i)
 	horizontal[0][j] = - infinity (j!=0)
 
-	The other ones represent the direction of the propagatation. Encoded
+	The other ones represent the direction of the propagation. Encoded
 	in chars with an ASCII style.
 
 	They are initialize as:
@@ -1106,7 +1106,7 @@ inline int maxVertical(const int &open, const int &extend, char &direction){
 	run into an OVERFLOW situation (which would be around 6500 nucleotides)
 
 	However, for the lower limit std::numeric_limits<int>::min(), we need to
-	make an slight ajustment. The minimum will OVERFLOW as soon as we find the
+	make an slight adjustment. The minimum will OVERFLOW as soon as we find the
 	score of min()-gapOpening. For that reason, the -infinity is going to be
 	represented as anything bellow min()/2. We will initialize -infinity to that
 	number. Again, with a 16 bit integer representation it will set around the
@@ -1126,11 +1126,11 @@ inline int maxVertical(const int &open, const int &extend, char &direction){
 		the minimum set for - infinity. In the case where we set up for -16K:
 		2*O + 1000*E > -16K => O + 500*E > -8K. This give us a margin of around
 		gap extension ~= 16. This is something worth discussing for minimal
-		memory comsumption if 16bits representation of integer is used.
+		memory consumption if 16 bits representation of integer is used.
 
 
 	NOTE2: The char** matrices are implemented with chars, only for the user
-	convinience. The horizontal and vertical are possible to implement with a
+	convenience. The horizontal and vertical are possible to implement with a
 	bool since they only have two states (go <up,left> or go to grid). The grid
 	traceback needs THREE states that can be accomplished with only a double
 	bool struct. After testing, it would be great to optimize that.
@@ -1164,107 +1164,107 @@ inline int maxVertical(const int &open, const int &extend, char &direction){
     @return VOID
 */
 void  initialize(int** grid, int** vertical, int** horizontal,
-				 char** tracebackGrid, char** tracebackHorizontal,
-				 char** tracebackVertical, const string &sequencePattern,
-				 const string &sequenceSubject, const int &gapOpening,
-				 const int &gapExtension, const bool &gapEnding){
+                 char** tracebackGrid, char** tracebackHorizontal,
+                 char** tracebackVertical, const string &sequencePattern,
+                 const string &sequenceSubject, const int &gapOpening,
+                 const int &gapExtension, const bool &gapEnding) {
 
 	int i = 0; //Reserve memory for index only once
 
-    const int lengthPattern = sequencePattern.length();
-    const int lengthSubject = sequenceSubject.length();
+	const int lengthPattern = sequencePattern.length();
+	const int lengthSubject = sequenceSubject.length();
 
 	//Initialize grid
 	grid[0][0] = 0 ;
 
-	//We have two diferent inicializations, depending if we count the ending
+	//We have two different initializations, depending if we count the ending
 	//of the alignments as 0 or whatever gap penalty.
-	for(i=1; i<=lengthPattern; i++){
+	for (i = 1; i <= lengthPattern; i++) {
 		//grid[0][i] = -(gapOpening + gapExtension * i);
 		grid[0][i] = 0;
 	}
-	for(i=1; i<=lengthSubject; i++){
+	for (i = 1; i <= lengthSubject; i++) {
 		//grid[i][0] = -(gapOpening + gapExtension * i);
 		grid[i][0] = 0;
 	}
 
-	if(DEBUG==true){
-		cout<<"Grid initialized"<<endl;
+	if (DEBUG == true) {
+		cout << "Grid initialized" << endl;
 	}
 
 	//Initialize horizontal
-	for(i=1; i<=lengthPattern; i++){
+	for (i = 1; i <= lengthPattern; i++) {
 		horizontal[0][i] = -(gapOpening + gapExtension * i);
 	}
-    for(i=0; i<=lengthSubject; i++){
+	for (i = 0; i <= lengthSubject; i++) {
 		horizontal[i][0] = MINUS_INF;
 	}
 
-	if(DEBUG==true){
-		cout<<"Horizontal initialized"<<endl;
+	if (DEBUG == true) {
+		cout << "Horizontal initialized" << endl;
 	}
 
 	//Initialize vertical
-    for(i=1; i<=lengthSubject; i++){
+	for (i = 1; i <= lengthSubject; i++) {
 		vertical[i][0] = -(gapOpening + gapExtension * i);
 	}
-	for(i=0; i<=lengthPattern; i++){
+	for (i = 0; i <= lengthPattern; i++) {
 		vertical[0][i] = MINUS_INF;
 	}
 
-	if(DEBUG==true){
-		cout<<"Vertical initialized"<<endl;
+	if (DEBUG == true) {
+		cout << "Vertical initialized" << endl;
 	}
 
 	//Initialize tracebackGrid
 	tracebackGrid[0][0] = 'x';
 
-    for(i=1; i<=lengthPattern; i++){
+	for (i = 1; i <= lengthPattern; i++) {
 		tracebackGrid[0][i] = '-';
 	}
-	for(i=1; i<=lengthSubject; i++){
+	for (i = 1; i <= lengthSubject; i++) {
 		tracebackGrid[i][0] = '|';
 	}
 
 	//Initialize tracebackVertical
-	for(i=1; i<=lengthSubject; i++){
+	for (i = 1; i <= lengthSubject; i++) {
 		tracebackVertical[i][0] = '|';
 	}
-    for(i=0; i<=lengthPattern; i++){
+	for (i = 0; i <= lengthPattern; i++) {
 		tracebackVertical[0][i] = 'G';
 	}
 
 	//Initialize tracebackHorizontal
-    for(i=1; i<=lengthPattern; i++){
+	for (i = 1; i <= lengthPattern; i++) {
 		tracebackHorizontal[0][i] = '-';
 	}
-	for(i=0; i<=lengthSubject; i++){
+	for (i = 0; i <= lengthSubject; i++) {
 		tracebackHorizontal[i][0] = 'G';
 	}
 
-	if(DEBUG==true){
+	if (DEBUG == true) {
 
-		cout<<"DEBUG in initialize"<<endl;
-		cout<<"Ending of initialize "<<endl;
-		cout<<"Grid matrix"<<endl;
+		cout << "DEBUG in initialize" << endl;
+		cout << "Ending of initialize " << endl;
+		cout << "Grid matrix" << endl;
 		printMatrix(grid, sequencePattern, sequenceSubject);
-		cout<<endl;
-		cout<<"Vertical matrix"<<endl;
+		cout << endl;
+		cout << "Vertical matrix" << endl;
 		printMatrix(vertical, sequencePattern, sequenceSubject);
-		cout<<endl;
-		cout<<"Horizontal matrix"<<endl;
+		cout << endl;
+		cout << "Horizontal matrix" << endl;
 		printMatrix(horizontal, sequencePattern, sequenceSubject);
-		cout<<endl;
-		cout<<"Traceback Grid matrix"<<endl;
+		cout << endl;
+		cout << "Traceback Grid matrix" << endl;
 		printMatrix(tracebackGrid, sequencePattern, sequenceSubject);
-		cout<<endl;
-		cout<<"Traceback Vertical matrix"<<endl;
+		cout << endl;
+		cout << "Traceback Vertical matrix" << endl;
 		printMatrix(tracebackVertical, sequencePattern, sequenceSubject);
-		cout<<endl;
-		cout<<"Traceback Horizontal matrix"<<endl;
+		cout << endl;
+		cout << "Traceback Horizontal matrix" << endl;
 		printMatrix(tracebackHorizontal, sequencePattern, sequenceSubject);
-		cout<<endl;
-		cout<<"END DEBUG in initialize"<<endl<<endl;
+		cout << endl;
+		cout << "END DEBUG in initialize" << endl << endl;
 	}
 
 }
@@ -1272,7 +1272,7 @@ void  initialize(int** grid, int** vertical, int** horizontal,
 
 /**
     This function allow you to align two sequences, provided that the grid
-    matrices and the traceback matrices are inicialized.
+    matrices and the traceback matrices are initialized.
 
     @param
     @return 0 if everything goes well
@@ -1280,23 +1280,23 @@ void  initialize(int** grid, int** vertical, int** horizontal,
               this will swap to NUC44 and run the function anyway
 */
 int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
-		  char** tracebackVertical, char** tracebackHorizontal,
-		  const string &sequencePattern, const string &sequenceSubject,
-		  const string &matrix, const int &gapOpening,
-		  const int &gapExtension, const bool &gapEnding,
-		  const bool &farIndels, Alignment_Result* &myResult){
+          char** tracebackVertical, char** tracebackHorizontal,
+          const string &sequencePattern, const string &sequenceSubject,
+          const string &matrix, const int &gapOpening,
+          const int &gapExtension, const bool &gapEnding,
+          const bool &farIndels, Alignment_Result* &myResult) {
 
-	if(DEBUG==true){
+	if (DEBUG == true) {
 
-		cout<<"Function Align called with parameters:"<<endl;
-		cout<<"G Opening: "<<gapOpening<<endl;
-		cout<<"G Extensi: "<<gapExtension<<endl;
-		cout<<"G Ending : "<<gapEnding<<endl;
+		cout << "Function Align called with parameters:" << endl;
+		cout << "G Opening: " << gapOpening << endl;
+		cout << "G Extensi: " << gapExtension << endl;
+		cout << "G Ending : " << gapEnding << endl;
 
 	}
 
-  //The return parameter
-  int toReturn = 0;
+	//The return parameter
+	int toReturn = 0;
 
 	//Find out coordinates in scoring matrix
 	int x = 0;
@@ -1310,29 +1310,29 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 	int extendGap = 0;
 
 	//Auxiliary variables to store nucleotides and direction chars
-  char direction = 'x';
-  char nucleotide = 'x';
+	char direction = 'x';
+	char nucleotide = 'x';
 
-  //Indexes for the loops
-  unsigned int i=0;
-  unsigned int j=0;
+	//Indexes for the loops
+	unsigned int i = 0;
+	unsigned int j = 0;
 
-  //Scoring variables
-  unsigned int maximumIndex=0;
-  int maxScore = 0;
+	//Scoring variables
+	unsigned int maximumIndex = 0;
+	int maxScore = 0;
 
-  //The result of the alignment is store in here
-  string patternResult = "";
-  string subjectResult = "";
-  string markup = "";
+	//The result of the alignment is store in here
+	string patternResult = "";
+	string subjectResult = "";
+	string markup = "";
 
 	//The list of insertions and deletions
-  std::list<Indel_Info> insertions;
-  std::list<Indel_Info> deletions;
-  std::list<Indel_Info> insertionsPattern;
-  std::list<Indel_Info> deletionsSubject;
-  int indelEnd = 0;
-  int indelStart = 0;
+	std::list<Indel_Info> insertions;
+	std::list<Indel_Info> deletions;
+	std::list<Indel_Info> insertionsPattern;
+	std::list<Indel_Info> deletionsSubject;
+	int indelEnd = 0;
+	int indelStart = 0;
 
 	int indelSubjectStart = 0;
 	int indelSubjectEnd = 0;
@@ -1348,98 +1348,99 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 	//char mutationOriginal = 'Z';
 	//char mutationMutated  = 'Y';
 
-  //Auxiliary stuff
-  bool gapFound = 0;
-  char currentNucleotide  = 'x';
+	//Auxiliary stuff
+	bool gapFound = 0;
+	char currentNucleotide  = 'x';
 
 	//Scoring matrix structure (init to NUC44 by default)
 	int  scoreMatrix[4][4] = {{ 5, -4, -4, -4 },
-							  {-4,  5, -4, -4 },
-							  {-4, -4,  5, -4 },
-							  {-4, -4, -4,  5}};
+		{ -4,  5, -4, -4 },
+		{ -4, -4,  5, -4 },
+		{ -4, -4, -4,  5}
+	};
 
 	//Get the length of the sequences
-  unsigned int  lengthPattern = sequencePattern.length();
-  unsigned int  lengthSubject = sequenceSubject.length();
+	unsigned int  lengthPattern = sequencePattern.length();
+	unsigned int  lengthSubject = sequenceSubject.length();
 
 	//Set up the scoring matrix
 	/**@todo set up other matrices*/
-	if( matrix!="NUC44"){
+	if ( matrix != "NUC44") {
 		toReturn = 1;
 	}
 
 	//For each of the subject nucleotides
-    for(i=1; i<=lengthSubject; i++){
+	for (i = 1; i <= lengthSubject; i++) {
 
 		//For each of the pattern nucleotides
-		for(j=1; j <= lengthPattern; j++){
+		for (j = 1; j <= lengthPattern; j++) {
 
 			//Get the nucleotide of the Pattern
-			nucleotide = sequencePattern[j-1];
+			nucleotide = sequencePattern[j - 1];
 
-			switch(nucleotide){
-				case 'A': x = 0; break;
-				case 'a': x = 0; break;
-                case 'T': x = 1; break;
-                case 't': x = 1; break;
-                case 'C': x = 2; break;
-                case 'c': x = 2; break;
-                case 'G': x = 3; break;
-                case 'g': x = 3; break;
+			switch (nucleotide) {
+			case 'A': x = 0; break;
+			case 'a': x = 0; break;
+			case 'T': x = 1; break;
+			case 't': x = 1; break;
+			case 'C': x = 2; break;
+			case 'c': x = 2; break;
+			case 'G': x = 3; break;
+			case 'g': x = 3; break;
 			}
 
 			//Get the nucleotide of the subject
-			nucleotide = sequenceSubject[i-1];
+			nucleotide = sequenceSubject[i - 1];
 
-			switch(nucleotide){
-				case 'A': y = 0; break;
-				case 'a': y = 0; break;
-				case 'T': y = 1; break;
-				case 't': y = 1; break;
-				case 'C': y = 2; break;
-				case 'c': y = 2; break;
-				case 'G': y = 3; break;
-				case 'g': y = 3; break;
+			switch (nucleotide) {
+			case 'A': y = 0; break;
+			case 'a': y = 0; break;
+			case 'T': y = 1; break;
+			case 't': y = 1; break;
+			case 'C': y = 2; break;
+			case 'c': y = 2; break;
+			case 'G': y = 3; break;
+			case 'g': y = 3; break;
 			}
 
 			//Find the scores in the vertical and horizontal matrices for i,j
 			//Finding for the horizontal
-			newGap = grid[i][j-1] - (gapOpening + gapExtension);
-			extendGap = horizontal[i][j-1] - gapExtension;
+			newGap = grid[i][j - 1] - (gapOpening + gapExtension);
+			extendGap = horizontal[i][j - 1] - gapExtension;
 
-			horizontal[i][j] = maxHorizontal(newGap,extendGap,direction);
+			horizontal[i][j] = maxHorizontal(newGap, extendGap, direction);
 			tracebackHorizontal[i][j] = direction;
 
 			//Finding for the vertical
-			newGap = grid[i-1][j] - (gapOpening + gapExtension);
-			extendGap = vertical[i-1][j] - gapExtension;
+			newGap = grid[i - 1][j] - (gapOpening + gapExtension);
+			extendGap = vertical[i - 1][j] - gapExtension;
 
-			vertical[i][j] = maxVertical(newGap,extendGap,direction);
+			vertical[i][j] = maxVertical(newGap, extendGap, direction);
 			tracebackVertical[i][j] = direction;
 
 			//Find the score from the three directions
-			up       = horizontal[i-1][j-1];
-			diagonal = grid[i-1][j-1];
-			left     = vertical[i-1][j-1];
+			up       = horizontal[i - 1][j - 1];
+			diagonal = grid[i - 1][j - 1];
+			left     = vertical[i - 1][j - 1];
 
 			//Get the biggest one and write it into the grid
-            grid[i][j] = max3D(diagonal,up,left,direction) + scoreMatrix[x][y];
+			grid[i][j] = max3D(diagonal, up, left, direction) + scoreMatrix[x][y];
 
 			//Write the direction into the traceback matrix
-            tracebackGrid[i][j] = direction;
+			tracebackGrid[i][j] = direction;
 		}
 	}
 
-    //Now, lets go backwards and write the alignment result
+	//Now, lets go backwards and write the alignment result
 
-    /*
+	/*
 		In here we can actually find out the insertions and deletions.
 		Every time we come back from the vertical we have a deletion (pattern
-		respect	the subject), and everytime we combe back from the horizontal
+		respect	the subject), and every time we come back from the horizontal
 		we have an insertion (pattern respect the subject).
-    */
-    i--;
-    j--;
+	*/
+	i--;
+	j--;
 	direction = 'x';
 	maxScore = grid[i][j];
 
@@ -1453,15 +1454,15 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 		Otherwise, what we do is to find the maximum score in the last column
 		xor row, depending of if the bigger sequence is the pattern or the
 		subject. Once we find the maximum we adjust the i xor j index so we
-		start tracebacking from there. Also adjust the result string accordingly
+		start backtracking from there. Also adjust the result string accordingly
 	*/
-	if(gapEnding == false){
+	if (gapEnding == false) {
 
-		if(DEBUG == true){
+		if (DEBUG == true) {
 
-			cout<<"Enter gap ending" << endl;
-			cout<<"I: "<< i << endl;
-			cout<<"J: "<< j << endl;
+			cout << "Enter gap ending" << endl;
+			cout << "I: " << i << endl;
+			cout << "J: " << j << endl;
 
 		}
 
@@ -1469,36 +1470,36 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 		//The maximum score is right now set to the right-bottom corner
 
 		//Get the maximum of the right column
-		int maximumColumn = maxRow(grid,j,i,maximumIndex,0);
+		int maximumColumn = maxRow(grid, j, i, maximumIndex, 0);
 		unsigned int rowIndex = maximumIndex;
 
 		//Get the maximum of the bottom row
-		int maximumRow = maxColumn(grid,i,j,maximumIndex,0);
+		int maximumRow = maxColumn(grid, i, j, maximumIndex, 0);
 		unsigned int columnIndex = maximumIndex;
 
 		//One of those three is the maximum.
 		//If the max Score is the bigger, do nothing, otherwise
-		if(maxScore < maximumColumn || maxScore < maximumRow){
+		if (maxScore < maximumColumn || maxScore < maximumRow) {
 
-			if(maximumColumn>=maximumRow){
+			if (maximumColumn >= maximumRow) {
 
 				//Adjust the alignments and the traceback start
-				while(i!=rowIndex){
+				while (i != rowIndex) {
 
 					patternResult += '-';
-					subjectResult += sequenceSubject[i-1];
+					subjectResult += sequenceSubject[i - 1];
 					markup += ' ';
 					i--;
 
 				}
 
 			}
-			else{
+			else {
 
 				//Adjust the alignments and the traceback start
-				while(j!=columnIndex){
+				while (j != columnIndex) {
 
-					patternResult += sequencePattern[j-1];
+					patternResult += sequencePattern[j - 1];
 					subjectResult += '-';
 					markup += ' ';
 					j--;
@@ -1509,11 +1510,11 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 		}
 
 
-		if(DEBUG == true){
+		if (DEBUG == true) {
 
-			cout<<"Final START after gap ending" << endl;
-			cout<<"I: "<< i << endl;
-			cout<<"J: "<< j << endl;
+			cout << "Final START after gap ending" << endl;
+			cout << "I: " << i << endl;
+			cout << "J: " << j << endl;
 
 		}
 
@@ -1523,246 +1524,246 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 
 	}
 
-	if(DEBUG==true){
+	if (DEBUG == true) {
 
-		cout<<"DEBUG Align"<<endl;
-		cout<<"Start traceback in: "<<maximumIndex<<endl;
-		cout<<"Maximum score found: "<<maxScore<<endl;
-		cout<<"Grid matrix"<<endl;
+		cout << "DEBUG Align" << endl;
+		cout << "Start traceback in: " << maximumIndex << endl;
+		cout << "Maximum score found: " << maxScore << endl;
+		cout << "Grid matrix" << endl;
 		printMatrix(grid, sequencePattern, sequenceSubject);
-		cout<<endl;
-		cout<<"Horizontal matrix"<<endl;
+		cout << endl;
+		cout << "Horizontal matrix" << endl;
 		printMatrix(horizontal, sequencePattern, sequenceSubject);
-		cout<<endl;
-		cout<<"Vertical matrix"<<endl;
+		cout << endl;
+		cout << "Vertical matrix" << endl;
 		printMatrix(vertical, sequencePattern, sequenceSubject);
-		cout<<endl;
-		cout<<"Traceback Grid matrix"<<endl;
+		cout << endl;
+		cout << "Traceback Grid matrix" << endl;
 		printMatrix(tracebackGrid, sequencePattern, sequenceSubject);
-		cout<<endl;
-		cout<<"Traceback Horizontal matrix"<<endl;
+		cout << endl;
+		cout << "Traceback Horizontal matrix" << endl;
 		printMatrix(tracebackHorizontal, sequencePattern, sequenceSubject);
-		cout<<endl;
-		cout<<"Traceback Vertical matrix"<<endl;
+		cout << endl;
+		cout << "Traceback Vertical matrix" << endl;
 		printMatrix(tracebackVertical, sequencePattern, sequenceSubject);
-		cout<<endl;
-		cout<<"I: "<<i<<endl;
-		cout<<"J: "<<j<<endl;
-		cout<<"END DEBUG Align"<<endl<<endl;
-		cout<<"Making the traceback"<<endl;
+		cout << endl;
+		cout << "I: " << i << endl;
+		cout << "J: " << j << endl;
+		cout << "END DEBUG Align" << endl << endl;
+		cout << "Making the traceback" << endl;
 	}
 
-	while(i>0 || j>0){
+	while (i > 0 || j > 0) {
 
-		if(DEBUG == true && true){
+		if (DEBUG == true && true) {
 
-			cout<<"Switching..."<<endl;
-			cout<<"Candidate: "<<tracebackGrid[i][j]<<endl;
-			cout<<"I: "<<i<<endl;
-			cout<<"J: "<<j<<endl;
-			cout<<"Current Pattern"<<endl;
-			cout<<patternResult<<endl;
-			cout<<markup<<endl;
-			cout<<subjectResult<<endl;
+			cout << "Switching..." << endl;
+			cout << "Candidate: " << tracebackGrid[i][j] << endl;
+			cout << "I: " << i << endl;
+			cout << "J: " << j << endl;
+			cout << "Current Pattern" << endl;
+			cout << patternResult << endl;
+			cout << markup << endl;
+			cout << subjectResult << endl;
 
 		}
 
-		switch(tracebackGrid[i][j]){
+		switch (tracebackGrid[i][j]) {
 
-			//The easiest case, just go on diagonal.
-			case '\\':
-				patternResult += sequencePattern[j-1];
-                subjectResult += sequenceSubject[i-1];
-				if(toupper(sequencePattern[j-1]) == toupper(sequenceSubject[i-1])){
-					markup += '|';
-				}
-				else{
-					markup += '.';
-				}
+		//The easiest case, just go on diagonal.
+		case '\\':
+			patternResult += sequencePattern[j - 1];
+			subjectResult += sequenceSubject[i - 1];
+			if (toupper(sequencePattern[j - 1]) == toupper(sequenceSubject[i - 1])) {
+				markup += '|';
+			}
+			else {
+				markup += '.';
+			}
 
-				if(DEBUG == true && true){
+			if (DEBUG == true && true) {
 
-					cout<<"Case Diagonal found"<<endl;
-					cout<<patternResult<<endl;
-					cout<<markup<<endl;
-					cout<<subjectResult<<endl;
-					cin.ignore().get();
+				cout << "Case Diagonal found" << endl;
+				cout << patternResult << endl;
+				cout << markup << endl;
+				cout << subjectResult << endl;
+				cin.ignore().get();
 
-				}
+			}
 
-                i--;
-                j--;
-                break;
+			i--;
+			j--;
+			break;
 
-			//If the traceback tell us to go vertical
-			case 'V':
+		//If the traceback tell us to go vertical
+		case 'V':
 
-				/*
-				 If the traceback tell us to go vertical it means that the
-				 score came back from the DIAGONAL of the horizontal matrix
+			/*
+			 If the traceback tell us to go vertical it means that the
+			 score came back from the DIAGONAL of the horizontal matrix
 
-				 So we need to mark one last pair, then follow the vertical
-				 path until it tell us to come back to grid.
-				*/
+			 So we need to mark one last pair, then follow the vertical
+			 path until it tell us to come back to grid.
+			*/
 
-				//First, lets mark the alignment with the insertion
-				patternResult += sequencePattern[j-1];
-                subjectResult += sequenceSubject[i-1];
-                if(toupper(sequencePattern[j-1]) == toupper(sequenceSubject[i-1])){
-					markup += '|';
-				}
-				else{
-					markup += '.';
-				}
+			//First, lets mark the alignment with the insertion
+			patternResult += sequencePattern[j - 1];
+			subjectResult += sequenceSubject[i - 1];
+			if (toupper(sequencePattern[j - 1]) == toupper(sequenceSubject[i - 1])) {
+				markup += '|';
+			}
+			else {
+				markup += '.';
+			}
 
-				if(DEBUG == true && false){
+			if (DEBUG == true && false) {
 
-					cout<<"Case Horizontal found"<<endl;
-					cout<<patternResult<<endl;
-					cout<<markup<<endl;
-					cout<<subjectResult<<endl;
+				cout << "Case Horizontal found" << endl;
+				cout << patternResult << endl;
+				cout << markup << endl;
+				cout << subjectResult << endl;
 
-				}
-
-
-                //indelEnd = i;
-                i--;
-                j--;
+			}
 
 
+			//indelEnd = i;
+			i--;
+			j--;
 
 
-                /*
 
-				Now we need to continue UP in the VERTICAL TRACEBACK MATRIX
-				until we find the reference that transport us back to the
-				TRACEBACK GRID.
 
-				*/
-                direction = tracebackVertical[i][j];
+			/*
 
-				while(i>0 && direction!='G'){
-					subjectResult += sequenceSubject[i-1];
-					patternResult += '-';
-					markup += ' ';
-					i--;
-					direction = tracebackVertical[i][j];
-				}
+			Now we need to continue UP in the VERTICAL TRACEBACK MATRIX
+			until we find the reference that transport us back to the
+			TRACEBACK GRID.
 
-				/*
-					Since we are going back to grid, it means that the cell to
-					where we are going back, was one cell TO THE LEFT from the
-					current G marker. We need to adjust and go one more step
-					to the LEFT
-				*/
+			*/
+			direction = tracebackVertical[i][j];
 
-				subjectResult += sequenceSubject[i-1];
+			while (i > 0 && direction != 'G') {
+				subjectResult += sequenceSubject[i - 1];
 				patternResult += '-';
 				markup += ' ';
 				i--;
+				direction = tracebackVertical[i][j];
+			}
 
-				break;
+			/*
+				Since we are going back to grid, it means that the cell to
+				where we are going back, was one cell TO THE LEFT from the
+				current G marker. We need to adjust and go one more step
+				to the LEFT
+			*/
 
-			//If the traceback tell us to go horizontal
-			case 'H':
+			subjectResult += sequenceSubject[i - 1];
+			patternResult += '-';
+			markup += ' ';
+			i--;
 
-				/*
-				 If the traceback tell us to go horizontal it means that the
-				 score came back from the DIAGONAL of the horizontal matrix
+			break;
 
-				 So we need to mark one last pair, then follow the horizontal
-				 path until it tell us to come back to grid.
-				*/
+		//If the traceback tell us to go horizontal
+		case 'H':
 
-				//First, lets mark the alignment with the insertion
-				patternResult += sequencePattern[j-1];
-                subjectResult += sequenceSubject[i-1];
-                if(toupper(sequencePattern[j-1]) == toupper(sequenceSubject[i-1])){
-					markup += '|';
-				}
-				else{
-					markup += '.';
-				}
+			/*
+			 If the traceback tell us to go horizontal it means that the
+			 score came back from the DIAGONAL of the horizontal matrix
 
-				if(DEBUG == true && false){
+			 So we need to mark one last pair, then follow the horizontal
+			 path until it tell us to come back to grid.
+			*/
 
-					cout<<"Case Horizontal found"<<endl;
-					cout<<patternResult<<endl;
-					cout<<markup<<endl;
-					cout<<subjectResult<<endl;
+			//First, lets mark the alignment with the insertion
+			patternResult += sequencePattern[j - 1];
+			subjectResult += sequenceSubject[i - 1];
+			if (toupper(sequencePattern[j - 1]) == toupper(sequenceSubject[i - 1])) {
+				markup += '|';
+			}
+			else {
+				markup += '.';
+			}
 
-				}
+			if (DEBUG == true && false) {
+
+				cout << "Case Horizontal found" << endl;
+				cout << patternResult << endl;
+				cout << markup << endl;
+				cout << subjectResult << endl;
+
+			}
 
 
-                //indelEnd = j;
-                i--;
-                j--;
+			//indelEnd = j;
+			i--;
+			j--;
 
-                /*
+			/*
 
-				Now we need to continue LEFT in the HORIZONTAL TRACEBACK MATRIX
-				until we find the reference that transport us back to the
-				TRACEBACK GRID.
+			Now we need to continue LEFT in the HORIZONTAL TRACEBACK MATRIX
+			until we find the reference that transport us back to the
+			TRACEBACK GRID.
 
-				*/
-                direction = tracebackHorizontal[i][j];
+			*/
+			direction = tracebackHorizontal[i][j];
 
-				while(j>0 && direction!='G'){
-					patternResult += sequencePattern[j-1];
-					subjectResult += '-';
-					markup += ' ';
-					j--;
-					direction = tracebackHorizontal[i][j];
-
-					if(DEBUG == true && false){
-
-						cout<<"Case Horizontal follow"<<endl;
-						cout<<patternResult<<endl;
-						cout<<markup<<endl;
-						cout<<subjectResult<<endl;
-
-					}
-
-				}
-
-				/*
-					Since we are going back to grid, it means that the cell to
-					where we are going back, was one cell TO THE LEFT from the
-					current G marker. We need to adjust and go one more step
-					to the LEFT
-				*/
-
-				patternResult += sequencePattern[j-1];
+			while (j > 0 && direction != 'G') {
+				patternResult += sequencePattern[j - 1];
 				subjectResult += '-';
 				markup += ' ';
 				j--;
+				direction = tracebackHorizontal[i][j];
 
-				break;
+				if (DEBUG == true && false) {
 
+					cout << "Case Horizontal follow" << endl;
+					cout << patternResult << endl;
+					cout << markup << endl;
+					cout << subjectResult << endl;
 
-			//If we reach the top of the traceback grid (NOT THE HORIZONTAL!)
-			case '-':
-
-				while(j>0){
-					patternResult += sequencePattern[j-1];
-					subjectResult += '-';
-					markup += ' ';
-					j--;
 				}
 
-				break;
+			}
 
-			//If we reach the left of the traceback grid (NOT THE VERTICAL!)
-			case '|':
+			/*
+				Since we are going back to grid, it means that the cell to
+				where we are going back, was one cell TO THE LEFT from the
+				current G marker. We need to adjust and go one more step
+				to the LEFT
+			*/
 
-				while(i>0){
-					subjectResult += sequenceSubject[i-1];
-					patternResult += '-';
-					markup += ' ';
-					i--;
-				}
+			patternResult += sequencePattern[j - 1];
+			subjectResult += '-';
+			markup += ' ';
+			j--;
 
-				break;
+			break;
+
+
+		//If we reach the top of the traceback grid (NOT THE HORIZONTAL!)
+		case '-':
+
+			while (j > 0) {
+				patternResult += sequencePattern[j - 1];
+				subjectResult += '-';
+				markup += ' ';
+				j--;
+			}
+
+			break;
+
+		//If we reach the left of the traceback grid (NOT THE VERTICAL!)
+		case '|':
+
+			while (i > 0) {
+				subjectResult += sequenceSubject[i - 1];
+				patternResult += '-';
+				markup += ' ';
+				i--;
+			}
+
+			break;
 
 		}
 
@@ -1789,41 +1790,41 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 	indelPatternStart = 0;
 	indelPatternEnd = 0;
 	patternIndex = 0;
-	for(i=0; i<subjectResult.size(); i++){
+	for (i = 0; i < subjectResult.size(); i++) {
 
 		currentNucleotide = subjectResult[i];
 
-		if(patternResult[i] != '-'){
+		if (patternResult[i] != '-') {
 
 			patternIndex = patternIndex + 1;
 
 		}
 
-		//We found the beggining of a new gap
-		if(gapFound == false && currentNucleotide == '-'){
+		//We found the beginning of a new gap
+		if (gapFound == false && currentNucleotide == '-') {
 
-			indelStart = i+1;
+			indelStart = i + 1;
 			gapFound = true;
 			indelPatternStart = patternIndex;
 
 
 		}
-		else{
+		else {
 			//We found the end of the current gap
-			if(gapFound == true && currentNucleotide != '-'){
+			if (gapFound == true && currentNucleotide != '-') {
 
 				gapFound = false;
 
 				//Check that we didn't found the first gap in case of an alignment
 				//starting with a gap (ie: ----AA CCCCAA, no indel in there)
-				if(indelStart != 1){
+				if (indelStart != 1) {
 
 					indelEnd = i;
-					indelPatternEnd = patternIndex-1;
+					indelPatternEnd = patternIndex - 1;
 
-					Indel_Info newInsertion(indelStart,indelEnd,false);
+					Indel_Info newInsertion(indelStart, indelEnd, false);
 					Indel_Info newInsertionPattern(indelPatternStart,
-												   indelPatternEnd,false);
+					                               indelPatternEnd, false);
 
 					insertions.push_back(newInsertion);
 					insertionsPattern.push_back(newInsertionPattern);
@@ -1836,12 +1837,12 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 
 	//If we count the far right/left indels,we need to close the right insertion
 	//if there is one and the pattern alignment ends in gaps.
-	if(farIndels==true && gapFound==true){
+	if (farIndels == true && gapFound == true) {
 		indelEnd = subjectResult.size();
 		indelPatternEnd = patternIndex;
 
-		Indel_Info newInsertion(indelStart,indelEnd,true);
-		Indel_Info newInsertionPattern(indelPatternStart,indelPatternEnd,true);
+		Indel_Info newInsertion(indelStart, indelEnd, true);
+		Indel_Info newInsertionPattern(indelPatternStart, indelPatternEnd, true);
 
 		insertions.push_back(newInsertion);
 		insertionsPattern.push_back(newInsertionPattern);
@@ -1854,7 +1855,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 	indelSubjectStart = 0;
 	indelSubjectEnd = 0;
 	subjectIndex = 0;
-	for(i=0; i<patternResult.size(); i++){
+	for (i = 0; i < patternResult.size(); i++) {
 
 		currentNucleotide = patternResult[i];
 
@@ -1874,22 +1875,22 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 		  So we only count +1 if we don't have a gap.
 
 		*/
-		if(subjectResult[i] != '-'){
+		if (subjectResult[i] != '-') {
 
 			subjectIndex = subjectIndex + 1;
 
 		}
 
 		//We found the beggining of a new gap
-		if(gapFound == false && currentNucleotide == '-'){
+		if (gapFound == false && currentNucleotide == '-') {
 
-			indelStart = i+1;
+			indelStart = i + 1;
 			gapFound = true;
 			indelSubjectStart = subjectIndex;
 		}
-		else{
+		else {
 			//We found the end of the current gap
-			if(gapFound == true && currentNucleotide != '-'){
+			if (gapFound == true && currentNucleotide != '-') {
 
 				gapFound = false;
 
@@ -1910,14 +1911,14 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 					(ie: ----AA CCCCAA, valid indel)
 
 				*/
-				if(indelStart != 1 || farIndels==true){
+				if (indelStart != 1 || farIndels == true) {
 
 					indelEnd = i;
-					indelSubjectEnd = subjectIndex-1;
+					indelSubjectEnd = subjectIndex - 1;
 
-					Indel_Info newDeletion(indelStart,indelEnd,true);
+					Indel_Info newDeletion(indelStart, indelEnd, true);
 					Indel_Info newDeletionSubject(indelSubjectStart,
-												  indelSubjectEnd,true);
+					                              indelSubjectEnd, true);
 					deletions.push_back(newDeletion);
 					deletionsSubject.push_back(newDeletionSubject);
 				}
@@ -1926,37 +1927,37 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 	}
 	//If we count the far right/left indels, we need to close the right deletion
 	//if there is one and the pattern alignment ends in gaps.
-	if(farIndels==true && gapFound==true){
+	if (farIndels == true && gapFound == true) {
 		indelEnd = patternResult.size();
 		indelSubjectEnd = subjectIndex;
 
-		Indel_Info newDeletion(indelStart,indelEnd,true);
-		Indel_Info newDeletionSubject(indelSubjectStart,indelSubjectEnd,true);
+		Indel_Info newDeletion(indelStart, indelEnd, true);
+		Indel_Info newDeletionSubject(indelSubjectStart, indelSubjectEnd, true);
 
 		deletions.push_back(newDeletion);
 		deletionsSubject.push_back(newDeletionSubject);
 	}
 
-	//Find the missmatches (look in both)
+	//Find the mismatches (look in both)
 	//We can optimize this by looking in the insertion / deletions; but for now
-	//we are prioritazing readability
+	//we are prioritizing readability
 	subjectIndex = 0;
 
-	for(i=0; i<patternResult.size(); i++){
+	for (i = 0; i < patternResult.size(); i++) {
 
 		//currentNucleotide  = patternResult[i];
 
 
 		//First lets check out that we are not in a gap so we can uppercase
 		// By definition, there is no mutation in a gap
-		if(patternResult[i] != '-' && subjectResult[i] !='-'){
+		if (patternResult[i] != '-' && subjectResult[i] != '-') {
 
-			if(toupper(patternResult[i]) != toupper(subjectResult[i])){
+			if (toupper(patternResult[i]) != toupper(subjectResult[i])) {
 
-				Mutation_Info newMutation(i,subjectResult[i],patternResult[i]);
+				Mutation_Info newMutation(i, subjectResult[i], patternResult[i]);
 				mutations.push_back(newMutation);
 
-				Mutation_Info newMutationRelative(subjectIndex,subjectResult[i],patternResult[i]);
+				Mutation_Info newMutationRelative(subjectIndex, subjectResult[i], patternResult[i]);
 				mutationsRelative.push_back(newMutationRelative);
 
 			}
@@ -1979,7 +1980,7 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 		  So we only count +1 if we don't have a gap.
 
 		*/
-		if(subjectResult[i] != '-'){
+		if (subjectResult[i] != '-') {
 
 			subjectIndex = subjectIndex + 1;
 
@@ -1992,37 +1993,37 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
 
 	//Construct a new alignment object
 	myResult = new Alignment_Result(sequencePattern, sequenceSubject, matrix,
-									gapOpening, gapExtension, gapEnding,
-									patternResult.length(), maxScore,
-									patternResult, markup, subjectResult,
-									insertions.size(), deletions.size(),
-									mutations.size(), insertions, deletions,
-									insertionsPattern, deletionsSubject,
-									mutations, mutationsRelative);
+	                                gapOpening, gapExtension, gapEnding,
+	                                patternResult.length(), maxScore,
+	                                patternResult, markup, subjectResult,
+	                                insertions.size(), deletions.size(),
+	                                mutations.size(), insertions, deletions,
+	                                insertionsPattern, deletionsSubject,
+	                                mutations, mutationsRelative);
 
 
-	if(DEBUG==true){
-		cout<<"Final result"<<endl;
-		cout<<patternResult<<endl;
-		cout<<markup<<endl;
-		cout<<subjectResult<<endl;
-		cout<<"Alignment_Result status"<<endl;
-		cout<<myResult->to_string()<<endl;
+	if (DEBUG == true) {
+		cout << "Final result" << endl;
+		cout << patternResult << endl;
+		cout << markup << endl;
+		cout << subjectResult << endl;
+		cout << "Alignment_Result status" << endl;
+		cout << myResult->to_string() << endl;
 	}
 
 	return  toReturn ;
 }
 
 /**
-	This is the main aligning fucntion. The function allocate memory for six
+	This is the main aligning function. The function allocate memory for six
     matrices of size N+1 x M+1 , where N and M are the length of the two
     sequences that you want to align. The function return a string
-    representation with verbose information about the alignmnent, indels and
-    missmaches, possition of those, length, etc... This information is latter
+    representation with verbose information about the alignment, indels and
+    mismatches, position of those, length, etc... This information is latter
     to be processed in R.
 
 	@see documentation.pdf: Accompany this code there is a verbose explanation
-							on how this algortihm works. The function runs in
+							on how this algorithm works. The function runs in
 							time O(N²) instead of the classic O(N³) where you
 							check for the whole line and column for alignment
 							extension score.
@@ -2062,73 +2063,73 @@ int align(int** grid, int** vertical, int** horizontal, char** tracebackGrid,
     @return int with 0 if everything goes according to plan.
 
 */
-int gotoh(const string &sequencePattern,const string &sequenceSubject,
+int gotoh(const string &sequencePattern, const string &sequenceSubject,
           const string &matrix, const int &gapOpening,
           const int &gapExtension, const bool &gapEnding,
-          const bool &farIndels, Alignment_Result* &myResult){
+          const bool &farIndels, Alignment_Result* &myResult) {
 
-    int lengthPattern = sequencePattern.length();
-    int lengthSubject = sequenceSubject.length();
+	int lengthPattern = sequencePattern.length();
+	int lengthSubject = sequenceSubject.length();
 
-    //Create the grid, vertical and horizontal matrix
-    int** grid       = new int* [lengthSubject+1];
-    int** vertical   = new int* [lengthSubject+1];
-    int** horizontal = new int* [lengthSubject+1];
-    for(int i = 0; i <= lengthSubject; i++){
-		grid[i]       = new int[lengthPattern+1];
-		vertical[i]   = new int[lengthPattern+1];
-		horizontal[i] = new int[lengthPattern+1];
+	//Create the grid, vertical and horizontal matrix
+	int** grid       = new int* [lengthSubject + 1];
+	int** vertical   = new int* [lengthSubject + 1];
+	int** horizontal = new int* [lengthSubject + 1];
+	for (int i = 0; i <= lengthSubject; i++) {
+		grid[i]       = new int[lengthPattern + 1];
+		vertical[i]   = new int[lengthPattern + 1];
+		horizontal[i] = new int[lengthPattern + 1];
 	}
 
 	//Create the traceback matrices
-    char** tracebackGrid       = new char* [lengthSubject+1];
-    char** tracebackVertical   = new char* [lengthSubject+1];
-    char** tracebackHorizontal = new char* [lengthSubject+1];
-    for(int i = 0; i <= lengthSubject; i++){
-		tracebackGrid[i]       = new char[lengthPattern+1];
-		tracebackVertical[i]   = new char[lengthPattern+1];
-		tracebackHorizontal[i] = new char[lengthPattern+1];
+	char** tracebackGrid       = new char* [lengthSubject + 1];
+	char** tracebackVertical   = new char* [lengthSubject + 1];
+	char** tracebackHorizontal = new char* [lengthSubject + 1];
+	for (int i = 0; i <= lengthSubject; i++) {
+		tracebackGrid[i]       = new char[lengthPattern + 1];
+		tracebackVertical[i]   = new char[lengthPattern + 1];
+		tracebackHorizontal[i] = new char[lengthPattern + 1];
 	}
 
-	if(DEBUG==true){
-		cout<<"Going to initialize"<<endl;
+	if (DEBUG == true) {
+		cout << "Going to initialize" << endl;
 
 	}
 
-    //Initialize tracebacks and score matrices
+	//Initialize tracebacks and score matrices
 	initialize(grid, vertical, horizontal, tracebackGrid, tracebackHorizontal,
-			   tracebackVertical, sequencePattern, sequenceSubject, gapOpening,
-			   gapExtension, gapEnding);
+	           tracebackVertical, sequencePattern, sequenceSubject, gapOpening,
+	           gapExtension, gapEnding);
 
 
 	//Show the matrices if we are debugging
-	if(DEBUG == true){
+	if (DEBUG == true) {
 
-		cout<<"NW DEBUG"<<endl;
-		cout<<"Grid matrix"<<endl;
+		cout << "NW DEBUG" << endl;
+		cout << "Grid matrix" << endl;
 		printMatrix(grid, sequencePattern, sequenceSubject);
-		cout<<"Vertical matrix"<<endl;
+		cout << "Vertical matrix" << endl;
 		printMatrix(vertical, sequencePattern, sequenceSubject);
-		cout<<"Horizontal matrix"<<endl;
+		cout << "Horizontal matrix" << endl;
 		printMatrix(horizontal, sequencePattern, sequenceSubject);
 
-		cout<<"Traceback Grid matrix"<<endl;
+		cout << "Traceback Grid matrix" << endl;
 		printMatrix(tracebackGrid, sequencePattern, sequenceSubject);
-		cout<<"Traceback Vertical matrix"<<endl;
+		cout << "Traceback Vertical matrix" << endl;
 		printMatrix(tracebackVertical, sequencePattern, sequenceSubject);
-		cout<<"Traceback Horizontal matrix"<<endl;
+		cout << "Traceback Horizontal matrix" << endl;
 		printMatrix(tracebackHorizontal, sequencePattern, sequenceSubject);
-		cout<<"END NW DEBUG"<<endl<<endl;
+		cout << "END NW DEBUG" << endl << endl;
 
 	}
 
-    //Do the alignment
+	//Do the alignment
 	align(grid, vertical, horizontal, tracebackGrid, tracebackVertical,
 	      tracebackHorizontal, sequencePattern, sequenceSubject, matrix,
-		  gapOpening, gapExtension, gapEnding, farIndels, myResult);
+	      gapOpening, gapExtension, gapEnding, farIndels, myResult);
 
-    //Delete all the things!
-    for(int i = 0; i <= lengthSubject; i++){
+	//Delete all the things!
+	for (int i = 0; i <= lengthSubject; i++) {
 		delete[] grid[i];
 		delete[] vertical[i];
 		delete[] horizontal[i];
@@ -2143,20 +2144,20 @@ int gotoh(const string &sequencePattern,const string &sequenceSubject,
 	delete[] tracebackVertical;
 	delete[] tracebackHorizontal;
 
-    return 0;
+	return 0;
 }
 
 
 /**
-    This is the main aligning fucntion. The function allocate memory for six
+    This is the main aligning function. The function allocate memory for six
     matrices of size N+1 x M+1 , where N and M are the length of the two
     sequences that you want to align. The function return a string
-    representation with verbose information about the alignmnent, indels and
-    missmaches, possition of those, length, etc... This information is latter
+    representation with verbose information about the alignment, indels and
+    mismatches, position of those, length, etc... This information is latter
     to be processed in R.
 
 	@see documentation.pdf: Accompany this code there is a verbose explanation
-							            on how this algortihm works. The function runs in
+							            on how this algorithm works. The function runs in
 							            time O(N^2) instead of the classic O(N^3) where you
 							            check for the whole line and column for alignment
 							            extension score.
@@ -2212,8 +2213,8 @@ int gotoh(const string &sequencePattern,const string &sequenceSubject,
 		SUBJECT SEQUENCE ALIGNMENT(at)PATTERN SEQUENCE ALIGNMENT
 		Indels:
 		Start(at)End(at)<Pattern,Subject>
-		Missmatches:
-		Possition(at)Subject Base(at)Pattern Base
+		Mismatches:
+		Position(at)Subject Base(at)Pattern Base
 
 	@todo : Fix the const and default in Rcpp (see bellow)
 
@@ -2250,8 +2251,8 @@ string gotohRCPP(string sequencePattern, string sequenceSubject,
 
 // [[Rcpp::export]]
 std::string gotohRCPP(std::string sequencePattern, std::string sequenceSubject,
-  		  std::string matrix, int gapOpening, int gapExtension,
-			  bool gapEnding, bool farIndels){
+                      std::string matrix, int gapOpening, int gapExtension,
+                      bool gapEnding, bool farIndels) {
 
 	int status = 0;
 	Alignment_Result* myResult = NULL;
@@ -2259,10 +2260,10 @@ std::string gotohRCPP(std::string sequencePattern, std::string sequenceSubject,
 
 	//Call the interface function
 	status = gotoh(sequencePattern, sequenceSubject, matrix, gapOpening,
-				         gapExtension, gapEnding, farIndels, myResult);
+	               gapExtension, gapEnding, farIndels, myResult);
 
 	//If everything is fine return the results in a comprehensive string form
-	if (status == 0){
+	if (status == 0) {
 
 		result = myResult->to_string();
 		result += "++++\n";
@@ -2276,7 +2277,7 @@ std::string gotohRCPP(std::string sequencePattern, std::string sequenceSubject,
 
 	}
 	//Otherwise return an string error
-	else{
+	else {
 		result = "Oh no! :-(";
 	}
 

@@ -4,7 +4,7 @@
 \alias{checkPrimers}
 \title{This function checks if the forward and reverse primer are in the amplicon.}
 \usage{
-checkPrimers(forwardPrimer, reversePrimerRC, amplicon, ID, barcode, logFileConn)
+checkPrimers(forwardPrimer, reversePrimerRC, amplicon, ID, barcode)
 }
 \arguments{
 \item{forwardPrimer}{(string) A sequence of nucleotides in a string format
@@ -21,12 +21,10 @@ representing the amplicon}
 \item{ID}{(string) The ID from where this target and amplicon came.}
 
 \item{barcode}{(string) The barcode from where this target and amplicon came.}
-
-\item{logFileConn}{(connection) The location on disk where you can find the
-config file with this ID and barcode.}
 }
 \value{
-(boolean) TRUE when both primers are found in the amplicon
+(string) NULL when both primers are found in the amplicon, otherwise
+a warning
 }
 \description{
 The forward primer should be the one coming from the configuration file,

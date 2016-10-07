@@ -4,7 +4,7 @@
 \alias{checkTarget}
 \title{This function checks if the target RNA is in the amplicon.}
 \usage{
-checkTarget(targetPrimer, amplicon, ID, barcode, logFileConn)
+checkTarget(targetPrimer, amplicon, ID, barcode)
 }
 \arguments{
 \item{targetPrimer}{(string) A sequence of nucleotides in a string format
@@ -16,12 +16,9 @@ representing the amplicon}
 \item{ID}{(string) The ID from where this target and amplicon came.}
 
 \item{barcode}{(string) The barcode from where this target and amplicon came.}
-
-\item{logFileConn}{(connection) A file descriptor in R which is pointing to
-the log file.}
 }
 \value{
-(boolean) TRUE when target is in amplicon
+(string) NULL when target is in amplicon, warning string otherwise.
 }
 \description{
 This function checks if the target RNA is in the amplicon.
