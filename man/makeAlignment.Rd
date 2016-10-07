@@ -80,7 +80,7 @@ Deletions overlapping this window will be considered a
 valid cut (if confirmed by both forward and reverse reads).}
 }
 \value{
-Void
+resultsFolder as invisible
 }
 \description{
 Main functionality of the package, aligning reads to the amplicon using

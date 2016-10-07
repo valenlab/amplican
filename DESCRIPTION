@@ -25,10 +25,10 @@ Imports:
     Rcpp,
     utils,
     R.utils,
-    seqinr,
     ShortRead,
     IRanges,
     GenomicRanges,
+    GenomeInfoDb,
     S4Vectors,
     doParallel,
     foreach,
@@ -40,7 +40,8 @@ Imports:
     knitr,
     methods,
     matrixStats,
-    Matrix
+    Matrix,
+    Biostrings
 RoxygenNote: 5.0.1
 Suggests:
     testthat,

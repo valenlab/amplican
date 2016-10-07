@@ -6,25 +6,22 @@
 #' representing the amplicon
 #' @param ID (string) The ID from where this target and amplicon came.
 #' @param barcode (string) The barcode from where this target and amplicon came.
-#' @param logFileConn (connection) A file descriptor in R which is pointing to
-#' the log file.
-#' @return (boolean) TRUE when target is in amplicon
+#' @return (string) NULL when target is in amplicon, warning string otherwise.
 #'
-checkTarget <- function(targetPrimer, amplicon, ID, barcode, logFileConn) {
+checkTarget <- function(targetPrimer, amplicon, ID, barcode) {
   targetPositions <- grepl(targetPrimer, amplicon, ignore.case = TRUE)
   if (!targetPositions) {
     message("Warning: guideRNA has not been found in the amplicon.
                 Check the log file for more information.")
-    writeLines(paste0("Couldn't find the guideRNA in amplicon: ",
-                      targetPrimer,
-                      "\nFor ID: ",
-                      ID,
-                      " and barcode: ",
-                      barcode,
-                      "\n"),
-               logFileConn)
+    return(paste0("Couldn't find the guideRNA in amplicon: ",
+                  targetPrimer,
+                  "\nFor ID: ",
+                  ID,
+                  " and barcode: ",
+                  barcode,
+                  "\n"))
   }
-  return(targetPositions)
+  return(NULL)
 }
 
 #' This function checks if the forward and reverse primer are in the amplicon.
@@ -43,18 +40,17 @@ checkTarget <- function(targetPrimer, amplicon, ID, barcode, logFileConn) {
 #' representing the amplicon
 #' @param ID (string) The ID from where this target and amplicon came.
 #' @param barcode (string) The barcode from where this target and amplicon came.
-#' @param logFileConn (connection) The location on disk where you can find the
-#' config file with this ID and barcode.
-#' @return (boolean) TRUE when both primers are found in the amplicon
+#' @return (string) NULL when both primers are found in the amplicon, otherwise
+#' a warning
 #'
 checkPrimers <- function(forwardPrimer, reversePrimerRC, amplicon, ID,
-                         barcode, logFileConn) {
+                         barcode) {
   forwardPrimerPosition <- grepl(forwardPrimer, amplicon, ignore.case = TRUE)
   reversePrimerPosition <- grepl(reversePrimerRC, amplicon, ignore.case = TRUE)
   if (!(forwardPrimerPosition | reversePrimerPosition)) {
     message("Warning: One of primer was not found in the amplicon.
                 Check the log file for more information.")
-    writeLines(paste0("Couldn't find the forward primer: ",
+    return(paste0("Couldn't find the forward primer: ",
                       toString(forwardPrimer),
                       "\nor reverse primer: ",
                       toString(reversePrimerRC),
@@ -62,10 +58,9 @@ checkPrimers <- function(forwardPrimer, reversePrimerRC, amplicon, ID,
                       ID,
                       " and barcode: ",
                       barcode,
-                      "\n"),
-               logFileConn)
+                      "\n"))
   }
-  return(forwardPrimerPosition | reversePrimerPosition)
+  return(NULL)
 }
 
 
@@ -79,7 +74,7 @@ checkPrimers <- function(forwardPrimer, reversePrimerRC, amplicon, ID,
 #'   Checks that the read files exist with read access.
 #' @param configTable (data.frame) Config file.
 #' @param fastq_folder (string) Path to fastq folder.
-#' @return (void) If anything goes wrong stops and prints error.
+#' @return (boolean) TRUE, If anything goes wrong stops and prints error.
 #' @importFrom stats complete.cases
 #'
 checkConfigFile <- function(configTable, fastq_folder) {
@@ -126,4 +121,5 @@ checkConfigFile <- function(configTable, fastq_folder) {
                 paste(uniqueFilePaths[access],
                       sep = "\n")))
   }
+  invisible(TRUE)
 }

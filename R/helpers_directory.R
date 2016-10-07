@@ -12,13 +12,18 @@
 #' @param delete (boolean) If true, it will delete the original files
 #' @param isrecursive (boolean) If TRUE will search recursively through regex
 #' matching folders.
-#' @return (void)
+#' @return (boolean) When file was created empty returns invisible TRUE, FALSE
+#' otherwise
 #'
 unifyFiles <- function(targetFolder, regex, finalFileName, header = TRUE,
                        delete = TRUE, isrecursive = FALSE) {
 
   allFiles <- list.files(targetFolder, recursive = isrecursive)
   candidates <- grep(regex, allFiles, fixed = FALSE, ignore.case = FALSE)
+  if (length(candidates) == 0) {
+    file.create(finalFileName)
+    invisible(FALSE)
+  }
 
   if (length(candidates) > 0) {
     if (file.exists(finalFileName)) {
@@ -42,33 +47,18 @@ unifyFiles <- function(targetFolder, regex, finalFileName, header = TRUE,
     # Close the file descriptor for the final file
     close(finalFileFD)
   }
-  return()
-}
-
-#' Remove forward and reverse fastq files.
-#'
-#' Delete files from configTables Forward_Reads_File and
-#' Reverse_Reads_File (fastq files).
-#'
-#' @param configTable (data.frame) Contains Forward_Reads_File and
-#' Reverse_Reads_File to be removed
-#' @return (void) In case of fail, prints err.
-#'
-deleteFiles <- function(configTable) {
-  for (i in seq_len(dim(configTable)[1])) {
-    file.remove(configTable$Forward_Reads_File[i])
-    file.remove(configTable$Reverse_Reads_File[i])
-  }
+  invisible(TRUE)
 }
 
 #' This function checks if the given directory exist and can be written to.
 #'
 #' @param filePath (string) A string the path to the file.
-#' @return (void) Stop if no access.
+#' @return (invisible) TRUE, Stop if no access.
 #'
 checkFileWriteAccess <- function(filePath) {
   if (file.access(filePath[1], mode = 2) != 0) {
     stop(paste0("No write access to the path or it does not exists: ",
                 filePath))
   }
+  invisible(TRUE)
 }

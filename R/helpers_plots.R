@@ -19,7 +19,7 @@
 #' scale_fill_manual scale_x_continuous geom_vline scale_y_reverse
 #' element_blank unit geom_text ylab ylim
 #' @importFrom ggbio tracks xlim
-#' @importFrom seqinr s2c comp
+#' @importFrom Biostrings DNAString reverseComplement
 #' @importFrom stringr str_locate
 #' @importFrom stats na.omit aggregate
 #' @export
@@ -43,8 +43,8 @@ amplican_plot_mismatches <- function(alignments, config, id, cut_buffer = 5) {
   amplicon <- toString(config[which(config$ID == id[1]), "Amplicon"])
   ampl_len <- nchar(amplicon)
   selcolumns <- c("position", "nucleotide", "upper", "count")
-  ampl_df <- data.frame(seq(1, ampl_len), seqinr::s2c(amplicon),
-                        seqinr::s2c(toupper(amplicon)), 1)
+  ampl_df <- data.frame(seq(1, ampl_len), strsplit(amplicon, "")[[1]],
+                        strsplit(toupper(amplicon), "")[[1]], 1)
   names(ampl_df) <- selcolumns
 
   box <- upperGroups(amplicon)
@@ -68,10 +68,12 @@ amplican_plot_mismatches <- function(alignments, config, id, cut_buffer = 5) {
   frPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
                                                  toupper(frPrimer)))
   rwPrimer <- toString(config[which(config$ID == id[1]), "Reverse_Primer"])
-  rwPrimer <- stats::na.omit(
-    stringr::str_locate(toupper(amplicon),
-                        toupper(seqinr::c2s(
-                          seqinr::comp(rev(seqinr::s2c(rwPrimer)))))))
+  rwPrimer <- stats::na.omit(stringr::str_locate(
+    toupper(amplicon),
+    toupper(
+      as.character(
+        Biostrings::reverseComplement(
+          Biostrings::DNAString(rwPrimer))))))
   primers <- c(frPrimer, rwPrimer)
   if (length(frPrimer) == 0) {
     frPrimer <- c(1, 1)
@@ -226,7 +228,7 @@ amplican_plot_mismatches <- function(alignments, config, id, cut_buffer = 5) {
 #' scale_colour_manual
 #' scale_fill_manual scale_x_continuous geom_vline scale_y_reverse
 #' element_blank unit geom_text ylab ylim scale_colour_gradientn
-#' @importFrom seqinr s2c comp
+#' @importFrom Biostrings DNAString reverseComplement
 #' @importFrom stringr str_locate
 #' @importFrom ggbio tracks geom_arch xlim
 #' @importFrom stats na.omit
@@ -255,24 +257,25 @@ amplican_plot_deletions <- function(alignments, config, id, cut_buffer = 5) {
 
   selcolumns <- c("position", "nucleotide", "upper", "count")
   ampl_df <- data.frame(seq(1, ampl_len),
-                        seqinr::s2c(amplicon),
-                        seqinr::s2c(toupper(amplicon)), 1)
+                        strsplit(amplicon, "")[[1]],
+                        strsplit(toupper(amplicon), "")[[1]], 1)
   names(ampl_df) <- selcolumns
 
   box <- upperGroups(amplicon)
-  xlabels <- if (config[which(config$ID == id[1]), "Direction"] != 1) {
-    if (length(box) >= 1) {
-      seq(-start(box[1]) + 1, ampl_len - start(box[1]), 4)
+  xlabels <-
+    if (config[which(config$ID == id[1]), "Direction"] != 1) {
+      if (length(box) >= 1) {
+        seq(-start(box[1]) + 1, ampl_len - start(box[1]), 4)
+      } else {
+        seq(1, ampl_len, 4)
+      }
     } else {
-      seq(1, ampl_len, 4)
+      if (length(box) >= 1) {
+        rev(seq(end(box[1]) - ampl_len + 1, end(box[1]), 4))
+      } else {
+        rev(seq(1, ampl_len, 4))
+      }
     }
-  } else {
-    if (length(box) >= 1) {
-      rev(seq(end(box[1]) - ampl_len + 1, end(box[1]), 4))
-    } else {
-      rev(seq(1, ampl_len, 4))
-    }
-  }
   xbreaks <- seq(1, ampl_len, 4)
   box <- box + cut_buffer
 
@@ -282,10 +285,12 @@ amplican_plot_deletions <- function(alignments, config, id, cut_buffer = 5) {
                                                  toupper(frPrimer)))
   rwPrimer <- toString(config[which(config$ID == id[1]),
                               "Reverse_Primer"])
-  rwPrimer <- stats::na.omit(
-    stringr::str_locate(toupper(amplicon),
-                        toupper(seqinr::c2s(
-                          seqinr::comp(rev(seqinr::s2c(rwPrimer)))))))
+  rwPrimer <- stats::na.omit(stringr::str_locate(
+    toupper(amplicon),
+    toupper(
+      as.character(
+        Biostrings::reverseComplement(
+          Biostrings::DNAString(rwPrimer))))))
   primers <- c(frPrimer, rwPrimer)
   if (length(frPrimer) == 0) {
     frPrimer <- c(1, 1)
@@ -417,7 +422,7 @@ amplican_plot_deletions <- function(alignments, config, id, cut_buffer = 5) {
 #' scale_colour_manual
 #' geom_polygon scale_fill_manual scale_x_continuous geom_vline
 #' scale_y_reverse element_blank unit geom_text ylab ylim
-#' @importFrom seqinr s2c comp
+#' @importFrom Biostrings DNAString reverseComplement
 #' @importFrom stringr str_locate
 #' @importFrom ggbio tracks xlim
 #' @importFrom stats na.omit aggregate
@@ -444,8 +449,8 @@ amplican_plot_insertions <- function(alignments, config, id, cut_buffer = 5) {
 
   selcolumns <- c("position", "nucleotide", "upper", "count")
   ampl_df <- data.frame(seq(1, ampl_len),
-                        seqinr::s2c(amplicon),
-                        seqinr::s2c(toupper(amplicon)), 1)
+                        strsplit(amplicon, "")[[1]],
+                        strsplit(toupper(amplicon), "")[[1]], 1)
   names(ampl_df) <- selcolumns
 
   frPrimer <- toString(config[which(config$ID == id[1]),
@@ -454,10 +459,12 @@ amplican_plot_insertions <- function(alignments, config, id, cut_buffer = 5) {
                                                  toupper(frPrimer)))
   rwPrimer <- toString(config[which(config$ID == id[1]),
                               "Reverse_Primer"])
-  rwPrimer <- stats::na.omit(
-    stringr::str_locate(toupper(amplicon),
-                        toupper(seqinr::c2s(
-                          seqinr::comp(rev(seqinr::s2c(rwPrimer)))))))
+  rwPrimer <- stats::na.omit(stringr::str_locate(
+    toupper(amplicon),
+    toupper(
+      as.character(
+        Biostrings::reverseComplement(
+          Biostrings::DNAString(rwPrimer))))))
   primers <- c(frPrimer, rwPrimer)
   if (length(frPrimer) == 0) {
     frPrimer <- c(1, 1)
@@ -631,7 +638,7 @@ amplican_plot_insertions <- function(alignments, config, id, cut_buffer = 5) {
 #' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle scale_colour_manual
 #' scale_fill_manual scale_x_continuous geom_vline scale_y_reverse element_blank unit geom_text ylab ylim
 #' scale_color_manual facet_grid element_text
-#' @importFrom seqinr s2c comp
+#' @importFrom Biostrings DNAString reverseComplement
 #' @importFrom stringr str_locate
 #' @importFrom ggbio tracks geom_arch xlim
 #' @importFrom stats na.omit
@@ -667,8 +674,8 @@ amplican_plot_cuts <- function(alignments, config, id) {
 
   selcolumns <- c("position", "nucleotide", "upper", "count")
   ampl_df <- data.frame(seq(1, ampl_len),
-                        seqinr::s2c(amplicon),
-                        seqinr::s2c(toupper(amplicon)), 1)
+                        strsplit(amplicon, "")[[1]],
+                        strsplit(toupper(amplicon), "")[[1]], 1)
   names(ampl_df) <- selcolumns
 
   box <- upperGroups(amplicon)
@@ -695,7 +702,10 @@ amplican_plot_cuts <- function(alignments, config, id) {
                               "Reverse_Primer"])
   rwPrimer <- stats::na.omit(stringr::str_locate(
     toupper(amplicon),
-    toupper(seqinr::c2s(seqinr::comp(rev(seqinr::s2c(rwPrimer)))))))
+    toupper(
+      as.character(
+        Biostrings::reverseComplement(
+          Biostrings::DNAString(rwPrimer))))))
   primers <- c(frPrimer, rwPrimer)
   if (length(frPrimer) == 0) {
     frPrimer <- c(1, 1)

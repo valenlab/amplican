@@ -102,7 +102,7 @@ amplicanAlign <- function(config,
   checkFileWriteAccess(results_folder)
 
   message("Checking configuration file...")
-  configTable <- utils::read.csv(config, strip.white = TRUE)
+  configTable <- utils::read.csv(config, strip.white = TRUE, stringsAsFactors = FALSE)
   colnames(configTable) <- c("ID",
                              "Barcode",
                              "Forward_Reads_File",
@@ -197,7 +197,7 @@ amplicanAlign <- function(config,
                                    "R.utils",
                                    "GenomicRanges",
                                    "ShortRead",
-                                   "seqinr")) %dopar% {
+                                   "Biostrings")) %dopar% {
                                      makeAlignment(configTable[configTable$Barcode == uBarcode[j],],
                                                    resultsFolder,
                                                    skip_bad_nucleotides,
