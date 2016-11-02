@@ -4,11 +4,9 @@
 \alias{makeAlignment}
 \title{Make alignments helper.}
 \usage{
-makeAlignment(configTable, resultsFolder, skip_bad_nucleotides = TRUE,
-  average_quality = 0, min_quality = 0, write_alignments = 1,
-  scoring_matrix = "NUC44", gap_opening = 50, gap_extension = 0,
-  gap_ending = FALSE, far_indels = TRUE, fastqfiles = 0,
-  PRIMER_DIMER = 30, cut_buffer = 5)
+makeAlignment(configTable, resultsFolder, skip_bad_nucleotides, average_quality,
+  min_quality, write_alignments, scoring_matrix, gap_opening, gap_extension,
+  fastqfiles, PRIMER_DIMER, cut_buffer)
 }
 \arguments{
 \item{configTable}{config file as data table}
@@ -35,26 +33,14 @@ average fall above this threshold then we take the sequence. Default is 0.}
 the minimum quality for ALL nucleotides. If one of them has quality BELLOW
 this threshold, then the sequence is skipped. Default is 0.}
 
-\item{write_alignments}{(numeric) How to write the alignments results
-into disk:
-                        0 - Write nothing
-                        1 - Write only the summary file
-                        2 - Write also a verbose file with all the alignments
-                            in the same .txt file (Default option)}
+\item{write_alignments}{(boolean) Whether we should write alignments results
+to separate files for each ID}
 
 \item{scoring_matrix}{(string) For now the only option is 'NUC44'.}
 
 \item{gap_opening}{(numeric) The opening gap score. Default is 50.}
 
 \item{gap_extension}{(numeric) The gap extension score. Default is 0.}
-
-\item{gap_ending}{(boolean) If you want that the ending gap count for the
-alignment score set this to TRUE. Default is FALSE.}
-
-\item{far_indels}{(boolean) If the ending/starting gap should be considered
-to be an indel. Default is TRUE. If you want to filter these out from the
-plots, there is an option to do so in the plot function. You don't need to
-do it here.}
 
 \item{fastqfiles}{(numeric) Normally you want to use both FASTQ files. But in
 some special cases, you may want to use only the
@@ -83,7 +69,6 @@ valid cut (if confirmed by both forward and reverse reads).}
 resultsFolder as invisible
 }
 \description{
-Main functionality of the package, aligning reads to the amplicon using
-gotoh implementation.
+Main functionality of the package, aligning reads to the amplicon.
 }
 

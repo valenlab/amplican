@@ -3,8 +3,7 @@ Type: Package
 Title: fast and precise analysis of CRISPR experiments
 Description: `amplican` creates reports of deletions, insertions, frameshifts,
     cut rates and other metrics in user selected format (preferred HTML).
-    `amplican` uses vary fast C implementation of Gotoh algorithm
-    <doi:10.1016/0022-2836(82)90398-9> to align your fastq samples and automates
+    `amplican` aligns your fastq samples and automates
     analysis across different experiments. `amplican` maintains elasticity
     through configuration file, which with your fastq samples are only
     requirements.
@@ -18,11 +17,9 @@ URL: https://github.com/valenlab/amplican
 BugReports: https://github.com/valenlab/amplican/issues
 biocViews: Technology, qPCR, CRISPR
 License: GPL-3
-LazyData: TRUE
-LinkingTo: Rcpp
-Depends: R (>= 3.3.0)
+Depends:
+    R (>= 3.3.0)
 Imports:
-    Rcpp,
     utils,
     ShortRead,
     IRanges,
@@ -47,12 +44,10 @@ Suggests:
     testthat,
     BiocStyle
 Collate:
-    'RcppExports.R'
     'amplican.R'
     'helpers_warnings.R'
     'helpers_filters.R'
     'helpers_alignment.R'
-    'gotoh.R'
     'amplicanAlign.R'
     'amplicanReport.R'
     'helpers_directory.R'

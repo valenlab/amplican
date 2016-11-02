@@ -2,25 +2,17 @@
 % Please edit documentation in R/helpers_warnings.R
 \name{checkTarget}
 \alias{checkTarget}
-\title{This function checks if the target RNA is in the amplicon.}
+\title{This function checks if the guideRNA is in the amplicon.}
 \usage{
-checkTarget(targetPrimer, amplicon, ID, barcode)
+checkTarget(configTable)
 }
 \arguments{
-\item{targetPrimer}{(string) A sequence of nucleotides in a string format
-representing the target}
-
-\item{amplicon}{(string) A sequence of nucleotides in a string format
-representing the amplicon}
-
-\item{ID}{(string) The ID from where this target and amplicon came.}
-
-\item{barcode}{(string) The barcode from where this target and amplicon came.}
+\item{configTable}{(data.frame) data frame of config file}
 }
 \value{
-(string) NULL when target is in amplicon, warning string otherwise.
+(boolean vector) Prints warning when some guides can't be found.
 }
 \description{
-This function checks if the target RNA is in the amplicon.
+This function checks if the guideRNA is in the amplicon.
 }
 

@@ -834,8 +834,6 @@ make_guide_rmd <- function(results_folder) {
 make_summary_rmd <- function(results_folder) {
 
   config <- utils::read.csv(paste0(results_folder, "/config_summary.csv"))
-  logs <- readLines(paste0(results_folder, "/alignmentLog.txt"))
-  if (length(logs) == 0) { logs <- "There were no warnings. 'alignmentLog.txt' file is empty.  "}
   height <- plot_height(length(config$Barcode))
 
   return(c(write_head("Summary Read Report"),
@@ -851,9 +849,6 @@ make_summary_rmd <- function(results_folder) {
            "**unassigned_reads/assigned_reads** - how many reads have been not assigned/assigned to any of the",
            "experiments\n",
            "***\n",
-           "# Warnings and errors\n",
-           "***\n",
-           logs,
            "\n***\n",
            "# Summary Table\n",
            "***\n",

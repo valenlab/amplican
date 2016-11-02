@@ -1,64 +1,59 @@
-#' This function checks if the target RNA is in the amplicon.
+#' This function checks if the guideRNA is in the amplicon.
 #'
-#' @param targetPrimer (string) A sequence of nucleotides in a string format
-#' representing the target
-#' @param amplicon (string) A sequence of nucleotides in a string format
-#' representing the amplicon
-#' @param ID (string) The ID from where this target and amplicon came.
-#' @param barcode (string) The barcode from where this target and amplicon came.
-#' @return (string) NULL when target is in amplicon, warning string otherwise.
+#' @param configTable (data.frame) data frame of config file
+#' @return (boolean vector) Prints warning when some guides can't be found.
+#' @importFrom stringr str_detect
 #'
-checkTarget <- function(targetPrimer, amplicon, ID, barcode) {
-  targetPositions <- grepl(targetPrimer, amplicon, ignore.case = TRUE)
-  if (!targetPositions) {
-    message("Warning: guideRNA has not been found in the amplicon. Check the log file for more information.")
-    return(paste0("Couldn't find the guideRNA in amplicon: ",
-                  targetPrimer,
-                  "\nFor ID: ",
-                  ID,
-                  " and barcode: ",
-                  barcode,
-                  "\n"))
+checkTarget <- function(configTable) {
+  targetPositions <- stringr::str_detect(tolower(configTable$Amplicon),
+                                         tolower(configTable$guideRNA))
+  if (any(!targetPositions)) {
+    message(paste0(
+      "Warning: guideRNA has not been found in the amplicon for line: ",
+      toString(which(!targetPositions))
+    ))
   }
-  return(NULL)
+
+  return(targetPositions)
 }
 
-#' This function checks if the forward and reverse primer are in the amplicon.
+#' This function checks if the forward and reverse primer are in the amplicon
+#' and where they are located.
 #'
-#' The forward primer should be the one coming from the configuration file,
-#' while the reverse primer should be reverse and complementary.
-#' This function DOES NOT reverse complements the input.
+#' @param configTable (data.frame) A data frame of config file.
+#' @param fastqfiles (numeric) Which primers are important.
+#' @return configTable (data.frame) A data frame of config file with additional
+#' fields for start locations of the primers
+#' @importFrom stringr str_locate
 #'
-#' @param forwardPrimer (string) A sequence of nucleotides in a string format
-#' representing the forward primer
-#' @param reversePrimerRC (string) A sequence of nucleotides in a string format
-#' representing the reverse primer. Usually you want to reverse complement this
-#' BEFORE giving it to the function. The function WILL NOT reverse complement
-#' it for you.
-#' @param amplicon (string) A sequence of nucleotides in a string format
-#' representing the amplicon
-#' @param ID (string) The ID from where this target and amplicon came.
-#' @param barcode (string) The barcode from where this target and amplicon came.
-#' @return (string) NULL when both primers are found in the amplicon, otherwise
-#' a warning
-#'
-checkPrimers <- function(forwardPrimer, reversePrimerRC, amplicon, ID,
-                         barcode) {
-  forwardPrimerPosition <- grepl(forwardPrimer, amplicon, ignore.case = TRUE)
-  reversePrimerPosition <- grepl(reversePrimerRC, amplicon, ignore.case = TRUE)
-  if (!(forwardPrimerPosition | reversePrimerPosition)) {
-    message("Warning: One of primers was not found in the amplicon. Check the log file for more information.")
-    return(paste0("Couldn't find the forward primer: ",
-                      toString(forwardPrimer),
-                      "\nor reverse primer: ",
-                      toString(reversePrimerRC),
-                      "\nFor ID: ",
-                      ID,
-                      " and barcode: ",
-                      barcode,
-                      "\n"))
+checkPrimers <- function(configTable, fastqfiles) {
+
+  configTable$forwardPrimerPosition <-
+    stringr::str_locate(tolower(configTable$Amplicon),
+                        tolower(configTable$Forward_Primer))[, 1]
+  configTable[, c("reversePrimerPosition", "reversePrimerPosEnd")] <-
+    stringr::str_locate(tolower(configTable$Amplicon),
+                        tolower(configTable$Reverse_PrimerRC))
+
+  fP <- if (fastqfiles != 2) which(is.na(configTable$forwardPrimerPosition)) else NULL
+  rP <- if (fastqfiles != 1) which(is.na(configTable$reversePrimerPosition)) else NULL
+
+  if (length(fP) > 0 | length(rP) > 0) {
+    stop(paste0(
+        "Error: One of primers was not found in the amplicon.",
+        if (length(fP) > 0)
+          paste0(" Could't locate forward primer in amplicon for row: ",
+                 toString(fP))
+        else "",
+        if (length(rP) > 0)
+          paste0(" Could't locate reverse primer in amplicon for row: ",
+                 toString(rP))
+        else ""
+      )
+    )
   }
-  return(NULL)
+
+  return(configTable)
 }
 
 

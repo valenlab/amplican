@@ -2,35 +2,24 @@
 % Please edit documentation in R/helpers_alignment.R
 \name{getEventInfo}
 \alias{getEventInfo}
-\title{This function takes a lite string and gives back the events coordinates.}
+\title{This function takes alignments and gives back the events coordinates.}
 \usage{
-getEventInfo(liteString, ID, strand = "*", read_alignment)
+getEventInfo(align, ID, ampl_shift, strand_info = "+")
 }
 \arguments{
-\item{liteString}{(string)}
+\item{align}{(PairwiseAlignmentsSingleSubject)}
 
 \item{ID}{(string)}
 
-\item{strand}{(string) Either '+', '-' or default '*'}
+\item{ampl_shift}{(numeric) Shift events additionaly by this value.
+PairwiseAlignmentsSingleSubject returns truncated alignments.}
 
-\item{read_alignment}{(string) Sequence of aligned read to amplicon.}
+\item{strand_info}{(string) Either '+', '-' or default '*'}
 }
 \value{
-(GRanges) Object with meta-data for insertion, deletion, mismatch
+(List of GRanges) Object with meta-data for insertion, deletion, mismatch
 }
 \description{
-For the given example:
-0         1         2         3         4         5
-012345678901234567890123456789012345678901234567890123456789
-NNNNNNNNNNN-----NNNNNNN-------NNNNNNNN--------NNNNNNNN------    Subject
-------NNNNNNNNNNNNNNNNNNNNNNNNN---NNNNNNNNNNNNN---NNNNNNNNNN    Pattern
-}
-\details{
-The RCPP library returns the information regarding the start and ends of the
-events in the following way:
-(Notice that there is a +1 shift in the index)
-
-#returned: @4@12,16*24,30*39,46*55,60*!@3@1,6*31,33*48,50*!@0@
-#example: @0@!@1@152,207*!@1@25,t,A*
+This function takes alignments and gives back the events coordinates.
 }
 

@@ -12,14 +12,9 @@
 #' To learn more about amplican, start with the vignettes:
 #' \code{browseVignettes(package = "amplican")}
 #'
-#'
 #' @docType package
 #' @name amplican
 NULL
-
-.onUnload <- function(libpath) {
-  library.dynam.unload("amplican", libpath)
-}
 
 
 #' Wraps main package functionality into one function.

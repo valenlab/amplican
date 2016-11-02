@@ -30,21 +30,11 @@
 #' @param min_quality (numeric)  Similar as in average_quality, but this is
 #' the minimum quality for ALL nucleotides. If one of them has quality BELLOW
 #' this threshold, then the sequence is skipped. Default is 0.
-#' @param write_alignments (numeric) How to write the alignments results
-#' into disk:
-#'                         0 - Write nothing
-#'                         1 - Write only the summary file
-#'                         2 - Write also a verbose file with all the alignments
-#'                             in the same .txt file (Default option)
+#' @param write_alignments (boolean) Whether we should write alignments results
+#' to separate files for each ID
 #' @param scoring_matrix (string) For now the only option is 'NUC44'.
 #' @param gap_opening (numeric) The opening gap score. Default is 50.
 #' @param gap_extension (numeric) The gap extension score. Default is 0.
-#' @param gap_ending (boolean) If you want that the ending gap count for the
-#' alignment score set this to TRUE. Default is FALSE.
-#' @param far_indels (boolean) If the ending/starting gap should be considered
-#' to be an indel. Default is TRUE. If you want to filter these out from the
-#' plots, there is an option to do so in the plot function. You don't need to
-#' do it here.
 #' @param fastqfiles (numeric) Normally you want to use both FASTQ files. But in
 #'                         some special cases, you may want to use only the
 #'                         forward file, or only the reverse file.
@@ -66,10 +56,10 @@
 #' Deletions overlapping this window will be considered a
 #' valid cut (if confirmed by both forward and reverse reads).
 #' @return (string) Path to results_folder.
-#' @include gotoh.R helpers_alignment.R helpers_filters.R helpers_warnings.R
+#' @include helpers_alignment.R helpers_filters.R helpers_warnings.R
 #' helpers_directory.R
 #' @import doParallel foreach GenomicRanges
-#' @import BiocParallel
+#' @import BiocParallel Biostrings
 #' @importFrom utils read.csv
 #' @export
 #' @family analysis steps
@@ -89,12 +79,12 @@ amplicanAlign <- function(config,
                           skip_bad_nucleotides = TRUE,
                           average_quality = 0,
                           min_quality = 0,
-                          write_alignments = 2,
-                          scoring_matrix = "NUC44",
+                          write_alignments = TRUE,
+                          scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
+                            match = 5, mismatch = -4,
+                            baseOnly = TRUE, type = "DNA"),
                           gap_opening = 50,
                           gap_extension = 0,
-                          gap_ending = FALSE,
-                          far_indels = TRUE,
                           fastqfiles = 0,
                           PRIMER_DIMER = 30,
                           cut_buffer = 5) {
@@ -122,18 +112,31 @@ amplicanAlign <- function(config,
                                            file.path(fastq_folder, configTable$Reverse_Reads_File))
 
   if (sum(configTable$Reverse_Reads_File == "") > 0) {
-    message("Reverse_Reads_File has empty rows.
-            Changing fastqfiles parameter to 1,
-            operating only on forward reads.")
+    message("Reverse_Reads_File has empty rows. Changing fastqfiles parameter to 1, operating only on forward reads.")
     fastqfiles <- 1
   }
   if (sum(configTable$Forward_Reads_File == "") > 0) {
-    message("Forward_Reads_File has empty rows.
-            Changing fastqfiles parameter to 2,
-            operating only on reverse reads.")
+    message("Forward_Reads_File has empty rows. Changing fastqfiles parameter to 2, operating only on reverse reads.")
     fastqfiles <- 2
   }
   checkConfigFile(configTable, fastq_folder)
+
+  configTable$Reverse_PrimerRC <- revComp(configTable$Reverse_Primer)
+  configTable <- checkPrimers(configTable, fastqfiles)
+
+  revDir <- configTable[, "Direction"] == 1
+  configTable[revDir, "guideRNA"] <- revComp(configTable[revDir, "guideRNA"])
+  configTable$RguideRNA <- revComp(configTable$guideRNA)
+  configTable$Found_Guide <- checkTarget(configTable)
+  configTable$cutSites <- lapply(configTable$Amplicon, function(x) upperGroups(x) + cut_buffer)
+  configTable$ampl_len <- nchar(configTable$Amplicon)
+
+  cutSitesCheck <- sapply(configTable$cutSites, length) == 0
+  if (any(cutSitesCheck)) {
+    message("Warning: Config file row without upper case groups (PAM): ",
+            toString(which(cutSitesCheck)))
+    configTable$cutSites[cutSitesCheck] <- tile(IRanges(start = 1, width = configTable$ampl_len), 1)
+  }
 
   resultsFolder <- file.path(results_folder, "alignments")
   if (!dir.exists(resultsFolder)) {
@@ -156,16 +159,16 @@ amplicanAlign <- function(config,
                paste("Skip Bad Nucleotides:  ", skip_bad_nucleotides),
                paste("Average Quality:       ", average_quality),
                paste("Minimum Quality:       ", min_quality),
-               paste("Write Alignments Mode: ", write_alignments),
+               paste("Write Alignments:      ", write_alignments),
                paste("Fastq files Mode:      ", fastqfiles),
-               paste("Scoring Matrix:        ", scoring_matrix),
                paste("Gap Opening:           ", gap_opening),
                paste("Gap Extension:         ", gap_extension),
-               paste("Gap Ending:            ", gap_ending),
-               paste("Far Indels:            ", far_indels),
                paste("PRIMER DIMER buffer:   ", PRIMER_DIMER),
-               paste("Cut buffer:            ", cut_buffer)), logFileConn)
+               paste("Cut buffer:            ", cut_buffer),
+               "Scoring Matrix:"), logFileConn)
+  write.csv(scoring_matrix, logFileConn, quote = FALSE, row.names = TRUE)
   close(logFileConn)
+
 
   uBarcode <- unique(configTable$Barcode)
   configTable$ExperimentsCount <- table(configTable$Barcode)[configTable$Barcode]
@@ -178,12 +181,13 @@ amplicanAlign <- function(config,
 
   # Warnings
   configTable$Found_Guide <- 0
-  configTable$Found_PAM <- 1
+  configTable$Found_PAM <- !cutSitesCheck
 
   if (total_processors > 1) {
     cl <- parallel::makeCluster(total_processors, outfile = "")
     doParallel::registerDoParallel(cl)
     p <- DoparParam()
+
     configSplit <- split(configTable, f = configTable$Barcode)
     bplapply(configSplit, FUN = makeAlignment,
              resultsFolder,
@@ -194,12 +198,12 @@ amplicanAlign <- function(config,
              scoring_matrix,
              gap_opening,
              gap_extension,
-             gap_ending,
-             far_indels,
              fastqfiles,
              PRIMER_DIMER,
              cut_buffer, BPPARAM=p)
+
     parallel::stopCluster(cl)
+
   } else {
     for (j in seq_along(uBarcode)) {
       makeAlignment(configTable[configTable$Barcode == uBarcode[j], ],
@@ -211,8 +215,6 @@ amplicanAlign <- function(config,
                     scoring_matrix,
                     gap_opening,
                     gap_extension,
-                    gap_ending,
-                    far_indels,
                     fastqfiles,
                     PRIMER_DIMER,
                     cut_buffer)
@@ -222,9 +224,6 @@ amplicanAlign <- function(config,
   message("Alignments done. Creating results files...")
 
   # Put all the logs and all the configs together
-  unifyFiles(resultsFolder, "SUBLOG",
-             file.path(results_folder, "alignmentLog.txt"),
-             header = FALSE)
   unifyFiles(resultsFolder, "configFile_results",
              file.path(results_folder, "config_summary.csv"))
   unifyFiles(resultsFolder, "alignment_ranges",

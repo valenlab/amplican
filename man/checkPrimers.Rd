@@ -2,33 +2,22 @@
 % Please edit documentation in R/helpers_warnings.R
 \name{checkPrimers}
 \alias{checkPrimers}
-\title{This function checks if the forward and reverse primer are in the amplicon.}
+\title{This function checks if the forward and reverse primer are in the amplicon
+and where they are located.}
 \usage{
-checkPrimers(forwardPrimer, reversePrimerRC, amplicon, ID, barcode)
+checkPrimers(configTable, fastqfiles)
 }
 \arguments{
-\item{forwardPrimer}{(string) A sequence of nucleotides in a string format
-representing the forward primer}
+\item{configTable}{(data.frame) A data frame of config file.}
 
-\item{reversePrimerRC}{(string) A sequence of nucleotides in a string format
-representing the reverse primer. Usually you want to reverse complement this
-BEFORE giving it to the function. The function WILL NOT reverse complement
-it for you.}
-
-\item{amplicon}{(string) A sequence of nucleotides in a string format
-representing the amplicon}
-
-\item{ID}{(string) The ID from where this target and amplicon came.}
-
-\item{barcode}{(string) The barcode from where this target and amplicon came.}
+\item{fastqfiles}{(numeric) Which primers are important.}
 }
 \value{
-(string) NULL when both primers are found in the amplicon, otherwise
-a warning
+configTable (data.frame) A data frame of config file with additional
+fields for start locations of the primers
 }
 \description{
-The forward primer should be the one coming from the configuration file,
-while the reverse primer should be reverse and complementary.
-This function DOES NOT reverse complements the input.
+This function checks if the forward and reverse primer are in the amplicon
+and where they are located.
 }
 

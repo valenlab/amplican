@@ -1,108 +1,93 @@
-#' This function takes a lite string and gives back the events coordinates.
+#' Reverse and complement given string or list of strings
 #'
-#' For the given example:
-#' 0         1         2         3         4         5
-#' 012345678901234567890123456789012345678901234567890123456789
-#' NNNNNNNNNNN-----NNNNNNN-------NNNNNNNN--------NNNNNNNN------    Subject
-#' ------NNNNNNNNNNNNNNNNNNNNNNNNN---NNNNNNNNNNNNN---NNNNNNNNNN    Pattern
+#' @param x (string or vector of strings)
+#' @return (string or vector of strings) reverse complemented input
+#' @importFrom Biostrings DNAStringSet reverseComplement
 #'
-#' The RCPP library returns the information regarding the start and ends of the
-#' events in the following way:
-#' (Notice that there is a +1 shift in the index)
+revComp <- function(x) {
+  return(
+    as.character(Biostrings::reverseComplement(Biostrings::DNAStringSet(x)))
+  )
+}
+
+#' Helper to construct GRanges with additional metadata columns.
 #'
-#' #returned: @4@12,16*24,30*39,46*55,60*!@3@1,6*31,33*48,50*!@0@
-#' #example: @0@!@1@152,207*!@1@25,t,A*
-#' @param liteString (string)
+#' @param x (IRanges)
 #' @param ID (string)
-#' @param strand (string) Either '+', '-' or default '*'
-#' @param read_alignment (string) Sequence of aligned read to amplicon.
-#' @return (GRanges) Object with meta-data for insertion, deletion, mismatch
+#' @param type (string)
+#' @param strand_info (string) Either '+', '-'
+#' @param originally (string) Base pairs on the amplicon.
+#' @param replacement (string) Base pairs on the read.
+#' @return (GRanges) Object with meta-data
 #' @import GenomicRanges
 #' @importFrom S4Vectors Rle
 #'
-getEventInfo <- function(liteString, ID, strand = "*", read_alignment) {
+defGR <- function(x,
+                  ID,
+                  strand_info = "+",
+                  type = "deletion",
+                  originally = "",
+                  replacement = "") {
 
-  if (is.na(liteString) | nchar(liteString) < 12) {
-    return(GRanges())
-  }
-
-  alignmentData <- unlist(strsplit(liteString, "!", fixed = TRUE))
-  insertionsData <- alignmentData[1]
-  deletionsData <- alignmentData[2]
-  mismatchesData <- alignmentData[3]
-
-  insertionsR <- GRanges()
-  insCount <- as.numeric(unlist(strsplit(insertionsData,
-                                         "@",
-                                         fixed = TRUE))[2])
-  if (insCount > 0) {
-    insertions <- unlist(strsplit(insertionsData,
-                                  "@",
-                                  fixed = TRUE))[3]
-    insertions <- unlist(strsplit(insertions, "*", fixed = TRUE))
-    insertionsPairs <- as.numeric(unlist(strsplit(insertions, ",",
-                                                  fixed = TRUE)))
-    insertionsR <- GRanges(
-      ranges = IRanges(start = insertionsPairs[c(TRUE, FALSE)],
-                       end = insertionsPairs[c(FALSE, TRUE)]),
-      strand = S4Vectors::Rle(rep(strand, insCount)),
-      seqnames = Rle(rep(ID, insCount))
-    )
-    insertionsR$mm_originally = ""
-    insertionsR$mm_replacement = ""
-    insertionsR$type = "insertion"
-  }
-
-  deletionsR <- GRanges()
-  delCount <- as.numeric(unlist(strsplit(deletionsData, "@",
-                                         fixed = TRUE))[2])
-  if (delCount > 0) {
-    deletions <- unlist(strsplit(deletionsData, "@", fixed = TRUE))[3]
-    deletions <- unlist(strsplit(deletions, "*", fixed = TRUE))
-    deletionsPairs <- as.numeric(unlist(strsplit(deletions, ",",
-                                                 fixed = TRUE)))
-    deletionsR <- GRanges(
-      ranges = IRanges(start = deletionsPairs[c(TRUE, FALSE)],
-                       end = deletionsPairs[c(FALSE, TRUE)]),
-      strand = Rle(rep(strand, delCount)),
-      seqnames = Rle(rep(ID, delCount))
-    )
-    deletionsR$mm_originally = ""
-    deletionsR$mm_replacement = ""
-    deletionsR$type = "deletion"
-  }
-
-  mismatchesR <- GRanges()
-  mmCount <- as.numeric(unlist(strsplit(mismatchesData, "@",
-                                        fixed = TRUE))[2])
-  if (mmCount > 0) {
-    mismatches <- unlist(strsplit(mismatchesData, "@", fixed = TRUE))[3]
-    mismatches <- unlist(strsplit(mismatches, "*", fixed = TRUE))
-    mismatches <- unlist(strsplit(mismatches, ",", fixed = TRUE))
-    mismatchesR <- GRanges(
-      ranges = IRanges(start = as.numeric(mismatches[c(TRUE, FALSE, FALSE)]),
-                       width = 1),
-      strand = Rle(rep(strand, mmCount)),
-      seqnames = Rle(rep(ID, mmCount))
-    )
-    mismatchesR$mm_originally = mismatches[c(FALSE, TRUE, FALSE)]
-    mismatchesR$mm_replacement = mismatches[c(FALSE, FALSE, TRUE)]
-    mismatchesR$type = "mismatch"
-  }
-
-  finalEvents <- c(insertionsR, deletionsR, mismatchesR)
-  return(
-    if (length(finalEvents) > 0) {
-      finalEvents
-    } else {
-      GRanges(ranges = IRanges(start = 0, end = 0),
-              seqnames = ID,
-              strand = strand,
-              mm_originally = "",
-              mm_replacement = "",
-              type = "no_events")
-    }
+  x <- GRanges(
+    ranges = x,
+    strand = Rle(rep(strand_info, length(x))),
+    seqnames = Rle(rep(ID, length(x)))
   )
+  x$originally = originally
+  x$replacement = replacement
+  x$type = type
+  return(x)
+}
+
+#' This function takes alignments and gives back the events coordinates.
+#'
+#' @param align (PairwiseAlignmentsSingleSubject)
+#' @param ID (string)
+#' @param ampl_shift (numeric) Shift events additionaly by this value.
+#' PairwiseAlignmentsSingleSubject returns truncated alignments.
+#' @param strand_info (string) Either '+', '-' or default '*'
+#' @return (List of GRanges) Object with meta-data for insertion, deletion, mismatch
+#' @import GenomicRanges
+#' @importFrom S4Vectors Rle
+#'
+getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
+
+  del <- deletion(align)[[1]]
+  ins <- insertion(align)[[1]]
+  mm <- mismatchSummary(summary(align))$subject
+
+  finalGR <- GRanges()
+
+  if (length(del) > 0) {
+    finalGR <- defGR(del, ID, strand_info)
+  }
+
+  if (length(ins) > 0) {
+    ins_seq <-
+      substr(rep(as.character(pattern(align)), length(ins)),
+                 start = start(ins), stop = end(ins))
+    finalGR <- c(finalGR, defGR(ins, ID, strand_info, "insertion", "", ins_seq))
+  }
+
+  if (dim(mm)[1] > 0) {
+    finalGR <- c(finalGR,
+                   defGR(IRanges(mm$SubjectPosition, width = 1),
+                         ID,
+                         strand_info,
+                         "mismatch",
+                         mm$Subject,
+                         mm$Pattern))
+  }
+
+  if (strand_info == "+") {
+    finalGR <- shift(finalGR, ampl_shift - 1)
+  } else {
+    subj_bas <- stringr::str_count(as.character(subject(align)), "[ATCG]")
+    finalGR <- shift(finalGR, ampl_shift - subj_bas)
+  }
+
+  return(finalGR)
 }
 
 
@@ -119,18 +104,19 @@ getEventInfo <- function(liteString, ID, strand = "*", read_alignment) {
 #' @import IRanges
 #' @return (Ranges) A Ranges object with uppercases groups for given candidate
 #' string
+#' @importFrom stringr str_detect
 #'
 upperGroups <- function(candidate) {
-  return(IRanges::reduce(
-    IRanges(start = c(which(grepl("[[:upper:]]",
-                                  strsplit(candidate, "")[[1]]))), width = 1)))
+  return(IRanges::reduce(IRanges(
+    start = which(stringr::str_detect(strsplit(candidate, "")[[1]], "[[:upper:]]")),
+    width = 1
+  )))
 }
 
 
 #' Make alignments helper.
 #'
-#' Main functionality of the package, aligning reads to the amplicon using
-#' gotoh implementation.
+#' Main functionality of the package, aligning reads to the amplicon.
 #' @param configTable config file as data table
 #' @param resultsFolder (string) path to resultsFolder
 #' @inheritParams amplicanAlign
@@ -144,18 +130,16 @@ upperGroups <- function(candidate) {
 #'
 makeAlignment <- function(configTable,
                           resultsFolder,
-                          skip_bad_nucleotides = TRUE,
-                          average_quality = 0,
-                          min_quality = 0,
-                          write_alignments = 1,
-                          scoring_matrix = "NUC44",
-                          gap_opening = 50,
-                          gap_extension = 0,
-                          gap_ending = FALSE,
-                          far_indels = TRUE,
-                          fastqfiles = 0,
-                          PRIMER_DIMER = 30,
-                          cut_buffer = 5) {
+                          skip_bad_nucleotides,
+                          average_quality,
+                          min_quality,
+                          write_alignments,
+                          scoring_matrix,
+                          gap_opening,
+                          gap_extension,
+                          fastqfiles,
+                          PRIMER_DIMER,
+                          cut_buffer) {
 
   barcode <- configTable$Barcode[1]
   alignmentRangesBar <- GRanges()
@@ -201,89 +185,38 @@ makeAlignment <- function(configTable,
   uniqueTable$Asigned <- FALSE
   uniqueTable$PRIMER_DIMER <- FALSE
   uniqueTable[c("Reverse", "Forward")] <- lapply(uniqueTable[c("Reverse", "Forward")],
-                                                 as.character)
-
+                                                 function(x) toupper(as.character(x)))
   barcodeTable$unique_reads <- nrow(uniqueTable)
 
-  revDir <- configTable[, "Direction"] == 1
-  configTable[revDir, "guideRNA"] <-
-    as.character(
-      Biostrings::reverseComplement(
-        Biostrings::DNAStringSet(
-          configTable[revDir, "guideRNA"])))
-  configTable$RReverse_Primer <-
-    as.character(
-      Biostrings::reverseComplement(
-        Biostrings::DNAStringSet(
-          configTable$Reverse_Primer)))
-  configTable$RguideRNA <-
-    as.character(
-      Biostrings::reverseComplement(
-        Biostrings::DNAStringSet(
-          configTable$guideRNA)))
-
+  # for each experiment
   for (i in seq_len(dim(configTable)[1])) {
 
-    if (write_alignments >= 1) algn_file_con <- ""
-    if (write_alignments >= 2) algn_det_file_con <- ""
-    sublog_file_con <- ""
-    # for each experiment
     alignmentRanges <- GRanges()
     currentID <- configTable[i, "ID"]
     # Primers and amplicon info
-    forwardPrimer <- configTable[i, "Forward_Primer"]
-    reversePrimer <- configTable[i, "Reverse_Primer"]
-    guideRNA <- configTable[i, "guideRNA"]
+    forwardPrimer <- toupper(configTable[i, "Forward_Primer"])
+    reversePrimer <- toupper(configTable[i, "Reverse_Primer"])
+    guideRNA <- toupper(configTable[i, "guideRNA"])
+    rguideRNA <- toupper(configTable[i, "RguideRNA"])
     amplicon <- configTable[i, "Amplicon"]
 
-    # Folder for each ID
-    currentIDFolderName <- file.path(resultsFolder, paste0(currentID, "_", barcode))
-    if (!dir.exists(currentIDFolderName)) {
-      dir.create(file.path(currentIDFolderName), showWarnings = FALSE)
-    }
-
-    warning_checkTarget <- checkTarget(guideRNA, amplicon, currentID, barcode)
-    configTable$Found_Guide[i] <- is.null(warning_checkTarget)
-    sublog_file_con <- c(sublog_file_con, warning_checkTarget)
-    sublog_file_con <- c(sublog_file_con,
-                         checkPrimers(forwardPrimer,
-                                      configTable[i, "RReverse_Primer"],
-                                      amplicon, currentID, barcode))
-
-    cutSites <- upperGroups(amplicon) + cut_buffer
-    if (length(cutSites) == 0) {
-      message("Warning: Aligment position was not found in the amplicon.
-              Find more information in the log file.")
-      sublog_file_con <- c(sublog_file_con,
-                           paste0("Couldn't find upper case groups (PAM) position in amplicon.",
-                                  "\nFor ID: ",
-                                  currentID,
-                                  " and barcode: ",
-                                  barcode,
-                                  "\n"))
-      configTable$Found_PAM[i] <- 0
-      cutSites <- IRanges(start = 1, width = nchar(amplicon))
-    }
-
     # Search for the forward, reverse and targets
+    uniqueTable$forPrInReadPos <- stringr::str_locate(uniqueTable$Forward, forwardPrimer)[,1]
     uniqueTable$forwardFound <-
-      if (fastqfiles == 2) {
+      if (fastqfiles == 2 | forwardPrimer == "") {
         FALSE
       } else {
-        grepl(forwardPrimer, uniqueTable$Forward, ignore.case = TRUE)
+        !is.na(uniqueTable$forPrInReadPos)
       }
+    uniqueTable$revPrInReadPos <- stringr::str_locate(uniqueTable$Reverse, reversePrimer)[,1]
     uniqueTable$reverseFound <-
       if (fastqfiles == 1) {
         FALSE
       } else {
-        grepl(reversePrimer, uniqueTable$Reverse, ignore.case = TRUE)
+        !is.na(uniqueTable$revPrInReadPos)
       }
-    uniqueTable$guideFoundForward <- grepl(guideRNA,
-                                           uniqueTable$Forward,
-                                           ignore.case = TRUE)
-    uniqueTable$guideFoundReverse <- grepl(configTable[i, "RguideRNA"],
-                                           uniqueTable$Reverse,
-                                           ignore.case = TRUE)
+    uniqueTable$guideFoundForward <- stringr::str_detect(uniqueTable$Forward, guideRNA)
+    uniqueTable$guideFoundReverse <- stringr::str_detect(uniqueTable$Reverse, rguideRNA)
     primersFound <-
       if (fastqfiles == 0.5) {
         uniqueTable$forwardFound | uniqueTable$reverseFound
@@ -297,71 +230,59 @@ makeAlignment <- function(configTable,
     uniqueTable$Asigned <- uniqueTable$Asigned | primersFound
     IDuniqueTable <- uniqueTable[primersFound, ]
 
-    IDuniqueTable[c("Forward", "Reverse")] <-
-      lapply(IDuniqueTable[c("Forward", "Reverse")], toupper)
-    IDuniqueTable$Reverse <-
-      as.character(
-        Biostrings::reverseComplement(
-          Biostrings::DNAStringSet(IDuniqueTable$Reverse)))
-
     if (dim(IDuniqueTable)[1] > 0) {
-      for (r in seq_len(dim(IDuniqueTable)[1])) {
-        # The return of gotoh is a string of five parts with the
-        # separator '++++'
-        # [1] is the verbose alignment result
-        # [2] is a string with the ins and del and mm
-        # [3] is a string with the ins and del and mm, but from
-        #  the subject (amplicon) coordinates
-        # [4] is the alignment of the pattern.
-        # [5] is the alignment of the subject.
-        alignForward <- c("", "", "", "", "")
-        if (fastqfiles != 2) {
-          alignForward <- gRCPP(IDuniqueTable[r, "Forward"],
-                                amplicon,
-                                scoring_matrix,
-                                gap_opening,
-                                gap_extension,
-                                gap_ending,
-                                far_indels)
-          alignForward <- unlist(strsplit(alignForward, "++++", fixed = TRUE))
-        }
-        alignReverse <- c("", "", "", "", "")
-        if (fastqfiles != 1) {
-          alignReverse <- gRCPP(IDuniqueTable[r, "Reverse"],
-                                amplicon,
-                                scoring_matrix,
-                                gap_opening,
-                                gap_extension,
-                                gap_ending,
-                                far_indels)
-          alignReverse <- unlist(strsplit(alignReverse, "++++", fixed = TRUE))
-        }
-        # Write the alignments
-        if (write_alignments >= 2) {
-          algn_det_file_con <- c(algn_det_file_con,
-                                 paste("ID:", currentID,
-                                       "Count:",
-                                       toString(IDuniqueTable$Total[r]), "\n"),
-                                 "FORWARD AND AMPLICON:", alignForward[1],
-                                 "REVERSE AND AMPLICON:", alignReverse[1])
-        }
-        alignForward <- gsub("\n", "", alignForward)
-        alignReverse <- gsub("\n", "", alignReverse)
-        if (write_alignments >= 1) {
-          algn_file_con <- c(algn_file_con,
-                             paste("ID:", currentID,
-                                   "Count:",
-                                   toString(IDuniqueTable$Total[r])),
-                             alignForward[4],
-                             alignReverse[4])
-        }
 
-        forwardData <- getEventInfo(alignForward[3],
-                                    currentID, "+",
-                                    alignForward[4])
-        reverseData <- getEventInfo(alignReverse[3],
-                                    currentID, "-",
-                                    alignReverse[4])
+      if (fastqfiles != 2) {
+        alignForward <- Biostrings::pairwiseAlignment(
+          Biostrings::subseq(Biostrings::DNAStringSet(IDuniqueTable[, "Forward"]),
+                             start = IDuniqueTable$forPrInReadPos),
+          Biostrings::subseq(toupper(amplicon),
+                             start = configTable$forwardPrimerPosition[i]),
+          type = "global",
+          substitutionMatrix =  scoring_matrix,
+          gapOpening = gap_opening,
+          gapExtension = gap_extension
+        )
+      }
+      if (fastqfiles != 1) {
+        alignReverse <- Biostrings::pairwiseAlignment(
+          Biostrings::reverseComplement(Biostrings::subseq(Biostrings::DNAStringSet(IDuniqueTable[, "Reverse"])),
+                                        start = IDuniqueTable$revPrInReadPos),
+          Biostrings::subseq(toupper(amplicon),
+                             start = 1,
+                             end = configTable$reversePrimerPosEnd[i]),
+          type = "global",
+          substitutionMatrix =  scoring_matrix,
+          gapOpening = gap_opening,
+          gapExtension = gap_extension
+        )
+      }
+      # Write the alignments
+      if (write_alignments >= 1) {
+        algn_file <-
+          file.path(resultsFolder, paste0(currentID, "_", barcode, ".txt"))
+        if (file.exists(algn_file)) {
+          file.remove(algn_file)
+        }
+        algn_file_con <- file(algn_file, open = "at")
+        writeLines(as.vector(rbind(
+          paste("ID:", currentID,
+                "Count:", format(IDuniqueTable$Total)),
+          if (fastqfiles != 2) rbind(as.character(pattern(alignForward)),
+                                     as.character(subject(alignForward))),
+          if (fastqfiles < 1) "",
+          if (fastqfiles != 1) rbind(
+            as.character(pattern(alignReverse)),
+            as.character(subject(alignReverse))),
+          ""
+        )),  algn_file_con)
+        close(algn_file_con)
+      }
+
+      for (r in seq_len(dim(IDuniqueTable)[1])) {
+
+        forwardData <- getEventInfo(alignForward[r], currentID, configTable$forwardPrimerPosition[i], "+")
+        reverseData <- getEventInfo(alignReverse[r], currentID, configTable$reversePrimerPosEnd[i], "-")
 
         # Filter PRIMER DIMERS and sum how many
         PD_cutoff <- nchar(amplicon) -
@@ -429,8 +350,8 @@ makeAlignment <- function(configTable,
         }
 
         # cut assessment
-        overlapFd <- subsetByOverlaps(ranges(forwardDataFiltered[forwardDataFiltered$type == "deletion"]), cutSites)
-        overlapRe <- subsetByOverlaps(ranges(reverseDataFiltered[reverseDataFiltered$type == "deletion"]), cutSites)
+        overlapFd <- subsetByOverlaps(ranges(forwardDataFiltered[forwardDataFiltered$type == "deletion"]), configTable$cutSites[[i]])
+        overlapRe <- subsetByOverlaps(ranges(reverseDataFiltered[reverseDataFiltered$type == "deletion"]), configTable$cutSites[[i]])
         if (fastqfiles == 0 | fastqfiles == 0.5) {
           # forward and reverse have to agree on deletion
           overlapFd <- overlapFd[!is.na(match(overlapFd, overlapRe))]
@@ -465,27 +386,6 @@ makeAlignment <- function(configTable,
       }
     }
 
-
-    # Alignment verbosity levels
-    if (write_alignments >= 1) {
-      algn_file <- file.path(currentIDFolderName, "alignments.txt")
-      if (file.exists(algn_file)) {
-        file.remove(algn_file)
-      }
-      masterFileConn <- file(algn_file, open = "at")
-      writeLines(algn_file_con, masterFileConn)
-      close(masterFileConn)
-    }
-    if (write_alignments >= 2) {
-      algn_detail_file <- file.path(currentIDFolderName, "detailed_alignments.txt")
-      if (file.exists(algn_detail_file)) {
-        file.remove(algn_detail_file)
-      }
-      uberAlignmentFD <- file(algn_detail_file, open = "at")
-      writeLines(algn_det_file_con, uberAlignmentFD)
-      close(uberAlignmentFD)
-    }
-
     alignmentRangesBar <- c(alignmentRangesBar, alignmentRanges)
   }
 
@@ -494,17 +394,6 @@ makeAlignment <- function(configTable,
                      file.path(resultsFolder,
                                paste0(barcode, "_alignment_ranges.csv")),
                      row.names = FALSE)
-  }
-
-  # Warnings
-  sublog_file <- file.path(resultsFolder, paste0(currentID, "_SUBLOG.txt"))
-  if (file.exists(sublog_file)) {
-    file.remove(sublog_file)
-  }
-  if (!is.null(sublog_file_con)) {
-    logFileConn <- file(sublog_file, open = "at")
-    writeLines(sublog_file_con, logFileConn)
-    close(logFileConn)
   }
 
   barcodeTable$unassigned_reads <- sum(!uniqueTable$Asigned)
