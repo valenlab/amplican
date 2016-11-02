@@ -121,9 +121,9 @@ amplican_plot_mismatches <- function(alignments, config, id, cut_buffer = 5) {
     ggplot2::scale_colour_manual(drop = FALSE, values = amplicon_colors)
 
   # variables to NULL first for retarded CRAN check
-  frequency <- mm_replacement <- start <- strand <- NULL
+  frequency <- replacement <- start <- strand <- NULL
   freqAgr <- stats::aggregate(
-    cbind(count, frequency) ~ mm_replacement + start + strand,
+    cbind(count, frequency) ~ replacement + start + strand,
     idRanges,
     sum)
   freqAgrPlus <- freqAgr[freqAgr$strand == "+", ]
@@ -131,7 +131,7 @@ amplican_plot_mismatches <- function(alignments, config, id, cut_buffer = 5) {
 
   if (dim(freqAgrPlus)[1] == 0) {
     freqAgrPlus <- rbind(
-      freqAgrPlus, data.frame(mm_replacement = "G",
+      freqAgrPlus, data.frame(replacement = "G",
                               start = 0,
                               strand = "+",
                               count = 0,
@@ -140,7 +140,7 @@ amplican_plot_mismatches <- function(alignments, config, id, cut_buffer = 5) {
 
   if (dim(freqAgrMinus)[1] == 0) {
     freqAgrMinus <- rbind(
-      freqAgrMinus, data.frame(mm_replacement = "G",
+      freqAgrMinus, data.frame(replacement = "G",
                                start = 0,
                                strand = "+",
                                count = 0,
@@ -152,8 +152,8 @@ amplican_plot_mismatches <- function(alignments, config, id, cut_buffer = 5) {
                       ggplot2::aes(x = as.numeric(start) + 1,
                                    y = frequency,
                                    width = 1,
-                                   order = mm_replacement,
-                                   fill = mm_replacement),
+                                   order = replacement,
+                                   fill = replacement),
                       stat = "identity", position = "identity") +
     ggplot2::scale_fill_manual(values = amplicon_colors) +
     ggbio::xlim(1, ampl_len) +
@@ -176,8 +176,8 @@ amplican_plot_mismatches <- function(alignments, config, id, cut_buffer = 5) {
                       ggplot2::aes(x = as.numeric(start) + 1,
                                    y = frequency,
                                    width = 1,
-                                   order = mm_replacement,
-                                   fill = mm_replacement),
+                                   order = replacement,
+                                   fill = replacement),
                       stat = "identity",
                       position = "identity") +
     ggplot2::scale_fill_manual(values = amplicon_colors) +

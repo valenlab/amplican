@@ -10,7 +10,6 @@ Description: `amplican` creates reports of deletions, insertions, frameshifts,
 Version: 0.99.5
 Authors@R: c(
     person("Kornel", "Labun", email = "kornel.labun@gmail.com", role = "aut"),
-    person(c("Rafael", "Nozal"), "Canyadas", email = "rafanozal@gmail.com",  role = "ctr"),
     person("Eivind", "Valen", email = "eivind.valen@gmail.com", role = c("cph", "cre"))
   )
 URL: https://github.com/valenlab/amplican

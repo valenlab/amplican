@@ -1,4 +1,4 @@
-Config file:            /home/ai/Projects/amplican/inst/extdata/config.csv
+Config file:            /home/ai/R/x86_64-pc-linux-gnu-library/3.3/amplican/extdata/config.csv
 Processors used:        1
 Skip Bad Nucleotides:   TRUE
 Average Quality:        0
