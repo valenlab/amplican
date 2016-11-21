@@ -152,22 +152,15 @@ In `unassigned_sequences` folder you can find detailed information about unassig
 
 Take a look at the alignment events file which contains all the insertions, deletions, cuts and mutations. This file can be used in various ways. Examples you can find in `.Rmd` files we prepare using `amplicanReport`. These can be easily converted into `GRanges` and used for further analysis!
 ```{r, echo=FALSE}
-alignments <- system.file("extdata", "results", "alignments.csv", package = "amplican")
+alignments <- system.file("extdata", "results", "alignments_events.csv", package = "amplican")
 alignments <- read.csv(alignments)
 knitr::kable(head(alignments))
 ```
 
-Human readable alignments format gives information about forward and reverse reads. First line is corresponding to the forward alignment and second line is always for the reverse read alignment. This alignment does not shows amplicon, just similarity between two alignments (forward and reverse). Human readable format looks like this:
+Human readable alignments format gives information about forward and reverse reads. To make more detailed alignment files `amplicanPipeline` or `amplicanAlign` should have option `write_alignments = TRUE` specified (Default behavior), but it adds a little to the computational time. First line is corresponding to the forward read alignment and amplicon, second line is for the reverse read alignment and amplicon. Human readable format looks like this:
 ```{r, echo=FALSE}
-hr_alignments <- system.file("extdata", "results", "alignments", "ID_1_barcode_1", "alignments.txt", package = "amplican")
+hr_alignments <- system.file("extdata", "results", "alignments", "ID_1_barcode_1.txt", package = "amplican")
 readLines(hr_alignments, n = 6)
-```
-
-
-Human readable detailed alignments format gives more information. To make more detailed alignment files `amplicanPipeline` or `amplicanAlign` should have option `write_alignments == 2` specified (Default behavior), but it adds a little to the computational time.
-```{r, echo=FALSE}
-hrd_alignments <- system.file("extdata", "results", "alignments", "ID_1_barcode_1", "detailed_alignments.txt", package = "amplican")
-readLines(hrd_alignments, n = 89)
 ```
 
 
