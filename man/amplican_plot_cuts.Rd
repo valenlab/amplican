@@ -4,29 +4,37 @@
 \alias{amplican_plot_cuts}
 \title{Plots cuts using ggplot2 and ggbio.}
 \usage{
-amplican_plot_cuts(alignments, config, id)
+amplican_plot_cuts(alignments, config, id, xlab_spacing = 4, filter = TRUE)
 }
 \arguments{
-\item{alignments}{(GRanges object) Loaded alignment information from alignments.csv file.}
+\item{alignments}{(GRanges object) Loaded alignment information from
+alignments_events.csv file.}
 
 \item{config}{(data.frame) Loaded table from config_summary.csv file.}
 
-\item{id}{(string or vector of strings) Name of the ID column from config file or name of multiple IDs if it is
-possible to group them. First amplicon will be used as the basis for plot.}
+\item{id}{(string or vector of strings) Name of the ID column from config
+file or name of multiple IDs if it is possible to group them. First amplicon
+will be used as the basis for plot.}
+
+\item{xlab_spacing}{(numeric) Spacing of the x axis labels. Default is 4.}
+
+\item{filter}{(boolean) Whether deletions overlapping primers should be
+removed. By deafult it set to TRUE.}
 }
 \value{
 (cuts plot) ggplot2 object of cuts plot
 }
 \description{
 This function plots cuts in relation to the amplicon with distinction for
-each ID. Top plot is meta-plot of all cuts combined with frequencies for all reads
-in the  amplicon group. Bottom plot shows cuts with facets for each ID.
+each ID. Top plot is meta-plot of all cuts combined with frequencies for all
+reads in the  amplicon group. Bottom plot shows cuts with facets for each ID.
 }
 \examples{
 #example config
 config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
 #example alignments results
-alignments <- read.csv(system.file("extdata", "results", "alignments.csv", package = "amplican"))
+alignments_file <- system.file("extdata", "results", "alignments_events.csv", package = "amplican")
+alignments <- read.csv(alignments_file)
 amplican_plot_cuts(alignments, config, c('ID_1','ID_3'))
 
 }

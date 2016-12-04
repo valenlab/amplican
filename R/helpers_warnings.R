@@ -1,3 +1,25 @@
+#' This function checks if amplicons can be ploted together, aka they are the
+#' same.
+#'
+#' @param configTable (data.frame) data frame of config file
+#' @param id (vector of characters) vector of IDs that are to be tested
+#' @return (boolean) TRUE, If anything goes wrong stops and prints error.
+#'
+ampliconIntegrityCheck <- function(configTable, id) {
+
+  if (length(id) == 1) { return(TRUE) }
+  configTable <- configTable[configTable$ID %in% id, ]
+  revMe <- configTable$Direction == 1
+  amplicons <- as.vector(configTable$Amplicon)
+  amplicons[revMe] <- revC(amplicons[revMe])
+  if (length(unique(toupper(amplicons))) != 1) {
+    stop("Specfied id's have no consensus amplicon.")
+  }
+
+  invisible(TRUE)
+}
+
+
 #' This function checks if the guideRNA is in the amplicon.
 #'
 #' @param configTable (data.frame) data frame of config file

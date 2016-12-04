@@ -7,7 +7,7 @@ Description: `amplican` creates reports of deletions, insertions, frameshifts,
     analysis across different experiments. `amplican` maintains elasticity
     through configuration file, which with your fastq samples are only
     requirements.
-Version: 0.99.5
+Version: 0.99.6
 Authors@R: c(
     person("Kornel", "Labun", email = "kornel.labun@gmail.com", role = "aut"),
     person("Eivind", "Valen", email = "eivind.valen@gmail.com", role = c("cph", "cre"))
@@ -27,7 +27,7 @@ Imports:
     S4Vectors,
     doParallel,
     foreach,
-    ggplot2,
+    ggplot2 (>= 2.2.0),
     ggbio,
     stringr,
     stats,
@@ -50,6 +50,7 @@ Collate:
     'amplicanAlign.R'
     'amplicanReport.R'
     'helpers_directory.R'
+    'helpers_general.R'
     'helpers_plots.R'
     'helpers_rmd.R'
 VignetteBuilder: knitr

@@ -3,7 +3,7 @@ title: "amplican overview"
 author: "Kornel Labun & Eivind Valen"
 date: "`r doc_date()`"
 package: "`r pkg_ver('amplican')`"
-output: BiocStyle::html_document
+output: BiocStyle::html_document2
 vignette: >
   %\VignetteIndexEntry{amplican overview}
   %\VignetteEngine{knitr::rmarkdown}
@@ -61,11 +61,13 @@ To run `amplican` with default options, along with generation of all posible rep
 example dataset, but take a look how you can do that yourself. Be prepared to grab a coffe when running
 `amplicanPipeline` with `knit_files = TRUE` as this will take some time. You will understand it is worth waiting when reports will be ready. We don't ship with these reports as they take up too much space to be included in R package.
 
-```{r amplicanPipeline, echo=TRUE, eval=FALSE}
-# example MiSeq dataset files
-config <- system.file("extdata", "config.csv", package = "amplican")  # path to example config file
-fastq_folder <- system.file("extdata", package = "amplican")  # path to example fastq files
-results_folder <- tempdir()  # output folder
+```{r amplicanPipeline, echo=TRUE, eval=FALSE, }
+# path to example config file
+config <- system.file("extdata", "config.csv", package = "amplican")
+# path to example fastq files
+fastq_folder <- system.file("extdata", package = "amplican") 
+# output folder, a full path
+results_folder <- tempdir()  
 
 #  run amplican
 amplicanPipeline(config, fastq_folder, results_folder)
@@ -158,7 +160,7 @@ knitr::kable(head(alignments))
 ```
 
 Human readable alignments format gives information about forward and reverse reads. To make more detailed alignment files `amplicanPipeline` or `amplicanAlign` should have option `write_alignments = TRUE` specified (Default behavior), but it adds a little to the computational time. First line is corresponding to the forward read alignment and amplicon, second line is for the reverse read alignment and amplicon. Human readable format looks like this:
-```{r, echo=FALSE}
+```{r, echo=FALSE, }
 hr_alignments <- system.file("extdata", "results", "alignments", "ID_1_barcode_1.txt", package = "amplican")
 readLines(hr_alignments, n = 6)
 ```

@@ -4,11 +4,12 @@
 \alias{amplican_plot_insertions}
 \title{Plots insertions using ggplot2 and ggbio.}
 \usage{
-amplican_plot_insertions(alignments, config, id, cut_buffer = 5)
+amplican_plot_insertions(alignments, config, id, cut_buffer = 5,
+  xlab_spacing = 4, filter = TRUE)
 }
 \arguments{
 \item{alignments}{(GRanges object) Loaded alignment information from
-alignments.csv file.}
+alignments_events.csv file.}
 
 \item{config}{(data.frame) Loaded table from config_summary.csv file.}
 
@@ -18,6 +19,11 @@ possible to group them. First amplicon will be used as the basis for plot.}
 
 \item{cut_buffer}{(numeric) Default is 5, you should specify the same as
 used in the analysis.}
+
+\item{xlab_spacing}{(numeric) Spacing of the x axis labels. Default is 4.}
+
+\item{filter}{(boolean) Whether deletions overlapping primers should be
+removed. By deafult it set to TRUE.}
 }
 \value{
 (insertions plot) ggplot2 object of insertions plot
@@ -31,7 +37,8 @@ amplicon sequence, and bottom plot is for reverse reads.
 #example config
 config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
 #example alignments results
-alignments <- read.csv(system.file("extdata", "results", "alignments.csv", package = "amplican"))
+alignments_file <- system.file("extdata", "results", "alignments_events.csv", package = "amplican")
+alignments <- read.csv(alignments_file)
 amplican_plot_insertions(alignments, config, c('ID_1','ID_3'), 5)
 
 }
