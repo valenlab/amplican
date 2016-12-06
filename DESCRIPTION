@@ -43,14 +43,14 @@ Suggests:
     testthat,
     BiocStyle
 Collate:
-    'amplican.R'
+    'helpers_rmd.R'
+    'amplicanReport.R'
+    'helpers_directory.R'
+    'helpers_general.R'
     'helpers_warnings.R'
     'helpers_filters.R'
     'helpers_alignment.R'
     'amplicanAlign.R'
-    'amplicanReport.R'
-    'helpers_directory.R'
-    'helpers_general.R'
+    'amplican.R'
     'helpers_plots.R'
-    'helpers_rmd.R'
 VignetteBuilder: knitr

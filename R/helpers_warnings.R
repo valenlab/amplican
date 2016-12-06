@@ -3,6 +3,7 @@
 #'
 #' @param configTable (data.frame) data frame of config file
 #' @param id (vector of characters) vector of IDs that are to be tested
+#' @include helpers_general.R
 #' @return (boolean) TRUE, If anything goes wrong stops and prints error.
 #'
 ampliconIntegrityCheck <- function(configTable, id) {
@@ -11,7 +12,7 @@ ampliconIntegrityCheck <- function(configTable, id) {
   configTable <- configTable[configTable$ID %in% id, ]
   revMe <- configTable$Direction == 1
   amplicons <- as.vector(configTable$Amplicon)
-  amplicons[revMe] <- revC(amplicons[revMe])
+  amplicons[revMe] <- revComp(amplicons[revMe])
   if (length(unique(toupper(amplicons))) != 1) {
     stop("Specfied id's have no consensus amplicon.")
   }
@@ -50,9 +51,9 @@ checkTarget <- function(configTable) {
 #'
 checkPrimers <- function(configTable, fastqfiles) {
 
-  configTable$forwardPrimerPosition <-
+  configTable[, c("forwardPrimerPosition", "forwardPrimerPositionEnd")] <-
     stringr::str_locate(tolower(configTable$Amplicon),
-                        tolower(configTable$Forward_Primer))[, 1]
+                        tolower(configTable$Forward_Primer))
   configTable[, c("reversePrimerPosition", "reversePrimerPosEnd")] <-
     stringr::str_locate(tolower(configTable$Amplicon),
                         tolower(configTable$Reverse_PrimerRC))

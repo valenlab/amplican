@@ -1,3 +1,6 @@
+#' @include helpers_general.R
+NULL
+
 #' Reverse complement events that have amplicons with direction 1.
 #'
 #' @param idRanges (data.frame) Loaded events.
@@ -18,8 +21,8 @@ flipRanges <- function(idRanges, configTable) {
     ids_mapping <- match(idRanges[to_flip, "seqnames"], ampl_ids)
     ampl_lengths <- ampl_lengths[ids_mapping]
 
-    idRanges[to_flip, "originally"] <- revC(idRanges[to_flip, "originally"])
-    idRanges[to_flip, "replacement"] <- revC(idRanges[to_flip, "replacement"])
+    idRanges[to_flip, "originally"] <- revComp(idRanges[to_flip, "originally"])
+    idRanges[to_flip, "replacement"] <- revComp(idRanges[to_flip, "replacement"])
 
     old_starts <- idRanges[to_flip, "start"]
     idRanges[to_flip, "start"] <- ampl_lengths - idRanges[to_flip, "end"] + 1
@@ -203,7 +206,7 @@ amplican_plot_mismatches <- function(alignments,
                                                  toupper(frPrimer)))
   rwPrimer <- as.character(config[which(config$ID == id[1]), "Reverse_Primer"])
   rwPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
-                                                 revC(rwPrimer)))
+                                                 revComp(rwPrimer)))
   primers <- c(frPrimer, rwPrimer)
   if (length(frPrimer) == 0) {
     frPrimer <- c(1, 1)
@@ -381,7 +384,7 @@ amplican_plot_deletions <- function(alignments,
                                                  toupper(frPrimer)))
   rwPrimer <- as.character(config[which(config$ID == id[1]), "Reverse_Primer"])
   rwPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
-                                                 revC(rwPrimer)))
+                                                 revComp(rwPrimer)))
   primers <- c(frPrimer, rwPrimer)
   if (length(frPrimer) == 0) {
     frPrimer <- c(1, 1)
@@ -523,7 +526,7 @@ amplican_plot_insertions <- function(alignments,
                                                  toupper(frPrimer)))
   rwPrimer <- as.character(config[which(config$ID == id[1]), "Reverse_Primer"])
   rwPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
-                                                 revC(rwPrimer)))
+                                                 revComp(rwPrimer)))
   primers <- c(frPrimer, rwPrimer)
   if (length(frPrimer) == 0) {
     frPrimer <- c(1, 1)
@@ -724,7 +727,7 @@ amplican_plot_cuts <- function(alignments,
                                                  toupper(frPrimer)))
   rwPrimer <- as.character(config[which(config$ID == id[1]), "Reverse_Primer"])
   rwPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
-                                                 revC(rwPrimer)))
+                                                 revComp(rwPrimer)))
   primers <- c(frPrimer, rwPrimer)
   if (length(frPrimer) == 0) {
     frPrimer <- c(1, 1)

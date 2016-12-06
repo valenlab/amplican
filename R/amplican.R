@@ -29,6 +29,7 @@ NULL
 #' @inheritParams amplicanAlign
 #' @importFrom rmarkdown render
 #' @import knitr
+#' @include amplicanAlign.R amplicanReport.R
 #' @return (string) results_folder path
 #' @export
 #' @family analysis steps

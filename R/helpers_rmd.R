@@ -156,7 +156,7 @@ make_id_rmd <- function(results_folder, cut_buffer = 5) {
            "config$frameshift_percentage[is.nan(config$frameshift_percentage)] <- 0  \n",
            "ggplot(data = config, aes(x = ID, y = frameshift_percentage, order = ID)) +",
            "  geom_bar(stat='identity') +",
-           "  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have framshift')  +",
+           "  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift')  +",
            "  theme(legend.position = 'none',",
            "        axis.text = element_text(size = 12),",
            "        axis.title = element_text(size = 14, face = 'bold')) +",
@@ -369,7 +369,8 @@ make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
            "seq2 <- Vectorize(seq.default, vectorize.args = c('from', 'to'))",
            "howManyTimes <- table(as.vector(uniqueReadsByID$group))",
            "howManyTimes <- howManyTimes[match(names(howManyTimes), unique(uniqueReadsByID$group))]",
-           "uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dim(howManyTimes)[1]), to = howManyTimes, by = 1))\n",
+           "dimHMT <- if (is.null(dim(howManyTimes)[1])) { length(howManyTimes) } else { dim(howManyTimes)[1] }",
+           "uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1))\n",
 
            "ids_with_reads <- tapply(uniqueReadsByID$cumsum, as.vector(uniqueReadsByID$group), FUN = max)",
            "ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$group))]\n",
@@ -517,7 +518,8 @@ make_barcode_rmd <- function(results_folder) {
            "seq2 <- Vectorize(seq.default, vectorize.args = c('from', 'to'))",
            "howManyTimes <- table(as.vector(uniqueReadsByID$barcode))",
            "howManyTimes <- howManyTimes[match(names(howManyTimes), unique(uniqueReadsByID$barcode))]",
-           "uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dim(howManyTimes)[1]), to = howManyTimes, by = 1))\n",
+           "dimHMT <- if (is.null(dim(howManyTimes)[1])) { length(howManyTimes) } else { dim(howManyTimes)[1] }",
+           "uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1))\n",
 
            "ids_with_reads <- tapply(uniqueReadsByID$cumsum, as.vector(uniqueReadsByID$barcode), FUN = max)",
            "ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$barcode))]\n",
@@ -659,7 +661,8 @@ make_group_rmd <- function(results_folder) {
            "seq2 <- Vectorize(seq.default, vectorize.args = c('from', 'to'))",
            "howManyTimes <- table(as.vector(uniqueReadsByID$group))",
            "howManyTimes <- howManyTimes[match(names(howManyTimes), unique(uniqueReadsByID$group))]",
-           "uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dim(howManyTimes)[1]), to = howManyTimes, by = 1))\n",
+           "dimHMT <- if (is.null(dim(howManyTimes)[1])) { length(howManyTimes) } else { dim(howManyTimes)[1] }",
+           "uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1))\n",
 
            "ids_with_reads <- tapply(uniqueReadsByID$cumsum, as.vector(uniqueReadsByID$group), FUN = max)",
            "ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$group))]",
@@ -802,7 +805,8 @@ make_guide_rmd <- function(results_folder) {
            "seq2 <- Vectorize(seq.default, vectorize.args = c('from', 'to'))",
            "howManyTimes <- table(as.vector(uniqueReadsByID$guideRNA))",
            "howManyTimes <- howManyTimes[match(names(howManyTimes), unique(uniqueReadsByID$guideRNA))]",
-           "uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dim(howManyTimes)[1]), to = howManyTimes, by = 1))\n",
+           "dimHMT <- if (is.null(dim(howManyTimes)[1])) { length(howManyTimes) } else { dim(howManyTimes)[1] }",
+           "uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1))\n",
 
            "ids_with_reads <- tapply(uniqueReadsByID$cumsum, as.vector(uniqueReadsByID$guideRNA), FUN = max)",
            "ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$guideRNA))]\n",

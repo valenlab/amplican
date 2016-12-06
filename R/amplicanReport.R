@@ -11,6 +11,7 @@
 #' @param report_files (vector) You can supply your own names of the files.
 #' For each of the levels there has to be one file name. Files are created
 #' in current working directory by default.
+#' @include helpers_rmd.R
 #' @return (string) Path to the folder with results.
 #' @export
 #' @family analysis steps

@@ -3,7 +3,7 @@ title: "amplican overview"
 author: "Kornel Labun & Eivind Valen"
 date: "`r doc_date()`"
 package: "`r pkg_ver('amplican')`"
-output: BiocStyle::html_document2
+output: BiocStyle::html_document
 vignette: >
   %\VignetteIndexEntry{amplican overview}
   %\VignetteEngine{knitr::rmarkdown}

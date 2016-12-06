@@ -1,15 +1,11 @@
-#' Reverse complement string or vector of strings.
+#' Reverse and complement given string or list of strings
 #'
-#' @param toRevComp (vector of characters) Can be singular character.
-#' @return (vector of characters)
-#' @importFrom Biostrings DNAString DNAStringSet reverseComplement
+#' @param x (string or vector of strings)
+#' @return (string or vector of strings) reverse complemented input
+#' @importFrom Biostrings DNAStringSet reverseComplement
 #'
-revC <- function(toRevComp) {
-
-  as.character(Biostrings::reverseComplement(
-    if (length(toRevComp) == 1) {
-      Biostrings::DNAString(toRevComp)
-    } else {
-      Biostrings::DNAStringSet(toRevComp)
-    }))
+revComp <- function(x) {
+  return(
+    as.character(Biostrings::reverseComplement(Biostrings::DNAStringSet(x)))
+  )
 }

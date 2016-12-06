@@ -1,15 +1,3 @@
-#' Reverse and complement given string or list of strings
-#'
-#' @param x (string or vector of strings)
-#' @return (string or vector of strings) reverse complemented input
-#' @importFrom Biostrings DNAStringSet reverseComplement
-#'
-revComp <- function(x) {
-  return(
-    as.character(Biostrings::reverseComplement(Biostrings::DNAStringSet(x)))
-  )
-}
-
 #' Helper to construct GRanges with additional metadata columns.
 #'
 #' @param x (IRanges)
@@ -54,7 +42,9 @@ defGR <- function(x,
 getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
 
   del <- deletion(align)[[1]]
+  del <- shift(del, c(0, cumsum(width(del))[-length(del)]))
   ins <- insertion(align)[[1]]
+  ins <- shift(ins, c(0, cumsum(width(ins))[-length(ins)]))
   mm <- mismatchSummary(summary(align))$subject
 
   finalGR <- GRanges()
@@ -126,6 +116,7 @@ upperGroups <- function(candidate) {
 #' @importFrom utils write.csv
 #' @importFrom stats aggregate
 #' @importFrom ShortRead readFastq sread
+#' @include helpers_general.R helpers_filters.R
 #' @return resultsFolder as invisible
 #'
 makeAlignment <- function(configTable,
@@ -141,6 +132,7 @@ makeAlignment <- function(configTable,
                           PRIMER_DIMER,
                           cut_buffer) {
 
+  div <- c("deletion", "insertion")
   barcode <- configTable$Barcode[1]
   alignmentRangesBar <- GRanges()
   GenomeInfoDb::seqlevels(alignmentRangesBar) <- unique(configTable$ID)
@@ -296,20 +288,20 @@ makeAlignment <- function(configTable,
           next
         }
 
-        # Filter our deletions on end and beginings
+        # Filters
         forwardDataFiltered <-
-          forwardData[!(forwardData$type == "deletion" &
-                          end(forwardData) > nchar(amplicon))]
+          forwardData[!(forwardData$type %in% div &
+                          end(forwardData) >= configTable$reversePrimerPosition[i])]
         reverseDataFiltered <-
-          reverseData[!(reverseData$type == "deletion" &
-                          start(reverseData) == 1)]
-        # Filter insertions on end and beginings
+          reverseData[!(reverseData$type %in% div &
+                          end(reverseData) >= configTable$reversePrimerPosition[i])]
         forwardDataFiltered <-
-          forwardData[!(forwardData$type == "insertion" &
-                          start(forwardData) > nchar(amplicon))]
+          forwardData[!(forwardData$type %in% div &
+                          start(forwardData) <= configTable$forwardPrimerPositionEnd[i])]
         reverseDataFiltered <-
-          reverseData[!(reverseData$type == "insertion" &
-                          start(reverseData) == 1)]
+          reverseData[!(reverseData$type %in% div &
+                          start(reverseData) <= configTable$forwardPrimerPositionEnd[i])]
+
         # Frameshift table
         frameshift <- FALSE
         if (fastqfiles == 0 | fastqfiles == 0.5) {
@@ -350,8 +342,10 @@ makeAlignment <- function(configTable,
         }
 
         # cut assessment
-        overlapFd <- subsetByOverlaps(ranges(forwardDataFiltered[forwardDataFiltered$type == "deletion"]), configTable$cutSites[[i]])
-        overlapRe <- subsetByOverlaps(ranges(reverseDataFiltered[reverseDataFiltered$type == "deletion"]), configTable$cutSites[[i]])
+        overlapFd <- subsetByOverlaps(ranges(forwardDataFiltered[forwardDataFiltered$type == "deletion"]),
+                                      configTable$cutSites[[i]])
+        overlapRe <- subsetByOverlaps(ranges(reverseDataFiltered[reverseDataFiltered$type == "deletion"]),
+                                      configTable$cutSites[[i]])
         if (fastqfiles == 0 | fastqfiles == 0.5) {
           # forward and reverse have to agree on deletion
           overlapFd <- overlapFd[!is.na(match(overlapFd, overlapRe))]

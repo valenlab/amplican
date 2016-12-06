@@ -56,8 +56,7 @@
 #' Deletions overlapping this window will be considered a
 #' valid cut (if confirmed by both forward and reverse reads).
 #' @return (string) Path to results_folder.
-#' @include helpers_alignment.R helpers_filters.R helpers_warnings.R
-#' helpers_directory.R
+#' @include helpers_alignment.R helpers_warnings.R helpers_directory.R
 #' @import doParallel foreach GenomicRanges
 #' @import BiocParallel Biostrings
 #' @importFrom utils read.csv
