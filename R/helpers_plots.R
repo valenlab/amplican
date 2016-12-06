@@ -414,6 +414,7 @@ amplican_plot_deletions <- function(alignments,
                      ggplot2::aes(alpha = frequency,
                                   colour = cut,
                                   size = frequency,
+                                  height = frequency,
                                   x = start,
                                   xend = end)) +
     ggbio::xlim(1, ampl_len) +
@@ -437,6 +438,7 @@ amplican_plot_deletions <- function(alignments,
                      ggplot2::aes(alpha = frequency,
                                   colour = cut,
                                   size = frequency,
+                                  height = frequency,
                                   x = start,
                                   xend = end)) +
     ggbio::xlim(1, ampl_len) +
@@ -762,6 +764,7 @@ amplican_plot_cuts <- function(alignments,
     ggbio::geom_arch(data = archRanges,
                      ggplot2::aes(alpha = frequency,
                                   size = frequency,
+                                  height = frequency,
                                   x = start,
                                   xend = end,
                                   colour = seqnames)) +
@@ -782,7 +785,7 @@ amplican_plot_cuts <- function(alignments,
     ggplot2::annotate("text",
                       x = ampl_df$position,
                       label = ampl_df$nucleotide,
-                      y = -0.1,
+                      y = 0,
                       colour = ampl_df$colour)
   return(p)
 }
