@@ -1,3 +1,26 @@
+#' Pretty print forward and reverse reads aligned to each other.
+#'
+#' Usefull and needed for barcode reports.
+#'
+#' @param forward (character or vector of characters) Forward reads.
+#' @param reverse (character or vector of characters) Will be reverse
+#' complemented before alignment.
+#' @return Vector with alignments ready to be printed.
+#' @import Biostrings
+#' @include helpers_general.R
+#' @export
+#'
+amplican_print_reads <- function(forward, reverse) {
+
+  alignForwardReverse <- Biostrings::pairwiseAlignment(forward,
+                                                       revComp(reverse))
+  wPA <- capture.output(Biostrings::writePairwiseAlignments(alignForwardReverse))
+  wPA <- wPA[!grepl("#", wPA)]
+
+  wPA
+}
+
+
 #' Function to calculate figure height
 #' based on number of elements to plot.
 #'
@@ -67,6 +90,28 @@ write_alignment_plots <- function(ID, title, cut_buffer = 5) {
            paste0("```{r mismatches ", title, ", echo=F, fig.height=14, fig.width=30, message=F, warning=F}"),
            paste0("amplican_plot_mismatches(alignments, config, ", id_pass, ", ", cut_buffer, ")"),
            "```  \n"))
+}
+
+
+#' Writes unassigned reads
+#'
+#' @param barcode (string) CSV name of the barcode unassigned reads file.
+#' @param top (numeric) How many from the most abundant unassigned reads write.
+#' @return string to include in rmd file
+#'
+write_unassigned_reads <- function(barcode, top = 5) {
+  pure_bname <- gsub("_unassigned_reads.csv", "", barcode)
+  return(c(paste0("## ", pure_bname, "  \n"),
+           paste0("```{r plot unassigned reads ", pure_bname, ", echo=FALSE, message=F, warning=FALSE, comment = ''}"),
+           paste0("unassigned_reads <- read.csv(file.path(results_folder, 'alignments/unassigned_sequences', '", barcode, "'))"),
+           "unassigned_reads <- unassigned_reads[order(unassigned_reads$BarcodeFrequency, decreasing = TRUE), ]",
+           paste0("knitr::kable(data.frame(Forward = paste0('P', 1:", top, "),"),
+           paste0("                        Reverse = paste0('S', 1:", top, "),"),
+           paste0("                        Counts = unassigned_reads[1:", top, ", 'Total'],"),
+           paste0("                        Frequency = unassigned_reads[1:", top, ", 'BarcodeFrequency']))\n"),
+           paste0("knitr::asis_output(cat(amplican_print_reads(unassigned_reads[1:", top, ", 'Forward'],"),
+           paste0("                                            unassigned_reads[1:", top, ", 'Reverse']), sep = '\\n'))"),
+           "```\n"))
 }
 
 
@@ -412,6 +457,8 @@ make_barcode_rmd <- function(results_folder) {
 
   config <- read.csv(paste0(results_folder, '/config_summary.csv'))
   height <- plot_height(length(unique(config$Barcode)))
+  ub <- list.files(file.path(results_folder, "alignments/unassigned_sequences"))
+  ub_reads <- unlist(lapply(ub, function(x) write_unassigned_reads(x)))
 
   return(c(write_head("Report breakdown by Barcode"),
            "```{r load data, message=F, warning=FALSE, include=FALSE}",
@@ -425,6 +472,9 @@ make_barcode_rmd <- function(results_folder) {
            "# Description  \n",
            "***\n",
            write_explanation(),
+           "**Top unassigned reads** - take a look at the alignment of most abundant ",
+           "forward and reverse complemented reverse reads for each barcode, ",
+           "if you find that there is many unassigned reads you can ivestigate here.  ",
            "\n***\n",
            "# Barcode Summary  \n",
            "***\n",
@@ -538,7 +588,11 @@ make_barcode_rmd <- function(results_folder) {
            "  ylab('Unique reads percentage of contribution') +",
            "  xlab('Barcode') +",
            "  coord_flip()",
-           "``` \n" ))
+           "``` \n",
+           "***\n",
+           "# Top unassigned reads  \n",
+           "***\n",
+           ub_reads))
 }
 
 

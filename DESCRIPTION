@@ -43,10 +43,10 @@ Suggests:
     testthat,
     BiocStyle
 Collate:
+    'helpers_general.R'
     'helpers_rmd.R'
     'amplicanReport.R'
     'helpers_directory.R'
-    'helpers_general.R'
     'helpers_warnings.R'
     'helpers_filters.R'
     'helpers_alignment.R'
