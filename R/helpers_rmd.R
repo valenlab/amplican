@@ -7,6 +7,7 @@
 #' complemented before alignment.
 #' @return Vector with alignments ready to be printed.
 #' @import Biostrings
+#' @importFrom utils capture.output
 #' @include helpers_general.R
 #' @export
 #'
