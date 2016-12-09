@@ -44,8 +44,15 @@ getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
   del <- deletion(align)[[1]]
   del <- shift(del, c(0, cumsum(width(del))[-length(del)]))
   ins <- insertion(align)[[1]]
-  ins <- shift(ins, c(0, cumsum(width(ins))[-length(ins)]))
   mm <- mismatchSummary(summary(align))$subject
+
+  if (length(ins) > 0) {
+    ss <- sapply(mm$SubjectPosition, function(x) {
+      sum(width(ins)[x > start(ins)])
+    })
+    mm$SubjectPosition <- mm$SubjectPosition + ss
+  }
+  ins <- shift(ins, c(0, cumsum(width(ins))[-length(ins)]))
 
   finalGR <- GRanges()
 
