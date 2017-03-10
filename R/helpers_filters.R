@@ -51,12 +51,7 @@ alphabetQuality <- function(reads) {
   if (is.logical(reads)) {
     return(reads)
   }
-  # filt <- tryCatch({
-    # possible c stack limits -> trycatch
-    nucq <- ShortRead::polynFilter(nuc = c("A", "C", "T", "G"))
-    return(!as.logical(nucq(reads)))
-  # }, error = function(cond) {
-  #   return(grepl("^[ATCG]+$", sread(reads)))
-  # })
-  # return(filt)
+
+  nucq <- ShortRead::nFilter()
+  return(as.logical(nucq(reads)))
 }

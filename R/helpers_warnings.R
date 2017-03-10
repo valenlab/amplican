@@ -66,11 +66,11 @@ checkPrimers <- function(configTable, fastqfiles) {
         "Error: One of primers was not found in the amplicon.",
         if (length(fP) > 0)
           paste0(" Could't locate forward primer in amplicon for row: ",
-                 toString(fP))
+                 toString(fP + 1))
         else "",
         if (length(rP) > 0)
           paste0(" Could't locate reverse primer in amplicon for row: ",
-                 toString(rP))
+                 toString(rP + 1))
         else ""
       )
     )
