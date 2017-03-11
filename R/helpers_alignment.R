@@ -46,7 +46,7 @@ getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
   ins <- insertion(align)[[1]]
   mm <- mismatchSummary(summary(align))$subject
 
-  if (length(ins) > 0 & dim(mm) > 0) {
+  if (length(ins) > 0 & dim(mm)[1] > 0) {
     ss <- sapply(mm$SubjectPosition, function(x) {
       sum(width(ins)[x > start(ins)])
     })
