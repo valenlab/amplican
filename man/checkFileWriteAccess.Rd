@@ -15,4 +15,3 @@ checkFileWriteAccess(filePath)
 \description{
 This function checks if the given directory exist and can be written to.
 }
-

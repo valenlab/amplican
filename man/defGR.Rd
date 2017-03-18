@@ -26,4 +26,3 @@ defGR(x, ID, strand_info = "+", type = "deletion", originally = "",
 \description{
 Helper to construct GRanges with additional metadata columns.
 }
-

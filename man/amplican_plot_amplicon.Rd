@@ -15,4 +15,3 @@ amplican_plot_amplicon(amplicon)
 \description{
 Plots amplicon sequence using ggplot2.
 }
-

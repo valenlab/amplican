@@ -17,4 +17,3 @@ plot_height(x)
 Function to calculate figure height
 based on number of elements to plot.
 }
-

@@ -20,4 +20,3 @@ fields for start locations of the primers
 This function checks if the forward and reverse primer are in the amplicon
 and where they are located.
 }
-

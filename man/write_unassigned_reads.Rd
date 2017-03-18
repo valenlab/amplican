@@ -17,4 +17,3 @@ string to include in rmd file
 \description{
 Writes unassigned reads
 }
-

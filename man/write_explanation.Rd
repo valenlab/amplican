@@ -12,4 +12,3 @@ string of the explanation for rmd file
 \description{
 Writes explanation to the .Rmd report files.
 }
-

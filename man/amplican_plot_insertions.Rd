@@ -47,4 +47,3 @@ Other specialized plots: \code{\link{amplican_plot_cuts}},
   \code{\link{amplican_plot_deletions}},
   \code{\link{amplican_plot_mismatches}}
 }
-

@@ -16,4 +16,3 @@ do not change names of the files.}
 \description{
 Prepare summary report as .Rmd file.
 }
-

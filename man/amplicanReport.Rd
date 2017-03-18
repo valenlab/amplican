@@ -45,4 +45,3 @@ amplicanReport(results_folder, report_files = file.path(results_folder,
 Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanPipeline}}
 }
-

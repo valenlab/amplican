@@ -15,4 +15,3 @@ checkTarget(configTable)
 \description{
 This function checks if the guideRNA is in the amplicon.
 }
-

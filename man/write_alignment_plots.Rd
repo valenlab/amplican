@@ -19,4 +19,3 @@ string to include in rmd file
 \description{
 Writes alignment plots - aggregate on the amplicon: deletion, insertion and mismatch.
 }
-

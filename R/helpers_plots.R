@@ -176,9 +176,6 @@ amplican_plot_mismatches <- function(alignments,
                                      xlab_spacing = 4,
                                      filter = TRUE) {
 
-  # check for amplicons being the same
-  ampliconIntegrityCheck(config, id)
-
   idRanges <- alignments[alignments$seqnames %in% id, ]
   idRanges <- idRanges[idRanges$type == "mismatch", ]
 
@@ -353,9 +350,6 @@ amplican_plot_deletions <- function(alignments,
                                     cut_buffer = 5,
                                     xlab_spacing = 4,
                                     filter = TRUE) {
-
-  # check for amplicons being the same
-  ampliconIntegrityCheck(config, id)
 
   archRanges <- alignments[alignments$seqnames %in% id &
                              alignments$type == "deletion", ]
@@ -695,8 +689,6 @@ amplican_plot_cuts <- function(alignments,
                                id,
                                xlab_spacing = 4,
                                filter = TRUE) {
-
-  ampliconIntegrityCheck(config, id)
 
   archRanges <- alignments[alignments$seqnames %in% id & alignments$type == "deletion", ]
   archRanges <- archRanges[archRanges$cut == TRUE, ]

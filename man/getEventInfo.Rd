@@ -22,4 +22,3 @@ PairwiseAlignmentsSingleSubject returns truncated alignments.}
 \description{
 This function takes alignments and gives back the events coordinates.
 }
-

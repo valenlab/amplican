@@ -103,6 +103,7 @@ amplicanAlign <- function(config,
                              "Reverse_Primer",
                              "Direction",
                              "Amplicon")
+  configTable$Barcode <- as.character(configTable$Barcode)
   configTable$Forward_Reads_File <- ifelse(configTable$Forward_Reads_File == "",
                                            "",
                                            file.path(fastq_folder, configTable$Forward_Reads_File))
@@ -120,6 +121,9 @@ amplicanAlign <- function(config,
   }
   checkConfigFile(configTable, fastq_folder)
 
+  # Check for numbers in primers
+  # stringr::str_detect(configTable$Reverse_Primer, "[nN1-9]")
+
   configTable$Reverse_PrimerRC <- revComp(configTable$Reverse_Primer)
   configTable <- checkPrimers(configTable, fastqfiles)
 
@@ -134,7 +138,9 @@ amplicanAlign <- function(config,
   if (any(cutSitesCheck)) {
     message("Warning: Config file row without upper case groups (PAM): ",
             toString(which(cutSitesCheck)))
-    configTable$cutSites[cutSitesCheck] <- tile(IRanges(start = 1, width = configTable$ampl_len), 1)
+    configTable$cutSites[cutSitesCheck] <- as.list(IRanges::tile(IRanges::IRanges(start = 1,
+                                                                                  width = configTable$ampl_len[cutSitesCheck]),
+                                                                 1))
   }
 
   resultsFolder <- file.path(results_folder, "alignments")

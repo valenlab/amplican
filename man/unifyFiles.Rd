@@ -31,4 +31,3 @@ otherwise
 This function takes all the files in a given folder that match a regex
 pattern and merges them together.
 }
-

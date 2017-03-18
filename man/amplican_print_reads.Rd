@@ -18,4 +18,3 @@ Vector with alignments ready to be printed.
 \description{
 Usefull and needed for barcode reports.
 }
-

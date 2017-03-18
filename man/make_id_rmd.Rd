@@ -17,4 +17,3 @@ c() collection of strings to put into rmd file
 \description{
 Make contents for .Rmd file aggregated on ID.
 }
-

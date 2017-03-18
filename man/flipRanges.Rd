@@ -18,4 +18,3 @@ direction 1 reverse complemented.
 \description{
 Reverse complement events that have amplicons with direction 1.
 }
-

@@ -71,4 +71,3 @@ resultsFolder as invisible
 \description{
 Main functionality of the package, aligning reads to the amplicon.
 }
-

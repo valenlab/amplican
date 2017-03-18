@@ -78,4 +78,3 @@ amplicanPipeline(config, fastq_folder, results_folder, knit_files = FALSE)
 Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanReport}}
 }
-

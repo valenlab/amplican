@@ -15,4 +15,3 @@ alphabetQuality(reads)
 \description{
 This filters out sequences which have nonstandard nucleotides.
 }
-

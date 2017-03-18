@@ -23,4 +23,3 @@ filterEOP(idRanges, frPrimer, rwPrimer, amplicon)
 Filter Events Overlapping Primers. Message user when many of the events are
 filtered.
 }
-

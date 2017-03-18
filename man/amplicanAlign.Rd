@@ -100,4 +100,3 @@ amplicanAlign(config, fastq_folder, results_folder)
 Other analysis steps: \code{\link{amplicanPipeline}},
   \code{\link{amplicanReport}}
 }
-

@@ -1,26 +1,3 @@
-#' This function checks if amplicons can be ploted together, aka they are the
-#' same.
-#'
-#' @param configTable (data.frame) data frame of config file
-#' @param id (vector of characters) vector of IDs that are to be tested
-#' @include helpers_general.R
-#' @return (boolean) TRUE, If anything goes wrong stops and prints error.
-#'
-ampliconIntegrityCheck <- function(configTable, id) {
-
-  if (length(id) == 1) { return(TRUE) }
-  configTable <- configTable[configTable$ID %in% id, ]
-  revMe <- configTable$Direction == 1
-  amplicons <- as.vector(configTable$Amplicon)
-  amplicons[revMe] <- revComp(amplicons[revMe])
-  if (length(unique(toupper(amplicons))) != 1) {
-    stop("Specfied id's have no consensus amplicon.")
-  }
-
-  invisible(TRUE)
-}
-
-
 #' This function checks if the guideRNA is in the amplicon.
 #'
 #' @param configTable (data.frame) data frame of config file
@@ -101,13 +78,13 @@ checkConfigFile <- function(configTable, fastq_folder) {
   goodRows <- stats::complete.cases(configTable)
   if (sum(goodRows) != totalRows) {
     stop(paste0("Config file has bad rows: ",
-                paste(which(goodRows == FALSE) + 1),
+                toString(which(goodRows == FALSE) + 1),
                 " due to NA/NULL values"))
   }
 
   if (length(unique(configTable[, "ID"])) != totalRows) {
-    stop(paste0("Config file has duplicates IDs in rows:",
-                paste(which(duplicated(configTable[, "ID"])) + 1)))
+    stop(paste0("Config file has duplicates IDs in rows: ",
+                toString(which(duplicated(configTable[, "ID"])) + 1)))
   }
 
   barcode_primers_duple <- duplicated(configTable[, c("Barcode",

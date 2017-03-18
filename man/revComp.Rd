@@ -15,4 +15,3 @@ revComp(x)
 \description{
 Reverse and complement given string or list of strings
 }
-

@@ -15,4 +15,3 @@ string of the header for rmd file
 \description{
 Writes head of the .Rmd report files.
 }
-

@@ -23,4 +23,3 @@ numeric vector
 Creates equal label spacing.
 Used to calculate x label ticks.
 }
-

@@ -22,4 +22,3 @@ Its takes care of the following:
   Each barcode has unique forward reads file and reverse read files.
   Checks that the read files exist with read access.
 }
-
