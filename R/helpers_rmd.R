@@ -980,7 +980,7 @@ make_summary_rmd <- function(results_folder) {
            "                                                                           \"bad_alphabet\",",
            "                                                                           \"unassigned_reads\",",
            "                                                                           \"assigned_reads\"))",
-           "ggplot(data = summaryDFmelt, aes(x = barcode, y = value, fill = variable)) +",
+           "ggplot(data = summaryDFmelt, aes(x = as.factor(barcode), y = value, fill = variable)) +",
            "  geom_bar(position=\"stack\", stat=\"identity\") +",
            "  ylab(\"number of reads\") +",
            "  theme(legend.position = \"top\",",

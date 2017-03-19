@@ -110,8 +110,7 @@ checkConfigFile <- function(configTable, fastq_folder) {
   if (sum(access) > 0) {
     stop(paste0("We either don't have read access or paths are incorrect. ",
                 "Check specified paths in config for these files:\n",
-                paste(uniqueFilePaths[access],
-                      sep = "\n")))
+                toString(uniqueFilePaths[access])))
   }
   invisible(TRUE)
 }
