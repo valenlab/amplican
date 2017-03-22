@@ -1,8 +1,8 @@
-Config file:            /home/ai/R/x86_64-pc-linux-gnu-library/3.3/amplican/extdata/config.csv
+Config file:            folder/leading/to/config/file/that/has/been/used.csv
 Processors used:        1
 Skip Bad Nucleotides:   TRUE
-Average Quality:        0
-Minimum Quality:        0
+Average Quality:        30
+Minimum Quality:        30
 Write Alignments:       TRUE
 Fastq files Mode:       0
 Gap Opening:            50

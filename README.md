@@ -1,6 +1,6 @@
 # amplican: R package for the analysis of CRISPR induced mutations using sequencing amplicon data
 
-#### This package is still under development although this version is stable and can already be used.
+#### This package is still under development, although this version is stable and can be used already.
 
 #### About
 
@@ -45,4 +45,4 @@ browseVignettes("amplican")
 
 #### Feedback
 
-Please feel free to provide feedback or wanted functionality. My contact address is Kornel.Labun at uib.no.
+Please feel free to provide feedback or desired functionality. My contact address is Kornel.Labun at uib.no.

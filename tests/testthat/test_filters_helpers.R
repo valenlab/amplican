@@ -1,34 +1,27 @@
 library(amplican)
 context("Filter functions")
 
-# Invariant for (filterByNucleotides)
-#
-#   The dataframes must have the same length, so the array with the valid rows.
-#
-#   The dataframes must have a column named Sequence.
-#
-#   The returned array will have more FALSEs than validRows.
-#
-#   If validRows have a FALSE in position x, the returned array must have a
-#   FALSE in x.
+reads <- ShortRead::readFastq(system.file("extdata", "R1_001.fastq", package="amplican"))
 
-# test_that("str_length is number of characters", {
-#   expect_equal(str_length("a"), 1)
-#   expect_equal(str_length("ab"), 2)
-#   expect_equal(str_length("abc"), 3)
-# })
+test_that("goodAvgQuality filters below threshold", {
+  expect_false(goodAvgQuality(reads, 30)[19]) # 19th read is bad average
+  expect_equal(goodAvgQuality(reads, 35), c(rep(TRUE, 8), rep(FALSE, 4), rep(TRUE, 6), FALSE, FALSE))
+  expect_true(all(goodAvgQuality(reads, 20)))
+  expect_length(goodAvgQuality(reads), length(reads))
+  expect_identical(goodAvgQuality(c(TRUE, FALSE, TRUE)), c(TRUE, FALSE, TRUE))
+})
 
-# Invariant for filterByQuality
-#
-#   The dataframes must have the same length, so the array with the valid rows.
-#
-#   The dataframes must have a column named Quality.
-#
-#   The quality is defined by the FASTQ format, being '!' = 33 the lowest quality and '~' = 126 the highest. However, the
-#   arguments for functionare given from 0 to 93. If you set them to 94 or bigger, nothing will be valid. And if you set
-#   them to 0 or less, everything will be valid.
-#
-#   The returned array will have more FALSEs than validRows.
-#
-#   If validRows have a FALSE in position x, the returned array must have a
-#   FALSE in x.
+test_that("goodBaseQuality filters below threshold", {
+  expect_false(goodBaseQuality(reads, 25)[19])
+  expect_false(goodBaseQuality(reads, 25)[20])
+  expect_equal(goodBaseQuality(reads, 35), c(rep(TRUE, 8), rep(FALSE, 4), rep(TRUE, 6), FALSE, FALSE))
+  expect_true(all(goodBaseQuality(reads, 20)))
+  expect_length(goodBaseQuality(reads), length(reads))
+  expect_identical(goodBaseQuality(c(TRUE, FALSE, TRUE)), c(TRUE, FALSE, TRUE))
+})
+
+test_that("alphabetQuality filters N", {
+  expect_identical(alphabetQuality(reads), c(rep(TRUE, 10), rep(FALSE, 2), rep(TRUE, 5), FALSE, TRUE, TRUE))
+  expect_length(goodBaseQuality(reads), length(reads))
+  expect_identical(goodBaseQuality(c(TRUE, FALSE, TRUE)), c(TRUE, FALSE, TRUE))
+})

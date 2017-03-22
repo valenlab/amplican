@@ -17,7 +17,7 @@ PairwiseAlignmentsSingleSubject returns truncated alignments.}
 \item{strand_info}{(string) Either '+', '-' or default '*'}
 }
 \value{
-(List of GRanges) Object with meta-data for insertion, deletion, mismatch
+(GRanges) Object with meta-data for insertion, deletion, mismatch
 }
 \description{
 This function takes alignments and gives back the events coordinates.

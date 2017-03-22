@@ -4,7 +4,7 @@
 \alias{goodBaseQuality}
 \title{This filters out sequences which have bad base quality readings.}
 \usage{
-goodBaseQuality(reads, min = 0)
+goodBaseQuality(reads, min = 30)
 }
 \arguments{
 \item{reads}{(ShortRead object) Loaded reads from fastq.}

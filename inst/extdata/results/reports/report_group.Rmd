@@ -11,11 +11,11 @@ output:
 ---
 
 ```{r load data, message=F, warning=FALSE, include=FALSE}
-results_folder = '/home/ai/Projects/amplican/inst/extdata/results'
+results_folder = system.file('extdata', 'results', package = 'amplican')
 library(amplican)
 library(ggplot2)
-alignments <- read.csv(paste0(results_folder, '/alignments_events.csv'))
-config <- read.csv(paste0(results_folder, '/config_summary.csv'))
+alignments <- read.csv(file.path(results_folder, 'alignments_events.csv'), stringsAsFactors = FALSE)
+config <- read.csv(file.path(results_folder, 'config_summary.csv'), stringsAsFactors = FALSE)
 ```
 
 ***
@@ -28,7 +28,7 @@ config <- read.csv(paste0(results_folder, '/config_summary.csv'))
 **PRIMER DIMER filter** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS  
 **Cutting rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have cut  
 **Frameshift** - plot shows what percentage of reads that have frameshift  
-**Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads  
+**Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads. The more blue each row, the less heterogeneity in the reads, more green means reads don't repeat often and are unique  
 
 
 ***
@@ -123,7 +123,8 @@ uniqueReadsByID$cumsum <- do.call(c, cumsum_list)
 seq2 <- Vectorize(seq.default, vectorize.args = c('from', 'to'))
 howManyTimes <- table(as.vector(uniqueReadsByID$group))
 howManyTimes <- howManyTimes[match(names(howManyTimes), unique(uniqueReadsByID$group))]
-uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dim(howManyTimes)[1]), to = howManyTimes, by = 1))
+dimHMT <- if (is.null(dim(howManyTimes)[1])) { length(howManyTimes) } else { dim(howManyTimes)[1] }
+uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1))
 
 ids_with_reads <- tapply(uniqueReadsByID$cumsum, as.vector(uniqueReadsByID$group), FUN = max)
 ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$group))]
@@ -131,7 +132,15 @@ toDivide <- rep(ids_with_reads, times = howManyTimes)
 uniqueReadsByID$read_share_percentage <- uniqueReadsByID$cumsum * 100 / toDivide
 uniqueReadsByID$read_share_percentage_normal <- uniqueReadsByID$count * 100 / toDivide  
 
-ggplot(data = uniqueReadsByID, aes(x = group, y = read_share_percentage_normal, fill = read_share_percentage_normal)) +
+# divide into bins for colour
+uniqueReadsByID$bins <- cut(uniqueReadsByID$read_share_percentage_normal,
+c(0, 5, seq(10, 100, 10)))
+# reduce number of reads in 0-5 group - faster plots without artifacts
+uniqueReadsByID <- aggregate(read_share_percentage_normal ~ group + bins,
+data = uniqueReadsByID, sum)
+colorPalette <- colorRampPalette(c('#009E73', '#0072B2'))(length(levels(uniqueReadsByID$bins)))
+names(colorPalette) <- levels(uniqueReadsByID$bins)
+ggplot(data = uniqueReadsByID, aes(x = group, y = read_share_percentage_normal, fill = bins)) +
   geom_bar(position = 'stack', stat = 'identity') +
   theme(legend.position = 'top',
         axis.text = element_text(size=12),
@@ -140,6 +149,7 @@ ggplot(data = uniqueReadsByID, aes(x = group, y = read_share_percentage_normal, 
         legend.title = element_blank()) +
   ylab('Unique reads percentage of contribution') +
   xlab('Group') +
+  scale_fill_manual(values = colorPalette) +
   coord_flip() +
   coord_flip()
 ``` 

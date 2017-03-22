@@ -8,6 +8,10 @@ output:
     theme: paper
     toc_float: true
     number_sections: true
+vignette: >
+  %\VignetteIndexEntry{example amplicon report}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r load data, message=F, warning=FALSE, include=FALSE}

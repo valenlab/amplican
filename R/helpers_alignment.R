@@ -16,17 +16,18 @@ defGR <- function(x,
                   type = "deletion",
                   originally = "",
                   replacement = "") {
-
-  x <- GRanges(
+  finalGR <- GRanges(
     ranges = x,
     strand = Rle(rep(strand_info, length(x))),
-    seqnames = Rle(rep(ID, length(x)))
-  )
-  x$originally = originally
-  x$replacement = replacement
-  x$type = type
-  return(x)
+    seqnames = Rle(rep(ID, length(x))))
+
+  finalGR$originally = originally
+  finalGR$replacement = replacement
+  finalGR$type = type
+
+  return(finalGR)
 }
+
 
 #' This function takes alignments and gives back the events coordinates.
 #'
@@ -35,11 +36,13 @@ defGR <- function(x,
 #' @param ampl_shift (numeric) Shift events additionaly by this value.
 #' PairwiseAlignmentsSingleSubject returns truncated alignments.
 #' @param strand_info (string) Either '+', '-' or default '*'
-#' @return (List of GRanges) Object with meta-data for insertion, deletion, mismatch
+#' @return (GRanges) Object with meta-data for insertion, deletion, mismatch
 #' @import GenomicRanges
 #' @importFrom S4Vectors Rle
 #'
 getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
+
+  if (ampl_shift < 1) stop("Amplicon shift can't be less than 1.")
 
   del <- deletion(align)[[1]]
   del <- shift(del, c(0, cumsum(width(del))[-length(del)]))
@@ -69,12 +72,12 @@ getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
 
   if (dim(mm)[1] > 0) {
     finalGR <- c(finalGR,
-                   defGR(IRanges(mm$SubjectPosition, width = 1),
-                         ID,
-                         strand_info,
-                         "mismatch",
-                         mm$Subject,
-                         mm$Pattern))
+                 defGR(IRanges(mm$SubjectPosition, width = 1),
+                       ID,
+                       strand_info,
+                       "mismatch",
+                       as.character(mm$Subject),
+                       as.character(mm$Pattern)))
   }
 
   if (strand_info == "+") {

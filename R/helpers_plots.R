@@ -107,18 +107,18 @@ amplican_plot_amplicon <- function(amplicon) {
 #'
 #' @param idRanges (data.frame) Contains events.
 #' @param frPrimer (character) forward primer
-#' @param rwPrimer (character) reverse primer
+#' @param rvPrimer (character) reverse primer
 #' @param amplicon (character) amplicon sequence
 #' @return (data.frame) filtered data frame of events
 #' @importFrom stringr str_locate
 #'
-filterEOP <- function(idRanges, frPrimer, rwPrimer, amplicon) {
+filterEOP <- function(idRanges, frPrimer, rvPrimer, amplicon) {
 
   totalSum <- sum(idRanges$count)
   # events starting before end of forward primer
   idRanges <- idRanges[!idRanges$start < frPrimer[2],]
-  # events ending after start of rewerse primer
-  idRanges <- idRanges[!idRanges$end > rwPrimer[1],]
+  # events ending after start of reverse primer
+  idRanges <- idRanges[!idRanges$end > rvPrimer[1],]
 
   totalFiltered <- totalSum - sum(idRanges$count)
 
@@ -180,7 +180,7 @@ amplican_plot_mismatches <- function(alignments,
   idRanges <- idRanges[idRanges$type == "mismatch", ]
 
   if (dim(idRanges)[1] == 0) {
-    return("No mismatches to plot.")
+    return(message("No mismatches to plot."))
   }
 
   # reverse map events when amplicons have Direction 1
@@ -355,7 +355,7 @@ amplican_plot_deletions <- function(alignments,
                              alignments$type == "deletion", ]
 
   if (dim(archRanges)[1] == 0) {
-    return(print("No deletions to plot."))
+    return(message("No deletions to plot."))
   }
 
   archRanges <- flipRanges(archRanges, config)
@@ -512,7 +512,7 @@ amplican_plot_insertions <- function(alignments,
   ampl_len <- nchar(amplicon)
 
   if (dim(idRanges)[1] == 0) {
-    return(print("No insertions to plot."))
+    return(message("No insertions to plot."))
   }
 
   idRanges <- flipRanges(idRanges, config)
@@ -540,7 +540,7 @@ amplican_plot_insertions <- function(alignments,
   }
 
   if (dim(idRanges)[1] == 0) {
-    return(print("No insertions to plot."))
+    return(message("No insertions to plot."))
   }
 
   # reduce
@@ -703,7 +703,7 @@ amplican_plot_cuts <- function(alignments,
   archRanges <- flipRanges(archRanges, config)
 
   if (dim(archRanges)[1] == 0) {
-    return(print("No cuts to plot."))
+    return(message("No cuts to plot."))
   }
 
   archRanges <- stats::aggregate(
@@ -739,7 +739,7 @@ amplican_plot_cuts <- function(alignments,
   }
 
   if (dim(archRanges)[1] == 0) {
-    return(print("No cuts to plot."))
+    return(message("No cuts to plot."))
   }
 
   amplicon_colors <- c("#009E73", "#D55E00", "#F0E442", "#0072B2",

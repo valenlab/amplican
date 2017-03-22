@@ -37,12 +37,13 @@ Imports:
     matrixStats,
     Matrix,
     Biostrings,
-    BiocParallel
+    BiocParallel,
+    reshape2
 RoxygenNote: 6.0.1
 Suggests:
     testthat,
     BiocStyle
-Collate:
+Collate: 
     'helpers_general.R'
     'helpers_rmd.R'
     'amplicanReport.R'

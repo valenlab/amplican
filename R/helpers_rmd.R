@@ -64,7 +64,8 @@ write_explanation <- function() {
            "**PRIMER DIMER filter** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS  ",
            "**Cutting rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have cut  ",
            "**Frameshift** - plot shows what percentage of reads that have frameshift  ",
-           "**Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads  "))
+           paste0("**Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads.",
+                  " The more blue each row, the less heterogeneity in the reads, more green means reads don't repeat often and are unique  ")))
 }
 
 
@@ -104,14 +105,20 @@ write_unassigned_reads <- function(barcode, top = 5) {
   pure_bname <- gsub("_unassigned_reads.csv", "", barcode)
   return(c(paste0("## ", pure_bname, "  \n"),
            paste0("```{r plot unassigned reads ", pure_bname, ", echo=FALSE, message=F, warning=FALSE, comment = ''}"),
-           paste0("unassigned_reads <- read.csv(file.path(results_folder, 'alignments/unassigned_sequences', '", barcode, "'))"),
+           paste0("unassigned_reads <- read.csv(file.path(results_folder, 'alignments', 'unassigned_sequences', '", barcode, "'), stringsAsFactors = FALSE)"),
            "unassigned_reads <- unassigned_reads[order(unassigned_reads$BarcodeFrequency, decreasing = TRUE), ]",
-           paste0("knitr::kable(data.frame(Forward = paste0('P', 1:", top, "),"),
-           paste0("                        Reverse = paste0('S', 1:", top, "),"),
-           paste0("                        Counts = unassigned_reads[1:", top, ", 'Total'],"),
-           paste0("                        Frequency = unassigned_reads[1:", top, ", 'BarcodeFrequency']))\n"),
-           paste0("knitr::asis_output(cat(amplican_print_reads(unassigned_reads[1:", top, ", 'Forward'],"),
-           paste0("                                            unassigned_reads[1:", top, ", 'Reverse']), sep = '\\n'))"),
+           "if (dim(unassigned_reads)[1] == 0) {",
+           '  "No unassigned reads in this barcode. That\'s great!"',
+           "} else {",
+           paste0("  topN <- if (dim(unassigned_reads)[1] < ", top, ") dim(unassigned_reads)[1] else ", top),
+           "  knitr::kable(data.frame(Forward = paste0('P', 1:topN),",
+           "                          Reverse = paste0('S', 1:topN),",
+           "                          Counts = unassigned_reads[1:topN, 'Total'],",
+           "                          Frequency = unassigned_reads[1:topN, 'BarcodeFrequency']))",
+           "",
+           "  knitr::asis_output(cat(amplican_print_reads(unassigned_reads[1:topN, 'Forward'],",
+           "                                              unassigned_reads[1:topN, 'Reverse']), sep = '\n'))",
+           "}",
            "```\n"))
 }
 
@@ -125,7 +132,7 @@ write_unassigned_reads <- function(barcode, top = 5) {
 #'
 make_id_rmd <- function(results_folder, cut_buffer = 5) {
 
-  config <- utils::read.csv(paste0(results_folder, "/config_summary.csv"))
+  config <- utils::read.csv(file.path(results_folder, "config_summary.csv"), stringsAsFactors = FALSE)
   id_alignments_plots <- unlist(lapply(config$ID, function(x) write_alignment_plots(x, x, cut_buffer)))
   height <- plot_height(length(unique(config$ID)))
 
@@ -134,8 +141,8 @@ make_id_rmd <- function(results_folder, cut_buffer = 5) {
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments_events.csv'))",
-           "config <- read.csv(paste0(results_folder, '/config_summary.csv'))",
+           "alignments <- read.csv(file.path(results_folder, 'alignments_events.csv'), stringsAsFactors = FALSE)",
+           "config <- read.csv(file.path(results_folder, 'config_summary.csv'), stringsAsFactors = FALSE)",
            "```\n",
            "***\n",
            "# Description  \n",
@@ -265,7 +272,7 @@ make_id_rmd <- function(results_folder, cut_buffer = 5) {
 #'
 make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
 
-  config <- utils::read.csv(paste0(results_folder, "/config_summary.csv"))
+  config <- utils::read.csv(file.path(results_folder, "config_summary.csv"), stringsAsFactors = FALSE)
   config$AmpliconUpper <- toupper(config$Amplicon)
   uniqueAmlicons <- unique(config$AmpliconUpper)
   height <- plot_height(length(uniqueAmlicons))
@@ -287,8 +294,8 @@ make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments_events.csv'))",
-           "config <- read.csv(paste0(results_folder, '/config_summary.csv'))",
+           "alignments <- read.csv(file.path(results_folder, 'alignments_events.csv'), stringsAsFactors = FALSE)",
+           "config <- read.csv(file.path(results_folder, 'config_summary.csv'), stringsAsFactors = FALSE)",
            "config$AmpliconUpper <- toupper(config$Amplicon)",
            "uniqueAmlicons <- unique(config$AmpliconUpper)",
            "labels <- sapply(uniqueAmlicons, function(x) {toString(config$ID[config$AmpliconUpper == x])})",
@@ -475,9 +482,9 @@ make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
 #'
 make_barcode_rmd <- function(results_folder) {
 
-  config <- read.csv(paste0(results_folder, '/config_summary.csv'))
+  config <- read.csv(file.path(results_folder, 'config_summary.csv'), stringsAsFactors = FALSE)
   height <- plot_height(length(unique(config$Barcode)))
-  ub <- list.files(file.path(results_folder, "alignments/unassigned_sequences"))
+  ub <- list.files(file.path(results_folder, "alignments", "unassigned_sequences"))
   ub_reads <- unlist(lapply(ub, function(x) write_unassigned_reads(x)))
 
   return(c(write_head("Report breakdown by Barcode"),
@@ -485,8 +492,8 @@ make_barcode_rmd <- function(results_folder) {
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments_events.csv'))",
-           "config <- read.csv(paste0(results_folder, '/config_summary.csv'))",
+           "alignments <- read.csv(file.path(results_folder, 'alignments_events.csv'), stringsAsFactors = FALSE)",
+           "config <- read.csv(file.path(results_folder, 'config_summary.csv'), stringsAsFactors = FALSE)",
            "```\n",
            "***\n",
            "# Description  \n",
@@ -634,7 +641,7 @@ make_barcode_rmd <- function(results_folder) {
 #'
 make_group_rmd <- function(results_folder) {
 
-  config <- read.csv(paste0(results_folder, '/config_summary.csv'))
+  config <- read.csv(file.path(results_folder, 'config_summary.csv'), stringsAsFactors = FALSE)
   height <- plot_height(length(unique(config$Group)))
 
   return(c(write_head("Report breakdown by Group"),
@@ -642,8 +649,8 @@ make_group_rmd <- function(results_folder) {
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments_events.csv'))",
-           "config <- read.csv(paste0(results_folder, '/config_summary.csv'))",
+           "alignments <- read.csv(file.path(results_folder, 'alignments_events.csv'), stringsAsFactors = FALSE)",
+           "config <- read.csv(file.path(results_folder, 'config_summary.csv'), stringsAsFactors = FALSE)",
            "```\n",
            "***\n",
            "# Description  \n",
@@ -789,7 +796,7 @@ make_group_rmd <- function(results_folder) {
 #'
 make_guide_rmd <- function(results_folder) {
 
-  config <- read.csv(paste0(results_folder, '/config_summary.csv'))
+  config <- read.csv(file.path(results_folder, 'config_summary.csv'), stringsAsFactors = FALSE)
   height <- plot_height(length(unique(config$guideRNA)))
 
   return(c(write_head("Report breakdown by guideRNA"),
@@ -797,8 +804,8 @@ make_guide_rmd <- function(results_folder) {
            paste0("results_folder = '", results_folder, "'"),
            "library(amplican)",
            "library(ggplot2)",
-           "alignments <- read.csv(paste0(results_folder, '/alignments_events.csv'))",
-           "config <- read.csv(paste0(results_folder, '/config_summary.csv'))",
+           "alignments <- read.csv(file.path(results_folder, 'alignments_events.csv'), stringsAsFactors = FALSE)",
+           "config <- read.csv(file.path(results_folder, 'config_summary.csv'), stringsAsFactors = FALSE)",
            "```\n",
            "***\n",
            "# Description  \n",
@@ -944,7 +951,7 @@ make_guide_rmd <- function(results_folder) {
 #'
 make_summary_rmd <- function(results_folder) {
 
-  config <- utils::read.csv(paste0(results_folder, "/config_summary.csv"))
+  config <- utils::read.csv(file.path(results_folder, "config_summary.csv"), stringsAsFactors = FALSE)
   height <- plot_height(length(config$Barcode))
 
   return(c(write_head("Summary Read Report"),
@@ -965,7 +972,8 @@ make_summary_rmd <- function(results_folder) {
            "***\n",
            "```{r echo = F}",
            "library(knitr)",
-           paste0("summaryDF <- read.csv('", results_folder, "/barcode_reads_filters.csv')  "),
+           paste0("results_folder = '", results_folder, "'"),
+           "summaryDF <- read.csv(file.path(results_folder, 'barcode_reads_filters.csv'), stringsAsFactors = FALSE)",
            "kable(summaryDF)",
            "```\n",
            "Table 1. Reads distributed for each barcode\n",
@@ -983,6 +991,7 @@ make_summary_rmd <- function(results_folder) {
            "ggplot(data = summaryDFmelt, aes(x = as.factor(barcode), y = value, fill = variable)) +",
            "  geom_bar(position=\"stack\", stat=\"identity\") +",
            "  ylab(\"number of reads\") +",
+           "  xlab(\"Barcode\") +",
            "  theme(legend.position = \"top\",",
            "        legend.direction = \"horizontal\",",
            "        legend.title = element_blank()) +",

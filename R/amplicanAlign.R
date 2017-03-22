@@ -29,12 +29,12 @@
 #' average fall above this threshold then we take the sequence. Default is 0.
 #' @param min_quality (numeric)  Similar as in average_quality, but this is
 #' the minimum quality for ALL nucleotides. If one of them has quality BELLOW
-#' this threshold, then the sequence is skipped. Default is 0.
+#' this threshold, then the sequence is skipped. Default is 30.
 #' @param write_alignments (boolean) Whether we should write alignments results
 #' to separate files for each ID
 #' @param scoring_matrix (string) For now the only option is 'NUC44'.
 #' @param gap_opening (numeric) The opening gap score. Default is 50.
-#' @param gap_extension (numeric) The gap extension score. Default is 0.
+#' @param gap_extension (numeric) The gap extension score. Default is 30.
 #' @param fastqfiles (numeric) Normally you want to use both FASTQ files. But in
 #'                         some special cases, you may want to use only the
 #'                         forward file, or only the reverse file.
@@ -76,8 +76,8 @@ amplicanAlign <- function(config,
                           results_folder,
                           total_processors = 1,
                           skip_bad_nucleotides = TRUE,
-                          average_quality = 0,
-                          min_quality = 0,
+                          average_quality = 30,
+                          min_quality = 30,
                           write_alignments = TRUE,
                           scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
                             match = 5, mismatch = -4,
@@ -120,10 +120,6 @@ amplicanAlign <- function(config,
     fastqfiles <- 2
   }
   checkConfigFile(configTable, fastq_folder)
-
-  # Check for numbers in primers
-  # stringr::str_detect(configTable$Reverse_Primer, "[nN1-9]")
-
   configTable$Reverse_PrimerRC <- revComp(configTable$Reverse_Primer)
   configTable <- checkPrimers(configTable, fastqfiles)
 

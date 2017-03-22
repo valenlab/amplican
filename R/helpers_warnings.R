@@ -30,7 +30,7 @@ checkPrimers <- function(configTable, fastqfiles) {
 
   configTable[, c("forwardPrimerPosition", "forwardPrimerPositionEnd")] <-
     stringr::str_locate(tolower(configTable$Amplicon),
-                        tolower(configTable$Forward_Primer))
+                        tolower(configTable$Forward_Primer)) # str_locate is 1 based (min is 1)
   configTable[, c("reversePrimerPosition", "reversePrimerPosEnd")] <-
     stringr::str_locate(tolower(configTable$Amplicon),
                         tolower(configTable$Reverse_PrimerRC))
@@ -74,6 +74,20 @@ checkConfigFile <- function(configTable, fastq_folder) {
 
   totalRows <- dim(configTable)[1]
   totalCols <- dim(configTable)[2]
+
+  rp_num <- grepl("\\d", configTable$Reverse_Primer)
+  if (any(rp_num)) {
+    stop(paste0("Config file has bad rows: ",
+                toString(which(rp_num) + 1),
+                " due to reverse primers containing numeric values."))
+  }
+
+  fp_num <- grepl("\\d", configTable$Forward_Primer)
+  if (any(fp_num)) {
+    stop(paste0("Config file has bad rows: ",
+                toString(which(fp_num) + 1),
+                " due to forward primers containing numeric values."))
+  }
 
   goodRows <- stats::complete.cases(configTable)
   if (sum(goodRows) != totalRows) {

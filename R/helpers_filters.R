@@ -10,7 +10,7 @@
 #' @importFrom matrixStats rowMins
 #' @importFrom methods as slot
 #'
-goodBaseQuality <- function(reads, min = 0) {
+goodBaseQuality <- function(reads, min = 30) {
   if (is.logical(reads)) {
     return(reads)
   }
@@ -32,7 +32,7 @@ goodBaseQuality <- function(reads, min = 0) {
 #' @importFrom Matrix rowMeans
 #' @importFrom methods as slot
 #'
-goodAvgQuality <- function(reads, avg = 0) {
+goodAvgQuality <- function(reads, avg = 30) {
   if (is.logical(reads)) {
     return(reads)
   }
