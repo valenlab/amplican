@@ -128,7 +128,7 @@ seq2 <- Vectorize(seq.default, vectorize.args = c('from', 'to'))
 howManyTimes <- table(as.vector(uniqueReadsByID$guideRNA))
 howManyTimes <- howManyTimes[match(names(howManyTimes), unique(uniqueReadsByID$guideRNA))]
 dimHMT <- if (is.null(dim(howManyTimes)[1])) { length(howManyTimes) } else { dim(howManyTimes)[1] }
-uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1))
+uniqueReadsByID$read_number <- as.vector(unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1)))
 
 ids_with_reads <- tapply(uniqueReadsByID$cumsum, as.vector(uniqueReadsByID$guideRNA), FUN = max)
 ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$guideRNA))]

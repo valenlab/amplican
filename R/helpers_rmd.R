@@ -228,7 +228,7 @@ make_id_rmd <- function(results_folder, cut_buffer = 5) {
            "howManyTimes <- aggregate(read_id ~ seqnames, data = uniqueReadsByID, length)\n",
            "howManyTimes <- howManyTimes[match(howManyTimes$seqnames, unique(uniqueReadsByID$seqnames)),]  \n",
            "seq2 <- Vectorize(seq.default, vectorize.args = c('from', 'to'))",
-           "uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dim(howManyTimes)[1]), to = howManyTimes$read_id, by = 1))  \n",
+           "uniqueReadsByID$read_number <- as.vector(unlist(seq2(from = rep(1, dim(howManyTimes)[1]), to = howManyTimes$read_id, by = 1)))  \n",
            "ids_with_reads <- tapply(uniqueReadsByID$cumsum, uniqueReadsByID$seqnames, FUN = max)",
            "ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$seqnames))]",
            "#config[match(howManyTimes$seqnames, config$ID),]",
@@ -433,7 +433,7 @@ make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
            "howManyTimes <- table(as.vector(uniqueReadsByID$group))",
            "howManyTimes <- howManyTimes[match(names(howManyTimes), unique(uniqueReadsByID$group))]",
            "dimHMT <- if (is.null(dim(howManyTimes)[1])) { length(howManyTimes) } else { dim(howManyTimes)[1] }",
-           "uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1))\n",
+           "uniqueReadsByID$read_number <- as.vector(unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1)))\n",
 
            "ids_with_reads <- tapply(uniqueReadsByID$cumsum, as.vector(uniqueReadsByID$group), FUN = max)",
            "ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$group))]\n",
@@ -596,7 +596,7 @@ make_barcode_rmd <- function(results_folder) {
            "howManyTimes <- table(as.vector(uniqueReadsByID$barcode))",
            "howManyTimes <- howManyTimes[match(names(howManyTimes), unique(uniqueReadsByID$barcode))]",
            "dimHMT <- if (is.null(dim(howManyTimes)[1])) { length(howManyTimes) } else { dim(howManyTimes)[1] }",
-           "uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1))\n",
+           "uniqueReadsByID$read_number <- as.vector(unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1)))\n",
 
            "ids_with_reads <- tapply(uniqueReadsByID$cumsum, as.vector(uniqueReadsByID$barcode), FUN = max)",
            "ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$barcode))]\n",
@@ -754,7 +754,7 @@ make_group_rmd <- function(results_folder) {
            "howManyTimes <- table(as.vector(uniqueReadsByID$group))",
            "howManyTimes <- howManyTimes[match(names(howManyTimes), unique(uniqueReadsByID$group))]",
            "dimHMT <- if (is.null(dim(howManyTimes)[1])) { length(howManyTimes) } else { dim(howManyTimes)[1] }",
-           "uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1))\n",
+           "uniqueReadsByID$read_number <- as.vector(unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1)))\n",
 
            "ids_with_reads <- tapply(uniqueReadsByID$cumsum, as.vector(uniqueReadsByID$group), FUN = max)",
            "ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$group))]",
@@ -909,7 +909,7 @@ make_guide_rmd <- function(results_folder) {
            "howManyTimes <- table(as.vector(uniqueReadsByID$guideRNA))",
            "howManyTimes <- howManyTimes[match(names(howManyTimes), unique(uniqueReadsByID$guideRNA))]",
            "dimHMT <- if (is.null(dim(howManyTimes)[1])) { length(howManyTimes) } else { dim(howManyTimes)[1] }",
-           "uniqueReadsByID$read_number <- unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1))\n",
+           "uniqueReadsByID$read_number <- as.vector(unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1)))\n",
 
            "ids_with_reads <- tapply(uniqueReadsByID$cumsum, as.vector(uniqueReadsByID$guideRNA), FUN = max)",
            "ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$guideRNA))]\n",

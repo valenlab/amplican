@@ -6,7 +6,7 @@ NULL
 #' @param idRanges (data.frame) Loaded events.
 #' @param configTable (data.frame) Loaded configuration file.
 #' @return (data.frame) Returns input idRanges, but events for amplicons with
-#' direction 1 reverse complemented.
+#' direction 1 reverse complemented, "+" and "-" swapped.
 #'
 flipRanges <- function(idRanges, configTable) {
 
@@ -27,8 +27,13 @@ flipRanges <- function(idRanges, configTable) {
     old_starts <- idRanges[to_flip, "start"]
     idRanges[to_flip, "start"] <- ampl_lengths - idRanges[to_flip, "end"] + 1
     idRanges[to_flip, "end"] <- ampl_lengths - old_starts + 1
-  }
 
+    strand <- idRanges[to_flip, "strand"]
+    strand_minus <-strand == "-"
+    strand[strand == "+"] <- "-"
+    strand[strand_minus] <- "+"
+    idRanges[to_flip, "strand"] <- strand
+  }
   return(idRanges)
 }
 
@@ -36,27 +41,18 @@ flipRanges <- function(idRanges, configTable) {
 #' Creates equal label spacing.
 #' Used to calculate x label ticks.
 #'
-#' @param direction (numeric) 0 or 1
 #' @param box (IRanges) specifies where predcited cut site is
 #' @param ampl_len (numeric) Length of the amplicon
 #' @param spacing (numeric) desired spacing between ticks
 #' @return numeric vector
 #' @importFrom IRanges start end
 #'
-xlabels_spacing <- function(direction, box, ampl_len, spacing) {
+xlabels_spacing <- function(box, ampl_len, spacing) {
 
-  if (direction != 1) {
-    if (length(box) >= 1) {
-      seq(-IRanges::start(box[1]) + 1, ampl_len - IRanges::start(box[1]), spacing)
-    } else {
-      seq(1, ampl_len, spacing)
-    }
+  if (length(box) >= 1) {
+    seq(-IRanges::start(box[1]) + 1, ampl_len - IRanges::start(box[1]), spacing)
   } else {
-    if (length(box) >= 1) {
-      rev(seq(IRanges::end(box[1]) - ampl_len + 1, IRanges::end(box[1]), spacing))
-    } else {
-      rev(seq(1, ampl_len, spacing))
-    }
+    seq(1, ampl_len, spacing)
   }
 }
 
@@ -89,8 +85,7 @@ amplican_plot_amplicon <- function(amplicon) {
     ggplot2::ylim(0.7, 1.1) +
     ggbio::xlim(1, dim(ampl_df)[1]) +
     ggplot2::theme_bw() +
-    ggplot2::theme(panel.grid = element_blank(),
-                   legend.position = "none",
+    ggplot2::theme(legend.position = "none",
                    legend.spacing = unit(0, "cm"),
                    line = element_blank(),
                    rect = element_blank(),
@@ -106,8 +101,8 @@ amplican_plot_amplicon <- function(amplicon) {
 #' filtered.
 #'
 #' @param idRanges (data.frame) Contains events.
-#' @param frPrimer (character) forward primer
-#' @param rvPrimer (character) reverse primer
+#' @param frPrimer (character) forward primer location
+#' @param rvPrimer (character) reverse primer location
 #' @param amplicon (character) amplicon sequence
 #' @return (data.frame) filtered data frame of events
 #' @importFrom stringr str_locate
@@ -133,6 +128,58 @@ filterEOP <- function(idRanges, frPrimer, rvPrimer, amplicon) {
   return(idRanges)
 }
 
+#' amplicon sequence, reverse complemented when needed
+#'
+#' @param config (data.frame) config table
+#' @param id (vector) a vector of id's
+#' @return (character) amplicon sequence, reverse complemented if Direction 1
+#'
+get_amplicon <- function(config, id) {
+  amplicon <- as.character(config[which(config$ID == id[1]), "Amplicon"])
+  if (config[which(config$ID == id[1]), "Direction"] == 1) {
+    # revComp makes upper cases
+    groups <- as.data.frame(upperGroups(amplicon))
+    old_starts <- groups$start
+    groups$start <- nchar(amplicon) - groups$end + 1
+    groups$end <- nchar(amplicon) - old_starts + 1
+    amplicon <- tolower(revComp(amplicon))
+    for (i in seq_len(dim(groups)[1])) { # there may be many UPPER groups
+      substr(amplicon, groups$start[i], groups$end[i]) <-
+        toupper(substr(amplicon, groups$start[i], groups$end[i]))
+    }
+  }
+  return(amplicon)
+}
+
+
+#' left primer sequence
+#'
+#' @param config (data.frame) config table
+#' @param id (vector) a vector of id's
+#' @return (character) left primer sequence
+#'
+get_left_primer <- function(config, id) {
+  if (config[which(config$ID == id[1]), "Direction"] == 1) {
+    as.character(config[which(config$ID == id[1]), "Reverse_Primer"])
+  } else {
+    as.character(config[which(config$ID == id[1]), "Forward_Primer"])
+  }
+}
+
+
+#' right primer sequence
+#'
+#' @param config (data.frame) config table
+#' @param id (vector) a vector of id's
+#' @return (character) right primer sequence
+#'
+get_right_primer <- function(config, id) {
+  if (config[which(config$ID == id[1]), "Direction"] == 1) {
+    revComp(as.character(config[which(config$ID == id[1]), "Forward_Primer"]))
+  } else {
+    revComp(as.character(config[which(config$ID == id[1]), "Reverse_Primer"]))
+  }
+}
 
 #' Plots mismatches using ggplot2 and ggbio.
 #'
@@ -180,48 +227,46 @@ amplican_plot_mismatches <- function(alignments,
   idRanges <- idRanges[idRanges$type == "mismatch", ]
 
   if (dim(idRanges)[1] == 0) {
-    return(message("No mismatches to plot."))
+    return("No mismatches to plot.")
   }
 
   # reverse map events when amplicons have Direction 1
   idRanges <- flipRanges(idRanges, config)
-
-  amplicon <- as.character(config[which(config$ID == id[1]), "Amplicon"])
+  amplicon <- get_amplicon(config, id)
   ampl_len <- nchar(amplicon)
   amplicon_colors <- c("#009E73", "#D55E00", "#F0E442", "#0072B2",
                        "#009E73", "#D55E00", "#F0E442", "#0072B2")
   names(amplicon_colors) <- c("A", "C", "G", "T", "a", "c", "g", "t")
 
   box <- upperGroups(amplicon)
-  xlabels <- xlabels_spacing(config[which(config$ID == id[1]), "Direction"],
-                             box, ampl_len, xlab_spacing)
+  xlabels <- xlabels_spacing(box, ampl_len, xlab_spacing)
   xbreaks <- seq(1, ampl_len, xlab_spacing)
   box <- box + cut_buffer
 
-  frPrimer <- as.character(config[which(config$ID == id[1]), "Forward_Primer"])
-  frPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
-                                                 toupper(frPrimer)))
-  rwPrimer <- as.character(config[which(config$ID == id[1]), "Reverse_Primer"])
-  rwPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
-                                                 revComp(rwPrimer)))
-  primers <- c(frPrimer, rwPrimer)
-  if (length(frPrimer) == 0) {
-    frPrimer <- c(1, 1)
+  leftPrimer <- get_left_primer(config, id)
+  leftPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
+                                                   toupper(leftPrimer)))
+  rightPrimer <- get_right_primer(config, id)
+  rightPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
+                                                    toupper(rightPrimer)))
+  primers <- c(leftPrimer, rightPrimer)
+  if (length(leftPrimer) == 0) {
+    leftPrimer <- c(1, 1)
   }
-  if (length(rwPrimer) == 0) {
-    rwPrimer <- c(ampl_len, ampl_len)
+  if (length(rightPrimer) == 0) {
+    rightPrimer <- c(ampl_len, ampl_len)
   }
 
   if (filter) {
     idRanges <-
       filterEOP(idRanges,
-                frPrimer,
-                rwPrimer,
+                leftPrimer,
+                rightPrimer,
                 amplicon)
   }
 
   if (dim(idRanges)[1] == 0) {
-    return(message("No mismatches to plot."))
+    return("No mismatches to plot.")
   }
 
   # variables to NULL first to negate CRAN check
@@ -233,27 +278,18 @@ amplican_plot_mismatches <- function(alignments,
   freqAgrPlus <- freqAgr[freqAgr$strand == "+", ]
   freqAgrMinus <- freqAgr[freqAgr$strand == "-", ]
 
-  if (dim(freqAgrPlus)[1] == 0) {
-    freqAgrPlus <- rbind(
-      freqAgrPlus, data.frame(replacement = "G",
-                              start = 0,
-                              strand = "+",
-                              count = 0,
-                              frequency = 0))
-  }
-
-  if (dim(freqAgrMinus)[1] == 0) {
-    freqAgrMinus <- rbind(
-      freqAgrMinus, data.frame(replacement = "G",
-                               start = 0,
-                               strand = "+",
-                               count = 0,
-                               frequency = 0))
-  }
+  # sometimes barplot gets confused so we add mock data
+  mock <- data.frame(replacement = rep("G", ampl_len),
+                     start = 1:ampl_len,
+                     strand = rep("+", ampl_len),
+                     count = rep(0, ampl_len),
+                     frequency = rep(0, ampl_len))
+  freqAgrPlus <- rbind(freqAgrPlus, mock)
+  freqAgrMinus <- rbind(freqAgrMinus, mock)
 
   mut_fr <- ggplot2::ggplot() +
     ggplot2::geom_bar(data = freqAgrPlus,
-                      ggplot2::aes(x = as.numeric(start) + 1,
+                      ggplot2::aes(x = as.numeric(start),
                                    y = frequency,
                                    fill = replacement),
                       stat = "identity", position = "identity") +
@@ -262,8 +298,7 @@ amplican_plot_mismatches <- function(alignments,
     ggplot2::theme_bw() +
     ggplot2::theme(panel.spacing = unit(0, "cm"),
                    legend.position = "none",
-                   legend.spacing = unit(0, "cm"),
-                   panel.grid = element_blank()) +
+                   legend.spacing = unit(0, "cm")) +
     ggplot2::ylab("Frequency [%]") +
     ggplot2::scale_x_continuous(labels = xlabels, breaks = xbreaks) +
     ggplot2::geom_vline(xintercept = c(IRanges::start(box), IRanges::end(box)),
@@ -275,7 +310,7 @@ amplican_plot_mismatches <- function(alignments,
 
   mut_re <- ggplot2::ggplot() +
     ggplot2::geom_bar(data = freqAgrMinus,
-                      ggplot2::aes(x = as.numeric(start) + 1,
+                      ggplot2::aes(x = as.numeric(start),
                                    y = frequency,
                                    fill = replacement),
                       stat = "identity",
@@ -285,8 +320,7 @@ amplican_plot_mismatches <- function(alignments,
     ggplot2::theme_bw() +
     ggplot2::theme(panel.spacing = unit(0, "cm"),
                    legend.position = "none",
-                   legend.spacing = unit(0, "cm"),
-                   panel.grid = element_blank()) +
+                   legend.spacing = unit(0, "cm")) +
     ggplot2::ylab("Frequency [%]") +
     ggplot2::scale_x_continuous(labels = xlabels, breaks = xbreaks) +
     ggplot2::geom_vline(xintercept = c(IRanges::start(box), IRanges::end(box)),
@@ -303,7 +337,7 @@ amplican_plot_mismatches <- function(alignments,
                      heights = c(0.5, 0.03, 0.53),
                      padding = -1,
                      xlim = 1:ampl_len,
-                     xlab = "Nucleotide Position Relative to PAM")
+                     xlab = "Relative Nucleotide Position")
   return(p)
 }
 
@@ -355,12 +389,11 @@ amplican_plot_deletions <- function(alignments,
                              alignments$type == "deletion", ]
 
   if (dim(archRanges)[1] == 0) {
-    return(message("No deletions to plot."))
+    return("No deletions to plot.")
   }
 
   archRanges <- flipRanges(archRanges, config)
-
-  amplicon <- as.character(config[which(config$ID == id[1]), "Amplicon"])
+  amplicon <- get_amplicon(config, id)
   ampl_len <- nchar(amplicon)
 
   archRanges <- stats::aggregate(
@@ -368,35 +401,40 @@ amplican_plot_deletions <- function(alignments,
   archRanges$cut <- archRanges$cut > 0
 
   box <- upperGroups(amplicon)
-  xlabels <- xlabels_spacing(config[which(config$ID == id[1]), "Direction"],
-                             box, ampl_len, xlab_spacing)
+  xlabels <- xlabels_spacing(box, ampl_len, xlab_spacing)
   xbreaks <- seq(1, ampl_len, xlab_spacing)
   box <- box + cut_buffer
 
-  frPrimer <- as.character(config[which(config$ID == id[1]), "Forward_Primer"])
-  frPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
-                                                 toupper(frPrimer)))
-  rwPrimer <- as.character(config[which(config$ID == id[1]), "Reverse_Primer"])
-  rwPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
-                                                 revComp(rwPrimer)))
-  primers <- c(frPrimer, rwPrimer)
-  if (length(frPrimer) == 0) {
-    frPrimer <- c(1, 1)
+  leftPrimer <- get_left_primer(config, id)
+  leftPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
+                                                   toupper(leftPrimer)))
+  rightPrimer <- get_right_primer(config, id)
+  rightPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
+                                                    toupper(rightPrimer)))
+  primers <- c(leftPrimer, rightPrimer)
+  if (length(leftPrimer) == 0) {
+    leftPrimer <- c(1, 1)
   }
-  if (length(rwPrimer) == 0) {
-    rwPrimer <- c(ampl_len, ampl_len)
+  if (length(rightPrimer) == 0) {
+    rightPrimer <- c(ampl_len, ampl_len)
+  }
+  if (length(leftPrimer) == 0) {
+    leftPrimer <- c(1, 1)
+  }
+  if (length(rightPrimer) == 0) {
+    rightPrimer <- c(ampl_len, ampl_len)
   }
 
   if (filter) {
     archRanges <-
       filterEOP(archRanges,
-                frPrimer,
-                rwPrimer,
+                leftPrimer,
+                rightPrimer,
                 amplicon)
   }
 
   if (dim(archRanges)[1] == 0) {
-    return(print("No deletions to plot."))
+    return("No deletions to plot.")
   }
 
   frequency <- cut <- NULL
@@ -415,8 +453,7 @@ amplican_plot_deletions <- function(alignments,
     ggplot2::theme_bw() +
     ggplot2::theme(panel.spacing = unit(0, "cm"),
                    legend.position = "none",
-                   legend.spacing = unit(0, "cm"),
-                   panel.grid = ggplot2::element_blank()) +
+                   legend.spacing = unit(0, "cm")) +
     ggplot2::ylab("Frequency [%]") +
     ggplot2::scale_x_continuous(labels = xlabels, breaks = xbreaks) +
     ggplot2::geom_vline(xintercept = c(IRanges::start(box), IRanges::end(box)),
@@ -439,8 +476,7 @@ amplican_plot_deletions <- function(alignments,
     ggplot2::theme_bw() +
     ggplot2::theme(panel.spacing = unit(0, "cm"),
                    legend.position = "none",
-                   legend.spacing = unit(0, "cm"),
-                   panel.grid = ggplot2::element_blank()) +
+                   legend.spacing = unit(0, "cm")) +
     ggplot2::ylab("Frequency [%]") +
     ggplot2::scale_x_continuous(labels = xlabels, breaks = xbreaks) +
     ggplot2::geom_vline(xintercept = c(IRanges::start(box), IRanges::end(box)),
@@ -458,7 +494,7 @@ amplican_plot_deletions <- function(alignments,
                      heights = c(0.5, 0.03, 0.53),
                      padding = -1,
                      xlim = 1:ampl_len,
-                     xlab = "Nucleotide Position Relative to PAM")
+                     xlab = "Relative Nucleotide Position")
   return(p)
 }
 
@@ -508,39 +544,39 @@ amplican_plot_insertions <- function(alignments,
   idRanges <- alignments[alignments$seqnames %in% id &
                            alignments$type == "insertion", ]
 
-  amplicon <- as.character(config[which(config$ID == id[1]), "Amplicon"])
+  amplicon <- get_amplicon(config, id)
   ampl_len <- nchar(amplicon)
 
   if (dim(idRanges)[1] == 0) {
-    return(message("No insertions to plot."))
+    return("No insertions to plot.")
   }
 
   idRanges <- flipRanges(idRanges, config)
 
-  frPrimer <- as.character(config[which(config$ID == id[1]), "Forward_Primer"])
-  frPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
-                                                 toupper(frPrimer)))
-  rwPrimer <- as.character(config[which(config$ID == id[1]), "Reverse_Primer"])
-  rwPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
-                                                 revComp(rwPrimer)))
-  primers <- c(frPrimer, rwPrimer)
-  if (length(frPrimer) == 0) {
-    frPrimer <- c(1, 1)
+  leftPrimer <- get_left_primer(config, id)
+  leftPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
+                                                   toupper(leftPrimer)))
+  rightPrimer <- get_right_primer(config, id)
+  rightPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
+                                                    toupper(rightPrimer)))
+  primers <- c(leftPrimer, rightPrimer)
+  if (length(leftPrimer) == 0) {
+    leftPrimer <- c(1, 1)
   }
-  if (length(rwPrimer) == 0) {
-    rwPrimer <- c(ampl_len, ampl_len)
+  if (length(rightPrimer) == 0) {
+    rightPrimer <- c(ampl_len, ampl_len)
   }
 
   if (filter) {
     idRanges <-
       filterEOP(idRanges,
-                frPrimer,
-                rwPrimer,
+                leftPrimer,
+                rightPrimer,
                 amplicon)
   }
 
   if (dim(idRanges)[1] == 0) {
-    return(message("No insertions to plot."))
+    return("No insertions to plot.")
   }
 
   # reduce
@@ -587,8 +623,7 @@ amplican_plot_insertions <- function(alignments,
   }
 
   box <- upperGroups(amplicon)
-  xlabels <- xlabels_spacing(config[which(config$ID == id[1]), "Direction"],
-                             box, ampl_len, xlab_spacing)
+  xlabels <- xlabels_spacing(box, ampl_len, xlab_spacing)
   xbreaks <- seq(1, ampl_len, xlab_spacing)
   box <- box + cut_buffer
 
@@ -600,12 +635,11 @@ amplican_plot_insertions <- function(alignments,
                                        group = group,
                                        alpha = frequency,
                                        size = frequency),
-                          fill = "red") +
+                          fill = "#FF0000") +
     ggplot2::theme_bw() +
     ggplot2::theme(panel.spacing = unit(0, "cm"),
                    legend.position = "none",
-                   legend.spacing = unit(0, "cm"),
-                   panel.grid = ggplot2::element_blank()) +
+                   legend.spacing = unit(0, "cm")) +
     ggplot2::ylab("Frequency [%]") +
     ggplot2::scale_x_continuous(labels = xlabels, breaks = xbreaks) +
     ggplot2::geom_vline(xintercept = c(IRanges::start(box), IRanges::end(box)),
@@ -622,13 +656,12 @@ amplican_plot_insertions <- function(alignments,
                                        group = group,
                                        alpha = frequency,
                                        size = frequency),
-                          fill = "red") +
+                          fill = "#FF0000") +
     ggbio::xlim(1, ampl_len) +
     ggplot2::theme_bw() +
     ggplot2::theme(panel.spacing = unit(0, "cm"),
                    legend.position = "none",
-                   legend.spacing = unit(0, "cm"),
-                   panel.grid = ggplot2::element_blank()) +
+                   legend.spacing = unit(0, "cm")) +
     ggplot2::ylab("Frequency [%]") +
     ggplot2::scale_x_continuous(labels = xlabels, breaks = xbreaks) +
     ggplot2::geom_vline(xintercept = c(IRanges::start(box), IRanges::end(box)),
@@ -645,7 +678,7 @@ amplican_plot_insertions <- function(alignments,
                      heights = c(0.5, 0.03, 0.53),
                      padding = -1,
                      xlim = 1:ampl_len,
-                     xlab = "Nucleotide Position Relative to PAM")
+                     xlab = "Relative Nucleotide Position")
   return(p)
 }
 
@@ -697,13 +730,13 @@ amplican_plot_cuts <- function(alignments,
     archRanges <- archRanges[archRanges$strand == "+", ]
   }
 
-  amplicon <- as.character(config[which(config$ID == id[1]), "Amplicon"])
+  amplicon <- get_amplicon(config, id)
   ampl_len <- nchar(amplicon)
 
   archRanges <- flipRanges(archRanges, config)
 
   if (dim(archRanges)[1] == 0) {
-    return(message("No cuts to plot."))
+    return("No cuts to plot.")
   }
 
   archRanges <- stats::aggregate(
@@ -712,34 +745,33 @@ amplican_plot_cuts <- function(alignments,
     sum)
 
   box <- upperGroups(amplicon)
-  xlabels <- xlabels_spacing(config[which(config$ID == id[1]), "Direction"],
-                             box, ampl_len, xlab_spacing)
+  xlabels <- xlabels_spacing(box, ampl_len, xlab_spacing)
   xbreaks <- seq(1, ampl_len, xlab_spacing)
 
-  frPrimer <- as.character(config[which(config$ID == id[1]), "Forward_Primer"])
-  frPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
-                                                 toupper(frPrimer)))
-  rwPrimer <- as.character(config[which(config$ID == id[1]), "Reverse_Primer"])
-  rwPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
-                                                 revComp(rwPrimer)))
-  primers <- c(frPrimer, rwPrimer)
-  if (length(frPrimer) == 0) {
-    frPrimer <- c(1, 1)
+  leftPrimer <- get_left_primer(config, id)
+  leftPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
+                                                   toupper(leftPrimer)))
+  rightPrimer <- get_right_primer(config, id)
+  rightPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
+                                                    toupper(rightPrimer)))
+  primers <- c(leftPrimer, rightPrimer)
+  if (length(leftPrimer) == 0) {
+    leftPrimer <- c(1, 1)
   }
-  if (length(rwPrimer) == 0) {
-    rwPrimer <- c(ampl_len, ampl_len)
+  if (length(rightPrimer) == 0) {
+    rightPrimer <- c(ampl_len, ampl_len)
   }
 
   if (filter) {
     idRanges <-
       filterEOP(archRanges,
-                frPrimer,
-                rwPrimer,
+                leftPrimer,
+                rightPrimer,
                 amplicon)
   }
 
   if (dim(archRanges)[1] == 0) {
-    return(message("No cuts to plot."))
+    return("No cuts to plot.")
   }
 
   amplicon_colors <- c("#009E73", "#D55E00", "#F0E442", "#0072B2",
@@ -764,8 +796,7 @@ amplican_plot_cuts <- function(alignments,
     ggplot2::theme_bw() +
     ggplot2::guides(size=FALSE, alpha = FALSE) +
     ggplot2::theme(legend.position = c(1, 1),
-                   legend.justification = c(1.01, 1.01),
-                   panel.grid = ggplot2::element_blank()) +
+                   legend.justification = c(1.01, 1.01)) +
     ggplot2::labs(y = "Frequency [%]",
                   colour = "Experiments",
                   x = "Nucleotide Position Relative to PAM") +

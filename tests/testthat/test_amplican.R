@@ -2,6 +2,8 @@ library(amplican)
 library(testthat)
 context("amplican main making analysis of example files")
 
+# devtools::load_all() # changes paths so that system.file points to the actual development folder
+
 config <- system.file("extdata", "config.csv", package = "amplican")
 fastq_folder <- system.file("extdata", package = "amplican")
 results_folder <- system.file("extdata", "results", package = "amplican")
@@ -15,6 +17,7 @@ test_that("amplican runs through example files without any issues", {
 ## also make vignettes out of .Rmd reports
 
 ## run this when developing and willing to generate new vignettes
+## for visual quality test and for the users to see example reports
 # rmd_path <- file.path(results_folder, "reports")
 # vignettes_path <- system.file('vignettes', package = 'amplican')
 # runParam <- readLines(file.path(results_folder, "RunParameters.txt"))
@@ -40,3 +43,5 @@ test_that("amplican runs through example files without any issues", {
 #                          fixed_rmd_content[11:length(fixed_rmd_content)])
 #   cat(fixed_rmd_content, file = file.path(vignettes_path, paste0("example_", rmd)), sep = "\n")
 # }
+#
+# devtools::build_vignettes()

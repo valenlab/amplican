@@ -37,7 +37,8 @@ test_that("Mismatch plot is a construct of grobs.",{
 })
 
 test_that("When no mismatch to plot returns message.",{
-  expect_message(amplican_plot_mismatches(events[events$type != "mismatch",], config, config$ID[2]))
+  expect_match(amplican_plot_mismatches(events[events$type != "mismatch",], config, config$ID[2]),
+               "No mismatches to plot.")
 })
 
 test_that("Deletions plot is a construct of grobs.",{
@@ -45,8 +46,9 @@ test_that("Deletions plot is a construct of grobs.",{
   grobs_of_3_construct(slot(p, "grobs"))
 })
 
-test_that("When no deletions to plot returns warning.",{
-  expect_message(amplican_plot_deletions(events[events$type != "deletion",], config, config$ID[2]))
+test_that("When no deletions to plot returns text.",{
+  expect_match(amplican_plot_deletions(events[events$type != "deletion",], config, config$ID[2]),
+               "No deletions to plot.")
 })
 
 test_that("Insertions plot is a construct of grobs.",{
@@ -54,8 +56,9 @@ test_that("Insertions plot is a construct of grobs.",{
   grobs_of_3_construct(slot(p, "grobs"))
 })
 
-test_that("When no insertions to plot returns warning.",{
-  expect_message(amplican_plot_insertions(events[events$type != "insertion",], config, config$ID[2]))
+test_that("When no insertions to plot returns text.",{
+  expect_match(amplican_plot_insertions(events[events$type != "insertion",], config, config$ID[2]),
+               "No insertions to plot.")
 })
 
 test_that("Cuts plot is returning a plot.",{
@@ -65,6 +68,7 @@ test_that("Cuts plot is returning a plot.",{
   expect_identical(as.character(p$layers[[1]]$mapping[["colour"]]), "seqnames")
 })
 
-test_that("When no cuts to plot returns warning.",{
-  expect_message(amplican_plot_cuts(events[events$type != "deletion",], config, config$ID[2]))
+test_that("When no cuts to plot returns text.",{
+  expect_match(amplican_plot_cuts(events[events$type != "deletion",], config, config$ID[2]),
+               "No cuts to plot.")
 })

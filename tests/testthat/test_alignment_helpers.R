@@ -29,7 +29,6 @@ test_that("getEventInfo returns correct GRanges", {
                                                                         originally = "G",
                                                                         replacement = "A",
                                                                         type = "mismatch"))
-
   events <- Biostrings::pairwiseAlignment(Biostrings::DNAString("ACTAAAGT"),
                                           Biostrings::DNAString("ACTGAGT"), type = "global")
   expect_identical(getEventInfo(events, "test", 1), GenomicRanges::GRanges(seqnames = "test",
@@ -39,24 +38,48 @@ test_that("getEventInfo returns correct GRanges", {
                                                                         replacement = c("A", "A"),
                                                                         type = c("insertion", "mismatch")))
 
-  events <- Biostrings::pairwiseAlignment(Biostrings::DNAString("AGGTAAAGTAATTTGTGTGTAA"),
-                                          Biostrings::DNAString("ACTGAGTTTTTTAGTGTGTTAA"), type = "global")
+  events <- Biostrings::pairwiseAlignment(Biostrings::DNAString("AGGGTAAAGTCCATGGCCCCAATTTGTGTGTAG"),
+                                          Biostrings::DNAString("AGTGAAGTCAAACATGGAATTAGTGTGTTAA"), type = "global")
+  events_ranges <- GenomicRanges::GRanges(seqnames = "test",
+                                          ranges = IRanges::IRanges(c(5, 18, 10, 29, 3, 22, 31),
+                                                                    c(6, 21, 12, 29, 3, 22, 31)),
+                                          strand = rep("+", 7),
+                                          originally = c("", "", "", "", "T", "A", "A"),
+                                          replacement = c("TA", "CCCC", "", "", "G", "T", "G"),
+                                          type = c("insertion", "insertion",
+                                                   "deletion", "deletion",
+                                                   rep("mismatch", 3)))
+  expect_identical(getEventInfo(events, "test", 1), events_ranges )
+  strand(events_ranges) <- "-"
+  expect_identical(getEventInfo(events, "test", 31, strand_info = "-"), events_ranges)
+
+  events <- Biostrings::pairwiseAlignment(Biostrings::DNAString("AGGGTAAAAGTCCATGGCCCAATTTGTGTGTAG"),
+                                          Biostrings::DNAString("CCCCCCCCCCCAGTGAAGTCAAACATGGAATTAGTGTGTTAA"), type = "global")
+  events_ranges <- GenomicRanges::GRanges(seqnames = "test",
+                                          ranges = IRanges::IRanges(c(16, 29, 21, 40, 14, 33, 42),
+                                                                    c(18, 31, 23, 40, 14, 33, 42)),
+                                          strand = rep("+", 7),
+                                          originally = c("", "", "", "", "T", "A", "A"),
+                                          replacement = c("TAA", "CCC", "", "", "G", "T", "G"),
+                                          type = c("insertion", "insertion",
+                                                   "deletion", "deletion",
+                                                   rep("mismatch", 3)))
+  expect_identical(getEventInfo(events, "test", 12), events_ranges)
+
+  events <- Biostrings::pairwiseAlignment(Biostrings::DNAString("ACTGGGGGGGGGGACTGGGGGGGGGGACT"),
+                                          Biostrings::DNAString("ACTACTACT"), type = "global")
   expect_identical(getEventInfo(events, "test", 1), GenomicRanges::GRanges(seqnames = "test",
-                                                                        ranges = IRanges::IRanges(c(21, 3, 2, 5, 7, 8, 10, 11, 14),
-                                                                                                  c(21, 3, 2, 5, 7, 8, 10, 11, 14)),
-                                                                        strand = rep("+", 9),
-                                                                        originally = c("", "", "C", "G", "G", "T", "T", "T", "A"),
-                                                                        replacement = c("", "G", "G", "A", "A", "G", "A", "A", "T"),
-                                                                        type = c("deletion",
-                                                                                 "insertion",
-                                                                                 rep("mismatch", 7))))
-  expect_identical(getEventInfo(events, "test", 22, strand_info = "-"), GenomicRanges::GRanges(seqnames = "test",
-                                                                                           ranges = IRanges::IRanges(c(21, 3, 2, 5, 7, 8, 10, 11, 14),
-                                                                                                                     c(21, 3, 2, 5, 7, 8, 10, 11, 14)),
-                                                                                           strand = rep("-", 9),
-                                                                                           originally = c("", "", "C", "G", "G", "T", "T", "T", "A"),
-                                                                                           replacement = c("", "G", "G", "A", "A", "G", "A", "A", "T"),
-                                                                                           type = c("deletion",
-                                                                                                    "insertion",
-                                                                                                    rep("mismatch", 7))))
+                                                                           ranges = IRanges::IRanges(c(4, 7), c(13, 16)),
+                                                                           strand = rep("+", 2),
+                                                                           originally = c("", ""),
+                                                                           replacement = c("GGGGGGGGGG", "GGGGGGGGGG"),
+                                                                           type = c("insertion", "insertion")))
+  events <- Biostrings::pairwiseAlignment(Biostrings::DNAString("ACTACTTCT"),
+                                          Biostrings::DNAString("ACTGGGGGGGGGGACTACT"), type = "global")
+  expect_identical(getEventInfo(events, "test", 1), GenomicRanges::GRanges(seqnames = "test",
+                                                                           ranges = IRanges::IRanges(c(4, 17), c(13, 17)),
+                                                                           strand = rep("+", 2),
+                                                                           originally = c("", "A"),
+                                                                           replacement = c("", "T"),
+                                                                           type = c("deletion", "mismatch")))
 })

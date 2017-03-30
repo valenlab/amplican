@@ -13,7 +13,7 @@ flipRanges(idRanges, configTable)
 }
 \value{
 (data.frame) Returns input idRanges, but events for amplicons with
-direction 1 reverse complemented.
+direction 1 reverse complemented, "+" and "-" swapped.
 }
 \description{
 Reverse complement events that have amplicons with direction 1.

@@ -10,9 +10,9 @@ filterEOP(idRanges, frPrimer, rvPrimer, amplicon)
 \arguments{
 \item{idRanges}{(data.frame) Contains events.}
 
-\item{frPrimer}{(character) forward primer}
+\item{frPrimer}{(character) forward primer location}
 
-\item{rvPrimer}{(character) reverse primer}
+\item{rvPrimer}{(character) reverse primer location}
 
 \item{amplicon}{(character) amplicon sequence}
 }

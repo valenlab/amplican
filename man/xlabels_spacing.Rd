@@ -5,11 +5,9 @@
 \title{Creates equal label spacing.
 Used to calculate x label ticks.}
 \usage{
-xlabels_spacing(direction, box, ampl_len, spacing)
+xlabels_spacing(box, ampl_len, spacing)
 }
 \arguments{
-\item{direction}{(numeric) 0 or 1}
-
 \item{box}{(IRanges) specifies where predcited cut site is}
 
 \item{ampl_len}{(numeric) Length of the amplicon}

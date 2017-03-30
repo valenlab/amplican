@@ -37,25 +37,24 @@ You can find example config file path by running:
 system.file("extdata", "config.csv", package = "amplican")
 ```
 
-Columns of the config file:  
-**ID** - should be a unique identifier of your experiments  
-**Barcode** - use this to group experiments with the same barcode  
-**Forward_Reads**, **Reverse_Reads** - put names of your files in these fields, you can put here files compressed to 
-.gz, we will unpack them for you  
-**Group** - use this field if you want to group ID by other criteria, here for instance we will group by person that
+Columns of the config file:
+
+ - **ID** - should be a unique identifier of your experiments  
+ - **Barcode** - use this to group experiments with the same barcode  
+ - **Forward_Reads**, **Reverse_Reads** - put names of your files in these fields, you can put here files compressed to .gz, we will unpack them for you  
+ - **Group** - use this field if you want to group ID by other criteria, here for instance we will group by person that
 performed experiment, on later stage it is possible to generate report with breakdown using this field  
-**guideRNA** - put your guideRNA here, if he has to be reverse complemented to be found in the amplicon put "1" into **Direction** field, we will use this field to make sure your guideRNA is inside the amplicon and during plotting of the results  
-**Forward_Primer**, **Reverse_Primer** - make sure these primers are correct for each of your IDs, reverse primer should not be reverse complemented  
-**Direction** - here "0" means guide does not requires to be reverse complemented to be matched to the amplicon, 
-"1" means it should be reverse complemented, this field is also used when plotting deletions, mismatches and 
-insertions  
-**Amplicon** - insert amplicon sequence as lower case letters, by putting UPPER CASE letters you can specify
-expected cut site, you should specify at least one cut site, here for example we specify in uppercase letter PAM sequence of the corresponding guideRNA  
+ - **guideRNA** - put your guideRNA in 5' to 3' fashion here, if he has to be reverse complemented to be found in the amplicon put "1" into **Direction** field, we will use this field to make sure your guideRNA is inside the amplicon and during plotting of the results  
+ - **Forward_Primer**, **Reverse_Primer** - make sure these primers are correct for each of your IDs, **Forward_Primer** should be found in the amplicon as is, on the left side of the guide, **Reverse_Primer** should be found on the amplicon after making its reverse complement on the right side of the guide  
+ - **Direction** - here "0" means guide does not requires to be reverse complemented to be matched to the amplicon, "1" means it should be reverse complemented, this field is also used when plotting deletions, mismatches and insertions  
+ - **Amplicon** - insert amplicon sequence as lower case letters, by putting UPPER CASE letters you can specify expected cut site, you should specify at least one cut site, here for example we specify in uppercase letter PAM sequence of the corresponding guideRNA  
+
+If you have only forward primers leave column **Reverse_Primer** empty, leave empty also the **Reverse_Reads** column. You can still use amplican like normal.  
 
 # Default options
 
 To run `amplican` with default options, along with generation of all posible reports you can use
-`amplicanPipeline` function. We have already attached results of the default amplican analysis (look atother vignettes) of the example dataset, but take a look how you can do that yourself. Be prepared to grab a coffe when running `amplicanPipeline` with `knit_files = TRUE` as this will take some time. You will understand it is worth waiting when reports will be ready.
+`amplicanPipeline` function. We have already attached results of the default amplican analysis (look at other vignettes) of the example dataset, but take a look below at how you can do that yourself. Be prepared to grab a coffe when running `amplicanPipeline` with `knit_files = TRUE` as this will take some time. You will understand it is worth waiting when reports will be ready.
 
 ```{r amplicanPipeline, echo=TRUE, eval=FALSE, }
 # path to example config file
@@ -84,11 +83,11 @@ Contains information about unpleasant errors and events found during analysis, w
 
 ## barcode_reads_filters.csv
 
-First step of our analysis is to filter out reads that are not complying with our default restrictions:  
+First step of our analysis is to filter out reads that are not complying with our default restrictions:
 
-* bad base quality - default minimum base quality is 30  
-* bad average quality - default minimum average quality is 30  
-* bad alphabet - by default we accept only reads with A,C,T,G bases  
+ * bad base quality - default minimum base quality is 30  
+ * bad average quality - default minimum average quality is 30  
+ * bad alphabet - by default we accept only reads with A,C,T,G bases  
 
 ```{r, echo=FALSE}
 barcodeFilters <- system.file("extdata", "results", "barcode_reads_filters.csv", package = "amplican")
@@ -96,7 +95,7 @@ barcodeFilters <- read.csv(barcodeFilters)
 knitr::kable(head(barcodeFilters))
 ```
 
-This table is also summarized in one of the reports. As you can see for our example dataset we have two barcodes, to which correspond 20 and 29 reads. Five reads are rejected for barcode_1 due to bad alphabet, bad average quality and bad base quality. One of those reads is not passing two filters at the same time, thats why, number of filtered reads is 15. Each of the barcodes has unique reads, which means forward and reverse reads are compacted when they are identical. There is 11 unique reads for barcode_1 and 20 for barcode_2. We can successfully assign all the reads for each barcode as this is artificial dataset. Normally you will probably see only half of your reads being assigned to the barcodes. Reads are assigned when for forward read we can find forward primer and for reverse read we can find reverse primer. Primers have to be perfectly matched. Nevertheless, there is option `fastqreads = 0.5` which changes method of assigning reads to each IDs. With this option specified only one of the reads (forward or reverse) have to have primer perfectly matched.
+This table is also summarized in one of the reports. As you can see for our example dataset we have two barcodes, to which correspond 20 and 16 reads. Seven reads are rejected for barcode_1 due to bad alphabet, bad average quality and bad base quality. Each of the barcodes has unique reads, which means forward and reverse reads are compacted when they are identical. There is 7 unique reads for each barcode. We can successfully assign all the reads for each barcode as this is artificial dataset. Normally you will probably see only half of your reads being assigned to the barcodes. Reads are assigned when for forward read we can find forward primer and for reverse read we can find reverse primer. Primers have to be perfectly matched. Nevertheless, there is option `fastqreads = 0.5` which changes method of assigning reads to each IDs. With this option specified only one of the reads (forward or reverse) have to have primer perfectly matched. If you don't have the reverse reads or you don't want to use them you can use option `fastqreads = 1`, this option should be detectd autmatically, if you leave empty field **Reverse_Primer** in the config file.
 
 ## config_summary.csv
 
@@ -110,13 +109,14 @@ config_summary <- config_summary[,c("ID", "Barcode", "Cut", "Frameshift",
 knitr::kable(head(config_summary))
 ```
 
-During `amplicanAlign` or `amplicanPipeline` these columns are added to the config file:  
-**Cut** - number of insertions overlapping with user specified UPPER CASE group in the amplicon (extended by the buffer)  
-**Frameshift** - number of reads has frameshift (insertions and deletions)  
-**PRIMER_DIMER** - number of reads were classified as PRIMER DIMERs  
-**Reads** - number of reads assigned to this ID  
-**Found_Guide** - whether we found guide on the amplicon  
-**Found_PAM** - whether amplicon has UPPER GROUP specified (advised)  
+During `amplicanAlign` or `amplicanPipeline` these columns are added to the config file:
+
+ - **Cut** - number of deletions overlapping with user specified UPPER CASE group in the amplicon (extended by the buffer), cuts have to be deletions confirmed with the reverse strand when using paired-end reads  
+ - **Frameshift** - number of reads that have frameshift (insertions and deletions)  
+ - **PRIMER_DIMER** - number of reads that were classified as PRIMER DIMERs  
+ - **Reads** - number of reads assigned to this unique ID  
+ - **Found_Guide** - whether we found guide on the amplicon  
+ - **Found_PAM** - whether amplicon has UPPER GROUP specified (advised)  
 
 ## RunParameters.txt
 
@@ -135,10 +135,12 @@ readLines(run_params)
 
 Contains alignments, for each ID there is separate folder. If you specified `write_alignments` option of the 
 `amplicanAlign` as "2", which is default, you will find here two files, one with just alignment forward read, reverse read and count.  
-Other file will contain very detailed information:  
-- human readable alignment of read and amplicon,  
-- list of deletions, insertions and mismatches,  
-- same information, but relative towards amplicon coordinates
+
+Other file will contain very detailed information:
+
+ - human readable alignment of read and amplicon,  
+ - list of deletions, insertions and mismatches,  
+ - same information, but relative towards amplicon coordinates
 
 ```{r, echo=TRUE, eval=FALSE}
 # path to the example alignments folder
@@ -148,6 +150,7 @@ system.file("extdata", "results", "alignments", package = "amplican")
 In `unassigned_sequences` folder you can find detailed information about unassigned reads. In example dataset there is no unassigned reads.  
 
 Take a look at the alignment events file which contains all the insertions, deletions, cuts and mutations. This file can be used in various ways. Examples you can find in `.Rmd` files we prepare using `amplicanReport`. These can be easily converted into `GRanges` and used for further analysis!
+
 ```{r, echo=FALSE}
 alignments <- system.file("extdata", "results", "alignments_events.csv", package = "amplican")
 alignments <- read.csv(alignments)
@@ -155,6 +158,7 @@ knitr::kable(head(alignments))
 ```
 
 Human readable alignments format gives information about forward and reverse reads. To make more detailed alignment files `amplicanPipeline` or `amplicanAlign` should have option `write_alignments = TRUE` specified (Default behavior), but it adds a little to the computational time. First line is corresponding to the forward read alignment and amplicon, second line is for the reverse read alignment and amplicon. Human readable format looks like this:
+
 ```{r, echo=FALSE, }
 hr_alignments <- system.file("extdata", "results", "alignments", "ID_1_barcode_1.txt", package = "amplican")
 readLines(hr_alignments, n = 6)
@@ -185,23 +189,23 @@ Read more about `amplicanAlign` on the help page `?amplican::amplicanAlign`.
 
 Reports are made for user convenience, they are powerful as they:
 
-* contain reproducible code
-* make plots ready for publication
-* show how to use results of our pipeline
-* are easy to share
-* allow quick, but detailed assessment of the data
+ - contain reproducible code
+ - make plots ready for publication
+ - show how to use results of our pipeline
+ - are easy to share
+ - allow quick, but detailed assessment of the data
 
 We decided to separate reports into 6 different types. Function `amplicanReport` is made for automated report creation.
 
 Types of report:
 
-* **ID** - Each of the IDs is treated separately, you get to see what kind of cuts, deletions, insertions and mismatches are being found for each of the IDs. [example](example_report_id.html)
-* **Amplicon** - We aggregate information about each unique amplicon, you will find here also plots for events found during alignment. [example](example_report_amplicon.html)
-* **Barcode** - Grouped by Barcode, instead of the information about alignment events you can find here histograms explaining cut rates, frameshifts etc. [example](example_report_barcode.html)
-* **Group** - This field is for your convenience and allows you to group IDs by anything you want. In our example dataset we use this field to group experiments by the users. That will allow us to asses performance of our technicians. [example](example_report_group.html)
-* **Guide** - Unique guideRNAs are being summarized by boxplots showing cut rates across all experiments. [example](example_report_guide.html)
-* **Summary** - Contains overall statistics gathered during reads assesment. Can contain only barcode level
-information, but shows which parts of reads is being filtered. [example](example_report_summary.html)
+ - **ID** - Each of the IDs is treated separately, you get to see what kind of cuts, deletions, insertions and mismatches are being found for each of the IDs. [example](example_report_id.html)  
+ - **Amplicon** - We aggregate information about each unique amplicon, you will find here also plots for events found during alignment. [example](example_report_amplicon.html)  
+ - **Barcode** - Grouped by Barcode, instead of the information about alignment events you can find here histograms explaining cut rates, frameshifts etc. [example](example_report_barcode.html)  
+ - **Group** - This field is for your convenience and allows you to group IDs by anything you want. In our example dataset we use this field to group experiments by the users. That will allow us to asses performance of our technicians. [example](example_report_group.html)  
+ - **Guide** - Unique guideRNAs are being summarized by boxplots showing cut rates across all experiments. [example](example_report_guide.html)  
+ - **Summary** - Contains overall statistics gathered during reads assesment. Can contain only barcode level
+information, but shows which parts of reads is being filtered. [example](example_report_summary.html)  
 
 ## Plotting alignments events
 

@@ -45,29 +45,30 @@ getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
   if (ampl_shift < 1) stop("Amplicon shift can't be less than 1.")
 
   del <- deletion(align)[[1]]
-  del <- shift(del, c(0, cumsum(width(del))[-length(del)]))
   ins <- insertion(align)[[1]]
   mm <- mismatchSummary(summary(align))$subject
-
-  if (length(ins) > 0 & dim(mm)[1] > 0) {
-    ss <- sapply(mm$SubjectPosition, function(x) {
-      sum(width(ins)[x > start(ins)])
-    })
-    mm$SubjectPosition <- mm$SubjectPosition + ss
-  }
-  ins <- shift(ins, c(0, cumsum(width(ins))[-length(ins)]))
-
   finalGR <- GRanges()
 
-  if (length(del) > 0) {
-    finalGR <- defGR(del, ID, strand_info)
-  }
-
   if (length(ins) > 0) {
+    ins_shift <- shift(ins, c(0, cumsum(width(ins))[-length(ins)]))
     ins_seq <-
       substr(rep(as.character(pattern(align)), length(ins)),
-                 start = start(ins), stop = end(ins))
-    finalGR <- c(finalGR, defGR(ins, ID, strand_info, "insertion", "", ins_seq))
+                 start = start(ins_shift), stop = end(ins_shift))
+    finalGR <- defGR(ins, ID, strand_info, "insertion", "", ins_seq)
+  }
+
+  if (length(del) > 0) {
+    del <- shift(del, c(0, cumsum(width(del))[-length(del)]))
+    # make deletions to be relative to the subject
+    if (length(ins) > 0) { # shift when insertions are before deletions
+      for (i in seq_along(del)) {
+        ins_before <- start(del)[i] > start(ins)
+        if (any(ins_before)) {
+          del[i] <- shift(del[i], -1 * sum(width(ins[ins_before])))
+        }
+      }
+    }
+    finalGR <- c(finalGR, defGR(del, ID, strand_info))
   }
 
   if (dim(mm)[1] > 0) {
@@ -80,11 +81,14 @@ getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
                        as.character(mm$Pattern)))
   }
 
+  # for some reason mismatches are relative to the full subject sequence
+  # insertions and deletions are not
+  ins_del <- finalGR$type %in% c("insertion", "deletion")
   if (strand_info == "+") {
-    finalGR <- shift(finalGR, ampl_shift - 1)
+    finalGR[ins_del] <- shift(finalGR[ins_del], ampl_shift - 1)
   } else {
     subj_bas <- stringr::str_count(as.character(subject(align)), "[ATCG]")
-    finalGR <- shift(finalGR, ampl_shift - subj_bas)
+    finalGR[ins_del] <- shift(finalGR[ins_del], ampl_shift - subj_bas)
   }
 
   return(finalGR)
