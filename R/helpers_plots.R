@@ -1,42 +1,6 @@
 #' @include helpers_general.R
 NULL
 
-#' Reverse complement events that have amplicons with direction 1.
-#'
-#' @param idRanges (data.frame) Loaded events.
-#' @param configTable (data.frame) Loaded configuration file.
-#' @return (data.frame) Returns input idRanges, but events for amplicons with
-#' direction 1 reverse complemented, "+" and "-" swapped.
-#'
-flipRanges <- function(idRanges, configTable) {
-
-  is_dir <- as.logical(configTable$Direction)
-  to_flip <- configTable[is_dir, "ID"]
-  to_flip <- idRanges$seqnames %in% to_flip
-
-  if (any(to_flip)) {
-    ampl_lengths <- nchar(as.character(configTable[is_dir, "Amplicon"]))
-    ampl_ids <- as.character(configTable[is_dir, "ID"])
-
-    ids_mapping <- match(idRanges[to_flip, "seqnames"], ampl_ids)
-    ampl_lengths <- ampl_lengths[ids_mapping]
-
-    idRanges[to_flip, "originally"] <- revComp(idRanges[to_flip, "originally"])
-    idRanges[to_flip, "replacement"] <- revComp(idRanges[to_flip, "replacement"])
-
-    old_starts <- idRanges[to_flip, "start"]
-    idRanges[to_flip, "start"] <- ampl_lengths - idRanges[to_flip, "end"] + 1
-    idRanges[to_flip, "end"] <- ampl_lengths - old_starts + 1
-
-    strand <- idRanges[to_flip, "strand"]
-    strand_minus <-strand == "-"
-    strand[strand == "+"] <- "-"
-    strand[strand_minus] <- "+"
-    idRanges[to_flip, "strand"] <- strand
-  }
-  return(idRanges)
-}
-
 
 #' Creates equal label spacing.
 #' Used to calculate x label ticks.
@@ -230,8 +194,6 @@ amplican_plot_mismatches <- function(alignments,
     return("No mismatches to plot.")
   }
 
-  # reverse map events when amplicons have Direction 1
-  idRanges <- flipRanges(idRanges, config)
   amplicon <- get_amplicon(config, id)
   ampl_len <- nchar(amplicon)
   amplicon_colors <- c("#009E73", "#D55E00", "#F0E442", "#0072B2",
@@ -392,7 +354,6 @@ amplican_plot_deletions <- function(alignments,
     return("No deletions to plot.")
   }
 
-  archRanges <- flipRanges(archRanges, config)
   amplicon <- get_amplicon(config, id)
   ampl_len <- nchar(amplicon)
 
@@ -550,8 +511,6 @@ amplican_plot_insertions <- function(alignments,
   if (dim(idRanges)[1] == 0) {
     return("No insertions to plot.")
   }
-
-  idRanges <- flipRanges(idRanges, config)
 
   leftPrimer <- get_left_primer(config, id)
   leftPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
@@ -732,8 +691,6 @@ amplican_plot_cuts <- function(alignments,
 
   amplicon <- get_amplicon(config, id)
   ampl_len <- nchar(amplicon)
-
-  archRanges <- flipRanges(archRanges, config)
 
   if (dim(archRanges)[1] == 0) {
     return("No cuts to plot.")

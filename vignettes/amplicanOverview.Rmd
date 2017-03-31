@@ -85,7 +85,7 @@ Contains information about unpleasant errors and events found during analysis, w
 
 First step of our analysis is to filter out reads that are not complying with our default restrictions:
 
- * bad base quality - default minimum base quality is 30  
+ * bad base quality - default minimum base quality is 20  
  * bad average quality - default minimum average quality is 30  
  * bad alphabet - by default we accept only reads with A,C,T,G bases  
 
@@ -95,7 +95,7 @@ barcodeFilters <- read.csv(barcodeFilters)
 knitr::kable(head(barcodeFilters))
 ```
 
-This table is also summarized in one of the reports. As you can see for our example dataset we have two barcodes, to which correspond 20 and 16 reads. Seven reads are rejected for barcode_1 due to bad alphabet, bad average quality and bad base quality. Each of the barcodes has unique reads, which means forward and reverse reads are compacted when they are identical. There is 7 unique reads for each barcode. We can successfully assign all the reads for each barcode as this is artificial dataset. Normally you will probably see only half of your reads being assigned to the barcodes. Reads are assigned when for forward read we can find forward primer and for reverse read we can find reverse primer. Primers have to be perfectly matched. Nevertheless, there is option `fastqreads = 0.5` which changes method of assigning reads to each IDs. With this option specified only one of the reads (forward or reverse) have to have primer perfectly matched. If you don't have the reverse reads or you don't want to use them you can use option `fastqreads = 1`, this option should be detectd autmatically, if you leave empty field **Reverse_Primer** in the config file.
+This table is also summarized in one of the reports. As you can see for our example dataset we have two barcodes, to which correspond 20 and 16 reads. Six reads are rejected for barcode_1 due to bad alphabet and bad average quality. Each of the barcodes has unique reads, which means forward and reverse reads are compacted when they are identical. There is 8 and 7 unique reads for each barcode. One read failed with assignment for barcode_1, you can see this read in the top unassgned reads for barcode report in human readable form. Normally you will probably see only half of your reads being assigned to the barcodes. Reads are assigned when for forward read we can find forward primer and for reverse read we can find reverse primer. Primers have to be perfectly matched. Nevertheless, there is option `fastqreads = 0.5` which changes method of assigning reads to each IDs. With this option specified only one of the reads (forward or reverse) have to have primer perfectly matched. If you don't have the reverse reads or you don't want to use them you can use option `fastqreads = 1`, this option should be detectd autmatically, if you leave empty field **Reverse_Primer** in the config file.
 
 ## config_summary.csv
 

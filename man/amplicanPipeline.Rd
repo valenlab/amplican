@@ -5,8 +5,8 @@
 \title{Wraps main package functionality into one function.}
 \usage{
 amplicanPipeline(config, fastq_folder, results_folder, knit_files = TRUE,
-  total_processors = 1, min_quality = 30, fastqfiles = 0,
-  PRIMER_DIMER = 30, cut_buffer = 5)
+  total_processors = 1, fastqfiles = 0, PRIMER_DIMER = 30,
+  cut_buffer = 5)
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
@@ -25,10 +25,6 @@ automatically for you (it is time consuming, but shows progress)}
 \item{total_processors}{(numeric) Set this to the number of processors you
 want to use. Default is 1. Works only if you have 'doParallel' installed
 and accessible.}
-
-\item{min_quality}{(numeric)  Similar as in average_quality, but this is
-the minimum quality for ALL nucleotides. If one of them has quality BELLOW
-this threshold, then the sequence is skipped. Default is 30.}
 
 \item{fastqfiles}{(numeric) Normally you want to use both FASTQ files. But in
 some special cases, you may want to use only the

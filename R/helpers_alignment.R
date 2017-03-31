@@ -118,6 +118,43 @@ upperGroups <- function(candidate) {
 }
 
 
+#' Reverse complement events that have amplicons with direction 1.
+#'
+#' @param idRanges (data.frame) Loaded events.
+#' @param configTable (data.frame) Loaded configuration file.
+#' @return (data.frame) Returns input idRanges, but events for amplicons with
+#' direction 1 reverse complemented, "+" and "-" swapped.
+#'
+flipRanges <- function(idRanges, configTable) {
+
+  is_dir <- as.logical(configTable$Direction)
+  to_flip <- configTable[is_dir, "ID"]
+  to_flip <- idRanges$seqnames %in% to_flip
+
+  if (any(to_flip)) {
+    ampl_lengths <- nchar(as.character(configTable[is_dir, "Amplicon"]))
+    ampl_ids <- as.character(configTable[is_dir, "ID"])
+
+    ids_mapping <- match(idRanges[to_flip, "seqnames"], ampl_ids)
+    ampl_lengths <- ampl_lengths[ids_mapping]
+
+    idRanges[to_flip, "originally"] <- revComp(idRanges[to_flip, "originally"])
+    idRanges[to_flip, "replacement"] <- revComp(idRanges[to_flip, "replacement"])
+
+    old_starts <- idRanges[to_flip, "start"]
+    idRanges[to_flip, "start"] <- ampl_lengths - idRanges[to_flip, "end"] + 1
+    idRanges[to_flip, "end"] <- ampl_lengths - old_starts + 1
+
+    strand <- idRanges[to_flip, "strand"]
+    strand_minus <-strand == "-"
+    strand[strand == "+"] <- "-"
+    strand[strand_minus] <- "+"
+    idRanges[to_flip, "strand"] <- strand
+  }
+  return(idRanges)
+}
+
+
 #' Make alignments helper.
 #'
 #' Main functionality of the package, aligning reads to the amplicon.
@@ -398,7 +435,8 @@ makeAlignment <- function(configTable,
   }
 
   if (length(alignmentRangesBar) > 0) {
-    utils::write.csv(as.data.frame(alignmentRangesBar),
+    alignmentRangesBar <- flipRanges(as.data.frame(alignmentRangesBar), configTable)
+    utils::write.csv(alignmentRangesBar,
                      file.path(resultsFolder,
                                paste0(barcode, "_alignment_ranges.csv")),
                      row.names = FALSE)
@@ -412,11 +450,14 @@ makeAlignment <- function(configTable,
                                     paste0(barcode, "_unassigned_reads.csv")),
                    quote = FALSE, row.names = FALSE)
 
+  revDir <- configTable[, "Direction"] == 1
+  configTable[revDir, "guideRNA"] <- revComp(configTable[revDir, "guideRNA"]) # revert guides to 5'-3'
   utils::write.csv(configTable[c("ID",
                                  "Barcode",
                                  "Forward_Reads_File",
                                  "Reverse_Reads_File",
-                                 "Group","guideRNA",
+                                 "Group",
+                                 "guideRNA",
                                  "Forward_Primer",
                                  "Reverse_Primer",
                                  "Direction",

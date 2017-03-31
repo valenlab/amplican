@@ -5,7 +5,7 @@
 \title{Align reads to amplicons.}
 \usage{
 amplicanAlign(config, fastq_folder, results_folder, total_processors = 1,
-  skip_bad_nucleotides = TRUE, average_quality = 30, min_quality = 30,
+  skip_bad_nucleotides = TRUE, average_quality = 30, min_quality = 20,
   write_alignments = TRUE,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5,
   mismatch = -4, baseOnly = TRUE, type = "DNA"), gap_opening = 50,
@@ -44,7 +44,7 @@ average fall above this threshold then we take the sequence. Default is 0.}
 
 \item{min_quality}{(numeric)  Similar as in average_quality, but this is
 the minimum quality for ALL nucleotides. If one of them has quality BELLOW
-this threshold, then the sequence is skipped. Default is 30.}
+this threshold, then the sequence is skipped. Default is 20.}
 
 \item{write_alignments}{(boolean) Whether we should write alignments results
 to separate files for each ID}
