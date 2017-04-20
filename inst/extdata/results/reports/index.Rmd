@@ -1,0 +1,154 @@
+---
+title: 'Summary Read Report'
+author: amplican
+date: '`r format(Sys.time(), "%d %B %Y")`'
+output:
+  html_document:
+    toc: true
+    theme: paper
+    toc_float: true
+    number_sections: true
+---
+
+***
+
+# Other Reports
+
+***
+
+1. [Report by id](/home/ai/Projects/amplican/inst/extdata/results/reports/report_id.html)
+2. [Report by barcode](/home/ai/Projects/amplican/inst/extdata/results/reports/report_barcode.html)
+3. [Report by group](/home/ai/Projects/amplican/inst/extdata/results/reports/report_group.html)
+4. [Report by guide](/home/ai/Projects/amplican/inst/extdata/results/reports/report_guide.html)
+5. [Report by amplicon](/home/ai/Projects/amplican/inst/extdata/results/reports/report_amplicon.html)
+
+***
+
+# Explanation of variables
+
+***
+
+**experiment_count** - how many IDs belongs to this barcode  
+**read_count** - how many reads belongs to this barcode  
+**bad_base_quality** - how many reads had base quality worse than specified (default is 0)  
+**bad_average_quality** - how many reads had average base quality worse than specified (default is 0)  
+**bad_alphabet** - how many reads had alphabet with bases other than A, C, G, T  
+**filtered_read_count** - how many reads were left after filtering  
+**unique_reads** - how many reads (forward and reverse together) for this barcode is unique  
+**unassigned_reads/assigned_reads** - how many reads have been not assigned/assigned to any of the
+           experiments  
+
+***
+
+# Total reads
+
+***
+
+## Read Quality
+
+```{r echo = F}
+library(ggplot2)
+results_folder = system.file('extdata', 'results', package = 'amplican')
+summaryDF <- read.csv(file.path(results_folder, 'barcode_reads_filters.csv'),
+                      stringsAsFactors = FALSE)
+total_reads <- sum(summaryDF$read_count)
+reads_names <- c('Good', 'Bad',
+                 'Bad Base Quality', 'Bad Average Read Quality',
+                 'Bad Read Aplhabet', 'Unassigned Reads')
+total_bad_reads <- sum(sum(summaryDF[, c(4:6, 9)]))
+readDF <- data.frame(levels = c(rep('ALL READS', 2),
+                                rep('BAD READS', 4)),
+                     type = reads_names,
+                     percentage = c(
+                      sum(summaryDF$assigned_reads)/total_reads,
+                      1 - sum(summaryDF$assigned_reads)/total_reads,
+                      sum(summaryDF$bad_base_quality)/total_bad_reads,
+                      sum(summaryDF$bad_average_quality)/total_bad_reads,
+                      sum(summaryDF$bad_alphabet)/total_bad_reads,
+                      sum(summaryDF$unassigned_reads)/total_bad_reads))
+readDF$type <- factor(readDF$type, levels = reads_names)
+
+library(ggthemes)
+ggplot(readDF,
+       aes(levels, percentage*100, fill = type)) +
+  geom_bar(position='stack', stat='identity') +
+  scale_fill_colorblind() +
+  ylab('[ % ]') +
+  xlab('') +
+  theme(legend.position = 'top',
+        legend.direction = 'horizontal',
+        legend.title = element_blank())
+```
+
+## Mutants
+
+```{r echo = F}
+configDF <- read.csv(file.path(results_folder, 'config_summary.csv'),
+                     stringsAsFactors = FALSE)
+total_reads <- sum(configDF$Reads)
+reads_names <- c('Cut', 'No Cut', 'Frameshift', 'No Frameshift')
+readDF <- data.frame(levels = c(rep('CUT RATE', 2),
+                                rep('FRAMESHIFT', 2)),
+type = reads_names,
+percentage = c(sum(configDF$Cut)/total_reads,
+               1 - sum(configDF$Cut)/total_reads,
+               sum(configDF$Frameshift)/total_reads,
+               1 - sum(configDF$Frameshift)/total_reads))
+readDF$type <- factor(readDF$type, levels = reads_names)
+library(ggthemes)
+ggplot(readDF,
+       aes(levels, percentage*100, fill = type)) +
+  geom_bar(position='stack', stat='identity') +
+  scale_fill_colorblind() +
+  ylab('[ % ]') +
+  xlab('') +
+  theme(legend.position = 'top',
+        legend.direction = 'horizontal',
+        legend.title = element_blank())
+```
+
+***
+
+# Summary Table
+
+***
+
+```{r echo = F}
+library(knitr)
+kable(summaryDF)
+```
+
+Table 1. Reads distributed for each barcode
+
+***
+
+# Reads by barcode
+
+***
+
+```{r fig.width=8, fig.height=5, echo = F}
+library(reshape2)
+summaryDFmelt = melt(summaryDF,
+                     id.vars = c('barcode'),
+                     measure.vars = c('bad_base_quality',
+                                      'bad_average_quality',
+                                      'bad_alphabet',
+                                      'unassigned_reads',
+                                      'assigned_reads'))
+ggplot(data = summaryDFmelt,
+       aes(x = as.factor(barcode),
+           y = value,
+           fill = variable)) +
+  geom_bar(position='stack', stat='identity') +
+  ylab('number of reads') +
+  xlab('Barcode') +
+  theme(legend.position = 'top',
+        legend.direction = 'horizontal',
+        legend.title = element_blank()) +
+  coord_flip()
+```
+
+Plot 1. Reads distribution for each barcode.
+
+***
+

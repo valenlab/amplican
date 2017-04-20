@@ -5,8 +5,8 @@
 \title{Wraps main package functionality into one function.}
 \usage{
 amplicanPipeline(config, fastq_folder, results_folder, knit_files = TRUE,
-  total_processors = 1, fastqfiles = 0, PRIMER_DIMER = 30,
-  cut_buffer = 5)
+  average_quality = 30, min_quality = 20, total_processors = 1,
+  fastqfiles = 0, PRIMER_DIMER = 30, cut_buffer = 5)
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
@@ -21,6 +21,22 @@ permissions.}
 
 \item{knit_files}{(boolean) whether function should "knit" all reports
 automatically for you (it is time consuming, but shows progress)}
+
+\item{average_quality}{(numeric) The FASTQ file have a quality for each
+nucleotide, being ! the lower and ~ the highest. In ASCII :
+                             !'#$%&'()*+,-./0123456789:;<=>?@
+                             ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`
+                             abcdefghijklmnopqrstuvwxyz{|}~
+
+This quality variable goes from 0 to 100, being 0 the lowest quality and
+100 the highest. You can write whatever number in between, and the program
+will find out the appropriate character encoding. The filter works by
+converting each character to a number, and then finding the average. If the
+average fall above this threshold then we take the sequence. Default is 0.}
+
+\item{min_quality}{(numeric)  Similar as in average_quality, but this is
+the minimum quality for ALL nucleotides. If one of them has quality BELLOW
+this threshold, then the sequence is skipped. Default is 20.}
 
 \item{total_processors}{(numeric) Set this to the number of processors you
 want to use. Default is 1. Works only if you have 'doParallel' installed

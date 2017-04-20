@@ -1,4 +1,4 @@
-Config file:            folder/leading/to/config/file/that/has/been/used.csv
+Config file:            full/path/to/config/file/that/has/been/used.csv
 Processors used:        1
 Skip Bad Nucleotides:   TRUE
 Average Quality:        30

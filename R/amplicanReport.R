@@ -39,7 +39,7 @@ amplicanReport <- function(results_folder,
                                             "report_group",
                                             "report_guide",
                                             "report_amplicon",
-                                            "report_summary")) {
+                                            "index")) {
 
   existing_levels <- c("id", "barcode", "group",
                        "guide", "amplicon", "summary")
@@ -49,6 +49,16 @@ amplicanReport <- function(results_folder,
   }
   if (length(levels) != length(report_files)) {
     stop("report_files must provide name for each of the levels")
+  }
+
+  links <- c("***\n", "# Other Reports\n", "***\n")
+  if ("summary" %in% levels) {
+    summary <- which(levels == "summary")
+    lvl_no_sum <- levels[-summary]
+    files_no_sum <- report_files[-summary]
+  }
+  for (i in seq_along(lvl_no_sum)) {
+    links <- c(links, paste0(i, ". [Report by ", lvl_no_sum[i], "](", files_no_sum[i], ".html)"))
   }
 
   for (i in seq_along(levels)) {
@@ -63,7 +73,7 @@ amplicanReport <- function(results_folder,
                            group = make_group_rmd(results_folder),
                            guide = make_guide_rmd(results_folder),
                            amplicon = make_amplicon_rmd(results_folder),
-                           summary = make_summary_rmd(results_folder))
+                           summary = make_summary_rmd(results_folder, links))
       writeLines(rmdContent, fileConn)
       close(fileConn)
 

@@ -22,11 +22,12 @@ test_that("amplican runs through example files without any issues", {
 # vignettes_path <- system.file('vignettes', package = 'amplican')
 # runParam <- readLines(file.path(results_folder, "RunParameters.txt"))
 # runParam <- gsub(config,
-#                  "folder/leading/to/config/file/that/has/been/used.csv",
+#                  "full/path/to/config/file/that/has/been/used.csv",
 #                  runParam)
 #
 # cat(runParam, file = file.path(results_folder, "RunParameters.txt"), sep = "\n")
 # for (rmd in list.files(rmd_path)) {
+#
 #   rmd_content <- readLines(file.path(rmd_path, rmd))
 #   fixed_rmd_content <- gsub(paste0("'", system.file('extdata', 'results', package = 'amplican'), "'"),
 #                             "system.file('extdata', 'results', package = 'amplican')",
@@ -41,6 +42,12 @@ test_that("amplican runs through example files without any issues", {
 #                          "  %\\VignetteEngine{knitr::rmarkdown}",
 #                          "  %\\VignetteEncoding{UTF-8}",
 #                          fixed_rmd_content[11:length(fixed_rmd_content)])
+#
+#   if (rmd == "index.Rmd") {
+#     fixed_rmd_content <- gsub(paste0(rmd_path, "/"),
+#                               "example_",
+#                               fixed_rmd_content)
+#   }
 #   cat(fixed_rmd_content, file = file.path(vignettes_path, paste0("example_", rmd)), sep = "\n")
 # }
 #

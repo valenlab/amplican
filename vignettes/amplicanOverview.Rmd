@@ -204,8 +204,7 @@ Types of report:
  - **Barcode** - Grouped by Barcode, instead of the information about alignment events you can find here histograms explaining cut rates, frameshifts etc. [example](example_report_barcode.html)  
  - **Group** - This field is for your convenience and allows you to group IDs by anything you want. In our example dataset we use this field to group experiments by the users. That will allow us to asses performance of our technicians. [example](example_report_group.html)  
  - **Guide** - Unique guideRNAs are being summarized by boxplots showing cut rates across all experiments. [example](example_report_guide.html)  
- - **Summary** - Contains overall statistics gathered during reads assesment. Can contain only barcode level
-information, but shows which parts of reads is being filtered. [example](example_report_summary.html)  
+ - **Index** - Has links to the other reports and can be treated as main summary. Contains overall statistics gathered during reads assesment. Can contain only barcode level information, but shows which parts of reads is being filtered. [example](example_index.html)  
 
 ## Plotting alignments events
 

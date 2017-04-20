@@ -132,8 +132,11 @@ write_unassigned_reads <- function(barcode, top = 5) {
 #'
 make_id_rmd <- function(results_folder, cut_buffer = 5) {
 
-  config <- utils::read.csv(file.path(results_folder, "config_summary.csv"), stringsAsFactors = FALSE)
-  id_alignments_plots <- unlist(lapply(config$ID, function(x) write_alignment_plots(x, x, cut_buffer)))
+  config <- utils::read.csv(file.path(results_folder, "config_summary.csv"),
+                            stringsAsFactors = FALSE)
+  id_alignments_plots <- unlist(lapply(config$ID,
+                                       function(x)
+                                         write_alignment_plots(x, x, cut_buffer)))
   height <- plot_height(length(unique(config$ID)))
 
   return(c(write_head("Report breakdown by ID"),
@@ -237,10 +240,10 @@ make_id_rmd <- function(results_folder, cut_buffer = 5) {
            "uniqueReadsByID$read_share_percentage_normal <- uniqueReadsByID$count * 100 / toDivide  \n",
            "# divide into bins for colour",
            "uniqueReadsByID$bins <- cut(uniqueReadsByID$read_share_percentage_normal,",
-                                       "c(0, 5, seq(10, 100, 10)))",
+           "                            c(0, 5, seq(10, 100, 10)))",
            "# reduce number of reads in 0-5 group - faster plots without artifacts",
            "uniqueReadsByID <- aggregate(read_share_percentage_normal ~ seqnames + bins,",
-                                        "data = uniqueReadsByID, sum)",
+           "                             data = uniqueReadsByID, sum)",
 
            "colorPalette <- colorRampPalette(c('#009E73', '#0072B2'))(length(levels(uniqueReadsByID$bins)))",
            "names(colorPalette) <- levels(uniqueReadsByID$bins)",
@@ -272,7 +275,8 @@ make_id_rmd <- function(results_folder, cut_buffer = 5) {
 #'
 make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
 
-  config <- utils::read.csv(file.path(results_folder, "config_summary.csv"), stringsAsFactors = FALSE)
+  config <- utils::read.csv(file.path(results_folder, "config_summary.csv"),
+                            stringsAsFactors = FALSE)
   config$AmpliconUpper <- toupper(config$Amplicon)
   uniqueAmlicons <- unique(config$AmpliconUpper)
   height <- plot_height(length(uniqueAmlicons))
@@ -443,10 +447,10 @@ make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
            "uniqueReadsByID$read_share_percentage_normal <- uniqueReadsByID$count * 100 / toDivide  \n",
            "# divide into bins for colour",
            "uniqueReadsByID$bins <- cut(uniqueReadsByID$read_share_percentage_normal, ",
-                                       "c(0, 5, seq(10, 100, 10)))",
+           "                            c(0, 5, seq(10, 100, 10)))",
            "# reduce number of reads in 0-5 group - faster plots without artifacts",
            "uniqueReadsByID <- aggregate(read_share_percentage_normal ~ group + bins,",
-                                        "data = uniqueReadsByID, sum)",
+           "                             data = uniqueReadsByID, sum)",
 
            "colorPalette <- colorRampPalette(c('#009E73', '#0072B2'))(length(levels(uniqueReadsByID$bins)))",
            "names(colorPalette) <- levels(uniqueReadsByID$bins)",
@@ -482,9 +486,11 @@ make_amplicon_rmd <- function(results_folder, cut_buffer = 5) {
 #'
 make_barcode_rmd <- function(results_folder) {
 
-  config <- read.csv(file.path(results_folder, 'config_summary.csv'), stringsAsFactors = FALSE)
+  config <- read.csv(file.path(results_folder, 'config_summary.csv'),
+                     stringsAsFactors = FALSE)
   height <- plot_height(length(unique(config$Barcode)))
-  ub <- list.files(file.path(results_folder, "alignments", "unassigned_sequences"))
+  ub <- list.files(file.path(results_folder,
+                             "alignments", "unassigned_sequences"))
   ub_reads <- unlist(lapply(ub, function(x) write_unassigned_reads(x)))
 
   return(c(write_head("Report breakdown by Barcode"),
@@ -607,10 +613,10 @@ make_barcode_rmd <- function(results_folder) {
 
            "# divide into bins for colour",
            "uniqueReadsByID$bins <- cut(uniqueReadsByID$read_share_percentage_normal,",
-                                       "c(0, 5, seq(10, 100, 10)))",
+           "                            c(0, 5, seq(10, 100, 10)))",
            "# reduce number of reads in 0-5 group - faster plots without artifacts",
            "uniqueReadsByID <- aggregate(read_share_percentage_normal ~ barcode + bins,",
-                                        "data = uniqueReadsByID, sum)",
+           "                             data = uniqueReadsByID, sum)",
 
            "colorPalette <- colorRampPalette(c('#009E73', '#0072B2'))(length(levels(uniqueReadsByID$bins)))",
            "names(colorPalette) <- levels(uniqueReadsByID$bins)",
@@ -641,7 +647,8 @@ make_barcode_rmd <- function(results_folder) {
 #'
 make_group_rmd <- function(results_folder) {
 
-  config <- read.csv(file.path(results_folder, 'config_summary.csv'), stringsAsFactors = FALSE)
+  config <- read.csv(file.path(results_folder, 'config_summary.csv'),
+                     stringsAsFactors = FALSE)
   height <- plot_height(length(unique(config$Group)))
 
   return(c(write_head("Report breakdown by Group"),
@@ -765,10 +772,10 @@ make_group_rmd <- function(results_folder) {
 
            "# divide into bins for colour",
            "uniqueReadsByID$bins <- cut(uniqueReadsByID$read_share_percentage_normal,",
-                                       "c(0, 5, seq(10, 100, 10)))",
+           "                            c(0, 5, seq(10, 100, 10)))",
            "# reduce number of reads in 0-5 group - faster plots without artifacts",
            "uniqueReadsByID <- aggregate(read_share_percentage_normal ~ group + bins,",
-                                        "data = uniqueReadsByID, sum)",
+           "                             data = uniqueReadsByID, sum)",
 
            "colorPalette <- colorRampPalette(c('#009E73', '#0072B2'))(length(levels(uniqueReadsByID$bins)))",
            "names(colorPalette) <- levels(uniqueReadsByID$bins)",
@@ -796,7 +803,8 @@ make_group_rmd <- function(results_folder) {
 #'
 make_guide_rmd <- function(results_folder) {
 
-  config <- read.csv(file.path(results_folder, 'config_summary.csv'), stringsAsFactors = FALSE)
+  config <- read.csv(file.path(results_folder, 'config_summary.csv'),
+                     stringsAsFactors = FALSE)
   height <- plot_height(length(unique(config$guideRNA)))
 
   return(c(write_head("Report breakdown by guideRNA"),
@@ -920,10 +928,10 @@ make_guide_rmd <- function(results_folder) {
 
            "# divide into bins for colour",
            "uniqueReadsByID$bins <- cut(uniqueReadsByID$read_share_percentage_normal,",
-                                       "c(0, 5, seq(10, 100, 10)))",
+           "                            c(0, 5, seq(10, 100, 10)))",
            "# reduce number of reads in 0-5 group - faster plots without artifacts",
            "uniqueReadsByID <- aggregate(read_share_percentage_normal ~ guideRNA + bins,",
-                                        "data = uniqueReadsByID, sum)",
+           "                             data = uniqueReadsByID, sum)",
 
            "colorPalette <- colorRampPalette(c('#009E73', '#0072B2'))(length(levels(uniqueReadsByID$bins)))",
            "names(colorPalette) <- levels(uniqueReadsByID$bins)",
@@ -949,14 +957,19 @@ make_guide_rmd <- function(results_folder) {
 #' do not change names of the files.
 #' @return (string) contents to write to files
 #'
-make_summary_rmd <- function(results_folder) {
+make_summary_rmd <- function(results_folder, links) {
 
   config <- utils::read.csv(file.path(results_folder, "config_summary.csv"), stringsAsFactors = FALSE)
   height <- plot_height(length(config$Barcode))
 
   return(c(write_head("Summary Read Report"),
+           links,
+           "\n***\n",
+
            "# Explanation of variables\n",
+
            "***\n",
+
            "**experiment_count** - how many IDs belongs to this barcode  ",
            "**read_count** - how many reads belongs to this barcode  ",
            "**bad_base_quality** - how many reads had base quality worse than specified (default is 0)  ",
@@ -964,39 +977,121 @@ make_summary_rmd <- function(results_folder) {
            "**bad_alphabet** - how many reads had alphabet with bases other than A, C, G, T  ",
            "**filtered_read_count** - how many reads were left after filtering  ",
            "**unique_reads** - how many reads (forward and reverse together) for this barcode is unique  ",
-           "**unassigned_reads/assigned_reads** - how many reads have been not assigned/assigned to any of the",
-           "experiments\n",
+           "**unassigned_reads/assigned_reads** - how many reads have been not assigned/assigned to any of the
+           experiments  \n",
+
            "***\n",
-           "\n***\n",
+
+           "# Total reads\n",
+
+           "***\n",
+
+           "## Read Quality\n",
+
+           "```{r echo = F}",
+           "library(ggplot2)",
+           paste0("results_folder = '", results_folder, "'"),
+           "summaryDF <- read.csv(file.path(results_folder, 'barcode_reads_filters.csv'),",
+           "                      stringsAsFactors = FALSE)",
+           "total_reads <- sum(summaryDF$read_count)",
+           "reads_names <- c('Good', 'Bad',",
+           "                 'Bad Base Quality', 'Bad Average Read Quality',",
+           "                 'Bad Read Aplhabet', 'Unassigned Reads')",
+           "total_bad_reads <- sum(sum(summaryDF[, c(4:6, 9)]))",
+           "readDF <- data.frame(levels = c(rep('ALL READS', 2),",
+           "                                rep('BAD READS', 4)),",
+           "                     type = reads_names,",
+           "                     percentage = c(",
+           "                      sum(summaryDF$assigned_reads)/total_reads,",
+           "                      1 - sum(summaryDF$assigned_reads)/total_reads,",
+           "                      sum(summaryDF$bad_base_quality)/total_bad_reads,",
+           "                      sum(summaryDF$bad_average_quality)/total_bad_reads,",
+           "                      sum(summaryDF$bad_alphabet)/total_bad_reads,",
+           "                      sum(summaryDF$unassigned_reads)/total_bad_reads))",
+           "readDF$type <- factor(readDF$type, levels = reads_names)\n",
+
+           "library(ggthemes)",
+           "ggplot(readDF,",
+           "       aes(levels, percentage*100, fill = type)) +",
+           "  geom_bar(position='stack', stat='identity') +",
+           "  scale_fill_colorblind() +",
+           "  ylab('[ % ]') +",
+           "  xlab('') +",
+           "  theme(legend.position = 'top',",
+           "        legend.direction = 'horizontal',",
+           "        legend.title = element_blank())",
+           "```\n",
+
+           "## Mutants\n",
+
+           "```{r echo = F}",
+           "configDF <- read.csv(file.path(results_folder, 'config_summary.csv'),",
+           "                     stringsAsFactors = FALSE)",
+           "total_reads <- sum(configDF$Reads)",
+           "reads_names <- c('Cut', 'No Cut', 'Frameshift', 'No Frameshift')",
+           "readDF <- data.frame(levels = c(rep('CUT RATE', 2),",
+           "                                rep('FRAMESHIFT', 2)),",
+           "type = reads_names,",
+           "percentage = c(sum(configDF$Cut)/total_reads,",
+           "               1 - sum(configDF$Cut)/total_reads,",
+           "               sum(configDF$Frameshift)/total_reads,",
+           "               1 - sum(configDF$Frameshift)/total_reads))",
+           "readDF$type <- factor(readDF$type, levels = reads_names)",
+
+           "library(ggthemes)",
+           "ggplot(readDF,",
+           "       aes(levels, percentage*100, fill = type)) +",
+           "  geom_bar(position='stack', stat='identity') +",
+           "  scale_fill_colorblind() +",
+           "  ylab('[ % ]') +",
+           "  xlab('') +",
+           "  theme(legend.position = 'top',",
+           "        legend.direction = 'horizontal',",
+           "        legend.title = element_blank())",
+           "```\n",
+
+           "***\n",
+
            "# Summary Table\n",
+
            "***\n",
+
            "```{r echo = F}",
            "library(knitr)",
-           paste0("results_folder = '", results_folder, "'"),
-           "summaryDF <- read.csv(file.path(results_folder, 'barcode_reads_filters.csv'), stringsAsFactors = FALSE)",
            "kable(summaryDF)",
            "```\n",
+
            "Table 1. Reads distributed for each barcode\n",
+
            "***\n",
-           "# Barplot\n",
+
+           "# Reads by barcode\n",
+
            "***\n",
+
            paste0("```{r fig.width=8, fig.height=", height, ", echo = F}"),
-           "library(ggplot2)",
            "library(reshape2)",
-           "summaryDFmelt = melt(summaryDF, id.vars = c(\"barcode\"), measure.vars = c(\"bad_base_quality\",",
-           "                                                                           \"bad_average_quality\",",
-           "                                                                           \"bad_alphabet\",",
-           "                                                                           \"unassigned_reads\",",
-           "                                                                           \"assigned_reads\"))",
-           "ggplot(data = summaryDFmelt, aes(x = as.factor(barcode), y = value, fill = variable)) +",
-           "  geom_bar(position=\"stack\", stat=\"identity\") +",
-           "  ylab(\"number of reads\") +",
-           "  xlab(\"Barcode\") +",
-           "  theme(legend.position = \"top\",",
-           "        legend.direction = \"horizontal\",",
+           "summaryDFmelt = melt(summaryDF,",
+           "                     id.vars = c('barcode'),",
+           "                     measure.vars = c('bad_base_quality',",
+           "                                      'bad_average_quality',",
+           "                                      'bad_alphabet',",
+           "                                      'unassigned_reads',",
+           "                                      'assigned_reads'))",
+           "ggplot(data = summaryDFmelt,",
+           "       aes(x = as.factor(barcode),",
+           "           y = value,",
+           "           fill = variable)) +",
+           "  geom_bar(position='stack', stat='identity') +",
+           "  ylab('number of reads') +",
+           "  xlab('Barcode') +",
+           "  theme(legend.position = 'top',",
+           "        legend.direction = 'horizontal',",
            "        legend.title = element_blank()) +",
            "  coord_flip()",
            "```\n",
+
            "Plot 1. Reads distribution for each barcode.\n",
-           "*** \n"))
+
+           "***\n"))
 }

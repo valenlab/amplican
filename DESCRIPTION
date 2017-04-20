@@ -7,7 +7,7 @@ Description: `amplican` creates reports of deletions, insertions, frameshifts,
     analysis across different experiments. `amplican` maintains elasticity
     through configuration file, which with your fastq samples are only
     requirements.
-Version: 0.99.6
+Version: 0.99.0
 Authors@R: c(
     person("Kornel", "Labun", email = "kornel.labun@gmail.com", role = "aut"),
     person("Eivind", "Valen", email = "eivind.valen@gmail.com", role = c("cph", "cre"))
@@ -37,12 +37,12 @@ Imports:
     matrixStats,
     Matrix,
     Biostrings,
-    BiocParallel,
-    reshape2
+    BiocParallel
 RoxygenNote: 6.0.1
 Suggests:
     testthat,
-    BiocStyle
+    BiocStyle,
+    reshape2
 Collate: 
     'helpers_general.R'
     'helpers_rmd.R'

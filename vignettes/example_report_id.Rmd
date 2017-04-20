@@ -139,10 +139,10 @@ uniqueReadsByID$read_share_percentage_normal <- uniqueReadsByID$count * 100 / to
 
 # divide into bins for colour
 uniqueReadsByID$bins <- cut(uniqueReadsByID$read_share_percentage_normal,
-c(0, 5, seq(10, 100, 10)))
+                            c(0, 5, seq(10, 100, 10)))
 # reduce number of reads in 0-5 group - faster plots without artifacts
 uniqueReadsByID <- aggregate(read_share_percentage_normal ~ seqnames + bins,
-data = uniqueReadsByID, sum)
+                             data = uniqueReadsByID, sum)
 colorPalette <- colorRampPalette(c('#009E73', '#0072B2'))(length(levels(uniqueReadsByID$bins)))
 names(colorPalette) <- levels(uniqueReadsByID$bins)
 ggplot(data = uniqueReadsByID, aes(x = seqnames, y = read_share_percentage_normal, fill = bins)) +

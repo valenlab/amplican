@@ -48,6 +48,8 @@ amplicanPipeline <- function(config,
                              fastq_folder,
                              results_folder,
                              knit_files = TRUE,
+                             average_quality = 30,
+                             min_quality = 20,
                              total_processors = 1,
                              fastqfiles = 0,
                              PRIMER_DIMER = 30,
@@ -56,6 +58,8 @@ amplicanPipeline <- function(config,
     amplicanAlign(config,
                   fastq_folder,
                   results_folder,
+                  average_quality = average_quality,
+                  min_quality = min_quality,
                   total_processors = total_processors,
                   fastqfiles = fastqfiles,
                   PRIMER_DIMER = PRIMER_DIMER,
@@ -73,21 +77,15 @@ amplicanPipeline <- function(config,
                                               "report_group",
                                               "report_guide",
                                               "report_amplicon",
-                                              "report_summary")))
+                                              "index")))
 
     if (knit_files) {
-      rmarkdown::render(file.path(reportsFolder, "report_id.Rmd"),
-                        output_dir = file.path(reportsFolder, "html"))
-      rmarkdown::render(file.path(reportsFolder, "report_barcode.Rmd"),
-                        output_dir = file.path(reportsFolder, "html"))
-      rmarkdown::render(file.path(reportsFolder, "report_group.Rmd"),
-                        output_dir = file.path(reportsFolder, "html"))
-      rmarkdown::render(file.path(reportsFolder, "report_guide.Rmd"),
-                        output_dir = file.path(reportsFolder, "html"))
-      rmarkdown::render(file.path(reportsFolder, "report_amplicon.Rmd"),
-                        output_dir = file.path(reportsFolder, "html"))
-      rmarkdown::render(file.path(reportsFolder, "report_summary.Rmd"),
-                        output_dir = file.path(reportsFolder, "html"))
+      rmarkdown::render(file.path(reportsFolder, "report_id.Rmd"))
+      rmarkdown::render(file.path(reportsFolder, "report_barcode.Rmd"))
+      rmarkdown::render(file.path(reportsFolder, "report_group.Rmd"))
+      rmarkdown::render(file.path(reportsFolder, "report_guide.Rmd"))
+      rmarkdown::render(file.path(reportsFolder, "report_amplicon.Rmd"))
+      rmarkdown::render(file.path(reportsFolder, "index.Rmd"))
     }
 
     invisible(reportsFolder)
