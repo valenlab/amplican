@@ -513,7 +513,9 @@ make_barcode_rmd <- function(results_folder) {
            "***\n",
            "## Read distribution  \n",
 
-           paste0("```{r plot total reads, echo=FALSE, fig.height=", height, ", fig.width=14, message=F, warning=FALSE}"),
+           paste0("```{r plot total reads, echo=FALSE, fig.height=",
+                  plot_height(length(unique(config$ID))),
+                  ", fig.width=14, message=F, warning=FALSE}"),
            "ggplot(data = config, aes(x = Barcode, y = log10(Reads + 1), order = Barcode, fill = ID)) +",
            "  geom_bar(position='stack', stat='identity') +",
            "  ylab('Number of reads + 1, log10 scaled')  +",
@@ -961,7 +963,7 @@ make_guide_rmd <- function(results_folder) {
 make_summary_rmd <- function(results_folder, links) {
 
   config <- utils::read.csv(file.path(results_folder, "config_summary.csv"), stringsAsFactors = FALSE)
-  height <- plot_height(length(config$Barcode))
+  height <- plot_height(length(unique(config$Barcode)))
 
   return(c(write_head("Summary Read Report"),
            links,

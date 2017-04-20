@@ -1,7 +1,6 @@
 #' @include helpers_general.R
 NULL
 
-
 #' Creates equal label spacing.
 #' Used to calculate x label ticks.
 #'
