@@ -4,11 +4,13 @@
 \alias{make_summary_rmd}
 \title{Prepare summary report as .Rmd file.}
 \usage{
-make_summary_rmd(results_folder)
+make_summary_rmd(results_folder, links)
 }
 \arguments{
 \item{results_folder}{(string) Folder containing results from the \code{\link{amplicanAlign}} function,
 do not change names of the files.}
+
+\item{links}{(string) A string containing already processed links to other reports.}
 }
 \value{
 (string) contents to write to files

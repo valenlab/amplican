@@ -955,6 +955,7 @@ make_guide_rmd <- function(results_folder) {
 #'
 #' @param results_folder (string) Folder containing results from the \code{\link{amplicanAlign}} function,
 #' do not change names of the files.
+#' @param links (string) A string containing already processed links to other reports.
 #' @return (string) contents to write to files
 #'
 make_summary_rmd <- function(results_folder, links) {

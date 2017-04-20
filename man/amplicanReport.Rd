@@ -6,7 +6,7 @@
 \usage{
 amplicanReport(results_folder, levels = c("id", "barcode", "group", "guide",
   "amplicon", "summary"), report_files = c("report_id", "report_barcode",
-  "report_group", "report_guide", "report_amplicon", "report_summary"))
+  "report_group", "report_guide", "report_amplicon", "index"))
 }
 \arguments{
 \item{results_folder}{(string) Folder containing results from the
@@ -38,7 +38,7 @@ amplicanReport(results_folder, report_files = file.path(results_folder,
                                                           "report_group",
                                                           "report_guide",
                                                           "report_amplicon",
-                                                          "report_summary")))
+                                                          "index")))
 
 }
 \seealso{

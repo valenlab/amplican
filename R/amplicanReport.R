@@ -25,7 +25,7 @@
 #'                                                           "report_group",
 #'                                                           "report_guide",
 #'                                                           "report_amplicon",
-#'                                                           "report_summary")))
+#'                                                           "index")))
 #'
 amplicanReport <- function(results_folder,
                            levels = c("id",
