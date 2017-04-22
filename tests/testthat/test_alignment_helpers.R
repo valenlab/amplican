@@ -1,4 +1,5 @@
 library(amplican)
+library(testthat)
 context("alignment helper functions")
 
 test_that("upperGroups returns correct IRanges", {

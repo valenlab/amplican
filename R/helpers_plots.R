@@ -1,24 +1,21 @@
 #' @include helpers_general.R
 NULL
 
-#' Creates equal label spacing.
-#' Used to calculate x label ticks.
-#'
-#' @param box (IRanges) specifies where predcited cut site is
-#' @param ampl_len (numeric) Length of the amplicon
-#' @param spacing (numeric) desired spacing between ticks
-#' @return numeric vector
-#' @importFrom IRanges start end
-#'
-xlabels_spacing <- function(box, ampl_len, spacing) {
-
-  if (length(box) >= 1) {
-    seq(-IRanges::start(box[1]) + 1, ampl_len - IRanges::start(box[1]), spacing)
-  } else {
-    seq(1, ampl_len, spacing)
-  }
-}
-
+# alignments <- amplican::map_to_relative(config, alignments)
+# alignments <- alignments[seqnames(alignments) %in% config$ID[config$Barcode == "B1"]]
+# alignment <- alignments[alignments$type == "deletion"]
+# alignment$test <- seqnames(alignment)
+# seqlevels(alignment) <- c("B1", seqlevels(alignment))
+# seqnames(alignment)[seq_along(alignment)] <- rep("B1", length(alignment))
+#
+# ggplot() +
+#   geom_arch(data = alignment,
+#             ggplot2::aes(alpha = frequency,
+#                          colour = cut,
+#                          size = frequency,
+#                          height = frequency,
+#                          x = start,
+#                          xend = end))
 
 #' Plots amplicon sequence using ggplot2.
 #'
@@ -59,90 +56,6 @@ amplican_plot_amplicon <- function(amplicon) {
   return(p)
 }
 
-
-#' Filter Events Overlapping Primers. Message user when many of the events are
-#' filtered.
-#'
-#' @param idRanges (data.frame) Contains events.
-#' @param frPrimer (character) forward primer location
-#' @param rvPrimer (character) reverse primer location
-#' @param amplicon (character) amplicon sequence
-#' @return (data.frame) filtered data frame of events
-#' @importFrom stringr str_locate
-#'
-filterEOP <- function(idRanges, frPrimer, rvPrimer, amplicon) {
-
-  totalSum <- sum(idRanges$count)
-  # events starting before end of forward primer
-  idRanges <- idRanges[!idRanges$start < frPrimer[2],]
-  # events ending after start of reverse primer
-  idRanges <- idRanges[!idRanges$end > rvPrimer[1],]
-
-  totalFiltered <- totalSum - sum(idRanges$count)
-
-  # message user when more than 50% of the reads filtered
-  if (totalFiltered/totalSum >= 0.5) {
-    warning(paste0(toString(totalFiltered),
-                   " events out of ",
-                   toString(totalSum),
-                   " were filtered due to overlaping primers"))
-  }
-
-  return(idRanges)
-}
-
-#' amplicon sequence, reverse complemented when needed
-#'
-#' @param config (data.frame) config table
-#' @param id (vector) a vector of id's
-#' @return (character) amplicon sequence, reverse complemented if Direction 1
-#'
-get_amplicon <- function(config, id) {
-  amplicon <- as.character(config[which(config$ID == id[1]), "Amplicon"])
-  if (config[which(config$ID == id[1]), "Direction"] == 1) {
-    # revComp makes upper cases
-    groups <- as.data.frame(upperGroups(amplicon))
-    old_starts <- groups$start
-    groups$start <- nchar(amplicon) - groups$end + 1
-    groups$end <- nchar(amplicon) - old_starts + 1
-    amplicon <- tolower(revComp(amplicon))
-    for (i in seq_len(dim(groups)[1])) { # there may be many UPPER groups
-      substr(amplicon, groups$start[i], groups$end[i]) <-
-        toupper(substr(amplicon, groups$start[i], groups$end[i]))
-    }
-  }
-  return(amplicon)
-}
-
-
-#' left primer sequence
-#'
-#' @param config (data.frame) config table
-#' @param id (vector) a vector of id's
-#' @return (character) left primer sequence
-#'
-get_left_primer <- function(config, id) {
-  if (config[which(config$ID == id[1]), "Direction"] == 1) {
-    as.character(config[which(config$ID == id[1]), "Reverse_Primer"])
-  } else {
-    as.character(config[which(config$ID == id[1]), "Forward_Primer"])
-  }
-}
-
-
-#' right primer sequence
-#'
-#' @param config (data.frame) config table
-#' @param id (vector) a vector of id's
-#' @return (character) right primer sequence
-#'
-get_right_primer <- function(config, id) {
-  if (config[which(config$ID == id[1]), "Direction"] == 1) {
-    revComp(as.character(config[which(config$ID == id[1]), "Forward_Primer"]))
-  } else {
-    revComp(as.character(config[which(config$ID == id[1]), "Reverse_Primer"]))
-  }
-}
 
 #' Plots mismatches using ggplot2 and ggbio.
 #'

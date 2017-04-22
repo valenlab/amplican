@@ -11,7 +11,7 @@ output:
 ---
 
 ```{r load data, message=F, warning=FALSE, include=FALSE}
-results_folder = system.file('extdata', 'results', package = 'amplican')
+results_folder = '/home/ai/Projects/amplican/inst/extdata/results'
 library(amplican)
 library(ggplot2)
 alignments <- read.csv(file.path(results_folder, 'alignments_events.csv'), stringsAsFactors = FALSE)
@@ -41,7 +41,7 @@ if you find that there is many unassigned reads you can ivestigate here.
 
 ## Read distribution  
 
-```{r plot total reads, echo=FALSE, fig.height=3, fig.width=14, message=F, warning=FALSE}
+```{r plot total reads, echo=FALSE, fig.height=5, fig.width=14, message=F, warning=FALSE}
 ggplot(data = config, aes(x = Barcode, y = log10(Reads + 1), order = Barcode, fill = ID)) +
   geom_bar(position='stack', stat='identity') +
   ylab('Number of reads + 1, log10 scaled')  +

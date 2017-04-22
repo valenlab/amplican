@@ -1,4 +1,5 @@
 library(amplican)
+library(testthat)
 context("plot helper functions")
 
 config <- read.csv(system.file("extdata", "config.csv", package="amplican"),

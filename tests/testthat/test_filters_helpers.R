@@ -1,4 +1,5 @@
 library(amplican)
+library(testthat)
 context("Filter functions")
 
 reads <- ShortRead::readFastq(system.file("extdata", "R1_001.fastq", package="amplican"))
