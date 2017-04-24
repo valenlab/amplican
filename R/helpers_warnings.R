@@ -10,7 +10,7 @@ checkTarget <- function(configTable) {
   if (any(!targetPositions)) {
     message(paste0(
       "Warning: guideRNA has not been found in the amplicon for line: ",
-      toString(which(!targetPositions))
+      toString(which(!targetPositions) + 1)
     ))
   }
 
