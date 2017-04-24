@@ -48,7 +48,7 @@ output:
 
 ```{r echo = F}
 library(ggplot2)
-results_folder = '/home/ai/Projects/amplican/inst/extdata/results'
+results_folder = system.file('extdata', 'results', package = 'amplican')
 summaryDF <- read.csv(file.path(results_folder, 'barcode_reads_filters.csv'),
                       stringsAsFactors = FALSE)
 total_reads <- sum(summaryDF$read_count)

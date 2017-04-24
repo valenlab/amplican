@@ -130,7 +130,7 @@ Table 1. Reads distributed for each barcode
 
 ***
 
-```{r fig.width=8, fig.height=5, echo = F}
+```{r fig.width=8, fig.height=3, echo = F}
 library(reshape2)
 summaryDFmelt = melt(summaryDF,
                      id.vars = c('barcode'),

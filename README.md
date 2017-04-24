@@ -37,7 +37,8 @@ library(amplican)
 ?amplicanPipeline
 ?amplicanAlign
 ?amplicanReport
-?amplican_plot_cuts
+?plot_cuts
+?metaplot_deletions
 
 # read vignette
 browseVignettes("amplican")

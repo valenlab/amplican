@@ -36,11 +36,10 @@ xlabels_spacing <- function(box, ampl_len, spacing) {
 #' @param idRanges (data.frame) Contains events.
 #' @param frPrimer (character) forward primer location
 #' @param rvPrimer (character) reverse primer location
-#' @param amplicon (character) amplicon sequence
 #' @return (data.frame) filtered data frame of events
 #' @importFrom stringr str_locate
 #'
-filterEOP <- function(idRanges, frPrimer, rvPrimer, amplicon) {
+filterEOP <- function(idRanges, frPrimer, rvPrimer) {
 
   totalSum <- sum(idRanges$count)
   # events starting before end of forward primer
@@ -123,8 +122,8 @@ get_right_primer <- function(config, id) {
 #' amplicon. As point zero we assume first left sided UPPER case letter in the
 #' amplicon.
 #'
-#' @param config (data.frame) config table
 #' @param events (data.frame) List of events to map to the relative coordinates.
+#' @param config (data.frame) config table
 #' @return (GRanges) Same as events, but the coordinates are relative to the
 #' @importFrom GenomicRanges GRanges shift
 #' @export
@@ -136,9 +135,9 @@ get_right_primer <- function(config, id) {
 #' events <- read.csv(system.file("extdata", "results",
 #'                    "alignments_events.csv", package = "amplican"))
 #' # make events relative to the UPPER case
-#' map_to_relative(config, events)
+#' map_to_relative(events, config)
 #'
-map_to_relative <- function(config, events) {
+map_to_relative <- function(events, config) {
   events <- GRanges(events)
   no_upper <- FALSE
 

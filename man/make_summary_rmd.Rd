@@ -7,10 +7,12 @@
 make_summary_rmd(results_folder, links)
 }
 \arguments{
-\item{results_folder}{(string) Folder containing results from the \code{\link{amplicanAlign}} function,
+\item{results_folder}{(string) Folder containing results
+from the \code{\link{amplicanAlign}} function,
 do not change names of the files.}
 
-\item{links}{(string) A string containing already processed links to other reports.}
+\item{links}{(string) A string containing already processed links to other
+reports.}
 }
 \value{
 (string) contents to write to files

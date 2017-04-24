@@ -11,7 +11,7 @@ output:
 ---
 
 ```{r load data, message=F, warning=FALSE, include=FALSE}
-results_folder = '/home/ai/Projects/amplican/inst/extdata/results'
+results_folder = system.file('extdata', 'results', package = 'amplican')
 library(amplican)
 library(ggplot2)
 alignments <- read.csv(file.path(results_folder, 'alignments_events.csv'), stringsAsFactors = FALSE)
@@ -28,7 +28,7 @@ config <- read.csv(file.path(results_folder, 'config_summary.csv'), stringsAsFac
 **PRIMER DIMER filter** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS  
 **Cutting rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have cut  
 **Frameshift** - plot shows what percentage of reads that have frameshift  
-**Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads. The more blue each row, the less heterogeneity in the reads, more green means reads don't repeat often and are unique  
+**Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads. The more yellow each row, the less heterogeneity in the reads, more black means reads don't repeat often and are unique  
 **Deletions plot** - shows summary of deletions detected after alignments with distinction
 for forward (top plot) and reverse (bottom) reads, blue dotted lines represent primers as black
 dotted line represents cut site box, for deletions overlapping with cut site box there is distinction
@@ -139,7 +139,7 @@ uniqueReadsByID$bins <- cut(uniqueReadsByID$read_share_percentage_normal,
 # reduce number of reads in 0-5 group - faster plots without artifacts
 uniqueReadsByID <- aggregate(read_share_percentage_normal ~ seqnames + bins,
                              data = uniqueReadsByID, sum)
-colorPalette <- colorRampPalette(c('#009E73', '#0072B2'))(length(levels(uniqueReadsByID$bins)))
+colorPalette <- colorRampPalette(c('#000000', '#F0E442'))(length(levels(uniqueReadsByID$bins)))
 names(colorPalette) <- levels(uniqueReadsByID$bins)
 ggplot(data = uniqueReadsByID, aes(x = seqnames, y = read_share_percentage_normal, fill = bins)) +
   geom_bar(position='stack', stat='identity') +
@@ -165,19 +165,19 @@ ggplot(data = uniqueReadsByID, aes(x = seqnames, y = read_share_percentage_norma
 ### Deletions  
 
 ```{r deletions ID_1, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
-amplican_plot_deletions(alignments, config, c('ID_1'), 5)
+plot_deletions(alignments, config, c('ID_1'), 5)
 ```  
 
 ### Insertions  
 
 ```{r insertions ID_1, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
-amplican_plot_insertions(alignments, config, c('ID_1'), 5)
+plot_insertions(alignments, config, c('ID_1'), 5)
 ```  
 
 ### Mismatches  
 
 ```{r mismatches ID_1, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
-amplican_plot_mismatches(alignments, config, c('ID_1'), 5)
+plot_mismatches(alignments, config, c('ID_1'), 5)
 ```  
 
 ## ID_2  
@@ -185,19 +185,19 @@ amplican_plot_mismatches(alignments, config, c('ID_1'), 5)
 ### Deletions  
 
 ```{r deletions ID_2, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
-amplican_plot_deletions(alignments, config, c('ID_2'), 5)
+plot_deletions(alignments, config, c('ID_2'), 5)
 ```  
 
 ### Insertions  
 
 ```{r insertions ID_2, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
-amplican_plot_insertions(alignments, config, c('ID_2'), 5)
+plot_insertions(alignments, config, c('ID_2'), 5)
 ```  
 
 ### Mismatches  
 
 ```{r mismatches ID_2, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
-amplican_plot_mismatches(alignments, config, c('ID_2'), 5)
+plot_mismatches(alignments, config, c('ID_2'), 5)
 ```  
 
 ## ID_3  
@@ -205,19 +205,19 @@ amplican_plot_mismatches(alignments, config, c('ID_2'), 5)
 ### Deletions  
 
 ```{r deletions ID_3, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
-amplican_plot_deletions(alignments, config, c('ID_3'), 5)
+plot_deletions(alignments, config, c('ID_3'), 5)
 ```  
 
 ### Insertions  
 
 ```{r insertions ID_3, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
-amplican_plot_insertions(alignments, config, c('ID_3'), 5)
+plot_insertions(alignments, config, c('ID_3'), 5)
 ```  
 
 ### Mismatches  
 
 ```{r mismatches ID_3, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
-amplican_plot_mismatches(alignments, config, c('ID_3'), 5)
+plot_mismatches(alignments, config, c('ID_3'), 5)
 ```  
 
 ## ID_4  
@@ -225,18 +225,18 @@ amplican_plot_mismatches(alignments, config, c('ID_3'), 5)
 ### Deletions  
 
 ```{r deletions ID_4, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
-amplican_plot_deletions(alignments, config, c('ID_4'), 5)
+plot_deletions(alignments, config, c('ID_4'), 5)
 ```  
 
 ### Insertions  
 
 ```{r insertions ID_4, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
-amplican_plot_insertions(alignments, config, c('ID_4'), 5)
+plot_insertions(alignments, config, c('ID_4'), 5)
 ```  
 
 ### Mismatches  
 
 ```{r mismatches ID_4, echo=F, fig.height=14, fig.width=30, message=F, warning=F}
-amplican_plot_mismatches(alignments, config, c('ID_4'), 5)
+plot_mismatches(alignments, config, c('ID_4'), 5)
 ```  
 

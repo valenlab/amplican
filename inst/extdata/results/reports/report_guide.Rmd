@@ -11,7 +11,7 @@ output:
 ---
 
 ```{r load data, message=F, warning=FALSE, include=FALSE}
-results_folder = '/home/ai/Projects/amplican/inst/extdata/results'
+results_folder = system.file('extdata', 'results', package = 'amplican')
 library(amplican)
 library(ggplot2)
 alignments <- read.csv(file.path(results_folder, 'alignments_events.csv'), stringsAsFactors = FALSE)
@@ -28,7 +28,7 @@ config <- read.csv(file.path(results_folder, 'config_summary.csv'), stringsAsFac
 **PRIMER DIMER filter** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS  
 **Cutting rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have cut  
 **Frameshift** - plot shows what percentage of reads that have frameshift  
-**Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads. The more blue each row, the less heterogeneity in the reads, more green means reads don't repeat often and are unique  
+**Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads. The more yellow each row, the less heterogeneity in the reads, more black means reads don't repeat often and are unique  
 
 
 ***
@@ -139,7 +139,7 @@ uniqueReadsByID$bins <- cut(uniqueReadsByID$read_share_percentage_normal,
 # reduce number of reads in 0-5 group - faster plots without artifacts
 uniqueReadsByID <- aggregate(read_share_percentage_normal ~ guideRNA + bins,
                              data = uniqueReadsByID, sum)
-colorPalette <- colorRampPalette(c('#009E73', '#0072B2'))(length(levels(uniqueReadsByID$bins)))
+colorPalette <- colorRampPalette(c('#000000', '#F0E442'))(length(levels(uniqueReadsByID$bins)))
 names(colorPalette) <- levels(uniqueReadsByID$bins)
 ggplot(data = uniqueReadsByID, aes(x = guideRNA, y = read_share_percentage_normal, fill = bins)) +
   geom_bar(position = 'stack', stat = 'identity') +
@@ -153,4 +153,70 @@ ggplot(data = uniqueReadsByID, aes(x = guideRNA, y = read_share_percentage_norma
   scale_fill_manual(values = colorPalette) +
   coord_flip()
 ``` 
+
+***
+
+# Alignments plots  
+
+***
+
+## AGGTGGTCAGGGAACTGG  
+
+### Deletions  
+
+```{r deletions AGGTGGTCAGGGAACTGG, echo=F, message=F, warning=F}
+metaplot_deletions(alignments, config, 'guideRNA', c('AGGTGGTCAGGGAACTGG'))
+```  
+
+### Insertions  
+
+```{r insertions AGGTGGTCAGGGAACTGG, echo=F, message=F, warning=F}
+metaplot_insertions(alignments, config, 'guideRNA', c('AGGTGGTCAGGGAACTGG'))
+```  
+
+### Mismatches  
+
+```{r mismatches AGGTGGTCAGGGAACTGG, echo=F, message=F, warning=F}
+metaplot_mismatches(alignments, config, 'guideRNA', c('AGGTGGTCAGGGAACTGG'))
+```  
+
+## TGACCCTCTGCCAACACAAGGGG  
+
+### Deletions  
+
+```{r deletions TGACCCTCTGCCAACACAAGGGG, echo=F, message=F, warning=F}
+metaplot_deletions(alignments, config, 'guideRNA', c('TGACCCTCTGCCAACACAAGGGG'))
+```  
+
+### Insertions  
+
+```{r insertions TGACCCTCTGCCAACACAAGGGG, echo=F, message=F, warning=F}
+metaplot_insertions(alignments, config, 'guideRNA', c('TGACCCTCTGCCAACACAAGGGG'))
+```  
+
+### Mismatches  
+
+```{r mismatches TGACCCTCTGCCAACACAAGGGG, echo=F, message=F, warning=F}
+metaplot_mismatches(alignments, config, 'guideRNA', c('TGACCCTCTGCCAACACAAGGGG'))
+```  
+
+## GTCCCTGCAACATTAAAGGCCGG  
+
+### Deletions  
+
+```{r deletions GTCCCTGCAACATTAAAGGCCGG, echo=F, message=F, warning=F}
+metaplot_deletions(alignments, config, 'guideRNA', c('GTCCCTGCAACATTAAAGGCCGG'))
+```  
+
+### Insertions  
+
+```{r insertions GTCCCTGCAACATTAAAGGCCGG, echo=F, message=F, warning=F}
+metaplot_insertions(alignments, config, 'guideRNA', c('GTCCCTGCAACATTAAAGGCCGG'))
+```  
+
+### Mismatches  
+
+```{r mismatches GTCCCTGCAACATTAAAGGCCGG, echo=F, message=F, warning=F}
+metaplot_mismatches(alignments, config, 'guideRNA', c('GTCCCTGCAACATTAAAGGCCGG'))
+```  
 

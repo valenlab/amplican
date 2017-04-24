@@ -32,7 +32,7 @@ config <- read.csv(file.path(results_folder, 'config_summary.csv'), stringsAsFac
 **PRIMER DIMER filter** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS  
 **Cutting rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have cut  
 **Frameshift** - plot shows what percentage of reads that have frameshift  
-**Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads. The more blue each row, the less heterogeneity in the reads, more green means reads don't repeat often and are unique  
+**Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads. The more yellow each row, the less heterogeneity in the reads, more black means reads don't repeat often and are unique  
 **Top unassigned reads** - take a look at the alignment of most abundant 
 forward and reverse complemented reverse reads for each barcode, 
 if you find that there is many unassigned reads you can ivestigate here.  
@@ -45,7 +45,7 @@ if you find that there is many unassigned reads you can ivestigate here.
 
 ## Read distribution  
 
-```{r plot total reads, echo=FALSE, fig.height=3, fig.width=14, message=F, warning=FALSE}
+```{r plot total reads, echo=FALSE, fig.height=5, fig.width=14, message=F, warning=FALSE}
 ggplot(data = config, aes(x = Barcode, y = log10(Reads + 1), order = Barcode, fill = ID)) +
   geom_bar(position='stack', stat='identity') +
   ylab('Number of reads + 1, log10 scaled')  +
@@ -145,7 +145,7 @@ uniqueReadsByID$bins <- cut(uniqueReadsByID$read_share_percentage_normal,
 # reduce number of reads in 0-5 group - faster plots without artifacts
 uniqueReadsByID <- aggregate(read_share_percentage_normal ~ barcode + bins,
                              data = uniqueReadsByID, sum)
-colorPalette <- colorRampPalette(c('#009E73', '#0072B2'))(length(levels(uniqueReadsByID$bins)))
+colorPalette <- colorRampPalette(c('#000000', '#F0E442'))(length(levels(uniqueReadsByID$bins)))
 names(colorPalette) <- levels(uniqueReadsByID$bins)
 ggplot(data = uniqueReadsByID, aes(x = as.factor(barcode), y = read_share_percentage_normal, fill = bins)) +
   geom_bar(position = 'stack', stat = 'identity') +

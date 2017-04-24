@@ -5,7 +5,7 @@
 \title{Filter Events Overlapping Primers. Message user when many of the events are
 filtered.}
 \usage{
-filterEOP(idRanges, frPrimer, rvPrimer, amplicon)
+filterEOP(idRanges, frPrimer, rvPrimer)
 }
 \arguments{
 \item{idRanges}{(data.frame) Contains events.}
@@ -13,8 +13,6 @@ filterEOP(idRanges, frPrimer, rvPrimer, amplicon)
 \item{frPrimer}{(character) forward primer location}
 
 \item{rvPrimer}{(character) reverse primer location}
-
-\item{amplicon}{(character) amplicon sequence}
 }
 \value{
 (data.frame) filtered data frame of events

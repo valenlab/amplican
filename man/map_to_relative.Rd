@@ -5,12 +5,12 @@
 \title{Map events to their respective relative coordinates specified with
 UPPER case.}
 \usage{
-map_to_relative(config, events)
+map_to_relative(events, config)
 }
 \arguments{
-\item{config}{(data.frame) config table}
-
 \item{events}{(data.frame) List of events to map to the relative coordinates.}
+
+\item{config}{(data.frame) config table}
 }
 \value{
 (GRanges) Same as events, but the coordinates are relative to the
@@ -28,6 +28,6 @@ config <- read.csv(system.file("extdata", "config.csv",
 events <- read.csv(system.file("extdata", "results",
                    "alignments_events.csv", package = "amplican"))
 # make events relative to the UPPER case
-map_to_relative(config, events)
+map_to_relative(events, config)
 
 }
