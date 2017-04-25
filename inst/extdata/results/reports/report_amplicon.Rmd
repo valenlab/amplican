@@ -66,16 +66,15 @@ config$group <- match(config$AmpliconUpper, ampliconDF$Amplicon)
 ```{r plot total reads, echo=FALSE, fig.height=4, fig.width=14, message=F, warning=FALSE}
 ampliconTable <- aggregate(cbind(Reads, PRIMER_DIMER, Cut, Frameshift) ~ group, data = config, sum)
 
-ggplot(data = ampliconTable, aes(x = group, y = log10(Reads + 1)), order = group) +
+ggplot(data = ampliconTable, aes(x = as.factor(group), y = log10(Reads + 1)), order = group) +
   geom_bar(stat = 'identity') +
   ylab('Number of reads + 1, log10 scaled')  +
   xlab('Amplicon Group') +
-  scale_x_continuous(breaks = 1:length(uniqueAmlicons)) +
   theme(legend.position = 'none',
         axis.text = element_text(size = 12),
         axis.title = element_text(size = 14, face = 'bold')) +
   coord_flip() +
-  geom_text(aes(x = group, y = log10(Reads + 1), label = Reads), hjust = -1)
+  geom_text(aes(x = as.factor(group), y = log10(Reads + 1), label = Reads), hjust = -1)
 ```
 
 ## PRIMER DIMER filter  
@@ -85,16 +84,15 @@ ggplot(data = ampliconTable, aes(x = group, y = log10(Reads + 1)), order = group
 ampliconTable$PD_percentage <- ampliconTable$PRIMER_DIMER * 100/ampliconTable$Reads
 ampliconTable$PD_percentage[is.nan(ampliconTable$PD_percentage)] <- 0 
 
-ggplot(data = ampliconTable, aes(x = group, y = PD_percentage, order = group)) +
+ggplot(data = ampliconTable, aes(x = as.factor(group), y = PD_percentage, order = group)) +
   geom_bar(stat='identity') +
   ylab('Percentage of reads marked as PRIMER DIMERS')  +
   xlab('Amplicon Group') +
-  scale_x_continuous(breaks = 1:length(uniqueAmlicons)) +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14, face = 'bold')) +
   ylim(0, 100) +
   coord_flip() +
-  geom_text(aes(x = group, y = PD_percentage, label = PRIMER_DIMER), hjust = -1)
+  geom_text(aes(x = as.factor(group), y = PD_percentage, label = PRIMER_DIMER), hjust = -1)
 ```  
 
 ## Cut rates  
@@ -104,16 +102,15 @@ ampliconTable$Reads_noPD <- ampliconTable$Reads - ampliconTable$PRIMER_DIMER
 ampliconTable$cut_percentage <- ampliconTable$Cut * 100/ampliconTable$Reads_noPD
 ampliconTable$cut_percentage[is.nan(ampliconTable$cut_percentage)] <- 0  
 
-ggplot(data = ampliconTable, aes(x = group, y = cut_percentage, order = group)) +
+ggplot(data = ampliconTable, aes(x = as.factor(group), y = cut_percentage, order = group)) +
   geom_bar(stat = 'identity') +
   ylab('Percentage of reads (not marked as PRIMER DIMERS) that have cut site')  +
   xlab('Amplicon Group') +
-  scale_x_continuous(breaks = 1:length(uniqueAmlicons)) +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14, face = 'bold')) +
   ylim(0,100) +
   coord_flip() +
-  geom_text(aes(x = group, y = cut_percentage, label = Cut), hjust = -1)
+  geom_text(aes(x = as.factor(group), y = cut_percentage, label = Cut), hjust = -1)
 ```  
 
 ## Frameshift  
@@ -122,16 +119,15 @@ ggplot(data = ampliconTable, aes(x = group, y = cut_percentage, order = group)) 
 ampliconTable$frameshift_percentage <- ampliconTable$Frameshift * 100/ampliconTable$Reads_noPD
 ampliconTable$frameshift_percentage[is.nan(ampliconTable$frameshift_percentage)] <- 0 
 
-ggplot(data = ampliconTable, aes(x = group, y = frameshift_percentage, order = group)) +
+ggplot(data = ampliconTable, aes(x = as.factor(group), y = frameshift_percentage, order = group)) +
   geom_bar(position = 'stack', stat = 'identity') +
   ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift')  +
   xlab('Amplicon Group') +
-  scale_x_continuous(breaks = 1:length(uniqueAmlicons)) +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14,face = 'bold')) +
   ylim(0, 100) +
   coord_flip() +
-  geom_text(aes(x = group, y = frameshift_percentage, label = Frameshift), hjust = -1)
+  geom_text(aes(x = as.factor(group), y = frameshift_percentage, label = Frameshift), hjust = -1)
 ```  
 
 ## Heterogeneity of reads  

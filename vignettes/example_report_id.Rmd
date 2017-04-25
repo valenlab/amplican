@@ -53,14 +53,15 @@ the frequency of the insertion
 ## Read distribution  
 
 ```{r plot total reads, echo=FALSE, fig.height=5, fig.width=14, message=F, warning=FALSE}
-ggplot(data = config, aes(x = ID, y = log10(Reads + 1), order = ID)) +
+ggplot(data = config, aes(x = as.factor(ID), y = log10(Reads + 1), order = ID)) +
   geom_bar(stat='identity') +
   ylab('Number of reads + 1, log10 scaled')  +
+  xlab('ID') +
   theme(legend.position = 'none',
         axis.text = element_text(size = 12),
         axis.title = element_text(size = 14, face = 'bold')) +
   coord_flip() +
-  geom_text(aes(x = ID, y = log10(Reads + 1), label = Reads), hjust = -1)
+  geom_text(aes(x = as.factor(ID), y = log10(Reads + 1), label = Reads), hjust = -1)
 ```
 
 ## PRIMER DIMER filter  
@@ -69,14 +70,15 @@ ggplot(data = config, aes(x = ID, y = log10(Reads + 1), order = ID)) +
 config$PD_percentage <- config$PRIMER_DIMER * 100/config$Reads
 config$PD_percentage[is.nan(config$PD_percentage)] <- 0  
 
-ggplot(data = config, aes(x = ID, y = PD_percentage, order = ID)) +
+ggplot(data = config, aes(x = as.factor(ID), y = PD_percentage, order = ID)) +
   geom_bar(stat='identity') +
   ylab('Percentage of reads marked as PRIMER DIMERS')  +
+  xlab('ID') +
   theme(legend.position = 'none',
         axis.text = element_text(size = 12),
         axis.title = element_text(size = 14, face = 'bold')) +
   coord_flip() +
-  geom_text(aes(x = ID, y = PD_percentage, label = PRIMER_DIMER), hjust = -1)
+  geom_text(aes(x = as.factor(ID), y = PD_percentage, label = PRIMER_DIMER), hjust = -1)
 ```  
 
 ## Cut rates  
@@ -86,14 +88,15 @@ config$Reads_noPD <- config$Reads - config$PRIMER_DIMER
 config$cut_percentage <- config$Cut * 100/config$Reads_noPD
 config$cut_percentage[is.nan(config$cut_percentage)] <- 0  
 
-ggplot(data = config, aes(x = ID, y = cut_percentage, order = ID)) +
+ggplot(data = config, aes(x = as.factor(ID), y = cut_percentage, order = ID)) +
   geom_bar(stat='identity') +
   ylab('Percentage of reads (not marked as PRIMER DIMERS) that have cut site')  +
+  xlab('ID') +
   theme(legend.position = 'none',
         axis.text = element_text(size = 12),
         axis.title = element_text(size = 14, face = 'bold')) +
   coord_flip() +
-  geom_text(aes(x = ID, y = cut_percentage, label = Cut), hjust = -1)
+  geom_text(aes(x = as.factor(ID), y = cut_percentage, label = Cut), hjust = -1)
 ```  
 
 ## Frameshift  
@@ -102,14 +105,15 @@ ggplot(data = config, aes(x = ID, y = cut_percentage, order = ID)) +
 config$frameshift_percentage <- config$Frameshift * 100/config$Reads_noPD
 config$frameshift_percentage[is.nan(config$frameshift_percentage)] <- 0  
 
-ggplot(data = config, aes(x = ID, y = frameshift_percentage, order = ID)) +
+ggplot(data = config, aes(x = as.factor(ID), y = frameshift_percentage, order = ID)) +
   geom_bar(stat='identity') +
   ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift')  +
+  xlab('ID') +
   theme(legend.position = 'none',
         axis.text = element_text(size = 12),
         axis.title = element_text(size = 14, face = 'bold')) +
   coord_flip() +
-  geom_text(aes(x = ID, y = frameshift_percentage, label = Frameshift), hjust = -1)
+  geom_text(aes(x = as.factor(ID), y = frameshift_percentage, label = Frameshift), hjust = -1)
 ```  
 
 ## Heterogeneity of reads  

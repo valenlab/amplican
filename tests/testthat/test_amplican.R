@@ -3,7 +3,7 @@ library(testthat)
 context("amplican main making analysis of example files")
 
 # changes paths so that system.file points to the actual development folder
-#devtools::load_all()
+# devtools::load_all()
 
 config <- system.file("extdata", "config.csv", package = "amplican")
 fastq_folder <- system.file("extdata", package = "amplican")

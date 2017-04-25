@@ -127,16 +127,19 @@ amplicanAlign <- function(config,
   configTable[revDir, "guideRNA"] <- revComp(configTable[revDir, "guideRNA"])
   configTable$RguideRNA <- revComp(configTable$guideRNA)
   configTable$Found_Guide <- checkTarget(configTable)
-  configTable$cutSites <- lapply(configTable$Amplicon, function(x) upperGroups(x) + cut_buffer)
+  configTable$cutSites <- lapply(
+    configTable$Amplicon, function(x) upperGroups(x) + cut_buffer)
   configTable$ampl_len <- nchar(configTable$Amplicon)
 
   cutSitesCheck <- sapply(configTable$cutSites, length) == 0
   if (any(cutSitesCheck)) {
     message("Warning: Config file row without upper case groups (PAM): ",
             toString(which(cutSitesCheck)))
-    configTable$cutSites[cutSitesCheck] <- as.list(IRanges::tile(IRanges::IRanges(start = 1,
-                                                                                  width = configTable$ampl_len[cutSitesCheck]),
-                                                                 1))
+    configTable$cutSites[cutSitesCheck] <- as.list(
+      IRanges::tile(
+        IRanges::IRanges(start = 1,
+                         width = configTable$ampl_len[cutSitesCheck]),
+        1))
   }
 
   resultsFolder <- file.path(results_folder, "alignments")
