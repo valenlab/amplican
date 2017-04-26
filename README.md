@@ -21,6 +21,7 @@ install.packages(c("Rcpp", "matrixStats", "Matrix", "doParallel", "foreach", "gg
 source("https://bioconductor.org/biocLite.R")  
 biocLite(c("Biostrings", "BiocParallel", "ShortRead", "IRanges", "GenomicRanges", "GenomeInfoDb", "S4Vectors", "ggbio", "BiocStyle"))
 ```  
+- When installing from command line (opposed to RStudio) you probably need also [Pandoc](https://github.com/rstudio/rmarkdown/blob/master/PANDOC.md)  
 - Install amplican using devtools:  
 ```r
 devtools::install_git("https://github.com/valenlab/amplican", build_vignettes = TRUE)

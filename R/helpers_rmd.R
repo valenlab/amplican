@@ -151,8 +151,8 @@ write_unassigned_reads <- function(barcode, top = 5) {
     "                          Counts = unassigned_reads[1:topN, 'Total'],",
     "                          Frequency = unassigned_reads[1:topN, 'BarcodeFrequency']))",
     "",
-    "  knitr::asis_output(cat(amplican_print_reads(unassigned_reads[1:topN, 'Forward'],",
-    "                                              unassigned_reads[1:topN, 'Reverse']), sep = '\n'))",
+    "  knitr::asis_output(as.character(cat(amplican_print_reads(unassigned_reads[1:topN, 'Forward'],",
+    "                                                           unassigned_reads[1:topN, 'Reverse']), sep = '\n')))",
     "}",
     "```\n")
 }

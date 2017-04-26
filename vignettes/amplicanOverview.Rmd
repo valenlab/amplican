@@ -210,10 +210,10 @@ Types of report:
 
 We provide specialized plots for each type of the alignment events. 
 
-`amplican_plot_mismatches` - plots mismatches as stacked bar-plot over the amplicon, top plot is for the forward and
+`plot_mismatches` - plots mismatches as stacked bar-plot over the amplicon, top plot is for the forward and
 bottom is for reverse reads  
-`amplican_plot_deletions` - plots deletions as arch-plot from the ggbio package  
-`amplican_plot_insertions` - each insertion is represented by triangle over the amplicon  
-`amplican_plot_cuts` - gathers cuts from each of the experiments and overlays multiple arch-plots on top of each other, useful when analyzing what kind of cuts were introduced in the amplicon  
+`plot_deletions` - plots deletions as arch-plot from the ggbio package  
+`plot_insertions` - each insertion is represented by triangle over the amplicon  
+`plot_cuts` - gathers cuts from each of the experiments and overlays multiple arch-plots on top of each other, useful when analyzing what kind of cuts were introduced in the amplicon  
 
-You can take a look at all these plots and how to make them in the example reports.  
+You can take a look at all these plots and how to make them in the example reports. There are also meta versions of above plots, that discard amplicon information and allow to overlay multiple different amplicons on top of each other eg. `metaplot_deletions`.  

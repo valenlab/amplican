@@ -114,9 +114,9 @@ group_to_selection <- function(alnmt, config, group, selection, filter) {
     for (ID in unique(alnmt$seqnames)) {
       pr <- amplicon_primers(config, ID, get_amplicon(config, ID))
       alnmt_filtered <- rbind(alnmt_filtered,
-                              filterEOP(alnmt[alnmt$seqnames == ID,],
-                                        pr$leftPrimer,
-                                        pr$rightPrimer))
+                              suppressWarnings(filterEOP(alnmt[alnmt$seqnames == ID,],
+                                                         pr$leftPrimer,
+                                                         pr$rightPrimer)))
     }
   }
   alnmt <- map_to_relative(alnmt_filtered, config) # becomes GRanges obj
@@ -141,16 +141,15 @@ mock_mm_df <- function(ampl_max, ampl_min = 0) {
 
 return_metaplot <- function(freqAgr, plot_fr, plot_re) {
   if (any(freqAgr$strand == "+") & any(freqAgr$strand == "-")) {
-    return(ggbio::tracks(mut_fr,
-                         mut_re +
+    return(ggbio::tracks(plot_fr,
+                         plot_re +
                            ggplot2::scale_y_reverse(limits = c(max(freqAgr$frequency), 0)),
                          heights = c(0.5, 0.5),
-                         padding = -1,
-                         xlab = "Relative Nucleotide Position"))
+                         padding = -1))
   } else if (all(freqAgr$strand == "+")) {
     return(plot_fr)
   } else {
-    return(plot_re + xlab("Relative Nucleotide Position"))
+    return(plot_re)
   }
 }
 
@@ -226,7 +225,8 @@ metaplot_mismatches <- function(alnmt, config, group,
   mut_re <- ggplot_mismatches(freqAgrMinus)
   mut_re <- amplican_style(mut_re)
 
-  return_metaplot(freqAgr, mut_fr, mut_re)
+  return_metaplot(freqAgr, mut_fr, mut_re) +
+    ggplot2::xlab("Relative Nucleotide Position")
 }
 
 
@@ -288,10 +288,10 @@ metaplot_deletions <- function(alnmt, config, group,
     ggplot2::ylim(0, max(archRanges$frequency))
 
   arch_plot_re <- ggplot_deletions(archRanges[archRanges$strand == "-", ])
-  arch_plot_re <- amplican_style(arch_plot_re) +
-    ggplot2::scale_y_reverse(limits = c(max(archRanges$frequency), 0))
+  arch_plot_re <- amplican_style(arch_plot_re)
 
-  return_metaplot(archRanges, arch_plot_fr, arch_plot_re)
+  return_metaplot(archRanges, arch_plot_fr, arch_plot_re) +
+    ggplot2::xlab("Relative Nucleotide Position")
 }
 
 
@@ -357,10 +357,10 @@ metaplot_insertions <- function(alnmt, config, group,
   ins_fr <- amplican_style(ins_fr)
 
   ins_re <- ggplot_insertions(triangleRe)
-  ins_re <- amplican_style(ins_re) +
-    ggplot2::scale_y_reverse(limits = c(max(idRangesReduced$frequency), 0))
+  ins_re <- amplican_style(ins_re)
 
-  return_metaplot(idRangesReduced, ins_fr, ins_re)
+  return_metaplot(idRangesReduced, ins_fr, ins_re) +
+    ggplot2::xlab("Relative Nucleotide Position")
 }
 
 
