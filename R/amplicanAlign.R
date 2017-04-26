@@ -93,6 +93,7 @@ amplicanAlign <- function(config,
 
   message("Checking configuration file...")
   configTable <- utils::read.csv(config, strip.white = TRUE, stringsAsFactors = FALSE)
+  configTable[is.na(configTable)] <- ""
   colnames(configTable) <- c("ID",
                              "Barcode",
                              "Forward_Reads_File",

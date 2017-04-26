@@ -118,8 +118,9 @@ checkConfigFile <- function(configTable, fastq_folder) {
                 " For each barcode there can be only one set of paths for forward and reverse files."))
   }
 
-  uniqueFilePaths <- unique(c(as.character(configTable$Forward_Reads_File),
-                              as.character(configTable$Reverse_Reads_File)))
+  uniqueFilePaths <- unique(
+    c(configTable$Forward_Reads_File[configTable$Forward_Reads_File != ""],
+      configTable$Reverse_Reads_File[configTable$Reverse_Reads_File != ""]))
   access <- file.access(uniqueFilePaths, mode = 4) == -1
   if (sum(access) > 0) {
     stop(paste0("We either don't have read access or paths are incorrect. ",

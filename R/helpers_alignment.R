@@ -194,7 +194,7 @@ makeAlignment <- function(configTable,
   forwardsTable <- if (fastqfiles == 2) NULL else ShortRead::readFastq(configTable$Forward_Reads_File[1])
   reversesTable <- if (fastqfiles == 1) NULL else ShortRead::readFastq(configTable$Reverse_Reads_File[1])
   if (fastqfiles == 1) {
-    rewersesTable <- rep(TRUE, length(forwardsTable))
+    reversesTable <- rep(TRUE, length(forwardsTable))
   }
   if (fastqfiles == 2) {
     forwardsTable <- rep(TRUE, length(reversesTable))
@@ -324,8 +324,17 @@ makeAlignment <- function(configTable,
 
       for (r in seq_len(dim(IDuniqueTable)[1])) {
 
-        forwardData <- getEventInfo(alignForward[r], currentID, configTable$forwardPrimerPosition[i], "+")
-        reverseData <- getEventInfo(alignReverse[r], currentID, configTable$reversePrimerPosEnd[i], "-")
+        forwardData <- if (fastqfiles != 2) {
+          getEventInfo(alignForward[r], currentID, configTable$forwardPrimerPosition[i], "+")
+        } else {
+          GRanges()
+        }
+
+        reverseData <- if (fastqfiles != 1) {
+          getEventInfo(alignReverse[r], currentID, configTable$reversePrimerPosEnd[i], "-")
+        } else {
+          GRanges()
+        }
 
         # Filter PRIMER DIMERS and sum how many
         PD_cutoff <- nchar(amplicon) -

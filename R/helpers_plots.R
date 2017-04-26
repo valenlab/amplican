@@ -139,6 +139,22 @@ mock_mm_df <- function(ampl_max, ampl_min = 0) {
 }
 
 
+return_metaplot <- function(freqAgr, plot_fr, plot_re) {
+  if (any(freqAgr$strand == "+") & any(freqAgr$strand == "-")) {
+    return(ggbio::tracks(mut_fr,
+                         mut_re +
+                           ggplot2::scale_y_reverse(limits = c(max(freqAgr$frequency), 0)),
+                         heights = c(0.5, 0.5),
+                         padding = -1,
+                         xlab = "Relative Nucleotide Position"))
+  } else if (all(freqAgr$strand == "+")) {
+    return(plot_fr)
+  } else {
+    return(plot_re + xlab("Relative Nucleotide Position"))
+  }
+}
+
+
 #' MetaPlots mismatches using ggplot2 and ggbio.
 #'
 #' This function plots mismatches in relation to the amplicons for given
@@ -208,15 +224,9 @@ metaplot_mismatches <- function(alnmt, config, group,
 
 
   mut_re <- ggplot_mismatches(freqAgrMinus)
-  mut_re <- amplican_style(mut_re) +
-    ggplot2::scale_y_reverse(limits = c(max(freqAgr$frequency), 0))
+  mut_re <- amplican_style(mut_re)
 
-  p <- ggbio::tracks(mut_fr,
-                     mut_re,
-                     heights = c(0.5, 0.5),
-                     padding = -1,
-                     xlab = "Relative Nucleotide Position")
-  return(p)
+  return_metaplot(freqAgr, mut_fr, mut_re)
 }
 
 
@@ -281,12 +291,7 @@ metaplot_deletions <- function(alnmt, config, group,
   arch_plot_re <- amplican_style(arch_plot_re) +
     ggplot2::scale_y_reverse(limits = c(max(archRanges$frequency), 0))
 
-  p <- ggbio::tracks(arch_plot_fr,
-                     arch_plot_re,
-                     heights = c(0.5, 0.5),
-                     padding = -1,
-                     xlab = "Relative Nucleotide Position")
-  return(p)
+  return_metaplot(archRanges, arch_plot_fr, arch_plot_re)
 }
 
 
@@ -355,12 +360,7 @@ metaplot_insertions <- function(alnmt, config, group,
   ins_re <- amplican_style(ins_re) +
     ggplot2::scale_y_reverse(limits = c(max(idRangesReduced$frequency), 0))
 
-  p <- ggbio::tracks(ins_fr,
-                     ins_re,
-                     heights = c(0.5, 0.5),
-                     padding = -1,
-                     xlab = "Relative Nucleotide Position")
-  return(p)
+  return_metaplot(idRangesReduced, ins_fr, ins_re)
 }
 
 

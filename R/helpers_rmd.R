@@ -527,6 +527,11 @@ make_barcode_rmd <- function(results_folder) {
   ub <- list.files(file.path(results_folder,
                              "alignments", "unassigned_sequences"))
   ub_reads <- unlist(lapply(ub, function(x) write_unassigned_reads(x)))
+  ub_reads <- if (config$Forward_Reads_File != "" &&
+                  config$Reverse_Reads_File != "") {
+    c("# Top unassigned reads  \n", "***\n", ub_reads)
+  } else { "" }
+
 
   c(write_head("Report breakdown by Barcode"),
     "```{r load data, message=F, warning=FALSE, include=FALSE}",
@@ -682,8 +687,6 @@ make_barcode_rmd <- function(results_folder) {
     "  xlab('Barcode') +",
     "  coord_flip()",
     "``` \n",
-    "***\n",
-    "# Top unassigned reads  \n",
     "***\n",
     ub_reads)
 }
