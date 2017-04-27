@@ -93,7 +93,6 @@ amplicanAlign <- function(config,
 
   message("Checking configuration file...")
   configTable <- utils::read.csv(config, strip.white = TRUE, stringsAsFactors = FALSE)
-  configTable[is.na(configTable)] <- ""
   colnames(configTable) <- c("ID",
                              "Barcode",
                              "Forward_Reads_File",
@@ -105,19 +104,25 @@ amplicanAlign <- function(config,
                              "Direction",
                              "Amplicon")
   configTable$Barcode <- as.character(configTable$Barcode)
-  configTable$Forward_Reads_File <- ifelse(configTable$Forward_Reads_File == "",
-                                           "",
-                                           file.path(fastq_folder, configTable$Forward_Reads_File))
-  configTable$Reverse_Reads_File <- ifelse(configTable$Reverse_Reads_File == "",
-                                           "",
-                                           file.path(fastq_folder, configTable$Reverse_Reads_File))
+  configTable$Forward_Reads_File <-
+    ifelse(is.na(configTable$Forward_Reads_File),
+           "",
+           file.path(fastq_folder, configTable$Forward_Reads_File))
+  configTable$Reverse_Reads_File <- ifelse(
+    is.na(configTable$Reverse_Reads_File),
+    "",
+    file.path(fastq_folder, configTable$Reverse_Reads_File))
 
   if (sum(configTable$Reverse_Reads_File == "") > 0) {
-    message("Reverse_Reads_File has empty rows. Changing fastqfiles parameter to 1, operating only on forward reads.")
+    message(paste0("Reverse_Reads_File has empty rows. ",
+                   "Changing fastqfiles parameter to 1, ",
+                   "operating only on forward reads."))
     fastqfiles <- 1
   }
   if (sum(configTable$Forward_Reads_File == "") > 0) {
-    message("Forward_Reads_File has empty rows. Changing fastqfiles parameter to 2, operating only on reverse reads.")
+    message(paste0("Forward_Reads_File has empty rows. ",
+                   "Changing fastqfiles parameter to 2, ",
+                   "operating only on reverse reads."))
     fastqfiles <- 2
   }
   checkConfigFile(configTable, fastq_folder)

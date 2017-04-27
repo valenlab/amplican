@@ -526,10 +526,10 @@ make_barcode_rmd <- function(results_folder) {
   height <- plot_height(length(unique(config$Barcode)))
   ub <- list.files(file.path(results_folder,
                              "alignments", "unassigned_sequences"))
-  ub_reads <- unlist(lapply(ub, function(x) write_unassigned_reads(x)))
-  ub_reads <- if (config$Forward_Reads_File != "" &&
-                  config$Reverse_Reads_File != "") {
-    c("# Top unassigned reads  \n", "***\n", ub_reads)
+  ub_reads <- if (!is.na(config$Forward_Reads_File) &&
+                  !is.na(config$Reverse_Reads_File)) {
+    c("# Top unassigned reads  \n", "***\n",
+      unlist(lapply(ub, function(x) write_unassigned_reads(x))))
   } else { "" }
 
 
