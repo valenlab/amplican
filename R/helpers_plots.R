@@ -113,10 +113,11 @@ group_to_selection <- function(alnmt, config, group, selection, filter) {
   if (filter) {
     for (ID in unique(alnmt$seqnames)) {
       pr <- amplicon_primers(config, ID, get_amplicon(config, ID))
-      alnmt_filtered <- rbind(alnmt_filtered,
-                              suppressWarnings(filterEOP(alnmt[alnmt$seqnames == ID,],
-                                                         pr$leftPrimer,
-                                                         pr$rightPrimer)))
+      alnmt_filtered <- rbind(
+        alnmt_filtered,
+        suppressWarnings(filterEOP(alnmt[alnmt$seqnames == ID,],
+                                   pr$leftPrimer,
+                                   pr$rightPrimer)))
     }
   }
   alnmt <- map_to_relative(alnmt_filtered, config) # becomes GRanges obj
@@ -143,13 +144,45 @@ return_metaplot <- function(freqAgr, plot_fr, plot_re) {
   if (any(freqAgr$strand == "+") & any(freqAgr$strand == "-")) {
     return(ggbio::tracks(plot_fr,
                          plot_re +
-                           ggplot2::scale_y_reverse(limits = c(max(freqAgr$frequency), 0)),
+                           ggplot2::scale_y_reverse(
+                             limits = c(max(freqAgr$frequency, na.rm = TRUE),
+                                        0)),
                          heights = c(0.5, 0.5),
                          padding = -1))
   } else if (all(freqAgr$strand == "+")) {
     return(plot_fr)
   } else {
     return(plot_re)
+  }
+}
+
+
+annotate_with_amplicon <- function(p, amplicon) {
+  amplicon <- strsplit(amplicon, "")[[1]]
+  p +
+    ggplot2::annotate(
+      "text",
+      x = seq(1, nchar(amplicon)),
+      label = amplicon,
+      y = 0,
+      colour = amplicon_colors[match(toupper(amplicon),
+                                     names(amplicon_colors))])
+}
+
+
+return_plot <- function(freqAgr, amplicon, ampl_len, plot_fr, plot_re) {
+  if (any(freqAgr$strand == "+") & any(freqAgr$strand == "-")) {
+    return(ggbio::tracks(plot_fr,
+                         plot_amplicon(amplicon),
+                         plot_re,
+                         heights = c(0.5, 0.03, 0.53),
+                         padding = -1,
+                         xlim = 1:ampl_len,
+                         xlab = "Relative Nucleotide Position"))
+  } else if (all(freqAgr$strand == "+")) {
+    return(annotate_with_amplicon(plot_fr, amplicon))
+  } else {
+    return(annotate_with_amplicon(plot_re, amplicon))
   }
 }
 
@@ -213,14 +246,14 @@ metaplot_mismatches <- function(alnmt, config, group,
   freqAgrMinus <- freqAgr[freqAgr$strand == "-", ]
 
   # sometimes barplot gets confused so we add mock data
-  mock <- mock_mm_df(max(freqAgr$start), min(freqAgr$start))
+  mock <- mock_mm_df(max(freqAgr$start, na.rm = TRUE),
+                     min(freqAgr$start, na.rm = TRUE))
   freqAgrPlus <- rbind(freqAgrPlus, mock)
   freqAgrMinus <- rbind(freqAgrMinus, mock)
 
   mut_fr <- ggplot_mismatches(freqAgrPlus) +
-    ggplot2::ylim(0, max(freqAgr$frequency))
+    ggplot2::ylim(0, max(freqAgr$frequency, na.rm = TRUE))
   mut_fr <- amplican_style(mut_fr)
-
 
   mut_re <- ggplot_mismatches(freqAgrMinus)
   mut_re <- amplican_style(mut_re)
@@ -285,7 +318,7 @@ metaplot_deletions <- function(alnmt, config, group,
 
   arch_plot_fr <- ggplot_deletions(archRanges[archRanges$strand == "+", ])
   arch_plot_fr <- amplican_style(arch_plot_fr) +
-    ggplot2::ylim(0, max(archRanges$frequency))
+    ggplot2::ylim(0, max(archRanges$frequency, na.rm = TRUE))
 
   arch_plot_re <- ggplot_deletions(archRanges[archRanges$strand == "-", ])
   arch_plot_re <- amplican_style(arch_plot_re)
@@ -353,7 +386,7 @@ metaplot_insertions <- function(alnmt, config, group,
   triangleRe <- triangulate_ranges(idRangesRe)
 
   ins_fr <- ggplot_insertions(triangleFr) +
-    ggplot2::ylim(0, max(idRangesReduced$frequency))
+    ggplot2::ylim(0, max(idRangesReduced$frequency, na.rm = TRUE))
   ins_fr <- amplican_style(ins_fr)
 
   ins_re <- ggplot_insertions(triangleRe)
@@ -481,7 +514,7 @@ plot_mismatches <- function(alignments,
   freqAgrMinus <- rbind(freqAgrMinus, mock)
 
   mut_fr <- ggplot_mismatches(freqAgrPlus) +
-    ggplot2::ylim(0, max(freqAgr$frequency))
+    ggplot2::ylim(0, max(freqAgr$frequency, na.rm = TRUE))
   mut_fr <- amplican_xlim(mut_fr, ampl_len, xlabels,
                           xbreaks, box, pr$primers)
   mut_fr <- amplican_style(mut_fr)
@@ -491,16 +524,11 @@ plot_mismatches <- function(alignments,
   mut_re <- amplican_xlim(mut_re, ampl_len, xlabels,
                           xbreaks, box, pr$primers)
   mut_re <- amplican_style(mut_re) +
-    ggplot2::scale_y_reverse(limits = c(max(freqAgr$frequency), 0))
+    ggplot2::scale_y_reverse(
+      limits = c(max(freqAgr$frequency, na.rm = TRUE), 0))
 
-  p <- ggbio::tracks(mut_fr,
-                     plot_amplicon(amplicon),
-                     mut_re,
-                     heights = c(0.5, 0.03, 0.53),
-                     padding = -1,
-                     xlim = 1:ampl_len,
-                     xlab = "Relative Nucleotide Position")
-  return(p)
+  return_plot(freqAgr, amplicon, ampl_len, mut_fr, mut_re) +
+    ggplot2::xlab("Relative Nucleotide Position")
 }
 
 
@@ -579,7 +607,7 @@ plot_deletions <- function(alignments,
   }
 
   arch_plot_fr <- ggplot_deletions(archRanges[archRanges$strand == "+", ]) +
-    ggplot2::ylim(0, max(archRanges$frequency))
+    ggplot2::ylim(0, max(archRanges$frequency, na.rm = TRUE))
   arch_plot_fr <- amplican_xlim(arch_plot_fr, ampl_len, xlabels,
                                 xbreaks, box, pr$primers)
   arch_plot_fr <- amplican_style(arch_plot_fr)
@@ -588,16 +616,11 @@ plot_deletions <- function(alignments,
   arch_plot_re <- amplican_xlim(arch_plot_re, ampl_len, xlabels,
                                 xbreaks, box, pr$primers)
   arch_plot_re <- amplican_style(arch_plot_re) +
-    ggplot2::scale_y_reverse(limits = c(max(archRanges$frequency), 0))
+    ggplot2::scale_y_reverse(
+      limits = c(max(archRanges$frequency, na.rm = TRUE), 0))
 
-  p <- ggbio::tracks(arch_plot_fr,
-                     plot_amplicon(amplicon),
-                     arch_plot_re,
-                     heights = c(0.5, 0.03, 0.53),
-                     padding = -1,
-                     xlim = 1:ampl_len,
-                     xlab = "Relative Nucleotide Position")
-  return(p)
+  return_plot(archRanges, amplicon, ampl_len, arch_plot_fr, arch_plot_re) +
+    ggplot2::xlab("Relative Nucleotide Position")
 }
 
 
@@ -675,8 +698,8 @@ plot_insertions <- function(alignments,
   triangleRe <- triangulate_ranges(idRangesRe)
 
   if (dim(idRangesRe)[1] != 0 | dim(idRangesFr)[1] != 0) {
-    ampl_len <- max(c(max(triangleFr$position),
-                      max(triangleRe$position),
+    ampl_len <- max(c(max(triangleFr$position, na.rm = TRUE),
+                      max(triangleRe$position, na.rm = TRUE),
                       ampl_len), na.rm = TRUE)
   }
 
@@ -686,7 +709,7 @@ plot_insertions <- function(alignments,
   box <- box + cut_buffer
 
   ins_fr <- ggplot_insertions(triangleFr) +
-    ggplot2::ylim(0, max(idRangesReduced$frequency))
+    ggplot2::ylim(0, max(idRangesReduced$frequency, na.rm = TRUE))
   ins_fr <- amplican_xlim(ins_fr, ampl_len, xlabels,
                           xbreaks, box, pr$primers)
   ins_fr <- amplican_style(ins_fr)
@@ -695,16 +718,11 @@ plot_insertions <- function(alignments,
   ins_re <- amplican_xlim(ins_re, ampl_len, xlabels,
                            xbreaks, box, pr$primers)
   ins_re <- amplican_style(ins_re) +
-    ggplot2::scale_y_reverse(limits = c(max(idRangesReduced$frequency), 0))
+    ggplot2::scale_y_reverse(
+      limits = c(max(idRangesReduced$frequency, na.rm = TRUE), 0))
 
-  p <- ggbio::tracks(ins_fr,
-                     plot_amplicon(amplicon),
-                     ins_re,
-                     heights = c(0.5, 0.03, 0.53),
-                     padding = -1,
-                     xlim = 1:ampl_len,
-                     xlab = "Relative Nucleotide Position")
-  return(p)
+  return_plot(idRangesReduced, amplicon, ampl_len, ins_fr, ins_re) +
+    ggplot2::xlab("Relative Nucleotide Position")
 }
 
 
@@ -785,13 +803,7 @@ plot_cuts <- function(alignments,
     return("No cuts to plot.")
   }
 
-  ampl_df <- data.frame(seq(1, ampl_len),
-                        strsplit(amplicon, "")[[1]],
-                        strsplit(toupper(amplicon), "")[[1]], 1)
-  names(ampl_df) <- c("position", "nucleotide", "upper", "count")
-  ampl_df$colour <- amplicon_colors[match(ampl_df$upper,
-                                          names(amplicon_colors))]
-
+  amplicon <- strsplit(amplicon, "")[[1]]
   frequency <- seqnames <- NULL
   p <- ggplot2::ggplot() +
     ggbio::geom_arch(data = archRanges,
@@ -815,9 +827,10 @@ plot_cuts <- function(alignments,
                         linetype = "dotdash",
                         colour = "blue") +
     ggplot2::annotate("text",
-                      x = ampl_df$position,
-                      label = ampl_df$nucleotide,
+                      x = seq(1, ampl_len),
+                      label = amplicon,
                       y = 0,
-                      colour = ampl_df$colour)
+                      colour = amplicon_colors[match(toupper(amplicon),
+                                                     names(amplicon_colors))])
   return(p)
 }

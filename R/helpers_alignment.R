@@ -445,6 +445,10 @@ makeAlignment <- function(configTable,
 
   if (length(alignmentRangesBar) > 0) {
     alignmentRangesBar <- flipRanges(as.data.frame(alignmentRangesBar), configTable)
+    if (fastqfiles == 2 | fastqfiles == 1) {
+      # when only one strand treat everything as on forward strand
+      alignmentRangesBar$strand <- "+"
+    }
     utils::write.csv(alignmentRangesBar,
                      file.path(resultsFolder,
                                paste0(barcode, "_alignment_ranges.csv")),
