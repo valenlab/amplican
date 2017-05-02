@@ -158,11 +158,12 @@ return_metaplot <- function(freqAgr, plot_fr, plot_re) {
 
 
 annotate_with_amplicon <- function(p, amplicon) {
+  ampl_len <- nchar(amplicon)
   amplicon <- strsplit(amplicon, "")[[1]]
   p +
     ggplot2::annotate(
       "text",
-      x = seq(1, nchar(amplicon)),
+      x = seq(1, ampl_len),
       label = amplicon,
       y = 0,
       colour = amplicon_colors[match(toupper(amplicon),
@@ -833,4 +834,115 @@ plot_cuts <- function(alignments,
                       colour = amplicon_colors[match(toupper(amplicon),
                                                      names(amplicon_colors))])
   return(p)
+}
+
+
+#' Plots heterogeneity of the reads using ggplot2 and ggbio.
+#'
+#' This function creates stacked barplot explaining
+#' reads heterogeneity. It groups reads
+#' by user defined levels and measures how unique are reads in
+#' this level. Uniqueness of reads is simplified to the bins and
+#' colored according to the color gradient. Default color black
+#' indicates very high heterogeneity of the reads. The more yellow
+#' the more similar are reads and less heterogenic.
+#'
+#' @param alignments (data.frame) Loaded alignment information from
+#' alignments_events.csv file.
+#' @param config (data.frame) Loaded table from config_summary.csv file.
+#' @param by (string) Name of the column from config
+#' file specifying levels to group by.
+#' @param colors (html colors vector) Two colours for gradient, eg. c('#000000', '#F0E442').
+#' @param bins (numeric vector) Numeric vector from 0 to 100 specyfying bins eg.
+#' c(0, 5, seq(10, 100, 10)).
+#' @return (heterogeneity plot) ggplot2 object of heterogeneity plot
+#' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle
+#' scale_colour_manual scale_fill_manual scale_x_continuous geom_vline
+#' scale_y_reverse element_blank unit geom_text ylab ylim scale_color_manual
+#' facet_grid element_text
+#' @importFrom ggbio geom_arch xlim
+#' @importFrom stats na.omit
+#' @export
+#' @family specialized plots
+#' @examples
+#' #example config
+#' config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
+#' #example alignments results
+#' alignments_file <- system.file("extdata", "results", "alignments_events.csv", package = "amplican")
+#' alignments <- read.csv(alignments_file)
+#' plot_heterogeneity(alignments, config)
+#'
+plot_heterogeneity <- function(alignments,
+                               config,
+                               level = "ID",
+                               colors = c('#000000', '#F0E442'),
+                               bins = c(0, 5, seq(10, 100, 10))) {
+
+  alignments$ID_read_id <- paste0(alignments$seqnames, '_', alignments$read_id)
+  uniqueReadsByID <- alignments[!duplicated(alignments$ID_read_id),
+                                c('seqnames', 'read_id', 'count')]
+  if (level != "ID") {
+    by = level
+    howManyTimes <- aggregate(read_id ~ seqnames,
+                              data = uniqueReadsByID, length)
+    howManyTimes <- howManyTimes[
+      order(match(howManyTimes$seqnames, unique(uniqueReadsByID$seqnames))),]
+
+    uniqueReadsByID[[by]] <- rep(
+      config[order(match(howManyTimes$seqnames, unique(config$ID))), by],
+      times = howManyTimes$read_id)
+  } else {
+    by = "seqnames"
+  }
+  c_ord <- order(uniqueReadsByID[[by]], uniqueReadsByID$count, decreasing = T)
+  uniqueReadsByID <- uniqueReadsByID[c_ord, ]
+
+  cumsum_list <- tapply(uniqueReadsByID$count,
+                        uniqueReadsByID[[by]], FUN = cumsum)
+  cumsum_list <- cumsum_list[unique(uniqueReadsByID[[by]])]
+  uniqueReadsByID$cumsum <- unlist(cumsum_list)
+
+  howManyTimes <- table(uniqueReadsByID[[by]])
+  howManyTimes <- howManyTimes[
+    order(match(names(howManyTimes), unique(uniqueReadsByID[[by]])))]
+  dimHMT <- if (is.null(dim(howManyTimes)[1])) {
+    length(howManyTimes)
+  } else {
+    dim(howManyTimes)[1]
+  }
+  uniqueReadsByID$read_number <-
+    as.vector(unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1)))
+
+  ids_with_reads <- tapply(
+    uniqueReadsByID$cumsum, uniqueReadsByID[[by]], FUN = max)
+  ids_with_reads <- ids_with_reads[
+    order(match(names(ids_with_reads), unique(uniqueReadsByID[[by]])))]
+  toDivide <- rep(ids_with_reads, times = howManyTimes)
+  uniqueReadsByID$read_share_percentage_normal <-
+    uniqueReadsByID$count * 100 / toDivide
+
+  # divide into bins for colour
+  uniqueReadsByID$bins <- cut(uniqueReadsByID$read_share_percentage_normal,
+                              bins)
+  # reduce number of reads in 0-5 group - faster plots without artifacts
+  uniqueReadsByID <- aggregate(
+    formula(paste0("read_share_percentage_normal ~ ", by, " + bins")),
+    data = uniqueReadsByID, sum)
+  colorPalette <- colorRampPalette(colors)(length(levels(uniqueReadsByID$bins)))
+  names(colorPalette) <- levels(uniqueReadsByID$bins)
+  ggplot(data = uniqueReadsByID,
+         aes_string(x = paste0("as.factor(", by, ")"),
+                    y = "read_share_percentage_normal",
+                    fill = "bins",
+                    order =  paste0("as.factor(", by, ")"))) +
+    geom_bar(position='stack', stat='identity') +
+    theme(axis.text = element_text(size = 12),
+          axis.title = element_text(size = 14, face = 'bold'),
+          legend.position = 'top',
+          legend.direction = 'horizontal',
+          legend.title = element_blank()) +
+    ylab('Unique reads percentage of shares') +
+    xlab(level) +
+    scale_fill_manual(values = colorPalette) +
+    coord_flip()
 }

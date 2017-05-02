@@ -137,58 +137,7 @@ ggplot(data = ampliconTable, aes(x = as.factor(group), y = frameshift_percentage
 ## Heterogeneity of reads  
 
 ```{r plot read heterogeneity, echo=FALSE, fig.height=4, fig.width=14, message=F, warning=FALSE}
-alignments$ID_read_id <- paste0(alignments$seqnames, '_', alignments$read_id)
-uniqueReadsByID <- alignments[!duplicated(alignments$ID_read_id), c('seqnames', 'read_id', 'count')]
-uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$seqnames, uniqueReadsByID$count, decreasing = T),]
-
-howManyTimes <- aggregate(read_id ~ seqnames, data = uniqueReadsByID, length)
-howManyTimes <- howManyTimes[match(howManyTimes$seqnames, unique(uniqueReadsByID$seqnames)),] 
-
-uniqueReadsByID$group <- rep(config$group[match(howManyTimes$seqnames, unique(config$ID))], 
-                             times = howManyTimes$read_id)
-
-uniqueReadsByID <- uniqueReadsByID[order(uniqueReadsByID$group, uniqueReadsByID$count, decreasing = T),]
-
-cumsum_list <- tapply(uniqueReadsByID$count, as.vector(uniqueReadsByID$group), FUN = cumsum)
-cumsum_list <- cumsum_list[match(names(cumsum_list), unique(uniqueReadsByID$group))]
-uniqueReadsByID$cumsum <- do.call(c, cumsum_list)
-
-seq2 <- Vectorize(seq.default, vectorize.args = c('from', 'to'))
-howManyTimes <- table(as.vector(uniqueReadsByID$group))
-howManyTimes <- howManyTimes[match(names(howManyTimes), unique(uniqueReadsByID$group))]
-dimHMT <- if (is.null(dim(howManyTimes)[1])) { length(howManyTimes) } else { dim(howManyTimes)[1] }
-uniqueReadsByID$read_number <- as.vector(unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1)))
-
-ids_with_reads <- tapply(uniqueReadsByID$cumsum, as.vector(uniqueReadsByID$group), FUN = max)
-ids_with_reads <- ids_with_reads[match(names(ids_with_reads), unique(uniqueReadsByID$group))]
-
-toDivide <- rep(ids_with_reads, times = howManyTimes)
-uniqueReadsByID$read_share_percentage <- uniqueReadsByID$cumsum * 100 / toDivide
-uniqueReadsByID$read_share_percentage_normal <- uniqueReadsByID$count * 100 / toDivide  
-
-# divide into bins for colour
-uniqueReadsByID$bins <- cut(uniqueReadsByID$read_share_percentage_normal, 
-                            c(0, 5, seq(10, 100, 10)))
-# reduce number of reads in 0-5 group - faster plots without artifacts
-uniqueReadsByID <- aggregate(read_share_percentage_normal ~ group + bins,
-                             data = uniqueReadsByID, sum)
-colorPalette <- colorRampPalette(c('#000000', '#F0E442'))(length(levels(uniqueReadsByID$bins)))
-names(colorPalette) <- levels(uniqueReadsByID$bins)
-ggplot(data = uniqueReadsByID, aes(x = as.factor(group), 
-                                   y = read_share_percentage_normal, 
-                                   fill = bins), 
-       order = group) +
-  geom_bar(position = 'stack', stat = 'identity') +
-  theme(legend.position = 'top',
-        axis.text = element_text(size=12),
-        axis.title=element_text(size=14,face = 'bold'),
-        legend.direction = 'horizontal', 
-        legend.title = element_blank()) +
-  ylab('Unique reads percentage of contribution') +
-  xlab('Amplicon Group') +
-  scale_fill_manual(values = colorPalette) +
-  coord_flip()
-
+plot_heterogeneity(alignments, config, level = 'group')
 # fix frequency to be relative to amplicon - not ID
 alignments$group <- config$group[match(alignments$seqnames, config$ID)]
 alignments$frequency <- alignments$count / ampliconTable$Reads[alignments$group]

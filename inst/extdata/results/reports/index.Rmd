@@ -16,11 +16,11 @@ output:
 
 ***
 
-1. [Report by id](/home/ai/Projects/amplican/inst/extdata/results/reports/report_id.html)
-2. [Report by barcode](/home/ai/Projects/amplican/inst/extdata/results/reports/report_barcode.html)
-3. [Report by group](/home/ai/Projects/amplican/inst/extdata/results/reports/report_group.html)
-4. [Report by guide](/home/ai/Projects/amplican/inst/extdata/results/reports/report_guide.html)
-5. [Report by amplicon](/home/ai/Projects/amplican/inst/extdata/results/reports/report_amplicon.html)
+1. [Report by id](/media/ai/Seagate Backup Plus Drive/Kornel/Projects/amplican/inst/extdata/results/reports/report_id.html)
+2. [Report by barcode](/media/ai/Seagate Backup Plus Drive/Kornel/Projects/amplican/inst/extdata/results/reports/report_barcode.html)
+3. [Report by group](/media/ai/Seagate Backup Plus Drive/Kornel/Projects/amplican/inst/extdata/results/reports/report_group.html)
+4. [Report by guide](/media/ai/Seagate Backup Plus Drive/Kornel/Projects/amplican/inst/extdata/results/reports/report_guide.html)
+5. [Report by amplicon](/media/ai/Seagate Backup Plus Drive/Kornel/Projects/amplican/inst/extdata/results/reports/report_amplicon.html)
 
 ***
 

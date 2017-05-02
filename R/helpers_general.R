@@ -1,3 +1,6 @@
+seq2 <- Vectorize(seq.default, vectorize.args = c('from', 'to'))
+
+
 #' Reverse and complement given string or list of strings
 #'
 #' @param x (string or vector of strings)

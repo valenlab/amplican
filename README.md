@@ -14,7 +14,7 @@ When final version of the package will be released, it will be available on Bioc
 - When on windows, make sure you have latest Rtools. When installing Rtools, it is sufficient to choose the “Package authoring installation” option. Also during the installation, you must tick the “edit system PATH” box. Make sure you use the same version of R and Rtools (both must be at least version 3.3.0).
 - Dependencies from CRAN:  
 ```r
-install.packages(c("Rcpp", "matrixStats", "Matrix", "doParallel", "foreach", "ggplot2", "stringr", "rmarkdown", "knitr", "devtools"))
+install.packages(c("Rcpp", "matrixStats", "Matrix", "doParallel", "foreach", "ggplot2", "stringr", "rmarkdown", "knitr", "devtools", "ggthemes"))
 ```  
 - Dependencies from Bioconductor:  
 ```r
