@@ -850,18 +850,19 @@ plot_cuts <- function(alignments,
 #' @param alignments (data.frame) Loaded alignment information from
 #' alignments_events.csv file.
 #' @param config (data.frame) Loaded table from config_summary.csv file.
-#' @param by (string) Name of the column from config
+#' @param level (string) Name of the column from config
 #' file specifying levels to group by.
 #' @param colors (html colors vector) Two colours for gradient, eg. c('#000000', '#F0E442').
 #' @param bins (numeric vector) Numeric vector from 0 to 100 specyfying bins eg.
 #' c(0, 5, seq(10, 100, 10)).
 #' @return (heterogeneity plot) ggplot2 object of heterogeneity plot
-#' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle
-#' scale_colour_manual scale_fill_manual scale_x_continuous geom_vline
+#' @importFrom ggplot2 ggplot aes_string theme_bw theme geom_label ggtitle
+#' scale_colour_manual scale_fill_manual scale_x_continuous geom_vline xlab coord_flip
 #' scale_y_reverse element_blank unit geom_text ylab ylim scale_color_manual
 #' facet_grid element_text
 #' @importFrom ggbio geom_arch xlim
-#' @importFrom stats na.omit
+#' @importFrom stats na.omit formula
+#' @importFrom grDevices colorRampPalette
 #' @export
 #' @family specialized plots
 #' @examples
@@ -926,7 +927,7 @@ plot_heterogeneity <- function(alignments,
                               bins)
   # reduce number of reads in 0-5 group - faster plots without artifacts
   uniqueReadsByID <- aggregate(
-    formula(paste0("read_share_percentage_normal ~ ", by, " + bins")),
+    stats::formula(paste0("read_share_percentage_normal ~ ", by, " + bins")),
     data = uniqueReadsByID, sum)
   colorPalette <- colorRampPalette(colors)(length(levels(uniqueReadsByID$bins)))
   names(colorPalette) <- levels(uniqueReadsByID$bins)

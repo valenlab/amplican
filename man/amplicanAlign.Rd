@@ -5,8 +5,7 @@
 \title{Align reads to amplicons.}
 \usage{
 amplicanAlign(config, fastq_folder, results_folder, total_processors = 1,
-  skip_bad_nucleotides = TRUE, average_quality = 30, min_quality = 20,
-  write_alignments = TRUE,
+  average_quality = 30, min_quality = 20, write_alignments = TRUE,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5,
   mismatch = -4, baseOnly = TRUE, type = "DNA"), gap_opening = 50,
   gap_extension = 0, fastqfiles = 0, PRIMER_DIMER = 30, cut_buffer = 5)
@@ -25,10 +24,6 @@ permissions.}
 \item{total_processors}{(numeric) Set this to the number of processors you
 want to use. Default is 1. Works only if you have 'doParallel' installed
 and accessible.}
-
-\item{skip_bad_nucleotides}{(logical) Some sequences have faulty nucleotides
-labels with N. If we find a sequence like that in either forwards or
-reverse, we skip that alignment. Default is TRUE.}
 
 \item{average_quality}{(numeric) The FASTQ file have a quality for each
 nucleotide, being ! the lower and ~ the highest. In ASCII :

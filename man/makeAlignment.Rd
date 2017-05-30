@@ -4,18 +4,14 @@
 \alias{makeAlignment}
 \title{Make alignments helper.}
 \usage{
-makeAlignment(configTable, resultsFolder, skip_bad_nucleotides, average_quality,
-  min_quality, write_alignments, scoring_matrix, gap_opening, gap_extension,
-  fastqfiles, PRIMER_DIMER, cut_buffer)
+makeAlignment(configTable, resultsFolder, average_quality, min_quality,
+  write_alignments, scoring_matrix, gap_opening, gap_extension, fastqfiles,
+  PRIMER_DIMER, cut_buffer)
 }
 \arguments{
 \item{configTable}{config file as data table}
 
 \item{resultsFolder}{(string) path to resultsFolder}
-
-\item{skip_bad_nucleotides}{(logical) Some sequences have faulty nucleotides
-labels with N. If we find a sequence like that in either forwards or
-reverse, we skip that alignment. Default is TRUE.}
 
 \item{average_quality}{(numeric) The FASTQ file have a quality for each
 nucleotide, being ! the lower and ~ the highest. In ASCII :

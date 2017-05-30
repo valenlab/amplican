@@ -13,9 +13,6 @@
 #' @param total_processors (numeric) Set this to the number of processors you
 #' want to use. Default is 1. Works only if you have 'doParallel' installed
 #' and accessible.
-#' @param skip_bad_nucleotides (logical) Some sequences have faulty nucleotides
-#' labels with N. If we find a sequence like that in either forwards or
-#' reverse, we skip that alignment. Default is TRUE.
 #' @param average_quality (numeric) The FASTQ file have a quality for each
 #' nucleotide, being ! the lower and ~ the highest. In ASCII :
 #'                              !'#$%&'()*+,-./0123456789:;<=>?@
@@ -75,7 +72,6 @@ amplicanAlign <- function(config,
                           fastq_folder,
                           results_folder,
                           total_processors = 1,
-                          skip_bad_nucleotides = TRUE,
                           average_quality = 30,
                           min_quality = 20,
                           write_alignments = TRUE,
@@ -166,7 +162,6 @@ amplicanAlign <- function(config,
   logFileConn <- file(logFileName, open = "at")
   writeLines(c(paste("Config file:           ", config),
                paste("Processors used:       ", total_processors),
-               paste("Skip Bad Nucleotides:  ", skip_bad_nucleotides),
                paste("Average Quality:       ", average_quality),
                paste("Minimum Quality:       ", min_quality),
                paste("Write Alignments:      ", write_alignments),
@@ -201,7 +196,6 @@ amplicanAlign <- function(config,
     configSplit <- split(configTable, f = configTable$Barcode)
     bplapply(configSplit, FUN = makeAlignment,
              resultsFolder,
-             skip_bad_nucleotides,
              average_quality,
              min_quality,
              write_alignments,
@@ -218,7 +212,6 @@ amplicanAlign <- function(config,
     for (j in seq_along(uBarcode)) {
       makeAlignment(configTable[configTable$Barcode == uBarcode[j], ],
                     resultsFolder,
-                    skip_bad_nucleotides,
                     average_quality,
                     min_quality,
                     write_alignments,

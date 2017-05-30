@@ -13,13 +13,13 @@ alignments_events.csv file.}
 
 \item{config}{(data.frame) Loaded table from config_summary.csv file.}
 
+\item{level}{(string) Name of the column from config
+file specifying levels to group by.}
+
 \item{colors}{(html colors vector) Two colours for gradient, eg. c('#000000', '#F0E442').}
 
 \item{bins}{(numeric vector) Numeric vector from 0 to 100 specyfying bins eg.
 c(0, 5, seq(10, 100, 10)).}
-
-\item{by}{(string) Name of the column from config
-file specifying levels to group by.}
 }
 \value{
 (heterogeneity plot) ggplot2 object of heterogeneity plot

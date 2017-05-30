@@ -172,7 +172,6 @@ flipRanges <- function(idRanges, configTable) {
 #'
 makeAlignment <- function(configTable,
                           resultsFolder,
-                          skip_bad_nucleotides,
                           average_quality,
                           min_quality,
                           write_alignments,
