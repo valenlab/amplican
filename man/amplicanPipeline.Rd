@@ -4,7 +4,7 @@
 \alias{amplicanPipeline}
 \title{Wraps main package functionality into one function.}
 \usage{
-amplicanPipeline(config, fastq_folder, results_folder, knit_files = TRUE,
+amplicanPipeline(config, fastq_folder, make_reports = TRUE, results_folder,
   average_quality = 30, min_quality = 20, total_processors = 1,
   fastqfiles = 0, PRIMER_DIMER = 30, cut_buffer = 5)
 }
@@ -15,12 +15,12 @@ amplicanPipeline(config, fastq_folder, results_folder, knit_files = TRUE,
 \item{fastq_folder}{(string) Path to FASTQ files. If not specified,
 FASTQ files should be in the same directory as config file.}
 
+\item{make_reports}{(boolean) whether function should create and "knit" all
+reports automatically for you (it is time consuming, but shows progress)}
+
 \item{results_folder}{(string) Where do you want your results to be stored.
 The package will create files in that folder so make sure you have writing
 permissions.}
-
-\item{knit_files}{(boolean) whether function should "knit" all reports
-automatically for you (it is time consuming, but shows progress)}
 
 \item{average_quality}{(numeric) The FASTQ file have a quality for each
 nucleotide, being ! the lower and ~ the highest. In ASCII :
@@ -66,7 +66,7 @@ Deletions overlapping this window will be considered a
 valid cut (if confirmed by both forward and reverse reads).}
 }
 \value{
-(string) results_folder path
+(invisible) results_folder path
 }
 \description{
 amplicanPipeline is convenient wrapper around all most popular settings of
@@ -83,7 +83,7 @@ fastq_folder <- system.file("extdata", package = "amplican")
 results_folder <- tempdir()
 
 #full analysis, not knitting files automatically
-amplicanPipeline(config, fastq_folder, results_folder, knit_files = FALSE)
+amplicanPipeline(config, fastq_folder, results_folder, make_reports = FALSE)
 
 }
 \seealso{

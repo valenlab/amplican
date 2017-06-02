@@ -24,13 +24,13 @@ NULL
 #' It will generate all results in the \code{result_folder} and also print
 #' prepared reports into 'reports' folder.
 #'
-#' @param knit_files (boolean) whether function should "knit" all reports
-#' automatically for you (it is time consuming, but shows progress)
+#' @param make_reports (boolean) whether function should create and "knit" all
+#' reports automatically for you (it is time consuming, but shows progress)
 #' @inheritParams amplicanAlign
 #' @importFrom rmarkdown render
 #' @import knitr
 #' @include amplicanAlign.R amplicanReport.R
-#' @return (string) results_folder path
+#' @return (invisible) results_folder path
 #' @export
 #' @family analysis steps
 #' @examples
@@ -42,12 +42,12 @@ NULL
 #' results_folder <- tempdir()
 #'
 #' #full analysis, not knitting files automatically
-#' amplicanPipeline(config, fastq_folder, results_folder, knit_files = FALSE)
+#' amplicanPipeline(config, fastq_folder, results_folder, make_reports = FALSE)
 #'
 amplicanPipeline <- function(config,
                              fastq_folder,
+                             make_reports = TRUE,
                              results_folder,
-                             knit_files = TRUE,
                              average_quality = 30,
                              min_quality = 20,
                              total_processors = 1,
@@ -65,28 +65,25 @@ amplicanPipeline <- function(config,
                   PRIMER_DIMER = PRIMER_DIMER,
                   cut_buffer = cut_buffer)
 
-    reportsFolder <- file.path(results_folder, "reports")
-    if (!dir.exists(reportsFolder)) {
-      dir.create(reportsFolder)
+    if (make_reports) {
+
+      reportsFolder <- file.path(results_folder, "reports")
+      if (!dir.exists(reportsFolder)) {
+        dir.create(reportsFolder)
+      }
+
+      message(paste0("Making reports. Due to high quality ",
+                     "figures it is time consuming. Use .Rmd templates for ",
+                     "more control."))
+      amplicanReport(results_folder,
+                     report_files = file.path(reportsFolder,
+                                              c("report_id",
+                                                "report_barcode",
+                                                "report_group",
+                                                "report_guide",
+                                                "report_amplicon",
+                                                "index")))
     }
 
-    amplicanReport(results_folder,
-                   report_files = file.path(reportsFolder,
-                                            c("report_id",
-                                              "report_barcode",
-                                              "report_group",
-                                              "report_guide",
-                                              "report_amplicon",
-                                              "index")))
-
-    if (knit_files) {
-      rmarkdown::render(file.path(reportsFolder, "report_id.Rmd"))
-      rmarkdown::render(file.path(reportsFolder, "report_barcode.Rmd"))
-      rmarkdown::render(file.path(reportsFolder, "report_group.Rmd"))
-      rmarkdown::render(file.path(reportsFolder, "report_guide.Rmd"))
-      rmarkdown::render(file.path(reportsFolder, "report_amplicon.Rmd"))
-      rmarkdown::render(file.path(reportsFolder, "index.Rmd"))
-    }
-
-    invisible(reportsFolder)
+    invisible(results_folder)
 }

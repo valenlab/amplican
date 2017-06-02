@@ -1,0 +1,156 @@
+---
+title: Report breakdown by ID
+author: amplican
+date: '`r format(Sys.time(), "%d %B %Y")`'
+output:
+  html_document:
+    toc: true
+    theme: paper
+    toc_float: true
+    number_sections: true
+params:
+    alignments: !r system.file('extdata', 'results', 'alignments_events.csv', package = 'amplican')
+    config_summary: !r system.file('extdata', 'results', 'config_summary.csv', package = 'amplican')
+    cut_buffer: 5
+    xlab_spacing: 4
+vignette: >
+  %\VignetteIndexEntry{example id_report report}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r load data, message=F, warning=FALSE, include=FALSE}
+library(amplican)
+library(ggplot2)
+alignments <- read.csv(params$alignments, stringsAsFactors = FALSE)
+config <- read.csv(params$config_summary, stringsAsFactors = FALSE)
+height <- plot_height(length(unique(config$ID)))
+```
+
+***
+
+# Description  
+
+***
+
+**Read distribution plot** - plot shows number of reads assigned during read grouping  
+**PRIMER DIMER filter** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS  
+**Cutting rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have cut  
+**Frameshift** - plot shows what percentage of reads that have frameshift  
+**Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads. The more yellow each row, the less heterogeneity in the reads, more black means reads don't repeat often and are unique  
+**Deletions plot** - shows summary of deletions detected after alignments with distinction
+for forward (top plot) and reverse (bottom) reads, blue dotted lines represent primers as black
+dotted line represents cut site box, for deletions overlapping with cut site box there is distinction
+in color  
+**Mismatches plot** - shows summary of mismatches detected after alignments split by forward
+(top plot) and reverse (bottom) reads, mismatches are colored in the same manner as amplicon  
+**Insertions plot** - shows summary of insertions detected after alignments split by forward
+(top plot) and reverse (bottom) reads, insertion is shown as right-angled triangle where size of
+the insertion corresponds to the width of the triangle, size and transparency of triangle reflect on
+the frequency of the insertion
+
+***
+
+# ID Summary  
+
+***
+
+## Read distribution  
+
+```{r plot total reads, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+ggplot(data = config, aes(x = as.factor(ID), y = log10(Reads + 1), order = ID)) +
+  geom_bar(stat='identity') +
+  ylab('Number of reads + 1, log10 scaled')  +
+  xlab('ID') +
+  theme(legend.position = 'none',
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = 'bold')) +
+  coord_flip() +
+  geom_text(aes(x = as.factor(ID), y = log10(Reads + 1), label = Reads), hjust = -1)
+```
+
+## PRIMER DIMER filter  
+
+```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+config$PD_percentage <- config$PRIMER_DIMER * 100/config$Reads
+config$PD_percentage[is.nan(config$PD_percentage)] <- 0  
+
+ggplot(data = config, aes(x = as.factor(ID), y = PD_percentage, order = ID)) +
+  geom_bar(stat='identity') +
+  ylab('Percentage of reads marked as PRIMER DIMERS')  +
+  xlab('ID') +
+  theme(legend.position = 'none',
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = 'bold')) +
+  coord_flip() +
+  geom_text(aes(x = as.factor(ID), y = PD_percentage, label = PRIMER_DIMER), hjust = -1)
+```  
+
+## Cut rates  
+
+```{r plot cut percentage, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+config$Reads_noPD <- config$Reads - config$PRIMER_DIMER
+config$cut_percentage <- config$Cut * 100/config$Reads_noPD
+config$cut_percentage[is.nan(config$cut_percentage)] <- 0  
+
+ggplot(data = config, aes(x = as.factor(ID), y = cut_percentage, order = ID)) +
+  geom_bar(stat='identity') +
+  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have cut site')  +
+  xlab('ID') +
+  theme(legend.position = 'none',
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = 'bold')) +
+  coord_flip() +
+  geom_text(aes(x = as.factor(ID), y = cut_percentage, label = Cut), hjust = -1)
+```  
+
+## Frameshift  
+
+```{r plot frame shift percentage, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+config$frameshift_percentage <- config$Frameshift * 100/config$Reads_noPD
+config$frameshift_percentage[is.nan(config$frameshift_percentage)] <- 0  
+
+ggplot(data = config, aes(x = as.factor(ID), y = frameshift_percentage, order = ID)) +
+  geom_bar(stat='identity') +
+  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift')  +
+  xlab('ID') +
+  theme(legend.position = 'none',
+        axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14, face = 'bold')) +
+  coord_flip() +
+  geom_text(aes(x = as.factor(ID), y = frameshift_percentage, label = Frameshift), hjust = -1)
+```  
+
+## Heterogeneity of reads  
+
+```{r plot read domination, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+plot_heterogeneity(alignments, config)
+```  
+
+***
+
+# Alignments plots  
+
+***
+
+```{r plot alignments, echo = F, results = 'asis', fig.width=25, echo=F, message=F, warning=F}
+for(i in config$ID) {
+  cat(paste0("\n\n## ", i, "  \n"))
+  cat("### Deletions  \n")
+  print(amplican::plot_deletions(alignments, config, i, params$cut_buffer, params$xlab_spacing))
+  cat("\n\n### Insertions  \n")
+  print(amplican::plot_insertions(alignments, config, i, params$cut_buffer, params$xlab_spacing))
+  cat("\n\n### Mismatches  \n")
+  print(amplican::plot_mismatches(alignments, config, i, params$cut_buffer, params$xlab_spacing))
+  cat("\n\n### Cuts  \n")
+  print(amplican::plot_cuts(alignments, config, i, params$cut_buffer, params$xlab_spacing))
+}
+```
+
+<script>
+//add logo to upper right corner
+$(document).ready(function() {
+$head = $('#header');
+$head.prepend('<img src="data:image/png;base64,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" style=\"float: right;width: 150px;\"/>')
+});
+</script>

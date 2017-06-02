@@ -176,7 +176,7 @@ return_plot <- function(freqAgr, amplicon, ampl_len, plot_fr, plot_re) {
     return(ggbio::tracks(plot_fr,
                          plot_amplicon(amplicon),
                          plot_re,
-                         heights = c(0.5, 0.03, 0.53),
+                         heights = c(0.5, 0.06, 0.5),
                          padding = -1,
                          xlim = 1:ampl_len,
                          xlab = "Relative Nucleotide Position"))

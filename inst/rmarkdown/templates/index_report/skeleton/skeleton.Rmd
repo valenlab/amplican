@@ -11,11 +11,7 @@ output:
 params:
   barcode_summary: !r system.file('extdata', 'results', 'barcode_reads_filters.csv', package = 'amplican')
   config_summary: !r system.file('extdata', 'results', 'config_summary.csv', package = 'amplican')
-  links: "1. [Report by amplicon](./example_id_report.html)\n2. [Report by guide](./example_barcode_report.html)\n3. [Report by barcode](./example_group_report.html)\n4. [Report by id](./example_guide_report.html)\n5. [Report by group](./report_amplicon_report.html)\n"
-vignette: >
-  %\VignetteIndexEntry{example index report}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+  links: ""
 ---
 
 ```{r echo = F, results = 'asis'}

@@ -1,0 +1,3 @@
+name: Group Report
+description: Creates a report of experiments summarized and grouped by their
+  group label (eg. treatment condition).

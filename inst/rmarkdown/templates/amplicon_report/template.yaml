@@ -1,0 +1,3 @@
+name: Amplicon Report
+description: Creates a report of experiments summarized and grouped by their
+  amplicon sequences.

@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_rmd.R
 \name{plot_height}
 \alias{plot_height}
-\title{Function to calculate figure height
+\title{Helper function to calculate figure height
 based on number of elements to plot.}
 \usage{
 plot_height(x)
@@ -14,6 +14,6 @@ plot_height(x)
 (numeric)
 }
 \description{
-Function to calculate figure height
+Helper function to calculate figure height
 based on number of elements to plot.
 }

@@ -5,8 +5,9 @@
 \title{Prepare reports as .Rmd files.}
 \usage{
 amplicanReport(results_folder, levels = c("id", "barcode", "group", "guide",
-  "amplicon", "summary"), report_files = c("report_id", "report_barcode",
-  "report_group", "report_guide", "report_amplicon", "index"))
+  "amplicon", "summary"), report_files = c("id_report", "barcode_report",
+  "group_report", "guide_report", "amplicon_report", "index"), cut_buffer = 5,
+  xlab_spacing = 4, top = 5)
 }
 \arguments{
 \item{results_folder}{(string) Folder containing results from the
@@ -19,17 +20,31 @@ eg. c("id", "barcode") will create two separate reports for each level.}
 \item{report_files}{(vector) You can supply your own names of the files.
 For each of the levels there has to be one file name. Files are created
 in current working directory by default.}
+
+\item{cut_buffer}{(numeric) Default 5. A number of bases that is used around
+the specified cut site.}
+
+\item{xlab_spacing}{(numeric) Default is 4. Spacing of the ticks on the x
+axis of plots.}
+
+\item{top}{(numeric) Default is 5. How many of the top most frequent
+unassigned reads to report? It is only relevant when you used forward and
+reverse reads. We align them to each other as we could not specify correct
+amplicon.}
 }
 \value{
 (string) Path to the folder with results.
 }
 \description{
 amplicanReport takes a configuration file, fastq reads and output directory
-to prepare summary as editable .Rmd file. You can specify whether you want
-to make summaries based on ID, Barcode, Group or even guideRNA and Amplicon.
+to prepare summaries as an editable .Rmd file. You can specify whether you
+want to make summaries based on ID, Barcode, Group or even guideRNA and
+Amplicon. This function autmatically knits all reports after creation.
+If you want to postpone kniting and edit reports, use .Rmd templates to
+create your own version of reports instead of this function.
 }
 \examples{
-# output folder
+\dontrun{
 results_folder <- tempdir()
 amplicanReport(results_folder, report_files = file.path(results_folder,
                                                         "reports",
@@ -39,7 +54,7 @@ amplicanReport(results_folder, report_files = file.path(results_folder,
                                                           "report_guide",
                                                           "report_amplicon",
                                                           "index")))
-
+}
 }
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},
