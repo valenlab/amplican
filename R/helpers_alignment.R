@@ -53,7 +53,7 @@ getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
     ins_shift <- shift(ins, c(0, cumsum(width(ins))[-length(ins)]))
     ins_seq <-
       substr(rep(as.character(pattern(align)), length(ins)),
-                 start = start(ins_shift), stop = end(ins_shift))
+             start = start(ins_shift), stop = end(ins_shift))
     finalGR <- defGR(ins, ID, strand_info, "insertion", "", ins_seq)
   }
 
@@ -112,7 +112,8 @@ getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
 #'
 upperGroups <- function(candidate) {
   return(IRanges::reduce(IRanges(
-    start = which(stringr::str_detect(strsplit(candidate, "")[[1]], "[[:upper:]]")),
+    start = which(stringr::str_detect(strsplit(candidate, "")[[1]],
+                                      "[[:upper:]]")),
     width = 1
   )))
 }
@@ -120,45 +121,45 @@ upperGroups <- function(candidate) {
 
 #' Reverse complement events that have amplicons with direction 1.
 #'
-#' @param idRanges (data.frame) Loaded events.
-#' @param configTable (data.frame) Loaded configuration file.
-#' @return (data.frame) Returns input idRanges, but events for amplicons with
+#' @param idR (data.frame) Loaded events.
+#' @param cfgT (data.frame) Loaded configuration file.
+#' @return (data.frame) Returns input idR, but events for amplicons with
 #' direction 1 reverse complemented, "+" and "-" swapped.
 #'
-flipRanges <- function(idRanges, configTable) {
+flipRanges <- function(idR, cfgT) {
 
-  is_dir <- as.logical(configTable$Direction)
-  to_flip <- configTable[is_dir, "ID"]
-  to_flip <- idRanges$seqnames %in% to_flip
+  is_dir <- as.logical(cfgT$Direction)
+  to_flip <- cfgT[is_dir, "ID"]
+  to_flip <- idR$seqnames %in% to_flip
 
   if (any(to_flip)) {
-    ampl_lengths <- nchar(as.character(configTable[is_dir, "Amplicon"]))
-    ampl_ids <- as.character(configTable[is_dir, "ID"])
+    ampl_lengths <- nchar(as.character(cfgT[is_dir, "Amplicon"]))
+    ampl_ids <- as.character(cfgT[is_dir, "ID"])
 
-    ids_mapping <- match(idRanges[to_flip, "seqnames"], ampl_ids)
+    ids_mapping <- match(idR[to_flip, "seqnames"], ampl_ids)
     ampl_lengths <- ampl_lengths[ids_mapping]
 
-    idRanges[to_flip, "originally"] <- revComp(idRanges[to_flip, "originally"])
-    idRanges[to_flip, "replacement"] <- revComp(idRanges[to_flip, "replacement"])
+    idR[to_flip, "originally"] <- revComp(idR[to_flip, "originally"])
+    idR[to_flip, "replacement"] <- revComp(idR[to_flip, "replacement"])
 
-    old_starts <- idRanges[to_flip, "start"]
-    idRanges[to_flip, "start"] <- ampl_lengths - idRanges[to_flip, "end"] + 1
-    idRanges[to_flip, "end"] <- ampl_lengths - old_starts + 1
+    old_starts <- idR[to_flip, "start"]
+    idR[to_flip, "start"] <- ampl_lengths - idR[to_flip, "end"] + 1
+    idR[to_flip, "end"] <- ampl_lengths - old_starts + 1
 
-    strand <- idRanges[to_flip, "strand"]
+    strand <- idR[to_flip, "strand"]
     strand_minus <-strand == "-"
     strand[strand == "+"] <- "-"
     strand[strand_minus] <- "+"
-    idRanges[to_flip, "strand"] <- strand
+    idR[to_flip, "strand"] <- strand
   }
-  return(idRanges)
+  return(idR)
 }
 
 
 #' Make alignments helper.
 #'
 #' Main functionality of the package, aligning reads to the amplicon.
-#' @param configTable config file as data table
+#' @param cfgT config file as data table
 #' @param resultsFolder (string) path to resultsFolder
 #' @inheritParams amplicanAlign
 #' @import GenomicRanges
@@ -170,7 +171,7 @@ flipRanges <- function(idRanges, configTable) {
 #' @include helpers_general.R helpers_filters.R
 #' @return resultsFolder as invisible
 #'
-makeAlignment <- function(configTable,
+makeAlignment <- function(cfgT,
                           resultsFolder,
                           average_quality,
                           min_quality,
@@ -183,304 +184,312 @@ makeAlignment <- function(configTable,
                           cut_buffer) {
 
   div <- c("deletion", "insertion")
-  barcode <- configTable$Barcode[1]
-  alignmentRangesBar <- GRanges()
-  GenomeInfoDb::seqlevels(alignmentRangesBar) <- unique(configTable$ID)
+  barcode <- cfgT$Barcode[1]
+  almRBar <- GRanges()
+  GenomeInfoDb::seqlevels(almRBar) <- unique(cfgT$ID)
 
   message(paste0("Aligning reads for ", barcode))
 
   # Read Reads for this Barcode
-  forwardsTable <- if (fastqfiles == 2) NULL else ShortRead::readFastq(configTable$Forward_Reads_File[1])
-  reversesTable <- if (fastqfiles == 1) NULL else ShortRead::readFastq(configTable$Reverse_Reads_File[1])
+  fwdT <- if (fastqfiles == 2) NULL else ShortRead::readFastq(
+    cfgT$Forward_Reads_File[1])
+  rveT <- if (fastqfiles == 1) NULL else ShortRead::readFastq(
+    cfgT$Reverse_Reads_File[1])
   if (fastqfiles == 1) {
-    reversesTable <- rep(TRUE, length(forwardsTable))
+    rveT <- rep(TRUE, length(fwdT))
   }
   if (fastqfiles == 2) {
-    forwardsTable <- rep(TRUE, length(reversesTable))
+    fwdT <- rep(TRUE, length(rveT))
   }
 
   # Filter Reads
-  goodq <- goodBaseQuality(forwardsTable, min = min_quality) & goodBaseQuality(reversesTable, min = min_quality)
-  avrq <- goodAvgQuality(forwardsTable, avg = average_quality) & goodAvgQuality(reversesTable, avg = average_quality)
-  nucq <- alphabetQuality(forwardsTable) & alphabetQuality(reversesTable)
+  goodq <- goodBaseQuality(fwdT, min = min_quality) &
+    goodBaseQuality(rveT, min = min_quality)
+  avrq <- goodAvgQuality(fwdT, avg = average_quality) &
+    goodAvgQuality(rveT, avg = average_quality)
+  nucq <- alphabetQuality(fwdT) & alphabetQuality(rveT)
   goodReads <- goodq & avrq & nucq
 
   barcodeTable <- data.frame(barcode = barcode,
-                             experiment_count = configTable$ExperimentsCount[1],
+                             experiment_count = cfgT$ExperimentsCount[1],
                              read_count = length(goodReads),
                              bad_base_quality = sum(!goodq),
                              bad_average_quality = sum(!avrq),
                              bad_alphabet = sum(!nucq),
                              filtered_read_count = sum(goodReads))
 
-  forwardsTable <- forwardsTable[goodReads]
-  reversesTable <- reversesTable[goodReads]
+  fwdT <- fwdT[goodReads]
+  rveT <- rveT[goodReads]
 
   # Unique reads
-  uniqueTable <- data.frame(if (fastqfiles == 2) "" else as.character(sread(forwardsTable)),
-                            if (fastqfiles == 1) "" else as.character(sread(reversesTable)))
-  colnames(uniqueTable) <- c("Forward", "Reverse")
-  uniqueTable$Total <- paste0(uniqueTable$Forward, uniqueTable$Reverse)
-  uniqueTable <- stats::aggregate(Total ~ Reverse + Forward, uniqueTable, length)
-  uniqueTable$BarcodeFrequency <- uniqueTable$Total / sum(uniqueTable$Total)
-  uniqueTable <- uniqueTable[order(uniqueTable$Forward, uniqueTable$Reverse), ]
-  uniqueTable$Asigned <- FALSE
-  uniqueTable$PRIMER_DIMER <- FALSE
-  uniqueTable[c("Reverse", "Forward")] <- lapply(uniqueTable[c("Reverse", "Forward")],
-                                                 function(x) toupper(as.character(x)))
-  barcodeTable$unique_reads <- nrow(uniqueTable)
+  unqT <- data.frame(
+    if (fastqfiles == 2) "" else as.character(sread(fwdT)),
+    if (fastqfiles == 1) "" else as.character(sread(rveT)))
+  colnames(unqT) <- c("Forward", "Reverse")
+  unqT$Total <- paste0(unqT$Forward, unqT$Reverse)
+  unqT <- stats::aggregate(Total ~ Forward + Reverse, unqT, length)
+  unqT$BarcodeFrequency <- unqT$Total / sum(unqT$Total)
+  unqT <- unqT[order(unqT$Forward, unqT$Reverse), ]
+  unqT$Asigned <- FALSE
+  unqT$PRIMER_DIMER <- FALSE
+  unqT[c("Forward", "Reverse")] <- lapply(unqT[c("Forward", "Reverse")],
+                                          function(x) toupper(as.character(x)))
+  barcodeTable$unique_reads <- nrow(unqT)
 
   # for each experiment
-  for (i in seq_len(dim(configTable)[1])) {
+  for (i in seq_len(dim(cfgT)[1])) {
 
-    alignmentRanges <- GRanges()
-    currentID <- configTable[i, "ID"]
+    almR <- GRanges()
+    thisID <- cfgT[i, "ID"]
     # Primers and amplicon info
-    forwardPrimer <- toupper(configTable[i, "Forward_Primer"])
-    reversePrimer <- toupper(configTable[i, "Reverse_Primer"])
-    guideRNA <- toupper(configTable[i, "guideRNA"])
-    rguideRNA <- toupper(configTable[i, "RguideRNA"])
-    amplicon <- configTable[i, "Amplicon"]
+    fwdPrimer <- toupper(cfgT[i, "Forward_Primer"])
+    rvePrimer <- toupper(cfgT[i, "Reverse_Primer"])
+    gRNA <- toupper(cfgT[i, "guideRNA"])
+    rgRNA <- toupper(cfgT[i, "RguideRNA"])
+    amplicon <- cfgT[i, "Amplicon"]
 
     # Search for the forward, reverse and targets
-    uniqueTable$forPrInReadPos <- stringr::str_locate(uniqueTable$Forward, forwardPrimer)[,1]
-    uniqueTable$forwardFound <-
-      if (fastqfiles == 2 | forwardPrimer == "") {
+    unqT$fwdPrInReadPos <- stringr::str_locate(unqT$Forward, fwdPrimer)[,1]
+    unqT$forwardFound <-
+      if (fastqfiles == 2 | fwdPrimer == "") {
         FALSE
       } else {
-        !is.na(uniqueTable$forPrInReadPos)
+        !is.na(unqT$fwdPrInReadPos)
       }
-    uniqueTable$revPrInReadPos <- stringr::str_locate(uniqueTable$Reverse, reversePrimer)[,1]
-    uniqueTable$reverseFound <-
+    unqT$rvePrInReadPos <- stringr::str_locate(unqT$Reverse, rvePrimer)[,1]
+    unqT$reverseFound <-
       if (fastqfiles == 1) {
         FALSE
       } else {
-        !is.na(uniqueTable$revPrInReadPos)
+        !is.na(unqT$rvePrInReadPos)
       }
-    uniqueTable$guideFoundForward <- stringr::str_detect(uniqueTable$Forward, guideRNA)
-    uniqueTable$guideFoundReverse <- stringr::str_detect(uniqueTable$Reverse, rguideRNA)
+    unqT$guideFoundForward <- stringr::str_detect(unqT$Forward, gRNA)
+    unqT$guideFoundReverse <- stringr::str_detect(unqT$Reverse, rgRNA)
     primersFound <-
       if (fastqfiles == 0.5) {
-        uniqueTable$forwardFound | uniqueTable$reverseFound
+        unqT$forwardFound | unqT$reverseFound
       } else if (fastqfiles == 1) {
-        uniqueTable$forwardFound
+        unqT$forwardFound
       } else if (fastqfiles == 2) {
-        uniqueTable$reverseFound
+        unqT$reverseFound
       } else {
-        uniqueTable$forwardFound & uniqueTable$reverseFound
+        unqT$forwardFound & unqT$reverseFound
       }
-    uniqueTable$Asigned <- uniqueTable$Asigned | primersFound
-    IDuniqueTable <- uniqueTable[primersFound, ]
+    unqT$Asigned <- unqT$Asigned | primersFound
+    IDunqT <- unqT[primersFound, ]
 
-    if (dim(IDuniqueTable)[1] > 0) {
+    if (dim(IDunqT)[1] > 0) {
 
       if (fastqfiles != 2) {
-        alignForward <- Biostrings::pairwiseAlignment(
-          Biostrings::subseq(Biostrings::DNAStringSet(IDuniqueTable[, "Forward"]),
-                             start = IDuniqueTable$forPrInReadPos),
+        alignFwd <- Biostrings::pairwiseAlignment(
+          Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[, "Forward"]),
+                             start = IDunqT$fwdPrInReadPos),
           Biostrings::subseq(toupper(amplicon),
-                             start = configTable$forwardPrimerPosition[i]),
+                             start = cfgT$fwdPrPos[i]),
           type = "global",
           substitutionMatrix =  scoring_matrix,
           gapOpening = gap_opening,
-          gapExtension = gap_extension
-        )
+          gapExtension = gap_extension)
       }
       if (fastqfiles != 1) {
-        alignReverse <- Biostrings::pairwiseAlignment(
-          Biostrings::reverseComplement(Biostrings::subseq(Biostrings::DNAStringSet(IDuniqueTable[, "Reverse"])),
-                                        start = IDuniqueTable$revPrInReadPos),
+        alignRve <- Biostrings::pairwiseAlignment(
+          Biostrings::reverseComplement(
+            Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[, "Reverse"]),
+                               start = IDunqT$rvePrInReadPos)),
           Biostrings::subseq(toupper(amplicon),
                              start = 1,
-                             end = configTable$reversePrimerPosEnd[i]),
+                             end = cfgT$rvePrPosEnd[i]),
           type = "global",
           substitutionMatrix =  scoring_matrix,
           gapOpening = gap_opening,
-          gapExtension = gap_extension
-        )
+          gapExtension = gap_extension)
       }
       # Write the alignments
       if (write_alignments >= 1) {
         algn_file <-
-          file.path(resultsFolder, paste0(currentID, "_", barcode, ".txt"))
+          file.path(resultsFolder, paste0(thisID, "_", barcode, ".txt"))
         if (file.exists(algn_file)) {
           file.remove(algn_file)
         }
         algn_file_con <- file(algn_file, open = "at")
         writeLines(as.vector(rbind(
-          paste("ID:", currentID,
-                "Count:", format(IDuniqueTable$Total)),
-          if (fastqfiles != 2) rbind(as.character(pattern(alignForward)),
-                                     as.character(subject(alignForward))),
+          paste("ID:", thisID,
+                "Count:", format(IDunqT$Total)),
+          if (fastqfiles != 2) rbind(as.character(pattern(alignFwd)),
+                                     as.character(subject(alignFwd))),
           if (fastqfiles < 1) "",
           if (fastqfiles != 1) rbind(
-            as.character(pattern(alignReverse)),
-            as.character(subject(alignReverse))),
+            as.character(pattern(alignRve)),
+            as.character(subject(alignRve))),
           ""
         )),  algn_file_con)
         close(algn_file_con)
       }
 
-      for (r in seq_len(dim(IDuniqueTable)[1])) {
+      for (r in seq_len(dim(IDunqT)[1])) {
 
-        forwardData <- if (fastqfiles != 2) {
-          getEventInfo(alignForward[r], currentID, configTable$forwardPrimerPosition[i], "+")
+        fwdD <- if (fastqfiles != 2) {
+          getEventInfo(alignFwd[r], thisID, cfgT$fwdPrPos[i], "+")
         } else {
           GRanges()
         }
 
-        reverseData <- if (fastqfiles != 1) {
-          getEventInfo(alignReverse[r], currentID, configTable$reversePrimerPosEnd[i], "-")
+        rveD <- if (fastqfiles != 1) {
+          getEventInfo(alignRve[r], thisID, cfgT$rvePrPosEnd[i], "-")
         } else {
           GRanges()
         }
 
         # Filter PRIMER DIMERS and sum how many
         PD_cutoff <- nchar(amplicon) -
-          (nchar(forwardPrimer) + nchar(reversePrimer) + PRIMER_DIMER)
-        isPD <- any(c(width(forwardData),
-                      width(reverseData)) > PD_cutoff)
-        IDuniqueTable[r, "PRIMER_DIMER"] <- isPD
-        configTable$PRIMER_DIMER[i] <- configTable$PRIMER_DIMER[i] +
-          isPD * IDuniqueTable$Total[r]
+          (nchar(fwdPrimer) + nchar(rvePrimer) + PRIMER_DIMER)
+        isPD <- any(c(width(fwdD),
+                      width(rveD)) > PD_cutoff)
+        IDunqT[r, "PRIMER_DIMER"] <- isPD
+        cfgT$PRIMER_DIMER[i] <- cfgT$PRIMER_DIMER[i] +
+          isPD * IDunqT$Total[r]
         if (isPD) {
           next
         }
 
         # Filters
-        forwardDataFiltered <-
-          forwardData[!(forwardData$type %in% div &
-                          end(forwardData) >= configTable$reversePrimerPosition[i])]
-        reverseDataFiltered <-
-          reverseData[!(reverseData$type %in% div &
-                          end(reverseData) >= configTable$reversePrimerPosition[i])]
-        forwardDataFiltered <-
-          forwardData[!(forwardData$type %in% div &
-                          start(forwardData) <= configTable$forwardPrimerPositionEnd[i])]
-        reverseDataFiltered <-
-          reverseData[!(reverseData$type %in% div &
-                          start(reverseData) <= configTable$forwardPrimerPositionEnd[i])]
+        fwdDFtd <-
+          fwdD[!(fwdD$type %in% div &
+                   end(fwdD) >= cfgT$rvePrimerPosition[i])]
+        rveDFtd <-
+          rveD[!(rveD$type %in% div &
+                   end(rveD) >= cfgT$rvePrimerPosition[i])]
+        fwdDFtd <-
+          fwdD[!(fwdD$type %in% div &
+                   start(fwdD) <= cfgT$fwdPrPosEnd[i])]
+        rveDFtd <-
+          rveD[!(rveD$type %in% div &
+                   start(rveD) <= cfgT$fwdPrPosEnd[i])]
 
         # Frameshift table
         frameshift <- FALSE
         if (fastqfiles == 0 | fastqfiles == 0.5) {
           frameshift <-
-            sum(width(forwardDataFiltered[forwardDataFiltered$type == "insertion" |
-                                            forwardDataFiltered$type == "deletion"])) %%
+            sum(width(fwdDFtd[fwdDFtd$type == "insertion" |
+                                fwdDFtd$type == "deletion"])) %%
             3 !=  0 &
-            sum(width(reverseDataFiltered[reverseDataFiltered$type == "insertion" |
-                                            reverseDataFiltered$type == "deletion"])) %%
+            sum(width(rveDFtd[rveDFtd$type == "insertion" |
+                                rveDFtd$type == "deletion"])) %%
             3 != 0
         } else if (fastqfiles == 1) {
           frameshift <-
-            sum(width(forwardDataFiltered[forwardDataFiltered$type == "insertion" |
-                                            forwardDataFiltered$type == "deletion"])) %%
+            sum(width(fwdDFtd[fwdDFtd$type == "insertion" |
+                                fwdDFtd$type == "deletion"])) %%
             3 != 0
         } else {
           frameshift <-
-            sum(width(reverseData[reverseDataFiltered$type == "insertion" |
-                                    reverseDataFiltered$type == "deletion"])) %%
+            sum(width(rveD[rveDFtd$type == "insertion" |
+                             rveDFtd$type == "deletion"])) %%
             3 != 0
         }
-        configTable$Frameshift[i] <- configTable$Frameshift[i] +
-          frameshift * IDuniqueTable$Total[r]
+        cfgT$Frameshift[i] <- cfgT$Frameshift[i] +
+          frameshift * IDunqT$Total[r]
 
         # definitions
-        if (length(forwardData) > 0) {
-          forwardData$cut <- FALSE
-          forwardData$count <- IDuniqueTable$Total[r]
-          forwardData$frequency <- 0  #prepare field
-          forwardData$read_id <- r
+        if (length(fwdD) > 0) {
+          fwdD$cut <- FALSE
+          fwdD$count <- IDunqT$Total[r]
+          fwdD$frequency <- 0  #prepare field
+          fwdD$read_id <- r
         }
 
-        if (length(reverseData) > 0) {
-          reverseData$cut <- FALSE
-          reverseData$count <- IDuniqueTable$Total[r]
-          reverseData$frequency <- 0  #prepare field
-          reverseData$read_id <- r
+        if (length(rveD) > 0) {
+          rveD$cut <- FALSE
+          rveD$count <- IDunqT$Total[r]
+          rveD$frequency <- 0  #prepare field
+          rveD$read_id <- r
         }
 
         # cut assessment
-        overlapFd <- subsetByOverlaps(ranges(forwardDataFiltered[forwardDataFiltered$type == "deletion"]),
-                                      configTable$cutSites[[i]])
-        overlapRe <- subsetByOverlaps(ranges(reverseDataFiltered[reverseDataFiltered$type == "deletion"]),
-                                      configTable$cutSites[[i]])
+        overlapFd <- subsetByOverlaps(
+          ranges(fwdDFtd[fwdDFtd$type == "deletion"]),
+          cfgT$cutSites[[i]])
+        overlapRe <- subsetByOverlaps(
+          ranges(rveDFtd[rveDFtd$type == "deletion"]),
+          cfgT$cutSites[[i]])
         if (fastqfiles == 0 | fastqfiles == 0.5) {
           # forward and reverse have to agree on deletion
           overlapFd <- overlapFd[!is.na(match(overlapFd, overlapRe))]
           overlapRe <- overlapRe[!is.na(match(overlapRe, overlapFd))]
-          forwardData$cut[!is.na(match(ranges(forwardData), overlapFd))] <- TRUE
-          reverseData$cut[!is.na(match(ranges(reverseData), overlapRe))] <- TRUE
+          fwdD$cut[!is.na(match(ranges(fwdD), overlapFd))] <- TRUE
+          rveD$cut[!is.na(match(ranges(rveD), overlapRe))] <- TRUE
         } else if (fastqfiles == 1) {
-          forwardData$cut[!is.na(match(ranges(forwardData), overlapFd))] <- TRUE
+          fwdD$cut[!is.na(match(ranges(fwdD), overlapFd))] <- TRUE
         } else {
-          reverseData$cut[!is.na(match(ranges(reverseData), overlapRe))] <- TRUE
+          rveD$cut[!is.na(match(ranges(rveD), overlapRe))] <- TRUE
         }
 
-        configTable$Cut[i] <- configTable$Cut[i] +
+        cfgT$Cut[i] <- cfgT$Cut[i] +
           if (fastqfiles == 2) {
-            any(reverseData$cut) * IDuniqueTable$Total[r]
+            any(rveD$cut) * IDunqT$Total[r]
           } else {
-            any(forwardData$cut) * IDuniqueTable$Total[r]
+            any(fwdD$cut) * IDunqT$Total[r]
           }
 
-        if (length(forwardData) > 0 | length(reverseData) > 0) {
-          alignmentRanges <- c(alignmentRanges,
-                               forwardData,
-                               reverseData)
+        if (length(fwdD) > 0 | length(rveD) > 0) {
+          almR <- c(almR,
+                    fwdD,
+                    rveD)
         }
       }
 
-      configTable$Reads[i] <- sum(IDuniqueTable$Total)
+      cfgT$Reads[i] <- sum(IDunqT$Total)
       # fill frequency
-      if (length(alignmentRanges) > 0) {
-        reads_count_filtered <- configTable$Reads[i] - configTable$PRIMER_DIMER[i]
-        alignmentRanges$frequency <- alignmentRanges$count / reads_count_filtered
+      if (length(almR) > 0) {
+        reads_count_filtered <- cfgT$Reads[i] - cfgT$PRIMER_DIMER[i]
+        almR$frequency <- almR$count / reads_count_filtered
       }
     }
 
-    alignmentRangesBar <- c(alignmentRangesBar, alignmentRanges)
+    almRBar <- c(almRBar, almR)
   }
 
-  if (length(alignmentRangesBar) > 0) {
-    alignmentRangesBar <- flipRanges(as.data.frame(alignmentRangesBar), configTable)
+  if (length(almRBar) > 0) {
+    almRBar <- flipRanges(as.data.frame(almRBar),
+                          cfgT)
     if (fastqfiles == 2 | fastqfiles == 1) {
       # when only one strand treat everything as on forward strand
-      alignmentRangesBar$strand <- "+"
+      almRBar$strand <- "+"
     }
-    utils::write.csv(alignmentRangesBar,
+    utils::write.csv(almRBar,
                      file.path(resultsFolder,
                                paste0(barcode, "_alignment_ranges.csv")),
                      row.names = FALSE)
   }
 
-  barcodeTable$unassigned_reads <- sum(!uniqueTable$Asigned)
-  barcodeTable$assigned_reads <- sum(uniqueTable$Asigned)
-  utils::write.csv(uniqueTable[!uniqueTable$Asigned, ],
+  barcodeTable$unassigned_reads <- sum(!unqT$Asigned)
+  barcodeTable$assigned_reads <- sum(unqT$Asigned)
+  utils::write.csv(unqT[!unqT$Asigned, ],
                    file = file.path(resultsFolder,
                                     "unassigned_sequences",
                                     paste0(barcode, "_unassigned_reads.csv")),
                    quote = FALSE, row.names = FALSE)
 
-  revDir <- configTable[, "Direction"] == 1
-  configTable[revDir, "guideRNA"] <- revComp(configTable[revDir, "guideRNA"]) # revert guides to 5'-3'
-  utils::write.csv(configTable[c("ID",
-                                 "Barcode",
-                                 "Forward_Reads_File",
-                                 "Reverse_Reads_File",
-                                 "Group",
-                                 "guideRNA",
-                                 "Forward_Primer",
-                                 "Reverse_Primer",
-                                 "Direction",
-                                 "Amplicon",
-                                 "ExperimentsCount",
-                                 "Cut",
-                                 "Frameshift",
-                                 "PRIMER_DIMER",
-                                 "Reads",
-                                 "Found_Guide",
-                                 "Found_PAM")],
+  revDir <- cfgT[, "Direction"] == 1
+  # revert guides to 5'-3'
+  cfgT[revDir, "guideRNA"] <- revComp(cfgT[revDir, "guideRNA"])
+  utils::write.csv(cfgT[c("ID",
+                          "Barcode",
+                          "Forward_Reads_File",
+                          "Reverse_Reads_File",
+                          "Group",
+                          "guideRNA",
+                          "Forward_Primer",
+                          "Reverse_Primer",
+                          "Direction",
+                          "Amplicon",
+                          "ExperimentsCount",
+                          "Cut",
+                          "Frameshift",
+                          "PRIMER_DIMER",
+                          "Reads",
+                          "Found_Guide",
+                          "Found_PAM")],
                    file.path(resultsFolder,
                              paste0(barcode, "_configFile_results.csv")),
                    row.names = FALSE)

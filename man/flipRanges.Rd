@@ -4,15 +4,15 @@
 \alias{flipRanges}
 \title{Reverse complement events that have amplicons with direction 1.}
 \usage{
-flipRanges(idRanges, configTable)
+flipRanges(idR, cfgT)
 }
 \arguments{
-\item{idRanges}{(data.frame) Loaded events.}
+\item{idR}{(data.frame) Loaded events.}
 
-\item{configTable}{(data.frame) Loaded configuration file.}
+\item{cfgT}{(data.frame) Loaded configuration file.}
 }
 \value{
-(data.frame) Returns input idRanges, but events for amplicons with
+(data.frame) Returns input idR, but events for amplicons with
 direction 1 reverse complemented, "+" and "-" swapped.
 }
 \description{

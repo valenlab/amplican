@@ -1,1 +1,1 @@
-Reverse,Forward,Total,BarcodeFrequency,Asigned,PRIMER_DIMER,forPrInReadPos,forwardFound,revPrInReadPos,reverseFound,guideFoundForward,guideFoundReverse
+Forward,Reverse,Total,BarcodeFrequency,Asigned,PRIMER_DIMER,fwdPrInReadPos,forwardFound,rvePrInReadPos,reverseFound,guideFoundForward,guideFoundReverse

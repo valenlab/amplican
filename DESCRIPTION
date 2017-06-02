@@ -55,5 +55,8 @@ Collate:
     'helpers_alignment.R'
     'amplicanAlign.R'
     'amplican.R'
+    'amplicanFilter.R'
+    'amplicanNormalize.R'
+    'amplicanSummarize.R'
     'helpers_plots.R'
 VignetteBuilder: knitr

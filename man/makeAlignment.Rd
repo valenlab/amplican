@@ -4,12 +4,12 @@
 \alias{makeAlignment}
 \title{Make alignments helper.}
 \usage{
-makeAlignment(configTable, resultsFolder, average_quality, min_quality,
+makeAlignment(cfgT, resultsFolder, average_quality, min_quality,
   write_alignments, scoring_matrix, gap_opening, gap_extension, fastqfiles,
   PRIMER_DIMER, cut_buffer)
 }
 \arguments{
-\item{configTable}{config file as data table}
+\item{cfgT}{config file as data table}
 
 \item{resultsFolder}{(string) path to resultsFolder}
 
