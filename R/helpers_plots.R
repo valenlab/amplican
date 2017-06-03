@@ -220,7 +220,7 @@ return_plot <- function(freqAgr, amplicon, ampl_len, plot_fr, plot_re) {
 #' @examples
 #' #example config
 #' config <- read.csv(system.file("extdata", "config.csv",
-#'                    package = "amplican"))
+#'                                package = "amplican"))
 #' #example alignments results
 #' alignments_file <- system.file("extdata", "results", "alignments_events.csv",
 #'                                package = "amplican")
@@ -296,7 +296,7 @@ metaplot_mismatches <- function(alnmt, config, group,
 #' @examples
 #' #example config
 #' config <- read.csv(system.file("extdata", "config.csv",
-#'                    package = "amplican"))
+#'                                package = "amplican"))
 #' #example alignments results
 #' alignments_file <- system.file("extdata", "results", "alignments_events.csv",
 #'                                package = "amplican")
@@ -361,7 +361,7 @@ metaplot_deletions <- function(alnmt, config, group,
 #' @examples
 #' #example config
 #' config <- read.csv(system.file("extdata", "config.csv",
-#'                    package = "amplican"))
+#'                                package = "amplican"))
 #' #example alignments results
 #' alignments_file <- system.file("extdata", "results", "alignments_events.csv",
 #'                                package = "amplican")
@@ -463,9 +463,11 @@ plot_amplicon <- function(amplicon) {
 #' @family specialized plots
 #' @examples
 #' #example config
-#' config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
+#' config <- read.csv(system.file("extdata", "config.csv",
+#'                                package = "amplican"))
 #' #example alignments results
-#' alignments_file <- system.file("extdata", "results", "alignments_events.csv", package = "amplican")
+#' alignments_file <- system.file("extdata", "results", "alignments_events.csv",
+#'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
 #' plot_mismatches(alignments, config, c('ID_1', 'ID_3'))
 #'
@@ -563,9 +565,11 @@ plot_mismatches <- function(alignments,
 #' @family specialized plots
 #' @examples
 #' #example config
-#' config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
+#' config <- read.csv(system.file("extdata", "config.csv",
+#'                                package = "amplican"))
 #' #example alignments results
-#' alignments_file <- system.file("extdata", "results", "alignments_events.csv", package = "amplican")
+#' alignments_file <- system.file("extdata", "results", "alignments_events.csv",
+#'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
 #' plot_deletions(alignments, config, c('ID_1','ID_3'), 5)
 #'
@@ -654,9 +658,11 @@ plot_deletions <- function(alignments,
 #' @family specialized plots
 #' @examples
 #' #example config
-#' config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
+#' config <- read.csv(system.file("extdata", "config.csv",
+#'                                package = "amplican"))
 #' #example alignments results
-#' alignments_file <- system.file("extdata", "results", "alignments_events.csv", package = "amplican")
+#' alignments_file <- system.file("extdata", "results", "alignments_events.csv",
+#'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
 #' plot_insertions(alignments, config, c('ID_1','ID_3'), 5)
 #'
@@ -755,9 +761,11 @@ plot_insertions <- function(alignments,
 #' @family specialized plots
 #' @examples
 #' #example config
-#' config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
+#' config <- read.csv(system.file("extdata", "config.csv",
+#'                                package = "amplican"))
 #' #example alignments results
-#' alignments_file <- system.file("extdata", "results", "alignments_events.csv", package = "amplican")
+#' alignments_file <- system.file("extdata", "results", "alignments_events.csv",
+#'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
 #' plot_cuts(alignments, config, c('ID_1','ID_3'))
 #'
@@ -852,12 +860,14 @@ plot_cuts <- function(alignments,
 #' @param config (data.frame) Loaded table from config_summary.csv file.
 #' @param level (string) Name of the column from config
 #' file specifying levels to group by.
-#' @param colors (html colors vector) Two colours for gradient, eg. c('#000000', '#F0E442').
+#' @param colors (html colors vector) Two colours for gradient,
+#' eg. c('#000000', '#F0E442').
 #' @param bins (numeric vector) Numeric vector from 0 to 100 specyfying bins eg.
 #' c(0, 5, seq(10, 100, 10)).
 #' @return (heterogeneity plot) ggplot2 object of heterogeneity plot
 #' @importFrom ggplot2 ggplot aes_string theme_bw theme geom_label ggtitle
-#' scale_colour_manual scale_fill_manual scale_x_continuous geom_vline xlab coord_flip
+#' scale_colour_manual scale_fill_manual scale_x_continuous geom_vline xlab
+#' coord_flip
 #' scale_y_reverse element_blank unit geom_text ylab ylim scale_color_manual
 #' facet_grid element_text
 #' @importFrom ggbio geom_arch xlim
@@ -867,9 +877,11 @@ plot_cuts <- function(alignments,
 #' @family specialized plots
 #' @examples
 #' #example config
-#' config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
+#' config <- read.csv(system.file("extdata", "config.csv",
+#'                                package = "amplican"))
 #' #example alignments results
-#' alignments_file <- system.file("extdata", "results", "alignments_events.csv", package = "amplican")
+#' alignments_file <- system.file("extdata", "results", "alignments_events.csv",
+#'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
 #' plot_heterogeneity(alignments, config)
 #'

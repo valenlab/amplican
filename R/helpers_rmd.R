@@ -15,7 +15,8 @@ amplican_print_reads <- function(forward, reverse) {
 
   alignForwardReverse <- Biostrings::pairwiseAlignment(forward,
                                                        revComp(reverse))
-  wPA <- capture.output(Biostrings::writePairwiseAlignments(alignForwardReverse))
+  wPA <- capture.output(
+    Biostrings::writePairwiseAlignments(alignForwardReverse))
   wPA <- wPA[!grepl("#", wPA)]
 
   wPA
