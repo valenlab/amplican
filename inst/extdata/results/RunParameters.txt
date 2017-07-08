@@ -1,13 +1,13 @@
-Config file:            /home/ai/Projects/amplican/inst/extdata/config.csv
-Processors used:        1
-Average Quality:        30
-Minimum Quality:        20
-Write Alignments:       TRUE
-Fastq files Mode:       0
-Gap Opening:            50
-Gap Extension:          0
-PRIMER DIMER buffer:    30
-Cut buffer:             5
+Config file:         /home/ai/Projects/amplican/inst/extdata/config.csv
+Processors used:     1
+Average Quality:     30
+Minimum Quality:     20
+Write Alignments:    txt
+Fastq files Mode:    0
+Gap Opening:         50
+Gap Extension:       0
+PRIMER DIMER buffer: 30
+Cut buffer: 5
 Scoring Matrix:
 ,A,C,G,T
 A,5,-4,-4,-4

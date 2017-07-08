@@ -9,7 +9,7 @@ output:
     toc_float: true
     number_sections: true
 params:
-  alignments: !r system.file('extdata', 'results', 'alignments_events.csv', package = 'amplican')
+  alignments: !r system.file('extdata', 'results', 'alignments', 'events_filtered_shifted_normalized.csv', package = 'amplican')
   config_summary: !r system.file('extdata', 'results', 'config_summary.csv', package = 'amplican')
   cut_buffer: 5
   xlab_spacing: 4
@@ -19,9 +19,9 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
+
 ```{r load data, message=F, warning=FALSE, include=FALSE}
 library(amplican)
-library(data.table)
 library(ggplot2)
 alignments <- read.csv(params$alignments, stringsAsFactors = FALSE)
 config <- read.csv(params$config_summary, stringsAsFactors = FALSE)
@@ -41,6 +41,7 @@ height <- amplican::plot_height(length(uniqueAmlicons))
 **PRIMER DIMER filter** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS  
 **Cutting rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have cut  
 **Frameshift** - plot shows what percentage of reads that have frameshift  
+**Frameshift overlapping** - shows what percentage of reads have frameshift counting only deletions and insertions that overlap expected cut site (should be more accurate when controls are not available)  
 **Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads. The more yellow each row, the less heterogeneity in the reads, more black means reads don't repeat often and are unique  
 **Deletions plot** - shows summary of deletions detected after alignments with distinction
 for forward (top plot) and reverse (bottom) reads, blue dotted lines represent primers as black
@@ -73,8 +74,10 @@ config$group <- match(config$AmpliconUpper, ampliconDF$Amplicon)
 
 ## Read distribution  
 
-```{r plot total reads, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
-ampliconTable <- aggregate(cbind(Reads, PRIMER_DIMER, Cut, Frameshift) ~ group, data = config, sum)
+```{r plot_total_reads, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+ampliconTable <- aggregate(cbind(Reads, PRIMER_DIMER, 
+                                 Reads_Cut, Reads_Frameshifted,
+                                 Reads_Frameshifted_Overlapping) ~ group, data = config, sum)
 
 ggplot(data = ampliconTable, aes(x = as.factor(group), y = log10(Reads + 1)), order = group) +
   geom_bar(stat = 'identity') +
@@ -89,7 +92,7 @@ ggplot(data = ampliconTable, aes(x = as.factor(group), y = log10(Reads + 1)), or
 
 ## PRIMER DIMER filter  
 
-```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+```{r plot_PD_per, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
 
 ampliconTable$PD_percentage <- ampliconTable$PRIMER_DIMER * 100/ampliconTable$Reads
 ampliconTable$PD_percentage[is.nan(ampliconTable$PD_percentage)] <- 0 
@@ -107,9 +110,9 @@ ggplot(data = ampliconTable, aes(x = as.factor(group), y = PD_percentage, order 
 
 ## Cut rates  
 
-```{r plot cut rate, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+```{r plot_cut_rate, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
 ampliconTable$Reads_noPD <- ampliconTable$Reads - ampliconTable$PRIMER_DIMER
-ampliconTable$cut_percentage <- ampliconTable$Cut * 100/ampliconTable$Reads_noPD
+ampliconTable$cut_percentage <- ampliconTable$Reads_Cut * 100/ampliconTable$Reads_noPD
 ampliconTable$cut_percentage[is.nan(ampliconTable$cut_percentage)] <- 0  
 
 ggplot(data = ampliconTable, aes(x = as.factor(group), y = cut_percentage, order = group)) +
@@ -120,13 +123,13 @@ ggplot(data = ampliconTable, aes(x = as.factor(group), y = cut_percentage, order
         axis.title = element_text(size=14, face = 'bold')) +
   ylim(0,100) +
   coord_flip() +
-  geom_text(aes(x = as.factor(group), y = cut_percentage, label = Cut), hjust = -1)
+  geom_text(aes(x = as.factor(group), y = cut_percentage, label = Reads_Cut), hjust = -1)
 ```  
 
 ## Frameshift  
 
-```{r plot frame shift percentage, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
-ampliconTable$frameshift_percentage <- ampliconTable$Frameshift * 100/ampliconTable$Reads_noPD
+```{r plot_frameshift_per, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+ampliconTable$frameshift_percentage <- ampliconTable$Reads_Frameshifted * 100/ampliconTable$Reads_noPD
 ampliconTable$frameshift_percentage[is.nan(ampliconTable$frameshift_percentage)] <- 0 
 
 ggplot(data = ampliconTable, aes(x = as.factor(group), y = frameshift_percentage, order = group)) +
@@ -137,7 +140,24 @@ ggplot(data = ampliconTable, aes(x = as.factor(group), y = frameshift_percentage
         axis.title = element_text(size=14,face = 'bold')) +
   ylim(0, 100) +
   coord_flip() +
-  geom_text(aes(x = as.factor(group), y = frameshift_percentage, label = Frameshift), hjust = -1)
+  geom_text(aes(x = as.factor(group), y = frameshift_percentage, label = Reads_Frameshifted), hjust = -1)
+```  
+
+## Frameshift overlapping cut site  
+
+```{r plot_frameshift_per_overlap, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+ampliconTable$frameshift_over_percentage <- ampliconTable$Reads_Frameshifted_Overlapping * 100/ampliconTable$Reads_noPD
+ampliconTable$frameshift_over_percentage[is.nan(ampliconTable$frameshift_over_percentage)] <- 0 
+
+ggplot(data = ampliconTable, aes(x = as.factor(group), y = frameshift_over_percentage, order = group)) +
+  geom_bar(position = 'stack', stat = 'identity') +
+  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift overlapping expected cut sites')  +
+  xlab('Amplicon Group') +
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=14,face = 'bold')) +
+  ylim(0, 100) +
+  coord_flip() +
+  geom_text(aes(x = as.factor(group), y = frameshift_over_percentage, label = Reads_Frameshifted_Overlapping), hjust = -1)
 ```  
 
 ## Heterogeneity of reads  

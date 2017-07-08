@@ -16,7 +16,8 @@ alignments_events.csv file.}
 \item{level}{(string) Name of the column from config
 file specifying levels to group by.}
 
-\item{colors}{(html colors vector) Two colours for gradient, eg. c('#000000', '#F0E442').}
+\item{colors}{(html colors vector) Two colours for gradient,
+eg. c('#000000', '#F0E442').}
 
 \item{bins}{(numeric vector) Numeric vector from 0 to 100 specyfying bins eg.
 c(0, 5, seq(10, 100, 10)).}
@@ -35,9 +36,12 @@ the more similar are reads and less heterogenic.
 }
 \examples{
 #example config
-config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
+config <- read.csv(system.file("extdata", "results", "config_summary.csv",
+                               package = "amplican"))
 #example alignments results
-alignments_file <- system.file("extdata", "results", "alignments_events.csv", package = "amplican")
+alignments_file <- system.file("extdata", "results", "alignments",
+                               "events_filtered_shifted_normalized.csv",
+                               package = "amplican")
 alignments <- read.csv(alignments_file)
 plot_heterogeneity(alignments, config)
 

@@ -4,7 +4,7 @@
 \alias{plot_cuts}
 \title{Plots cuts using ggplot2 and ggbio.}
 \usage{
-plot_cuts(alignments, config, id, xlab_spacing = 4, filter = TRUE)
+plot_cuts(alignments, config, id, cut_buffer = 5, xlab_spacing = 4)
 }
 \arguments{
 \item{alignments}{(data.frame) Loaded alignment information from
@@ -16,10 +16,10 @@ alignments_events.csv file.}
 file or name of multiple IDs if it is possible to group them. First amplicon
 will be used as the basis for plot.}
 
-\item{xlab_spacing}{(numeric) Spacing of the x axis labels. Default is 4.}
+\item{cut_buffer}{(numeric) Default is 5, you should specify the same as
+used in the analysis.}
 
-\item{filter}{(boolean) Whether deletions overlapping primers should be
-removed. By deafult it set to TRUE.}
+\item{xlab_spacing}{(numeric) Spacing of the x axis labels. Default is 4.}
 }
 \value{
 (cuts plot) ggplot2 object of cuts plot
@@ -31,9 +31,12 @@ reads in the  amplicon group. Bottom plot shows cuts with facets for each ID.
 }
 \examples{
 #example config
-config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
+config <- read.csv(system.file("extdata", "results", "config_summary.csv",
+                               package = "amplican"))
 #example alignments results
-alignments_file <- system.file("extdata", "results", "alignments_events.csv", package = "amplican")
+alignments_file <- system.file("extdata", "results", "alignments",
+                               "events_filtered_shifted_normalized.csv",
+                               package = "amplican")
 alignments <- read.csv(alignments_file)
 plot_cuts(alignments, config, c('ID_1','ID_3'))
 

@@ -9,9 +9,9 @@ output:
     toc_float: true
     number_sections: true
 params:
-  alignments: !r system.file('extdata', 'results', 'alignments_events.csv', package = 'amplican')
+  alignments: !r system.file('extdata', 'results', 'alignments', 'events_filtered_shifted_normalized.csv', package = 'amplican')
   config_summary: !r system.file('extdata', 'results', 'config_summary.csv', package = 'amplican')
-  unassigned_folder: !r system.file('extdata', 'results',  'alignments', 'unassigned_sequences', package = 'amplican')
+  unassigned_folder: !r system.file('extdata', 'results',  'alignments', 'unassigned_reads.csv', package = 'amplican')
   top: 5
 ---
 
@@ -33,6 +33,7 @@ height <- amplican::plot_height(length(unique(config$Barcode)))
 **PRIMER DIMER filter** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS  
 **Cutting rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have cut  
 **Frameshift** - plot shows what percentage of reads that have frameshift  
+**Frameshift overlapping** - shows what percentage of reads have frameshift counting only deletions and insertions that overlap expected cut site (should be more accurate when controls are not available)  
 **Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads. The more yellow each row, the less heterogeneity in the reads, more black means reads don't repeat often and are unique  
 **Top unassigned reads** - take a look at the alignment of most abundant 
 forward and reverse complemented reverse reads for each barcode, 
@@ -56,7 +57,7 @@ kable(groupDF, row.names = FALSE)
 
 ## Read distribution  
 
-```{r plot total reads, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+```{r plot_total_reads, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
 ggplot(data = config, aes(x = as.factor(Barcode), y = log10(Reads + 1), order = Barcode, fill = ID)) +
   geom_bar(position='stack', stat='identity') +
   ylab('Number of reads + 1, log10 scaled')  +
@@ -71,8 +72,9 @@ ggplot(data = config, aes(x = as.factor(Barcode), y = log10(Reads + 1), order = 
 
 ## PRIMER DIMER filter  
 
-```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
-barcodeTable <- aggregate(cbind(Reads, PRIMER_DIMER, Cut, Frameshift) ~ Barcode, data = config, sum)
+```{r plot_PD_per, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+barcodeTable <- aggregate(cbind(Reads, PRIMER_DIMER, Reads_Cut, Reads_Frameshifted,
+                                Reads_Frameshifted_Overlapping) ~ Barcode, data = config, sum)
 barcodeTable$PD_percentage <- barcodeTable$PRIMER_DIMER * 100/barcodeTable$Reads
 barcodeTable$PD_percentage[is.nan(barcodeTable$PD_percentage)] <- 0  
 
@@ -91,7 +93,7 @@ ggplot(data = barcodeTable, aes(x = as.factor(Barcode), y = PD_percentage, order
 
 ```{r plot cut percentage, echo=FALSE, fig.height=height,fig.width=14, message=F, warning=FALSE}
 barcodeTable$Reads_noPD <- barcodeTable$Reads - barcodeTable$PRIMER_DIMER
-barcodeTable$cut_percentage <- barcodeTable$Cut * 100/barcodeTable$Reads_noPD
+barcodeTable$cut_percentage <- barcodeTable$Reads_Cut * 100/barcodeTable$Reads_noPD
 barcodeTable$cut_percentage[is.nan(barcodeTable$cut_percentage)] <- 0  
 
 ggplot(data = barcodeTable, aes(x = as.factor(Barcode), y = cut_percentage, order = Barcode)) +
@@ -102,13 +104,13 @@ ggplot(data = barcodeTable, aes(x = as.factor(Barcode), y = cut_percentage, orde
   ylim(0,100) +
   xlab('Barcode') +
   coord_flip() +
-  geom_text(aes(x = as.factor(Barcode), y = cut_percentage, label = Cut), hjust = -1)
+  geom_text(aes(x = as.factor(Barcode), y = cut_percentage, label = Reads_Cut), hjust = -1)
 ``` 
 
 ## Frameshift  
 
-```{r plot frame shift percentage, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
-barcodeTable$frameshift_percentage <- barcodeTable$Frameshift * 100/barcodeTable$Reads_noPD
+```{r plot_frameshift_per, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+barcodeTable$frameshift_percentage <- barcodeTable$Reads_Frameshifted * 100/barcodeTable$Reads_noPD
 barcodeTable$frameshift_percentage[is.nan(barcodeTable$frameshift_percentage)] <- 0  
 
 ggplot(data = barcodeTable, aes(x = as.factor(Barcode), y = frameshift_percentage, order = Barcode)) +
@@ -119,7 +121,24 @@ ggplot(data = barcodeTable, aes(x = as.factor(Barcode), y = frameshift_percentag
         axis.title = element_text(size=14,face = 'bold')) +
   ylim(0, 100) +
   coord_flip() +
-  geom_text(aes(x = as.factor(Barcode), y = frameshift_percentage, label = Frameshift), hjust = -1)
+  geom_text(aes(x = as.factor(Barcode), y = frameshift_percentage, label = Reads_Frameshifted), hjust = -1)
+``` 
+
+## Frameshift overlapping cut site  
+
+```{r plot_frameshift_per overlap, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+barcodeTable$frameshift_over_percentage <- barcodeTable$Reads_Frameshifted_Overlapping * 100/barcodeTable$Reads_noPD
+barcodeTable$frameshift_over_percentage[is.nan(barcodeTable$frameshift_over_percentage)] <- 0  
+
+ggplot(data = barcodeTable, aes(x = as.factor(Barcode), y = frameshift_over_percentage, order = Barcode)) +
+  geom_bar(position = 'stack', stat = 'identity') +
+  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift overlapping expected cut sites')  +
+  xlab('Barcode') +
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=14,face = 'bold')) +
+  ylim(0, 100) +
+  coord_flip() +
+  geom_text(aes(x = as.factor(Barcode), y = frameshift_over_percentage, label = Reads_Frameshifted_Overlapping), hjust = -1)
 ``` 
 
 ## Heterogeneity of reads  
@@ -132,26 +151,25 @@ plot_heterogeneity(alignments, config, level = 'Barcode')
 
 ```{r plot read unassigned reads, results = "asis", echo=FALSE, message=F, warning=FALSE, comment = ''} 
 if (!is.na(config$Forward_Reads_File) && !is.na(config$Reverse_Reads_File)) {
-  ub <- list.files(params$unassigned_folder)
-  pure_bname <- gsub("_unassigned_reads.csv", "", ub)
+  unassigned_reads <- read.csv(params$unassigned_folder, stringsAsFactors = FALSE)
   
   cat("# Top unassigned reads  \n\n***  \n\n")
-  for (i in seq_along(ub)) {
-    cat(paste0("## ", pure_bname[i], "  \n\n"))
-    unassigned_reads <- read.csv(file.path(params$unassigned_folder, ub[i]), stringsAsFactors = FALSE)
-    unassigned_reads <- unassigned_reads[order(unassigned_reads$BarcodeFrequency, decreasing = TRUE), ]
-    if (dim(unassigned_reads)[1] == 0) {
+  for (b in unique(unassigned_reads$Barcode)) {
+    cat(paste0("## ", b, "  \n\n"))
+    b_unassiged <- unassigned_reads[, unassigned_reads$Barcode == b]
+    b_unassiged <- b_unassiged[order(b_unassiged$BarcodeFrequency, decreasing = TRUE), ]
+    if (dim(b_unassiged)[1] == 0) {
       cat(knitr::asis_output("No unassigned reads in this barcode. That\'s great!  \n\n"))
     } else {
-      topN <- if (dim(unassigned_reads)[1] < params$top) dim(unassigned_reads)[1] else top
+      topN <- if (dim(b_unassiged)[1] < params$top) dim(b_unassiged)[1] else top
       cat('\n')
       print(knitr::kable(data.frame(Forward = paste0('P', 1:topN),
                                     Reverse = paste0('S', 1:topN),
-                                    Counts = unassigned_reads[1:topN, 'Total'],
-                                    Frequency = unassigned_reads[1:topN, 'BarcodeFrequency'])))
+                                    Counts = b_unassiged[1:topN, 'Total'],
+                                    Frequency = b_unassiged[1:topN, 'BarcodeFrequency'])))
       cat("\n")
-      cat(paste("<PRE>", paste(amplican_print_reads(unassigned_reads[1:topN, 'Forward'],
-                                                    unassigned_reads[1:topN, 'Reverse']),
+      cat(paste("<PRE>", paste(amplican_print_reads(b_unassiged[1:topN, 'Forward'],
+                                                    b_unassiged[1:topN, 'Reverse']),
                                collapse = "\n"), "</PRE>"))
       cat("\n\n")
     }

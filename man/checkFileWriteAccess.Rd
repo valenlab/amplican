@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_directory.R
 \name{checkFileWriteAccess}
 \alias{checkFileWriteAccess}
-\title{This function checks if the given directory exist and can be written to.}
+\title{Checks if the given directory exist and can be written to.}
 \usage{
 checkFileWriteAccess(filePath)
 }
@@ -13,5 +13,5 @@ checkFileWriteAccess(filePath)
 (invisible) TRUE, Stop if no access.
 }
 \description{
-This function checks if the given directory exist and can be written to.
+Checks if the given directory exist and can be written to.
 }

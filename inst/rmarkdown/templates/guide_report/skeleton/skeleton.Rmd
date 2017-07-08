@@ -9,7 +9,7 @@ output:
     toc_float: true
     number_sections: true
 params:
-  alignments: !r system.file('extdata', 'results', 'alignments_events.csv', package = 'amplican')
+  alignments: !r system.file('extdata', 'results', 'alignments', 'events_filtered_shifted_normalized.csv', package = 'amplican')
   config_summary: !r system.file('extdata', 'results', 'config_summary.csv', package = 'amplican')
 ---
 
@@ -30,7 +30,8 @@ height <- plot_height(length(unique(config$guideRNA)))
 **Read distribution plot** - plot shows number of reads assigned during read grouping  
 **PRIMER DIMER filter** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS  
 **Cutting rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have cut  
-**Frameshift** - plot shows what percentage of reads that have frameshift  
+**Frameshift** - plot shows what percentage of reads have frameshift  
+**Frameshift overlapping** - shows what percentage of reads have frameshift counting only deletions and insertions that overlap expected cut site (should be more accurate when controls are not available)  
 **Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads. The more yellow each row, the less heterogeneity in the reads, more black means reads don't repeat often and are unique  
 
 
@@ -42,7 +43,7 @@ height <- plot_height(length(unique(config$guideRNA)))
 
 ## Read distribution  
 
-```{r plot total reads, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+```{r plot_total_reads, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
 ggplot(data = config, aes(x = as.factor(guideRNA), y = log10(Reads + 1), order = guideRNA, fill = guideRNA)) +
   geom_boxplot() +
   ylab('Number of reads + 1, log10 scaled')  +
@@ -55,7 +56,7 @@ ggplot(data = config, aes(x = as.factor(guideRNA), y = log10(Reads + 1), order =
 
 ## PRIMER DIMER filter  
 
-```{r plot PRIMER DIMER percentage, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+```{r plot_PD_per, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
 config$PD_percentage <- config$PRIMER_DIMER * 100/config$Reads
 config$PD_percentage[is.nan(config$PD_percentage)] <- 0
 
@@ -74,7 +75,7 @@ ggplot(data = config, aes(x = as.factor(guideRNA), y = PD_percentage, order = gu
 
 ```{r plot cut percentage, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
 config$Reads_noPD <- config$Reads - config$PRIMER_DIMER
-config$cut_percentage <- config$Cut * 100/config$Reads_noPD
+config$cut_percentage <- config$Reads_Cut * 100/config$Reads_noPD
 config$cut_percentage[is.nan(config$cut_percentage)] <- 0  
 
 ggplot(data = config, aes(x = as.factor(guideRNA), y = cut_percentage, order = guideRNA, fill = guideRNA)) +
@@ -89,14 +90,32 @@ ggplot(data = config, aes(x = as.factor(guideRNA), y = cut_percentage, order = g
 ``` 
 
 ## Frameshift  
-```{r plot frame shift percentage, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
-config$frameshift_percentage <- config$Frameshift * 100/config$Reads_noPD
+
+```{r plot_frameshift_per, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+config$frameshift_percentage <- config$Reads_Frameshifted * 100/config$Reads_noPD
 config$frameshift_percentage[is.nan(config$frameshift_percentage)] <- 0  
 
 ggplot(data = config, aes(x = as.factor(guideRNA), y = frameshift_percentage, order = guideRNA, fill = guideRNA)) +
   geom_boxplot() +
   xlab('guideRNA') + 
   ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift')  +
+  theme(axis.text = element_text(size=12),
+        axis.title = element_text(size=14,face = 'bold'),
+        legend.position = 'None') +
+  ylim(0, 100) + 
+  coord_flip()
+``` 
+
+## Frameshift overlapping cut site  
+
+```{r plot_frameshift_per over, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+config$frameshift_percentage_over <- config$Reads_Frameshifted_Overlapping * 100/config$Reads_noPD
+config$frameshift_percentage_over[is.nan(config$frameshift_percentage_over)] <- 0  
+
+ggplot(data = config, aes(x = as.factor(guideRNA), y = frameshift_percentage_over, order = guideRNA, fill = guideRNA)) +
+  geom_boxplot() +
+  xlab('guideRNA') + 
+  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift overlapping expected cut sites')  +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14,face = 'bold'),
         legend.position = 'None') +

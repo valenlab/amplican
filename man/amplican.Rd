@@ -4,6 +4,7 @@
 \name{amplican}
 \alias{amplican}
 \alias{amplican-package}
+\alias{amplican-package}
 \title{amplican: fast and precise analysis of CRISPR experiments}
 \description{
 It has three main goals:
@@ -11,6 +12,7 @@ It has three main goals:
 \details{
 \enumerate{
 \item Alignment and analysis of the MiSeq or HiSeq data.
+
 \item Prepare automatic reports as .Rmd files that are flexible
 and open for manipulation.
 \item Provide specialized plots for deletions, insertions, mismatches.
@@ -18,4 +20,21 @@ and open for manipulation.
 
 To learn more about amplican, start with the vignettes:
 \code{browseVignettes(package = "amplican")}
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/valenlab/amplican}
+  \item Report bugs at \url{https://github.com/valenlab/amplican/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Eivind Valen \email{eivind.valen@gmail.com} [copyright holder]
+
+Authors:
+\itemize{
+  \item Kornel Labun \email{kornel.labun@gmail.com}
+}
+
 }

@@ -4,11 +4,11 @@
 \alias{metaplot_deletions}
 \title{MetaPlots deletions using ggplot2 and ggbio.}
 \usage{
-metaplot_deletions(alnmt, config, group, selection, filter = TRUE)
+metaplot_deletions(alnmt, config, group, selection)
 }
 \arguments{
 \item{alnmt}{(data.frame) Loaded alignment information from
-alignments_events.csv file.}
+events_filtered_shifted_normalized.csv file.}
 
 \item{config}{(data.frame) Loaded table from config_summary.csv file.}
 
@@ -18,28 +18,24 @@ selection.}
 
 \item{selection}{(string or vector of strings) Values from config column
 specified in group argument.}
-
-\item{filter}{(boolean) Whether deletions overlapping primers should be
-removed. By deafult it set to TRUE.}
 }
 \value{
 (deletions metaplot) ggplot2 object of deletions metaplot
 }
 \description{
 This function plots deletions in relation to the amplicons for given
-selection vector that groups values by given config group. All reads
-are converted to their relative position to their respective amplicon.
-For zero position on new coordinates is the most left UPPER case letter of
-the respective amplicon. This function filters out all alignment events
-that have amplicons without UPPER case defined.
+selection vector that groups values by given config group. All reads should
+already be converted to their relative position to their respective amplicon
+using \code{\link{map_to_relative}}.
 Top plot is for the forward reads and bottom plot is for reverse reads.
 }
 \examples{
 #example config
-config <- read.csv(system.file("extdata", "config.csv",
-                   package = "amplican"))
+config <- read.csv(system.file("extdata", "results", "config_summary.csv",
+                               package = "amplican"))
 #example alignments results
-alignments_file <- system.file("extdata", "results", "alignments_events.csv",
+alignments_file <- system.file("extdata", "results", "alignments",
+                               "events_filtered_shifted_normalized.csv",
                                package = "amplican")
 alignments <- read.csv(alignments_file)
 metaplot_deletions(alignments, config, "Group", "Tom")

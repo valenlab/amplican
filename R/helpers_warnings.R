@@ -76,14 +76,14 @@ checkConfigFile <- function(configTable, fastq_folder) {
   totalRows <- dim(configTable)[1]
   totalCols <- dim(configTable)[2]
 
-  rp_num <- grepl("\\d", configTable$Left_Primer)
+  rp_num <- grepl("\\d", configTable$Forward_Primer)
   if (any(rp_num)) {
     stop(paste0("Config file has bad rows: ",
                 toString(which(rp_num) + 1),
                 " due to reverse primers containing numeric values."))
   }
 
-  fp_num <- grepl("\\d", configTable$Right_Primer)
+  fp_num <- grepl("\\d", configTable$Reverse_Primer)
   if (any(fp_num)) {
     stop(paste0("Config file has bad rows: ",
                 toString(which(fp_num) + 1),
@@ -97,7 +97,7 @@ checkConfigFile <- function(configTable, fastq_folder) {
                 " due to NA/NULL values"))
   }
 
-  if (length(unique(configTable[, "ID"])) != totalRows) {
+  if (length(unique(configTable$ID)) != totalRows) {
     stop(paste0("Config file has duplicates IDs in rows: ",
                 toString(which(duplicated(configTable[, "ID"])) + 1)))
   }
@@ -111,7 +111,7 @@ checkConfigFile <- function(configTable, fastq_folder) {
                 toString(which(barcode_primers_duple) + 1)))
   }
 
-  barcode_files_duple <- duplicated(configTable[c("Barcode")])
+  barcode_files_duple <- duplicated(configTable$Barcode)
   forward_reverse_files_duple <- duplicated(
     configTable[c("Forward_Reads_File", "Reverse_Reads_File")])
   fail_barcodes <- which(barcode_files_duple != forward_reverse_files_duple) + 1

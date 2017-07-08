@@ -84,7 +84,8 @@ amplicanReport <- function(results_folder,
 
   barcode_summary <- file.path(results_folder, 'barcode_reads_filters.csv')
   config_summary <- file.path(results_folder, 'config_summary.csv')
-  alignments <- file.path(results_folder, 'alignments_events.csv')
+  alignments <- file.path(results_folder, 'alignments',
+                          'events_filtered_shifted_normalized.csv')
   unassigned_folder<- file.path(results_folder,
                                 'alignments',
                                 'unassigned_sequences')

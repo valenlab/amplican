@@ -72,11 +72,11 @@ test_that("amplican runs through example files without any issues", {
 #     fixed_rmd_content <-
 #       c(fixed_rmd_content[1:13],
 #         paste0('  links: \"',
-#                '1. [Report by amplicon](./example_id_report.html)\\n',
-#                '2. [Report by guide](./example_barcode_report.html)\\n',
-#                '3. [Report by barcode](./example_group_report.html)\\n',
-#                '4. [Report by id](./example_guide_report.html)\\n',
-#                '5. [Report by group](./report_amplicon_report.html)\\n\"'),
+#                '1. [Report by id](./example_id_report.html)\\n',
+#                '2. [Report by barcode](./example_barcode_report.html)\\n',
+#                '3. [Report by group](./example_group_report.html)\\n',
+#                '4. [Report by guide](./example_guide_report.html)\\n',
+#                '5. [Report by amplicon](./example_amplicon_report.html)\\n\"'),
 #         fixed_rmd_content[15:length(fixed_rmd_content)])
 #   }
 #   cat(fixed_rmd_content, file = rmd_file_path, sep = "\n")

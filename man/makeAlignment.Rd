@@ -4,66 +4,47 @@
 \alias{makeAlignment}
 \title{Make alignments helper.}
 \usage{
-makeAlignment(cfgT, resultsFolder, average_quality, min_quality,
-  write_alignments, scoring_matrix, gap_opening, gap_extension, fastqfiles,
-  PRIMER_DIMER, cut_buffer)
+makeAlignment(cfgT, average_quality, min_quality, scoring_matrix, gap_opening,
+  gap_extension, fastqfiles)
 }
 \arguments{
 \item{cfgT}{config file as data table}
 
-\item{resultsFolder}{(string) path to resultsFolder}
-
 \item{average_quality}{(numeric) The FASTQ file have a quality for each
-nucleotide, being ! the lower and ~ the highest. In ASCII :
-                             !'#$%&'()*+,-./0123456789:;<=>?@
-                             ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`
-                             abcdefghijklmnopqrstuvwxyz{|}~
-
-This quality variable goes from 0 to 100, being 0 the lowest quality and
-100 the highest. You can write whatever number in between, and the program
-will find out the appropriate character encoding. The filter works by
-converting each character to a number, and then finding the average. If the
-average fall above this threshold then we take the sequence. Default is 0.}
+nucleotide, depending on sequencing technology there exist many formats.
+This package uses \code{\link[ShortRead]{readFastq}} to parse the reads.
+If the average quality of the reads fall below value of
+\code{average_quality} then sequence is filtered. Default is 0.}
 
 \item{min_quality}{(numeric)  Similar as in average_quality, but this is
-the minimum quality for ALL nucleotides. If one of them has quality BELLOW
-this threshold, then the sequence is skipped. Default is 20.}
+the minimum quality for ALL nucleotides in given read. If one of nucleotides
+has quality BELLOW \code{min_quality}, then the sequence is filtered.
+Default is 20.}
 
-\item{write_alignments}{(boolean) Whether we should write alignments results
-to separate files for each ID}
-
-\item{scoring_matrix}{(string) For now the only option is 'NUC44'.}
+\item{scoring_matrix}{(matrix) Default is 'NUC44'. Pass desired matrix using
+\code{\link[Biostrings]{nucleotideSubstitutionMatrix}}}
 
 \item{gap_opening}{(numeric) The opening gap score. Default is 50.}
 
 \item{gap_extension}{(numeric) The gap extension score. Default is 30.}
 
 \item{fastqfiles}{(numeric) Normally you want to use both FASTQ files. But in
-some special cases, you may want to use only the
-forward file, or only the reverse file.
-0 - Use both FASTQ files
-0.5 - Use both FASTQ files,
-but only for one of the reads (forward or reverse)
-is required to have primer perfectly matched to
-sequence - eg. use when reverse reads are
-trimmed of primers, but forward reads have
-forward primer in the sequence
-1 - Use only the forward FASTQ file
-2 - Use only the reverse FASTQ file}
-
-\item{PRIMER_DIMER}{(numeric) Value specifying buffer for PRIMER DIMER
-detection. For a given read it will be recognized as PRIMER DIMER when
-alignment will introduce gap of size bigger than:
-length of amplicon - (lengths of PRIMERS + PRIMER_DIMER value)}
-
-\item{cut_buffer}{(numeric) Value specifying a buffer for PAM, this will add
-from both sides to a window defined from uppercase letters in the amplicon.
-Deletions overlapping this window will be considered a
-valid cut (if confirmed by both forward and reverse reads).}
+some special cases, you may want to use only the forward file, or only
+the reverse file. Possible options:
+\itemize{
+ \item{0}{ Use both FASTQ files.}
+ \item{0.5}{ Use both FASTQ files, but only for one of the reads (forward or
+ reverse) is required to have primer perfectly matched to sequence - eg. use
+ when reverse reads are trimmed of primers, but forward reads have forward
+ primer in the sequence.}
+ \item{1}{ Use only the forward FASTQ file.}
+ \item{2}{ Use only the reverse FASTQ file.}
+}}
 }
 \value{
-resultsFolder as invisible
+amplicanAlignment object for this barcode experiments
 }
 \description{
-Main functionality of the package, aligning reads to the amplicon.
+Aligning reads to the amplicons for each ID in this barcode, constructing
+amplicanAlignment. Assume that all IDs here belong to the same barcode.
 }

@@ -104,8 +104,7 @@ This table is also summarized in one of the reports. As you can see for our exam
 ```{r, echo=FALSE}
 config_summary <- system.file("extdata", "results", "config_summary.csv", package = "amplican")
 config_summary <- read.csv(config_summary)
-config_summary <- config_summary[,c("ID", "Barcode", "Cut", "Frameshift", 
-                                    "PRIMER_DIMER", "Reads", "Found_Guide", "Found_PAM")]
+config_summary <- config_summary[,c("ID", "Barcode", "Reads", "Reads_noPD", "Reads_Cut", "Reads_Frameshifted", "Reads_Frameshifted_Overlapping")]
 knitr::kable(head(config_summary))
 ```
 
@@ -152,7 +151,7 @@ In `unassigned_sequences` folder you can find detailed information about unassig
 Take a look at the alignment events file which contains all the insertions, deletions, cuts and mutations. This file can be used in various ways. Examples you can find in `.Rmd` files we prepare using `amplicanReport`. These can be easily converted into `GRanges` and used for further analysis!
 
 ```{r, echo=FALSE}
-alignments <- system.file("extdata", "results", "alignments_events.csv", package = "amplican")
+alignments <- system.file("extdata", "results", "alignments", "events_filtered_shifted_normalized.csv", package = "amplican")
 alignments <- read.csv(alignments)
 knitr::kable(head(alignments))
 ```

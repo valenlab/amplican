@@ -4,10 +4,14 @@
 \alias{plot_amplicon}
 \title{Plots amplicon sequence using ggplot2.}
 \usage{
-plot_amplicon(amplicon)
+plot_amplicon(amplicon, from, to)
 }
 \arguments{
 \item{amplicon}{(character) Sequence of the amplicon to plot.}
+
+\item{from}{(number) Minimum on x axis}
+
+\item{to}{(number) Maximum on x axis}
 }
 \value{
 (amplicon plot) ggplot2 object of amplicon plot

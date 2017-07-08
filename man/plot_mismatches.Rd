@@ -4,8 +4,7 @@
 \alias{plot_mismatches}
 \title{Plots mismatches using ggplot2 and ggbio.}
 \usage{
-plot_mismatches(alignments, config, id, cut_buffer = 5, xlab_spacing = 4,
-  filter = TRUE)
+plot_mismatches(alignments, config, id, cut_buffer = 5, xlab_spacing = 4)
 }
 \arguments{
 \item{alignments}{(data.frame) Loaded alignment information from
@@ -22,23 +21,25 @@ complemented to match forward strand amplicons.}
 used in the analysis.}
 
 \item{xlab_spacing}{(numeric) Spacing of the x axis labels. Default is 4.}
-
-\item{filter}{(boolean) Whether deletions overlapping primers should be
-removed. By deafult it set to TRUE.}
 }
 \value{
 (mismatches plot) ggplot2 object of mismatches plot
 }
 \description{
-This function plots mismatches in relation to the amplicon.
+This function plots mismatches in relation to the amplicon, function assumes
+your reads are relative to the respective amplicon sequences prediced cut
+sites.
 Top plot is for the forward reads, middle one shows
 amplicon sequence, and bottom plot is for reverse reads.
 }
 \examples{
 #example config
-config <- read.csv(system.file("extdata", "config.csv", package = "amplican"))
+config <- read.csv(system.file("extdata", "results", "config_summary.csv",
+                               package = "amplican"))
 #example alignments results
-alignments_file <- system.file("extdata", "results", "alignments_events.csv", package = "amplican")
+alignments_file <- system.file("extdata", "results", "alignments",
+                               "events_filtered_shifted_normalized.csv",
+                               package = "amplican")
 alignments <- read.csv(alignments_file)
 plot_mismatches(alignments, config, c('ID_1', 'ID_3'))
 

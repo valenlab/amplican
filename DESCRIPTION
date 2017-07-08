@@ -16,12 +16,14 @@ URL: https://github.com/valenlab/amplican
 BugReports: https://github.com/valenlab/amplican/issues
 biocViews: Technology, qPCR, CRISPR
 License: GPL-3
+LazyData: true
 Depends:
     R (>= 3.3.0)
 Imports:
     utils,
     ShortRead,
     IRanges,
+    BiocGenerics,
     GenomicRanges,
     GenomeInfoDb,
     S4Vectors,
@@ -38,15 +40,17 @@ Imports:
     Matrix,
     Biostrings,
     BiocParallel,
-    data.table
+    readr
 RoxygenNote: 6.0.1
 Suggests:
     testthat,
     BiocStyle,
     reshape2,
-    ggthemes
+    ggthemes,
+    waffle
 Collate: 
     'helpers_general.R'
+    'AlignmentsExperimentSet-class.R'
     'helpers_rmd.R'
     'amplicanReport.R'
     'helpers_directory.R'

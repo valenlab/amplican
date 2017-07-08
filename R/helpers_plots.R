@@ -8,6 +8,7 @@ names(amplicon_colors) <- c("A", "C", "G", "T", "a", "c", "g", "t")
 is_cut_colors <- c("#CC79A7", "#0072B2")
 names(is_cut_colors) <- c("FALSE", "TRUE")
 
+
 amplicon_primers <- function(config, id, amplicon) {
   leftPrimer <- get_left_primer(config, id)
   leftPrimer <- stats::na.omit(stringr::str_locate(toupper(amplicon),
@@ -37,11 +38,9 @@ amplican_style <- function(p) {
 }
 
 
-amplican_xlim <- function(p, ampl_len, xlabels,
-                          xbreaks, box, primers) {
+amplican_xlim <- function(p, xlabels, box, primers) {
   p +
-    ggbio::xlim(1, ampl_len) +
-    ggplot2::scale_x_continuous(labels = xlabels, breaks = xbreaks) +
+    ggplot2::scale_x_continuous(labels = xlabels, breaks = xlabels) +
     ggplot2::geom_vline(xintercept = c(IRanges::start(box), IRanges::end(box)),
                         linetype = "longdash",
                         colour = "black") +
@@ -65,11 +64,11 @@ ggplot_mismatches <- function(xData) {
 
 
 ggplot_deletions <- function(xData) {
-  frequency <- cut <- NULL
+  frequency <- overlaps <- NULL
   ggplot2::ggplot() +
     ggbio::geom_arch(data = xData,
                      ggplot2::aes(alpha = frequency,
-                                  colour = cut,
+                                  colour = overlaps,
                                   size = frequency,
                                   height = frequency,
                                   x = start,
@@ -106,26 +105,11 @@ triangulate_ranges <- function(xRanges) {
 }
 
 
-group_to_selection <- function(alnmt, config, group, selection, filter) {
+group_to_selection <- function(alnmt, config, group, selection) {
   alnmt <- alnmt[alnmt$seqnames %in%
-                   unique(config$ID[config[, group] %in% selection]), ]
-  alnmt_filtered <- c()
-  if (filter) {
-    for (ID in unique(alnmt$seqnames)) {
-      pr <- amplicon_primers(config, ID, get_amplicon(config, ID))
-      alnmt_filtered <- rbind(
-        alnmt_filtered,
-        suppressWarnings(filterEOP(alnmt[alnmt$seqnames == ID,],
-                                   pr$leftPrimer,
-                                   pr$rightPrimer)))
-    }
-  }
-  alnmt <- map_to_relative(alnmt_filtered, config) # becomes GRanges obj
-  alnmt$ID <- seqnames(alnmt)
-  GenomeInfoDb::seqlevels(alnmt) <- unique(c(selection,
-                                             GenomeInfoDb::seqlevels(alnmt)))
-  seqnames(alnmt)[seq_along(alnmt)] <-
-    GenomicRanges::elementMetadata(alnmt)[[group]]
+                   unique(config$ID[config[[group]] %in% selection]), ]
+  alnmt$ID <- alnmt$seqnames
+  alnmt$seqnames <- alnmt[[group]]
   return(alnmt)
 }
 
@@ -135,7 +119,6 @@ mock_mm_df <- function(ampl_max, ampl_min = 0) {
   data.frame(replacement = rep("G", how_many),
              start = ampl_min:ampl_max,
              strand = rep("+", how_many),
-             count = rep(0, how_many),
              frequency = rep(0, how_many))
 }
 
@@ -157,13 +140,13 @@ return_metaplot <- function(freqAgr, plot_fr, plot_re) {
 }
 
 
-annotate_with_amplicon <- function(p, amplicon) {
+annotate_with_amplicon <- function(p, amplicon, from, to) {
   ampl_len <- nchar(amplicon)
   amplicon <- strsplit(amplicon, "")[[1]]
   p +
     ggplot2::annotate(
       "text",
-      x = seq(1, ampl_len),
+      x = seq(from, to),
       label = amplicon,
       y = 0,
       colour = amplicon_colors[match(toupper(amplicon),
@@ -171,14 +154,14 @@ annotate_with_amplicon <- function(p, amplicon) {
 }
 
 
-return_plot <- function(freqAgr, amplicon, ampl_len, plot_fr, plot_re) {
+return_plot <- function(freqAgr, amplicon, from, to, plot_fr, plot_re) {
   if (any(freqAgr$strand == "+") & any(freqAgr$strand == "-")) {
     return(ggbio::tracks(plot_fr,
-                         plot_amplicon(amplicon),
+                         plot_amplicon(amplicon, from, to),
                          plot_re,
                          heights = c(0.5, 0.06, 0.5),
                          padding = -1,
-                         xlim = 1:ampl_len,
+                         xlim = from:to,
                          xlab = "Relative Nucleotide Position"))
   } else if (all(freqAgr$strand == "+")) {
     return(annotate_with_amplicon(plot_fr, amplicon))
@@ -190,9 +173,10 @@ return_plot <- function(freqAgr, amplicon, ampl_len, plot_fr, plot_re) {
 
 #' MetaPlots mismatches using ggplot2 and ggbio.
 #'
-#' This function plots mismatches in relation to the amplicons for given
-#' selection vector that groups values by given config group. All reads
-#' are converted to their relative position to their respective amplicon.
+#' Plots mismatches in relation to the amplicons for given
+#' selection vector that groups values by given config group. All reads should
+#' already be converted to their relative position to their respective amplicon
+#' using \code{\link{map_to_relative}}.
 #' For zero position on new coordinates is the most left UPPER case letter of
 #' the respective amplicon. This function filters out all alignment events
 #' that have amplicons without UPPER case defined.
@@ -206,43 +190,42 @@ return_plot <- function(freqAgr, amplicon, ampl_len, plot_fr, plot_re) {
 #' selection.
 #' @param selection (string or vector of strings) Values from config column
 #' specified in group argument.
-#' @param filter (boolean) Whether deletions overlapping primers should be
-#' removed. By deafult it set to TRUE.
 #' @return (mismatches metaplot) ggplot2 object of mismatches metaplot
-#' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle
-#' scale_colour_manual geom_bar
-#' scale_fill_manual scale_x_continuous geom_vline scale_y_reverse
-#' element_blank unit geom_text ylab ylim
-#' @importFrom ggbio tracks xlim
-#' @importFrom stats na.omit aggregate
 #' @export
 #' @family specialized plots
 #' @examples
 #' #example config
-#' config <- read.csv(system.file("extdata", "config.csv",
+#' config <- read.csv(system.file("extdata", "results", "config_summary.csv",
 #'                                package = "amplican"))
 #' #example alignments results
-#' alignments_file <- system.file("extdata", "results", "alignments_events.csv",
+#' alignments_file <- system.file("extdata", "results", "alignments",
+#'                                "events_filtered_shifted_normalized.csv",
 #'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
 #' metaplot_mismatches(alignments, config, "Group", "Betty")
 #'
 metaplot_mismatches <- function(alnmt, config, group,
-                                selection, filter = TRUE) {
+                                selection) {
   alnmt <- alnmt[alnmt$type == "mismatch",]
   if (length(alnmt) == 0) {
     return("No mismatches to plot.")
   }
-  alnmt[,group] <- config[,group][match(alnmt$seqnames, config$ID)]
-  alnmt <- group_to_selection(alnmt, config, group, selection, filter)
-  if (length(alnmt) == 0) {
+
+  alnmt[[group]] <- config[[group]][match(alnmt$seqnames, config$ID)]
+  alnmt <- group_to_selection(alnmt, config, group, selection)
+  if (dim(alnmt)[1] == 0) {
     return("No mismatches to plot.")
   }
+  if (!any(colnames(alnmt) == "frequency")) {
+    alnmt$frequency <- alnmt$counts /
+      config$Reads_noPD[match(alnmt$ID, config$ID)]
+  }
 
-  freqAgr <- stats::aggregate(
-    cbind(count, frequency) ~ replacement + start + strand,
-    alnmt,
-    sum)
+  freqAgr <- stats::aggregate(frequency ~ replacement + start + strand + ID,
+                              alnmt, sum)
+  freqAgr <- stats::aggregate(frequency ~ replacement + start + strand,
+                              freqAgr, mean)
+
   freqAgrPlus <- freqAgr[freqAgr$strand == "+", ]
   freqAgrMinus <- freqAgr[freqAgr$strand == "-", ]
 
@@ -267,55 +250,53 @@ metaplot_mismatches <- function(alnmt, config, group,
 #' MetaPlots deletions using ggplot2 and ggbio.
 #'
 #' This function plots deletions in relation to the amplicons for given
-#' selection vector that groups values by given config group. All reads
-#' are converted to their relative position to their respective amplicon.
-#' For zero position on new coordinates is the most left UPPER case letter of
-#' the respective amplicon. This function filters out all alignment events
-#' that have amplicons without UPPER case defined.
+#' selection vector that groups values by given config group. All reads should
+#' already be converted to their relative position to their respective amplicon
+#' using \code{\link{map_to_relative}}.
 #' Top plot is for the forward reads and bottom plot is for reverse reads.
 #'
 #' @param alnmt (data.frame) Loaded alignment information from
-#' alignments_events.csv file.
+#' events_filtered_shifted_normalized.csv file.
 #' @param config (data.frame) Loaded table from config_summary.csv file.
 #' @param group (string) Name of the column from the config file to use for
 #' grouping. Events are subselected based on this column and values from
 #' selection.
 #' @param selection (string or vector of strings) Values from config column
 #' specified in group argument.
-#' @param filter (boolean) Whether deletions overlapping primers should be
-#' removed. By deafult it set to TRUE.
 #' @return (deletions metaplot) ggplot2 object of deletions metaplot
-#' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle
-#' scale_colour_manual geom_bar
-#' scale_fill_manual scale_x_continuous geom_vline scale_y_reverse
-#' element_blank unit geom_text ylab ylim
-#' @importFrom ggbio tracks xlim
-#' @importFrom stats na.omit aggregate
 #' @export
 #' @family specialized plots
 #' @examples
 #' #example config
-#' config <- read.csv(system.file("extdata", "config.csv",
+#' config <- read.csv(system.file("extdata", "results", "config_summary.csv",
 #'                                package = "amplican"))
 #' #example alignments results
-#' alignments_file <- system.file("extdata", "results", "alignments_events.csv",
+#' alignments_file <- system.file("extdata", "results", "alignments",
+#'                                "events_filtered_shifted_normalized.csv",
 #'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
 #' metaplot_deletions(alignments, config, "Group", "Tom")
 #'
 metaplot_deletions <- function(alnmt, config, group,
-                              selection, filter = TRUE) {
+                              selection) {
   alnmt <- alnmt[alnmt$type == "deletion",]
-  alnmt[,group] <- config[,group][match(alnmt$seqnames, config$ID)]
-  alnmt <- group_to_selection(alnmt, config, group, selection, filter)
+  alnmt[[group]] <- config[[group]][match(alnmt$seqnames, config$ID)]
+  alnmt <- group_to_selection(alnmt, config, group, selection)
 
-  if (length(alnmt) == 0) {
+  if (dim(alnmt)[1] == 0) {
     return("No deletions to plot.")
+  }
+  if (!any(colnames(alnmt) == "frequency")) {
+    alnmt$frequency <- alnmt$counts /
+      config$Reads_noPD[match(alnmt$ID, config$ID)]
   }
 
   archRanges <- stats::aggregate(
-    cbind(count, frequency, cut) ~ strand + start + end, alnmt, sum)
-  archRanges$cut <- archRanges$cut > 0
+    cbind(frequency, overlaps) ~ strand + start + end + ID, alnmt, sum)
+  archRanges$overlaps <- archRanges$overlaps > 0
+  archRanges <- stats::aggregate(
+    frequency ~ overlaps + strand + start + end, archRanges, mean)
+  archRanges$overlaps <- archRanges$overlaps > 0
 
   arch_plot_fr <- ggplot_deletions(archRanges[archRanges$strand == "+", ])
   arch_plot_fr <- amplican_style(arch_plot_fr) +
@@ -332,11 +313,9 @@ metaplot_deletions <- function(alnmt, config, group,
 #' MetaPlots insertions using ggplot2 and ggbio.
 #'
 #' This function plots insertions in relation to the amplicons for given
-#' selection vector that groups values by given config group. All reads
-#' are converted to their relative position to their respective amplicon.
-#' For zero position on new coordinates is the most left UPPER case letter of
-#' the respective amplicon. This function filters out all alignment events
-#' that have amplicons without UPPER case defined.
+#' selection vector that groups values by given config group. All reads should
+#' already be converted to their relative position to their respective amplicon
+#' using \code{\link{map_to_relative}}.
 #' Top plot is for the forward reads and bottom plot is for reverse reads.
 #'
 #' @param alnmt (data.frame) Loaded alignment information from
@@ -347,40 +326,40 @@ metaplot_deletions <- function(alnmt, config, group,
 #' selection.
 #' @param selection (string or vector of strings) Values from config column
 #' specified in group argument.
-#' @param filter (boolean) Whether insertions overlapping primers should be
-#' removed. By deafult it set to TRUE.
 #' @return (insertions metaplot) ggplot2 object of insertions metaplot
-#' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle
-#' scale_colour_manual geom_bar
-#' scale_fill_manual scale_x_continuous geom_vline scale_y_reverse
-#' element_blank unit geom_text ylab ylim
-#' @importFrom ggbio tracks xlim
-#' @importFrom stats na.omit aggregate
 #' @export
 #' @family specialized plots
 #' @examples
 #' #example config
-#' config <- read.csv(system.file("extdata", "config.csv",
+#' config <- read.csv(system.file("extdata", "results", "config_summary.csv",
 #'                                package = "amplican"))
 #' #example alignments results
-#' alignments_file <- system.file("extdata", "results", "alignments_events.csv",
+#' alignments_file <- system.file("extdata", "results", "alignments",
+#'                                "events_filtered_shifted_normalized.csv",
 #'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
 #' metaplot_insertions(alignments, config, "Group", "Betty")
 #'
 metaplot_insertions <- function(alnmt, config, group,
-                                selection, filter = TRUE) {
+                                selection) {
   alnmt <- alnmt[alnmt$type == "insertion",]
   alnmt[,group] <- config[,group][match(alnmt$seqnames, config$ID)]
-  alnmt <- group_to_selection(alnmt, config, group, selection, filter)
+  alnmt <- group_to_selection(alnmt, config, group, selection)
 
-  if (length(alnmt) == 0) {
+  if (dim(alnmt)[1] == 0) {
     return("No insertions to plot.")
+  }
+
+  if (!any(colnames(alnmt) == "frequency")) {
+    alnmt$frequency <- alnmt$counts /
+      config$Reads_noPD[match(alnmt$ID, config$ID)]
   }
 
   # reduce
   idRangesReduced <- stats::aggregate(
-    frequency ~ strand + start + end, alnmt, sum)
+    frequency ~ strand + start + end + ID, alnmt, sum)
+  idRangesReduced <- stats::aggregate(
+    frequency ~ strand + start + end, idRangesReduced, mean)
   idRangesFr <- idRangesReduced[idRangesReduced$strand == "+", ]
   triangleFr <- triangulate_ranges(idRangesFr)
   idRangesRe <- idRangesReduced[idRangesReduced$strand == "-", ]
@@ -401,26 +380,26 @@ metaplot_insertions <- function(alnmt, config, group,
 #' Plots amplicon sequence using ggplot2.
 #'
 #' @param amplicon (character) Sequence of the amplicon to plot.
+#' @param from (number) Minimum on x axis
+#' @param to (number) Maximum on x axis
 #' @return (amplicon plot) ggplot2 object of amplicon plot
-#' @importFrom ggplot2 ggplot aes theme_bw theme
-#' scale_colour_manual element_blank unit geom_text ylim
-#' @importFrom ggbio xlim
 #'
-plot_amplicon <- function(amplicon) {
+plot_amplicon <- function(amplicon, from, to) {
 
-  ampl_df <- data.frame(seq(1, nchar(amplicon)), strsplit(amplicon, "")[[1]],
-                        strsplit(toupper(amplicon), "")[[1]], 1)
-  names(ampl_df) <- c("position", "nucleotide", "upper", "count")
+  ampl_df <- data.frame(position = seq(from, to),
+                        nucleotide = strsplit(amplicon, "")[[1]],
+                        upper = strsplit(toupper(amplicon), "")[[1]],
+                        counts = 1)
 
-  nucleotide <- position <- count <- upper <- NULL
+  nucleotide <- position <- counts <- upper <- NULL
   p <- ggplot2::ggplot(ampl_df,
                        ggplot2::aes(x = position,
                                     label = nucleotide,
                                     colour = upper,
-                                    y = count)) +
+                                    y = counts)) +
     ggplot2::geom_text(size = I(4)) +
     ggplot2::ylim(0.7, 1.1) +
-    ggbio::xlim(1, dim(ampl_df)[1]) +
+    ggbio::xlim(from, to) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none",
                    legend.spacing = unit(0, "cm"),
@@ -436,7 +415,9 @@ plot_amplicon <- function(amplicon) {
 
 #' Plots mismatches using ggplot2 and ggbio.
 #'
-#' This function plots mismatches in relation to the amplicon.
+#' This function plots mismatches in relation to the amplicon, function assumes
+#' your reads are relative to the respective amplicon sequences prediced cut
+#' sites.
 #' Top plot is for the forward reads, middle one shows
 #' amplicon sequence, and bottom plot is for reverse reads.
 #'
@@ -450,23 +431,16 @@ plot_amplicon <- function(amplicon) {
 #' @param cut_buffer (numeric) Default is 5, you should specify the same as
 #' used in the analysis.
 #' @param xlab_spacing (numeric) Spacing of the x axis labels. Default is 4.
-#' @param filter (boolean) Whether deletions overlapping primers should be
-#' removed. By deafult it set to TRUE.
 #' @return (mismatches plot) ggplot2 object of mismatches plot
-#' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle
-#' scale_colour_manual geom_bar
-#' scale_fill_manual scale_x_continuous geom_vline scale_y_reverse
-#' element_blank unit geom_text ylab ylim
-#' @importFrom ggbio tracks xlim
-#' @importFrom stats na.omit aggregate
 #' @export
 #' @family specialized plots
 #' @examples
 #' #example config
-#' config <- read.csv(system.file("extdata", "config.csv",
+#' config <- read.csv(system.file("extdata", "results", "config_summary.csv",
 #'                                package = "amplican"))
 #' #example alignments results
-#' alignments_file <- system.file("extdata", "results", "alignments_events.csv",
+#' alignments_file <- system.file("extdata", "results", "alignments",
+#'                                "events_filtered_shifted_normalized.csv",
 #'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
 #' plot_mismatches(alignments, config, c('ID_1', 'ID_3'))
@@ -475,8 +449,7 @@ plot_mismatches <- function(alignments,
                             config,
                             id,
                             cut_buffer = 5,
-                            xlab_spacing = 4,
-                            filter = TRUE) {
+                            xlab_spacing = 4) {
 
   idRanges <- alignments[alignments$seqnames %in% id, ]
   idRanges <- idRanges[idRanges$type == "mismatch", ]
@@ -485,29 +458,31 @@ plot_mismatches <- function(alignments,
     return("No mismatches to plot.")
   }
 
+  if (!any(colnames(idRanges) == "frequency")) {
+    idRanges$frequency <- idRanges$counts /
+      config$Reads_noPD[match(idRanges$seqnames, config$ID)]
+  }
+
   amplicon <- get_amplicon(config, id)
   ampl_len <- nchar(amplicon)
   box <- upperGroups(amplicon)
-  xlabels <- xlabels_spacing(box, ampl_len, xlab_spacing)
-  xbreaks <- seq(1, ampl_len, xlab_spacing)
-  box <- box + cut_buffer
+
+  from <- if (length(box) >= 1) -IRanges::start(box[1]) + 1 else 1
+  to <- if (length(box) >= 1) ampl_len - IRanges::start(box[1]) else ampl_len
+  xlabels <- seq(from, to, xlab_spacing)
   pr <- amplicon_primers(config, id, amplicon)
 
-  if (filter) {
-    idRanges <-
-      filterEOP(idRanges,
-                pr$leftPrimer,
-                pr$rightPrimer)
+  if (length(box) >= 1) {
+    box_shift <- IRanges::start(box)[1]
+    box <- IRanges::shift(box, -1 * box_shift)
+    pr$primers <- pr$primers - box_shift
   }
-
-  if (dim(idRanges)[1] == 0) {
-    return("No mismatches to plot.")
-  }
+  box <- box + cut_buffer
 
   freqAgr <- stats::aggregate(
-    cbind(count, frequency) ~ replacement + start + strand,
-    idRanges,
-    sum)
+    frequency ~ replacement + start + strand + seqnames, idRanges, sum)
+  freqAgr <- stats::aggregate(
+    frequency ~ replacement + start + strand, freqAgr, mean)
   freqAgrPlus <- freqAgr[freqAgr$strand == "+", ]
   freqAgrMinus <- freqAgr[freqAgr$strand == "-", ]
 
@@ -518,26 +493,24 @@ plot_mismatches <- function(alignments,
 
   mut_fr <- ggplot_mismatches(freqAgrPlus) +
     ggplot2::ylim(0, max(freqAgr$frequency, na.rm = TRUE))
-  mut_fr <- amplican_xlim(mut_fr, ampl_len, xlabels,
-                          xbreaks, box, pr$primers)
+  mut_fr <- amplican_xlim(mut_fr, xlabels, box, pr$primers)
   mut_fr <- amplican_style(mut_fr)
 
-
   mut_re <- ggplot_mismatches(freqAgrMinus)
-  mut_re <- amplican_xlim(mut_re, ampl_len, xlabels,
-                          xbreaks, box, pr$primers)
+  mut_re <- amplican_xlim(mut_re, xlabels, box, pr$primers)
   mut_re <- amplican_style(mut_re) +
     ggplot2::scale_y_reverse(
       limits = c(max(freqAgr$frequency, na.rm = TRUE), 0))
 
-  return_plot(freqAgr, amplicon, ampl_len, mut_fr, mut_re) +
+  return_plot(freqAgr, amplicon, from, to, mut_fr, mut_re) +
     ggplot2::xlab("Relative Nucleotide Position")
 }
 
 
 #' Plots deletions using ggplot2 and ggbio.
 #'
-#' This function plots deletions in relation to the amplicon.
+#' This function plots deletions in relation to the amplicon, assumes events
+#' are relative to the expected cut site.
 #' Top plot is for the forward reads, middle one shows
 #' amplicon sequence, and bottom plot is for reverse reads.
 #'
@@ -550,8 +523,6 @@ plot_mismatches <- function(alignments,
 #' @param cut_buffer (numeric) Default is 5, you should specify the same as
 #' used in the analysis.
 #' @param xlab_spacing (numeric) Spacing of the x axis labels. Default is 4.
-#' @param filter (boolean) Whether deletions overlapping primers should be
-#' removed. By deafult it set to TRUE.
 #' @return (deletions plot) ggplot2 object of deletions plot
 #' @import GenomicRanges
 #' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle
@@ -565,10 +536,11 @@ plot_mismatches <- function(alignments,
 #' @family specialized plots
 #' @examples
 #' #example config
-#' config <- read.csv(system.file("extdata", "config.csv",
+#' config <- read.csv(system.file("extdata", "results", "config_summary.csv",
 #'                                package = "amplican"))
 #' #example alignments results
-#' alignments_file <- system.file("extdata", "results", "alignments_events.csv",
+#' alignments_file <- system.file("extdata", "results", "alignments",
+#'                                "events_filtered_shifted_normalized.csv",
 #'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
 #' plot_deletions(alignments, config, c('ID_1','ID_3'), 5)
@@ -577,8 +549,7 @@ plot_deletions <- function(alignments,
                            config,
                            id,
                            cut_buffer = 5,
-                           xlab_spacing = 4,
-                           filter = TRUE) {
+                           xlab_spacing = 4) {
 
   archRanges <- alignments[alignments$seqnames %in% id &
                              alignments$type == "deletion", ]
@@ -587,25 +558,34 @@ plot_deletions <- function(alignments,
     return("No deletions to plot.")
   }
 
+  if (!any(colnames(archRanges) == "frequency")) {
+    archRanges$frequency <- archRanges$counts /
+      config$Reads_noPD[match(archRanges$seqnames, config$ID)]
+  }
+
   amplicon <- get_amplicon(config, id)
   ampl_len <- nchar(amplicon)
-
-  archRanges <- stats::aggregate(
-    cbind(count, frequency, cut) ~ strand + start + end, archRanges, sum)
-  archRanges$cut <- archRanges$cut > 0
-
   box <- upperGroups(amplicon)
-  xlabels <- xlabels_spacing(box, ampl_len, xlab_spacing)
-  xbreaks <- seq(1, ampl_len, xlab_spacing)
-  box <- box + cut_buffer
+
+  from <- if (length(box) >= 1) -IRanges::start(box[1]) + 1 else 1
+  to <- if (length(box) >= 1) ampl_len - IRanges::start(box[1]) else ampl_len
+  xlabels <- seq(from, to, xlab_spacing)
   pr <- amplicon_primers(config, id, amplicon)
 
-  if (filter) {
-    archRanges <-
-      filterEOP(archRanges,
-                pr$leftPrimer,
-                pr$rightPrimer)
+  if (length(box) >= 1) {
+    box_shift <- IRanges::start(box)[1]
+    box <- IRanges::shift(box, -1 * box_shift)
+    pr$primers <- pr$primers - box_shift
   }
+  box <- box + cut_buffer
+
+  archRanges <- stats::aggregate(
+    cbind(frequency, overlaps) ~ strand + start + end + seqnames, archRanges,
+    sum)
+  archRanges$overlaps <- archRanges$overlaps > 0
+  archRanges <- stats::aggregate(
+    cbind(frequency, overlaps) ~ strand + start + end, archRanges, mean)
+  archRanges$overlaps <- archRanges$overlaps > 0
 
   if (dim(archRanges)[1] == 0) {
     return("No deletions to plot.")
@@ -613,18 +593,16 @@ plot_deletions <- function(alignments,
 
   arch_plot_fr <- ggplot_deletions(archRanges[archRanges$strand == "+", ]) +
     ggplot2::ylim(0, max(archRanges$frequency, na.rm = TRUE))
-  arch_plot_fr <- amplican_xlim(arch_plot_fr, ampl_len, xlabels,
-                                xbreaks, box, pr$primers)
+  arch_plot_fr <- amplican_xlim(arch_plot_fr, xlabels, box, pr$primers)
   arch_plot_fr <- amplican_style(arch_plot_fr)
 
   arch_plot_re <- ggplot_deletions(archRanges[archRanges$strand == "-", ])
-  arch_plot_re <- amplican_xlim(arch_plot_re, ampl_len, xlabels,
-                                xbreaks, box, pr$primers)
+  arch_plot_re <- amplican_xlim(arch_plot_re, xlabels, box, pr$primers)
   arch_plot_re <- amplican_style(arch_plot_re) +
     ggplot2::scale_y_reverse(
       limits = c(max(archRanges$frequency, na.rm = TRUE), 0))
 
-  return_plot(archRanges, amplicon, ampl_len, arch_plot_fr, arch_plot_re) +
+  return_plot(archRanges, amplicon, from, to, arch_plot_fr, arch_plot_re) +
     ggplot2::xlab("Relative Nucleotide Position")
 }
 
@@ -644,8 +622,6 @@ plot_deletions <- function(alignments,
 #' @param cut_buffer (numeric) Default is 5, you should specify the same as
 #' used in the analysis.
 #' @param xlab_spacing (numeric) Spacing of the x axis labels. Default is 4.
-#' @param filter (boolean) Whether deletions overlapping primers should be
-#' removed. By deafult it set to TRUE.
 #' @return (insertions plot) ggplot2 object of insertions plot
 #' @import GenomicRanges
 #' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle
@@ -658,10 +634,11 @@ plot_deletions <- function(alignments,
 #' @family specialized plots
 #' @examples
 #' #example config
-#' config <- read.csv(system.file("extdata", "config.csv",
+#' config <- read.csv(system.file("extdata", "results", "config_summary.csv",
 #'                                package = "amplican"))
 #' #example alignments results
-#' alignments_file <- system.file("extdata", "results", "alignments_events.csv",
+#' alignments_file <- system.file("extdata", "results", "alignments",
+#'                                "events_filtered_shifted_normalized.csv",
 #'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
 #' plot_insertions(alignments, config, c('ID_1','ID_3'), 5)
@@ -670,8 +647,7 @@ plot_insertions <- function(alignments,
                             config,
                             id,
                             cut_buffer = 5,
-                            xlab_spacing = 4,
-                            filter = TRUE) {
+                            xlab_spacing = 4) {
 
   idRanges <- alignments[alignments$seqnames %in% id &
                            alignments$type == "insertion", ]
@@ -683,22 +659,17 @@ plot_insertions <- function(alignments,
     return("No insertions to plot.")
   }
 
-  pr <- amplicon_primers(config, id, amplicon)
-
-  if (filter) {
-    idRanges <-
-      filterEOP(idRanges,
-                pr$leftPrimer,
-                pr$rightPrimer)
-  }
-
-  if (dim(idRanges)[1] == 0) {
-    return("No insertions to plot.")
+  if (!any(colnames(idRanges) == "frequency")) {
+    idRanges$frequency <- idRanges$counts /
+      config$Reads_noPD[match(idRanges$seqnames, config$ID)]
   }
 
   # reduce
   idRangesReduced <- stats::aggregate(
-    frequency ~ strand + start + end, idRanges, sum)
+    frequency ~ strand + start + end + seqnames, idRanges, sum)
+  idRangesReduced <- stats::aggregate(
+    frequency ~ strand + start + end, idRangesReduced, mean)
+
   idRangesFr <- idRangesReduced[idRangesReduced$strand == "+", ]
   triangleFr <- triangulate_ranges(idRangesFr)
   idRangesRe <- idRangesReduced[idRangesReduced$strand == "-", ]
@@ -711,24 +682,30 @@ plot_insertions <- function(alignments,
   }
 
   box <- upperGroups(amplicon)
-  xlabels <- xlabels_spacing(box, ampl_len, xlab_spacing)
-  xbreaks <- seq(1, ampl_len, xlab_spacing)
+  from <- if (length(box) >= 1) -IRanges::start(box[1]) + 1 else 1
+  to <- if (length(box) >= 1) ampl_len - IRanges::start(box[1]) else ampl_len
+  xlabels <- seq(from, to, xlab_spacing)
+  pr <- amplicon_primers(config, id, amplicon)
+
+  if (length(box) >= 1) {
+    box_shift <- IRanges::start(box)[1]
+    box <- IRanges::shift(box, -1 * box_shift)
+    pr$primers <- pr$primers - box_shift
+  }
   box <- box + cut_buffer
 
   ins_fr <- ggplot_insertions(triangleFr) +
     ggplot2::ylim(0, max(idRangesReduced$frequency, na.rm = TRUE))
-  ins_fr <- amplican_xlim(ins_fr, ampl_len, xlabels,
-                          xbreaks, box, pr$primers)
+  ins_fr <- amplican_xlim(ins_fr, xlabels, box, pr$primers)
   ins_fr <- amplican_style(ins_fr)
 
   ins_re <- ggplot_insertions(triangleRe)
-  ins_re <- amplican_xlim(ins_re, ampl_len, xlabels,
-                           xbreaks, box, pr$primers)
+  ins_re <- amplican_xlim(ins_re, xlabels, box, pr$primers)
   ins_re <- amplican_style(ins_re) +
     ggplot2::scale_y_reverse(
       limits = c(max(idRangesReduced$frequency, na.rm = TRUE), 0))
 
-  return_plot(idRangesReduced, amplicon, ampl_len, ins_fr, ins_re) +
+  return_plot(idRangesReduced, amplicon, from, to, ins_fr, ins_re) +
     ggplot2::xlab("Relative Nucleotide Position")
 }
 
@@ -745,9 +722,9 @@ plot_insertions <- function(alignments,
 #' @param id (string or vector of strings) Name of the ID column from config
 #' file or name of multiple IDs if it is possible to group them. First amplicon
 #' will be used as the basis for plot.
+#' @param cut_buffer (numeric) Default is 5, you should specify the same as
+#' used in the analysis.
 #' @param xlab_spacing (numeric) Spacing of the x axis labels. Default is 4.
-#' @param filter (boolean) Whether deletions overlapping primers should be
-#' removed. By deafult it set to TRUE.
 #' @return (cuts plot) ggplot2 object of cuts plot
 #' @import GenomicRanges
 #' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle
@@ -761,10 +738,11 @@ plot_insertions <- function(alignments,
 #' @family specialized plots
 #' @examples
 #' #example config
-#' config <- read.csv(system.file("extdata", "config.csv",
+#' config <- read.csv(system.file("extdata", "results", "config_summary.csv",
 #'                                package = "amplican"))
 #' #example alignments results
-#' alignments_file <- system.file("extdata", "results", "alignments_events.csv",
+#' alignments_file <- system.file("extdata", "results", "alignments",
+#'                                "events_filtered_shifted_normalized.csv",
 #'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
 #' plot_cuts(alignments, config, c('ID_1','ID_3'))
@@ -772,12 +750,12 @@ plot_insertions <- function(alignments,
 plot_cuts <- function(alignments,
                       config,
                       id,
-                      xlab_spacing = 4,
-                      filter = TRUE) {
+                      cut_buffer = 5,
+                      xlab_spacing = 4) {
 
   archRanges <- alignments[alignments$seqnames %in% id &
                              alignments$type == "deletion", ]
-  archRanges <- archRanges[archRanges$cut == TRUE, ]
+  archRanges <- archRanges[archRanges$overlaps, ]
 
   if (length(unique(archRanges$strand)) == 2) {
     archRanges <- archRanges[archRanges$strand == "+", ]
@@ -790,23 +768,27 @@ plot_cuts <- function(alignments,
     return("No cuts to plot.")
   }
 
+  if (!any(colnames(archRanges) == "frequency")) {
+    archRanges$frequency <- archRanges$counts /
+      config$Reads_noPD[match(archRanges$seqnames, config$ID)]
+  }
+
   archRanges <- stats::aggregate(
-    cbind(count, frequency, cut) ~ strand + start + end + seqnames,
-    archRanges,
-    sum)
+    frequency ~ strand + start + end + seqnames,
+    archRanges, sum)
 
   box <- upperGroups(amplicon)
-  xlabels <- xlabels_spacing(box, ampl_len, xlab_spacing)
-  xbreaks <- seq(1, ampl_len, xlab_spacing)
-
+  from <- if (length(box) >= 1) -IRanges::start(box[1]) + 1 else 1
+  to <- if (length(box) >= 1) ampl_len - IRanges::start(box[1]) else ampl_len
+  xlabels <- seq(from, to, xlab_spacing)
   pr <- amplicon_primers(config, id, amplicon)
 
-  if (filter) {
-    idRanges <-
-      filterEOP(archRanges,
-                pr$leftPrimer,
-                pr$rightPrimer)
+  if (length(box) >= 1) {
+    box_shift <- IRanges::start(box)[1]
+    box <- IRanges::shift(box, -1 * box_shift)
+    pr$primers <- pr$primers - box_shift
   }
+  box <- box + cut_buffer
 
   if (dim(archRanges)[1] == 0) {
     return("No cuts to plot.")
@@ -822,7 +804,7 @@ plot_cuts <- function(alignments,
                                   x = start,
                                   xend = end,
                                   colour = seqnames)) +
-    ggbio::xlim(1, ampl_len) +
+    ggbio::xlim(from, to) +
     ggplot2::theme_bw() +
     ggplot2::guides(size = FALSE, alpha = FALSE) +
     ggplot2::theme(legend.position = c(1, 1),
@@ -831,12 +813,15 @@ plot_cuts <- function(alignments,
                   colour = "Experiments",
                   x = "Nucleotide Position Relative to PAM") +
     ggplot2::scale_x_continuous(labels = xlabels,
-                                breaks = xbreaks) +
+                                breaks = xlabels) +
     ggplot2::geom_vline(xintercept = pr$primers,
                         linetype = "dotdash",
                         colour = "blue") +
+    ggplot2::geom_vline(xintercept = c(IRanges::start(box), IRanges::end(box)),
+                        linetype = "longdash",
+                        colour = "black") +
     ggplot2::annotate("text",
-                      x = seq(1, ampl_len),
+                      x = seq(from, to),
                       label = amplicon,
                       y = 0,
                       colour = amplicon_colors[match(toupper(amplicon),
@@ -877,10 +862,11 @@ plot_cuts <- function(alignments,
 #' @family specialized plots
 #' @examples
 #' #example config
-#' config <- read.csv(system.file("extdata", "config.csv",
+#' config <- read.csv(system.file("extdata", "results", "config_summary.csv",
 #'                                package = "amplican"))
 #' #example alignments results
-#' alignments_file <- system.file("extdata", "results", "alignments_events.csv",
+#' alignments_file <- system.file("extdata", "results", "alignments",
+#'                                "events_filtered_shifted_normalized.csv",
 #'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
 #' plot_heterogeneity(alignments, config)
@@ -893,7 +879,7 @@ plot_heterogeneity <- function(alignments,
 
   alignments$ID_read_id <- paste0(alignments$seqnames, '_', alignments$read_id)
   uniqueReadsByID <- alignments[!duplicated(alignments$ID_read_id),
-                                c('seqnames', 'read_id', 'count')]
+                                c('seqnames', 'read_id', 'counts')]
   if (level != "ID") {
     by = level
     howManyTimes <- aggregate(read_id ~ seqnames,
@@ -907,10 +893,10 @@ plot_heterogeneity <- function(alignments,
   } else {
     by = "seqnames"
   }
-  c_ord <- order(uniqueReadsByID[[by]], uniqueReadsByID$count, decreasing = T)
+  c_ord <- order(uniqueReadsByID[[by]], uniqueReadsByID$counts, decreasing = T)
   uniqueReadsByID <- uniqueReadsByID[c_ord, ]
 
-  cumsum_list <- tapply(uniqueReadsByID$count,
+  cumsum_list <- tapply(uniqueReadsByID$counts,
                         uniqueReadsByID[[by]], FUN = cumsum)
   cumsum_list <- cumsum_list[unique(uniqueReadsByID[[by]])]
   uniqueReadsByID$cumsum <- unlist(cumsum_list)
@@ -932,7 +918,7 @@ plot_heterogeneity <- function(alignments,
     order(match(names(ids_with_reads), unique(uniqueReadsByID[[by]])))]
   toDivide <- rep(ids_with_reads, times = howManyTimes)
   uniqueReadsByID$read_share_percentage_normal <-
-    uniqueReadsByID$count * 100 / toDivide
+    uniqueReadsByID$counts * 100 / toDivide
 
   # divide into bins for colour
   uniqueReadsByID$bins <- cut(uniqueReadsByID$read_share_percentage_normal,
@@ -948,7 +934,7 @@ plot_heterogeneity <- function(alignments,
                     y = "read_share_percentage_normal",
                     fill = "bins",
                     order =  paste0("as.factor(", by, ")"))) +
-    geom_bar(position='stack', stat='identity') +
+    ggplot2::geom_bar(position='stack', stat='identity') +
     theme(axis.text = element_text(size = 12),
           axis.title = element_text(size = 14, face = 'bold'),
           legend.position = 'top',

@@ -2,10 +2,11 @@ library(amplican)
 library(testthat)
 context("plot helper functions")
 
-config <- read.csv(system.file("extdata", "config.csv", package="amplican"),
-                   stringsAsFactors = FALSE)
-events <- read.csv(system.file("extdata", "results", "alignments_events.csv", package="amplican"),
-                   stringsAsFactors = FALSE)
+config <- read.csv(system.file("extdata", "results", "config_summary.csv",
+                               package="amplican"), stringsAsFactors = FALSE)
+events <- read.csv(system.file("extdata", "results", "alignments",
+                               "events_filtered_shifted_normalized.csv",
+                               package="amplican"), stringsAsFactors = FALSE)
 
 test_that("flipRanges returns whole integers", {
   flipped_events <- flipRanges(events, config)
@@ -14,7 +15,7 @@ test_that("flipRanges returns whole integers", {
 })
 
 test_that("Amplicon plot is a plot class.",{
-  p <- plot_amplicon("aCACTGACTGACTAGACs")
+  p <- plot_amplicon("aCACTGACTGACTAGACs", 1, 18)
   expect_is(p$layers[[1]], "ggproto")
   expect_equal(p$data$count, rep(1, length(p$data$count)))
   expect_identical(p$layers[[1]]$geom_params$parse, FALSE)
@@ -38,7 +39,8 @@ test_that("Mismatch plot is a construct of grobs.",{
 })
 
 test_that("When no mismatch to plot returns message.",{
-  expect_match(plot_mismatches(events[events$type != "mismatch",], config, config$ID[2]),
+  expect_match(plot_mismatches(events[events$type != "mismatch",],
+                               config, config$ID[2]),
                "No mismatches to plot.")
 })
 
@@ -48,7 +50,8 @@ test_that("Deletions plot is a construct of grobs.",{
 })
 
 test_that("When no deletions to plot returns text.",{
-  expect_match(plot_deletions(events[events$type != "deletion",], config, config$ID[2]),
+  expect_match(plot_deletions(events[events$type != "deletion",],
+                              config, config$ID[2]),
                "No deletions to plot.")
 })
 
@@ -58,7 +61,8 @@ test_that("Insertions plot is a construct of grobs.",{
 })
 
 test_that("When no insertions to plot returns text.",{
-  expect_match(plot_insertions(events[events$type != "insertion",], config, config$ID[2]),
+  expect_match(plot_insertions(events[events$type != "insertion",],
+                               config, config$ID[2]),
                "No insertions to plot.")
 })
 
@@ -70,6 +74,7 @@ test_that("Cuts plot is returning a plot.",{
 })
 
 test_that("When no cuts to plot returns text.",{
-  expect_match(plot_cuts(events[events$type != "deletion",], config, config$ID[2]),
+  expect_match(plot_cuts(events[events$type != "deletion",],
+                         config, config$ID[2]),
                "No cuts to plot.")
 })

@@ -4,7 +4,7 @@
 \alias{metaplot_mismatches}
 \title{MetaPlots mismatches using ggplot2 and ggbio.}
 \usage{
-metaplot_mismatches(alnmt, config, group, selection, filter = TRUE)
+metaplot_mismatches(alnmt, config, group, selection)
 }
 \arguments{
 \item{alnmt}{(data.frame) Loaded alignment information from
@@ -18,17 +18,15 @@ selection.}
 
 \item{selection}{(string or vector of strings) Values from config column
 specified in group argument.}
-
-\item{filter}{(boolean) Whether deletions overlapping primers should be
-removed. By deafult it set to TRUE.}
 }
 \value{
 (mismatches metaplot) ggplot2 object of mismatches metaplot
 }
 \description{
-This function plots mismatches in relation to the amplicons for given
-selection vector that groups values by given config group. All reads
-are converted to their relative position to their respective amplicon.
+Plots mismatches in relation to the amplicons for given
+selection vector that groups values by given config group. All reads should
+already be converted to their relative position to their respective amplicon
+using \code{\link{map_to_relative}}.
 For zero position on new coordinates is the most left UPPER case letter of
 the respective amplicon. This function filters out all alignment events
 that have amplicons without UPPER case defined.
@@ -36,10 +34,11 @@ Top plot is for the forward reads and bottom plot is for reverse reads.
 }
 \examples{
 #example config
-config <- read.csv(system.file("extdata", "config.csv",
-                   package = "amplican"))
+config <- read.csv(system.file("extdata", "results", "config_summary.csv",
+                               package = "amplican"))
 #example alignments results
-alignments_file <- system.file("extdata", "results", "alignments_events.csv",
+alignments_file <- system.file("extdata", "results", "alignments",
+                               "events_filtered_shifted_normalized.csv",
                                package = "amplican")
 alignments <- read.csv(alignments_file)
 metaplot_mismatches(alignments, config, "Group", "Betty")
