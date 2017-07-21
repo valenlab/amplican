@@ -38,7 +38,7 @@ alignments_file <- system.file("extdata", "results", "alignments",
                                "events_filtered_shifted_normalized.csv",
                                package = "amplican")
 alignments <- read.csv(alignments_file)
-metaplot_deletions(alignments, config, "Group", "Tom")
+metaplot_deletions(alignments, config, "Group", "Betty")
 
 }
 \seealso{

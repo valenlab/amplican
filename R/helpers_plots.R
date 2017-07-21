@@ -109,9 +109,9 @@ triangulate_ranges <- function(xRanges) {
     data.frame(frequency = idRangesFrequency,
                position = as.vector(rbind(xRanges$start,
                                           xRanges$start,
-                                          xRanges$end)),
-               group = rep(1:dim(xRanges)[1], each = 3))
-  } else {
+                                          xRanges$end)) - 0.5, # ins start 108
+               group = rep(1:dim(xRanges)[1], each = 3))       # means it's ins
+  } else {                                                     # between 107/108
     data.frame(frequency = c(), position = c(), group = c())
   }
 }
@@ -1094,7 +1094,7 @@ plot_variants <- function(alignments, config, id,
 
   insertion_melt <- archRanges[archRanges$type == "insertion", ]
   insertion_melt$y <- match(insertion_melt$read_names, rev(yaxis_names))
-  insertion_melt$x <- insertion_melt$start + 0.5
+  insertion_melt$x <- insertion_melt$start - 0.5
 
   x<-xlab<-xmax<-xmin<-y<-ylab<-ymax<-ymin<-value<-codon<-NULL
   vplot <- ggplot2::ggplot(variants_melt,
