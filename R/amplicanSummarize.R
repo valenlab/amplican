@@ -54,13 +54,14 @@ amplicanOverlap <- function(aln, cfgT, cut_buffer = 5, relative = TRUE) {
 #'
 frameshifted_reads_by_ID <- function(aln, paired_end = TRUE) {
     if (!paired_end) {
-      widthT <- aggregate(width ~ seqnames + read_id + strand + counts,
-                          aln, sum)
+      widthT <- stats::aggregate(width ~ seqnames + read_id + strand + counts,
+                                 aln, sum)
       widthT <- widthT[widthT$width %% 3 != 0, ]
-      widthT_final <- aggregate(counts ~ seqnames, widthT, sum)
+      widthT_final <- stats::aggregate(counts ~ seqnames, widthT, sum)
     } else {
-      widthT <- aggregate(width ~ seqnames + read_id + strand + counts + score,
-                          aln, sum)
+      widthT <- stats::aggregate(width ~
+                                   seqnames + read_id + strand + counts + score,
+                                 aln, sum)
       widthT$uniqID <- paste(widthT$seqnames, widthT$read_id, sep = "_")
       widthT_fwd <- widthT[widthT$strand == "+",]
       widthT_rve <- widthT[widthT$strand == "-",]
@@ -82,7 +83,7 @@ frameshifted_reads_by_ID <- function(aln, paired_end = TRUE) {
                         fromLast = TRUE)[seq_len(dim(widthT_rve)[1])]
       widthT_fwd <- rbind(widthT_fwd, widthT_rve[!dup, ])
       widthT_fwd <- widthT_fwd[widthT_fwd$width %% 3 != 0, ]
-      widthT_final <- aggregate(counts ~ seqnames, widthT_fwd, sum)
+      widthT_final <- stats::aggregate(counts ~ seqnames, widthT_fwd, sum)
     }
   widthT_final
 }
@@ -133,7 +134,7 @@ amplicanSummarize <- function(aln, cfgT, overlaps = "overlaps") {
     # Cut rate
     aln <- aln[aln$type == "deletion", ]
     aln_noD <- aln[!duplicated(aln[, c("seqnames", "read_id")]), ]
-    widthT_final <- aggregate(counts ~ seqnames, aln, sum)
+    widthT_final <- stats::aggregate(counts ~ seqnames, aln, sum)
     map <- match(widthT_final$seqnames, cfgT$ID)
     cfgT$Reads_Cut[map] <- widthT_final$counts
   } else {
@@ -173,7 +174,7 @@ amplicanSummarize <- function(aln, cfgT, overlaps = "overlaps") {
                       fromLast = TRUE)[seq_len(dim(aln_rve)[1])]
     aln_fwd <- rbind(aln_fwd, aln_rve[!dup, ])
     aln_fwd <- aln_fwd[!duplicated(aln_fwd$uniqID), ]
-    widthT_final <- aggregate(counts ~ seqnames, aln_fwd, sum)
+    widthT_final <- stats::aggregate(counts ~ seqnames, aln_fwd, sum)
     map <- match(widthT_final$seqnames, cfgT$ID)
     cfgT$Reads_Cut[map] <- widthT_final$counts
   }

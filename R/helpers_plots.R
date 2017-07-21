@@ -1,13 +1,25 @@
 #' @include helpers_general.R
 NULL
 
-
+# orange #E15D44
+# red #BC243C
+# blue #98B4D4
+# magenta #D65076
+# green #009B77
+# grey #DFCFBE
 amplicon_colors <- c("#009E73", "#D55E00", "#F0E442", "#0072B2",
-                     "#009E73", "#D55E00", "#F0E442", "#0072B2")
-names(amplicon_colors) <- c("A", "C", "G", "T", "a", "c", "g", "t")
+                     "#009E73", "#D55E00", "#F0E442", "#0072B2", "#FFFFFF")
+amplicon_colors <- c("#34A853", "#EA4335","#FBBC05", "#4285F4",
+                     "#34A853", "#EA4335","#FBBC05", "#4285F4", "#FFFFFF")
+names(amplicon_colors) <- c("A", "C", "G", "T", "a", "c", "g", "t", "-")
+codon_colors <- c("#E15D44", "#98B4D4", "#D65076", "#BC243C", "#009B77",
+                  "#D65076", "#BC243C", "#E15D44", "#D65076", "#009B77",
+                  "#009B77", "#98B4D4", "#009B77", "#009B77", "#009B77",
+                  "#E15D44", "#E15D44", "#009B77", "#009B77", "#009B77",
+                  rep("#DFCFBE", 10), "#FFFFFF")
+names(codon_colors) <- c(Biostrings::AA_ALPHABET, "")
 is_cut_colors <- c("#CC79A7", "#0072B2")
 names(is_cut_colors) <- c("FALSE", "TRUE")
-
 
 amplicon_primers <- function(config, id, amplicon) {
   leftPrimer <- get_left_primer(config, id)
@@ -31,9 +43,9 @@ amplicon_primers <- function(config, id, amplicon) {
 amplican_style <- function(p) {
   p +
     ggplot2::theme_bw() +
-    ggplot2::theme(panel.spacing = unit(0, "cm"),
+    ggplot2::theme(panel.spacing = grid::unit(0, "cm"),
                    legend.position = "none",
-                   legend.spacing = unit(0, "cm")) +
+                   legend.spacing = grid::unit(0, "cm")) +
     ggplot2::ylab("Frequency [%]")
 }
 
@@ -275,7 +287,7 @@ metaplot_mismatches <- function(alnmt, config, group,
 #'                                "events_filtered_shifted_normalized.csv",
 #'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
-#' metaplot_deletions(alignments, config, "Group", "Tom")
+#' metaplot_deletions(alignments, config, "Group", "Betty")
 #'
 metaplot_deletions <- function(alnmt, config, group,
                               selection) {
@@ -402,12 +414,12 @@ plot_amplicon <- function(amplicon, from, to) {
     ggbio::xlim(from, to) +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none",
-                   legend.spacing = unit(0, "cm"),
-                   line = element_blank(),
-                   rect = element_blank(),
-                   axis.title.x = element_blank(),
-                   axis.text = element_blank(),
-                   axis.title.y = element_blank()) +
+                   legend.spacing = grid::unit(0, "cm"),
+                   line = ggplot2::element_blank(),
+                   rect = ggplot2::element_blank(),
+                   axis.title.x = ggplot2::element_blank(),
+                   axis.text = ggplot2::element_blank(),
+                   axis.title.y = ggplot2::element_blank()) +
     ggplot2::scale_colour_manual(drop = FALSE, values = amplicon_colors)
   return(p)
 }
@@ -524,14 +536,6 @@ plot_mismatches <- function(alignments,
 #' used in the analysis.
 #' @param xlab_spacing (numeric) Spacing of the x axis labels. Default is 4.
 #' @return (deletions plot) ggplot2 object of deletions plot
-#' @import GenomicRanges
-#' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle
-#' scale_colour_manual
-#' scale_fill_manual scale_x_continuous geom_vline scale_y_reverse
-#' element_blank unit geom_text ylab ylim scale_colour_gradientn
-#' @importFrom stringr str_locate
-#' @importFrom ggbio tracks geom_arch xlim
-#' @importFrom stats na.omit
 #' @export
 #' @family specialized plots
 #' @examples
@@ -623,13 +627,6 @@ plot_deletions <- function(alignments,
 #' used in the analysis.
 #' @param xlab_spacing (numeric) Spacing of the x axis labels. Default is 4.
 #' @return (insertions plot) ggplot2 object of insertions plot
-#' @import GenomicRanges
-#' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle
-#' scale_colour_manual geom_polygon scale_fill_manual scale_x_continuous
-#' geom_vline scale_y_reverse element_blank unit geom_text ylab ylim
-#' @importFrom stringr str_locate
-#' @importFrom ggbio tracks xlim
-#' @importFrom stats na.omit aggregate
 #' @export
 #' @family specialized plots
 #' @examples
@@ -726,14 +723,6 @@ plot_insertions <- function(alignments,
 #' used in the analysis.
 #' @param xlab_spacing (numeric) Spacing of the x axis labels. Default is 4.
 #' @return (cuts plot) ggplot2 object of cuts plot
-#' @import GenomicRanges
-#' @importFrom ggplot2 ggplot aes theme_bw theme geom_label ggtitle
-#' scale_colour_manual scale_fill_manual scale_x_continuous geom_vline
-#' scale_y_reverse element_blank unit geom_text ylab ylim scale_color_manual
-#' facet_grid element_text
-#' @importFrom stringr str_locate
-#' @importFrom ggbio geom_arch xlim
-#' @importFrom stats na.omit
 #' @export
 #' @family specialized plots
 #' @examples
@@ -850,14 +839,6 @@ plot_cuts <- function(alignments,
 #' @param bins (numeric vector) Numeric vector from 0 to 100 specyfying bins eg.
 #' c(0, 5, seq(10, 100, 10)).
 #' @return (heterogeneity plot) ggplot2 object of heterogeneity plot
-#' @importFrom ggplot2 ggplot aes_string theme_bw theme geom_label ggtitle
-#' scale_colour_manual scale_fill_manual scale_x_continuous geom_vline xlab
-#' coord_flip
-#' scale_y_reverse element_blank unit geom_text ylab ylim scale_color_manual
-#' facet_grid element_text
-#' @importFrom ggbio geom_arch xlim
-#' @importFrom stats na.omit formula
-#' @importFrom grDevices colorRampPalette
 #' @export
 #' @family specialized plots
 #' @examples
@@ -882,8 +863,8 @@ plot_heterogeneity <- function(alignments,
                                 c('seqnames', 'read_id', 'counts')]
   if (level != "ID") {
     by = level
-    howManyTimes <- aggregate(read_id ~ seqnames,
-                              data = uniqueReadsByID, length)
+    howManyTimes <- stats::aggregate(read_id ~ seqnames,
+                                     data = uniqueReadsByID, length)
     howManyTimes <- howManyTimes[
       order(match(howManyTimes$seqnames, unique(uniqueReadsByID$seqnames))),]
 
@@ -924,24 +905,327 @@ plot_heterogeneity <- function(alignments,
   uniqueReadsByID$bins <- cut(uniqueReadsByID$read_share_percentage_normal,
                               bins)
   # reduce number of reads in 0-5 group - faster plots without artifacts
-  uniqueReadsByID <- aggregate(
+  uniqueReadsByID <- stats::aggregate(
     stats::formula(paste0("read_share_percentage_normal ~ ", by, " + bins")),
     data = uniqueReadsByID, sum)
-  colorPalette <- colorRampPalette(colors)(length(levels(uniqueReadsByID$bins)))
+  colorPalette <- grDevices::colorRampPalette(colors)(
+    length(levels(uniqueReadsByID$bins)))
   names(colorPalette) <- levels(uniqueReadsByID$bins)
-  ggplot(data = uniqueReadsByID,
-         aes_string(x = paste0("as.factor(", by, ")"),
-                    y = "read_share_percentage_normal",
-                    fill = "bins",
-                    order =  paste0("as.factor(", by, ")"))) +
+  ggplot2::ggplot(data = uniqueReadsByID,
+                  ggplot2::aes_string(x = paste0("as.factor(", by, ")"),
+                                      y = "read_share_percentage_normal",
+                                      fill = "bins",
+                                      order =  paste0("as.factor(", by, ")"))) +
     ggplot2::geom_bar(position='stack', stat='identity') +
-    theme(axis.text = element_text(size = 12),
-          axis.title = element_text(size = 14, face = 'bold'),
-          legend.position = 'top',
-          legend.direction = 'horizontal',
-          legend.title = element_blank()) +
-    ylab('Unique reads percentage of shares') +
-    xlab(level) +
-    scale_fill_manual(values = colorPalette) +
-    coord_flip()
+    ggplot2::theme(axis.text = ggplot2::element_text(size = 12),
+                   axis.title = ggplot2::element_text(size = 14, face = 'bold'),
+                   legend.position = 'top',
+                   legend.direction = 'horizontal',
+                   legend.title = ggplot2::element_blank()) +
+    ggplot2::ylab('Unique reads percentage of shares') +
+    ggplot2::xlab(level) +
+    ggplot2::scale_fill_manual(values = colorPalette) +
+    ggplot2::coord_flip()
+}
+
+
+aa_frame <- function(amplicon, sense = TRUE, frame = 1, ymin = 0, ymax = 1) {
+  amplicon_pos <- seq_len(length(amplicon))
+
+  if (sense) {
+    xmax <- seq(-1 + frame, length(amplicon), 3)[-1]
+    xmin <- xmax - 3
+  } else {
+    xmin <- rev(seq(length(amplicon) - frame + 1, 0, -3)[-1])
+    xmax <- xmin + 3
+  }
+  f_t <- min(xmin + 1):max(xmax)
+  f_e <- amplicon_pos[!amplicon_pos %in% f_t]
+  s3_f <- decode(if (sense) amplicon[f_t] else revComp(amplicon[f_t]))
+
+  data.frame(xmin = c(xmin, f_e - 1),
+                      xmax = c(xmax, f_e),
+                      ymin = ymin,
+                      ymax = ymax,
+                      codon = c(s3_f, rep("", length(f_e))))
+}
+range01 <- function(x) (x - min(x))/diff(range(x))
+cRamp <- function(x){
+  cols <- grDevices::colorRamp(c("#FFFFFF", "#98DDDE"))(range01(x))
+  apply(cols, 1, function (xt) grDevices::rgb(xt[1], xt[2], xt[3],
+                                              maxColorValue = 255))
+}
+cRampF <- function(x) {
+  greenF <- rep("#79C753", length(x))
+  greenF[x %% 3 == 0] <- "#FFFFFF"
+  greenF
+}
+
+
+#' Plots most frequent variants using ggplot2 and ggbio.
+#'
+#' This function plots variants in relation to the amplicon. Shows sequences of
+#' top mutants without agregating on deletions, insertions and mismatches.
+#'
+#' Top plot shows all six possible frames for given amplicon. Amino acids are
+#' colored as follows:\cr
+#' \tabular{rrrrr}{
+#' Small nonpolar \tab G, A, S, T \tab Orange\cr
+#' Hydrophobic \tab C, V, I, L, P, F, Y, M, W	\tab Green\cr
+#' Polar \tab N, Q, H \tab Magenta\cr
+#' Negatively charged \tab D, E \tab Red\cr
+#' Positively charged \tab K, R \tab Blue\cr
+#' Other \tab eg. *, U, + \tab Grey
+#' }
+#' Variant plot shows amplicon reference, UPPER letters which were the basis for
+#' window selection are highlighted with dashed white box (guideRNA). Black
+#' triangles are reflecting insertion points. Dashed letters indicate deletions.
+#' Table associated with variant plot represents:
+#' \itemize{
+#' \item{Freq - }{Frequency of given read in experiment. Variants are ordered by
+#' frequency value.}
+#' \item{Count - }{Represents raw count of this variant reads in experiment.}
+#' \item{Score - }{Alignment score from alignment to the amplicon sequence.}
+#' \item{F - }{Sum of deletion and insertion widths over presented window. Green
+#' background indicates that frameshift is aparent in presented window. Be weary
+#' that this frameshift does not takes into account possible insetions and
+#' deletions that happen outside of presented window.}}
+#'
+#' @param alignments (data.frame) Loaded alignment information from
+#' alignments_events.csv file.
+#' @param config (data.frame) Loaded table from config_summary.csv file.
+#' @param id (string or vector of strings) Name of the ID column from config
+#' file or name of multiple IDs if it is possible to group them. First amplicon
+#' will be used as the basis for plot.
+#' @param cut_buffer (numeric) Default is 5, you should specify the same as
+#' used in the analysis.
+#' @param top (numeric) Specify number of most frequent reads to plot. By
+#' default it is 10. Check \code{\link{plot_heterogeneity}} to see how many
+#' reads will be enough to give good overview of your variants.
+#' @return (variant plot) ggplot2 object of variants plot
+#' @export
+#' @family specialized plots
+#' @note
+#' This function is inspired by \code{\link[CrispRVariants]{plotAlignments}}.
+#' @examples
+#' #example config
+#' config <- read.csv(system.file("extdata", "results", "config_summary.csv",
+#'                                package = "amplican"))
+#' #example alignments results
+#' alignments_file <- system.file("extdata", "results", "alignments",
+#'                                "events_filtered_shifted_normalized.csv",
+#'                                package = "amplican")
+#' alignments <- read.csv(alignments_file)
+#' plot_variants(alignments, config, c('ID_1','ID_3'))
+#'
+plot_variants <- function(alignments, config, id,
+                          cut_buffer = 5, top = 10) {
+
+  archRanges <- alignments[alignments$seqnames %in% id, ]
+  archRanges <- archRanges[archRanges$overlaps, ]
+
+  if (length(unique(archRanges$strand)) == 2) {
+    archRanges <- archRanges[archRanges$strand == "+", ]
+  }
+
+  if (dim(archRanges)[1] == 0) {
+    return("No variants to plot.")
+  }
+
+  if (!any(colnames(archRanges) == "frequency")) {
+    archRanges$frequency <- archRanges$counts /
+      config$Reads_noPD[match(archRanges$seqnames, config$ID)]
+  }
+
+  archRanges$read_names <- paste0(archRanges$seqnames, ":", archRanges$read_id)
+  archRanges <- archRanges[order(-archRanges$frequency, archRanges$read_names),]
+
+  if (length(unique(archRanges$read_names)) < top) {
+    top <- length(unique(archRanges$read_names))
+  }
+
+  amplicon <- get_amplicon(config, id)
+  box <- upperGroups(amplicon)[1]
+  if (length(box) == 1) {
+    box_shift <- IRanges::start(box)[1]
+    upperBox <- IRanges::start(box):IRanges::end(box) - box_shift
+    box <- box + cut_buffer
+  } else {
+    box_shift <- 0
+    upperBox <- 1:nchar(amplicon)
+    box <- IRanges::IRanges(upperBox)
+  }
+  amplicon <- strsplit(amplicon, "")[[1]][IRanges::start(box):IRanges::end(box)]
+  box <- IRanges::shift(box, -1 * box_shift)
+
+  xaxis <- IRanges::start(box[1]):IRanges::end(box[1])
+  yaxis <- seq_len(top + 1) # + amplicon reference
+  yaxis_names <- c("amplicon", unique(archRanges$read_names)[seq_len(top)])
+  archRanges <- archRanges[archRanges$read_names %in% yaxis_names, ]
+  variants <- matrix(toupper(amplicon),
+                     nrow = length(yaxis),
+                     ncol = length(amplicon), byrow = TRUE)
+
+  archRanges <- GenomicRanges::restrict(GenomicRanges::GRanges(archRanges),
+                                        start = xaxis[1],
+                                        end = xaxis[length(xaxis)])
+  archRanges <- data.frame(archRanges)
+  # deletions and mismatches
+  for (i in seq_len(dim(archRanges)[1])) {
+    if (archRanges[i, "type"] == "insertion") next()
+    if (archRanges[i, "type"] == "mismatch") {
+      variants[which(archRanges[i, "read_names"] == yaxis_names),
+               which(archRanges[i, "start"] == xaxis)] <-
+        as.character(archRanges[i, "replacement"])
+    }
+    if (archRanges[i, "type"] == "deletion") {
+      variants[which(archRanges[i, "read_names"] == yaxis_names),
+               which(archRanges[i, "start"] == xaxis):
+                 which(archRanges[i, "end"] == xaxis)] <- "-"
+    }
+  }
+  colnames(variants) <- xaxis
+  rownames(variants) <- length(yaxis):1
+  variants_melt <- reshape2::melt(variants)
+  variants_melt$ymin <- variants_melt$Var1 - 1
+  variants_melt$ymax <- variants_melt$Var1
+  variants_melt$xmin <- variants_melt$Var2 - 0.5
+  variants_melt$xmax <- variants_melt$Var2 + 0.5
+
+  insertion_melt <- archRanges[archRanges$type == "insertion", ]
+  insertion_melt$y <- match(insertion_melt$read_names, rev(yaxis_names))
+  insertion_melt$x <- insertion_melt$start + 0.5
+
+  x<-xlab<-xmax<-xmin<-y<-ylab<-ymax<-ymin<-value<-codon<-NULL
+  vplot <- ggplot2::ggplot(variants_melt,
+                           ggplot2::aes((xmin + xmax) / 2,
+                                        (ymin + ymax) / 2)) +
+    ggplot2::geom_rect(ggplot2::aes(xmin = xmin, xmax = xmax,
+                                    ymin = ymin, ymax = ymax,
+                                    fill = value)) +
+    ggplot2::geom_hline(yintercept  = 1:(length(yaxis) - 1),
+                        colour = "white", linetype = "dashed") +
+    ggplot2::geom_rect(data = data.frame(xmax = max(upperBox) + 0.5,
+                                         xmin = min(upperBox) - 0.5,
+                                         ymax = length(yaxis),
+                                         ymin = length(yaxis) - 1),
+                       ggplot2::aes(xmin = xmin, xmax = xmax,
+                                    ymin = ymin, ymax = ymax),
+                       colour = "black", alpha = 0) +
+    ggplot2::geom_point(data = insertion_melt,
+                        ggplot2::aes(x = x, y = y), shape = 25,
+                        size = 5, fill = "black") +
+    ggplot2::geom_text(ggplot2::aes(label = value)) +
+    ggplot2::scale_fill_manual(values = amplicon_colors) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position="none",
+                   plot.background = ggplot2::element_blank(),
+                   panel.grid.major = ggplot2::element_blank(),
+                   panel.grid.minor = ggplot2::element_blank(),
+                   panel.border = ggplot2::element_blank(),
+                   panel.background = ggplot2::element_blank(),
+                   axis.ticks.y = ggplot2::element_blank()) +
+    ggplot2::scale_y_continuous(breaks = (length(yaxis)-1):0 + 0.5,
+                                labels = yaxis_names,
+                                expand = c(0,0)) +
+    ggplot2::labs(y = "Variant",
+                  x = "Nucleotide Position Relative to PAM")
+
+  codon_melt <- rbind(aa_frame(amplicon, TRUE, 1, 0, 1),
+                      aa_frame(amplicon, TRUE, 2, 1, 2),
+                      aa_frame(amplicon, TRUE, 3, 2, 3),
+                      aa_frame(amplicon, FALSE, 1, 3, 4),
+                      aa_frame(amplicon, FALSE, 2, 4, 5),
+                      aa_frame(amplicon, FALSE, 3, 5, 6))
+  fnames <- c("1st, 5' <- 3'", "2nd, 5' <- 3'", "3rd, 5' <- 3'",
+              "1st, 3' -> 5'", "2nd, 3' -> 5'", "3rd, 3' -> 5'")
+  cplot <- ggplot2::ggplot(codon_melt,
+                           ggplot2::aes((xmin + xmax) / 2,
+                                        (ymin + ymax) / 2)) +
+    ggplot2::geom_rect(ggplot2::aes(xmin = xmin, xmax = xmax,
+                                    ymin = ymin, ymax = ymax,
+                                    fill = codon), colour = "#FFFFFF") +
+    ggplot2::geom_text(ggplot2::aes(label = codon)) +
+    ggplot2::scale_y_continuous(breaks = 0:5 + 0.5,
+                                labels = fnames) +
+    ggplot2::scale_fill_manual(values = codon_colors) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "none",
+                   axis.title.x = ggplot2::element_blank(),
+                   axis.text.x = ggplot2::element_blank(),
+                   axis.ticks.x = ggplot2::element_blank(),
+                   plot.background = ggplot2::element_blank(),
+                   panel.grid.major = ggplot2::element_blank(),
+                   panel.grid.minor = ggplot2::element_blank(),
+                   panel.border = ggplot2::element_blank(),
+                   panel.background = ggplot2::element_blank(),
+                   axis.ticks.y = ggplot2::element_blank()) +
+    ggplot2::labs(y = "Frame")
+
+  vtable <- archRanges[, c("read_names", "frequency", "counts", "score")]
+  widthT <- archRanges[archRanges$type != "mismatch", ]
+  widthT <- stats::aggregate(width ~ read_names, widthT, sum)
+  vtable$Frameshift <- widthT$width[match(vtable$read_names, widthT$read_names)]
+  vtable <- vtable[!duplicated(vtable), ]
+  vtable <- vtable[, -1]
+  vtable$frequency <- round(vtable$frequency, 2)
+  colnames(vtable) <- c("Freq", "Count", "Score", "F")
+
+  tgb <- gridExtra::tableGrob(
+    vtable, theme = gridExtra::ttheme_minimal(core = list(
+      bg_params = list(fill = c(cRamp(vtable$Freq), cRamp(vtable$Count),
+                                cRamp(vtable$Score), cRampF(vtable$F)),
+                       col = NA))), rows = NULL)
+  # tgb <- gtable::gtable_add_grob(tgb,
+  #                      grobs = grid::rectGrob(gp = grid::gpar(fill = NA)),
+  #                      t = 2, b = nrow(tgb), l = 1, r = ncol(tgb))
+  # tgb <- gtable::gtable_add_grob(tgb,
+  #                      grobs = grid::rectGrob(gp = grid::gpar(fill = NA)),
+  #                      t = 1, l = 1, r = ncol(tgb))
+  separators <- replicate(ncol(tgb) - 1,
+                          grid::segmentsGrob(x1 = grid::unit(0, "npc"),
+                                             gp=grid::gpar(lty = 2)),
+                          simplify=FALSE)
+  tgb <- gtable::gtable_add_grob(tgb, grobs = separators,
+                               t = 1, b = nrow(tgb), l = 2:4)
+  separators <- replicate(nrow(tgb) - 1,
+                          grid::segmentsGrob(y1 = grid::unit(0, "npc"),
+                                             gp=grid::gpar(lty = 2)),
+                          simplify=FALSE)
+  tgb <- gtable::gtable_add_grob(tgb, grobs = separators,
+                                 t = 1:(nrow(tgb) - 1), l = 1, r = 4)
+  cgb <- ggplot2::ggplotGrob(cplot)
+  vgb <- ggplot2::ggplotGrob(vplot)
+  egb <- ggplot2::ggplot() +
+    ggplot2::geom_point(ggplot2::aes(1,1), colour="white") +
+    ggplot2::theme(plot.background = ggplot2::element_blank(),
+                   panel.grid.major = ggplot2::element_blank(),
+                   panel.grid.minor = ggplot2::element_blank(),
+                   panel.border = ggplot2::element_blank(),
+                   panel.background = ggplot2::element_blank(),
+                   axis.title.x = ggplot2::element_blank(),
+                   axis.title.y = ggplot2::element_blank(),
+                   axis.text.x = ggplot2::element_blank(),
+                   axis.text.y = ggplot2::element_blank(),
+                   axis.ticks = ggplot2::element_blank())
+  egb <- ggplot2::ggplotGrob(egb)
+
+  maxWidth <- grid::unit.pmax(vgb$widths, cgb$widths)
+  vgb$widths <- as.list(maxWidth)
+  cgb$widths <- as.list(maxWidth)
+  tgb$heights <- grid::unit(rep(1/(nrow(tgb)), nrow(tgb)), "npc")
+
+  bot <- gtable::gtable_add_cols(vgb, sum(tgb$widths))
+  bot <- gtable::gtable_add_grob(bot, grobs = tgb,
+                                 t = 6, l = ncol(bot), b = 6, r = ncol(bot))
+  top <- gtable::gtable_add_cols(cgb, sum(tgb$widths))
+  top <- gtable::gtable_add_grob(top, grobs = egb,
+                                 t = 6, l = ncol(top), b = 6, r = ncol(top))
+  fin <- gridExtra::grid.arrange(
+    top, bot,
+    heights = grid::unit.c(grid::unit(8, "char"),
+                           grid::unit(1, "npc") - grid::unit(8, "char")),
+    nrow = 2)
+  grid::grid.newpage()
+  grid::grid.draw(fin)
 }

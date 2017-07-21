@@ -139,17 +139,29 @@ plot_heterogeneity(alignments, config, level = 'guideRNA')
 
 ***
 
-
-```{r plot alignments, echo = F, results = 'asis', echo=F, message=F, warning=F}
-for(i in unique(config$guideRNA)) {
-  cat(paste0("\n\n## ", paste0("Guide ", i), "  \n"))
-  cat("### Deletions  \n")
-  print(amplican::metaplot_deletions(alignments, config, "guideRNA", i))
-  cat("\n\n### Insertions  \n")
-  print(amplican::metaplot_insertions(alignments, config, "guideRNA", i))
-  cat("\n\n### Mismatches  \n")
-  print(amplican::metaplot_mismatches(alignments, config, "guideRNA", i))
-}
+```{r plot_alignments, results='asis', echo=F, message=F, warning=F}
+src = sapply(unique(config$guideRNA), function(i) {
+  knitr::knit_expand(text = c(
+    "## Guide {{i}}  \n", 
+    "### Deletions  \n", 
+    paste('```{r del-{{i}}, echo = F, results = "asis", ',
+          'message=F, warning=F}', collapse = ''), 
+    'amplican::metaplot_deletions(alignments, config, "guideRNA", "{{i}}")', 
+    '```\n',
+    "### Insertions", 
+    paste('```{r ins-{{i}}, echo = F, results = "asis", ',
+          'message=F, warning=F}', collapse = ''), 
+    'amplican::metaplot_insertions(alignments, config, "guideRNA", "{{i}}")',
+    '```\n', 
+    "### Mismatches", 
+    paste('```{r mis-{{i}}, echo = F, results = "asis", ',
+          'message=F, warning=F}', collapse = ''), 
+    'amplican::plot_mismatches(alignments, config, "guideRNA", "{{i}}")',
+    '```\n'))
+})
+# knit the source
+res = knitr::knit_child(text = src, quiet = TRUE)
+cat(res, sep = '\n')
 ```
 
 <script>

@@ -152,16 +152,38 @@ plot_heterogeneity(alignments, config)
 
 ***
 
-```{r plot alignments, echo = F, results = 'asis', fig.width=25, echo=F, message=F, warning=F}
-for(i in config$ID) {
-  cat(paste0("\n\n## ", i, "  \n"))
-  cat("### Deletions  \n")
-  print(amplican::plot_deletions(alignments, config, i, params$cut_buffer, params$xlab_spacing))
-  cat("\n\n### Insertions  \n")
-  print(amplican::plot_insertions(alignments, config, i, params$cut_buffer, params$xlab_spacing))
-  cat("\n\n### Mismatches  \n")
-  print(amplican::plot_mismatches(alignments, config, i, params$cut_buffer, params$xlab_spacing))
-}
+```{r plot_alignments, results='asis', echo=F, message=F, warning=F}
+src = sapply(config$ID, function(i) {
+  knitr::knit_expand(text = c(
+    "## {{i}}", 
+    "### Deletions", 
+    paste('```{r del-{{i}}, echo = F, results = "asis", ',
+          'fig.width=25, message=F, warning=F}', collapse = ''), 
+    paste('amplican::plot_deletions(alignments, config, "{{i}}",',
+          ' params$cut_buffer, params$xlab_spacing)', collapse = ''), 
+    '```\n',
+    "### Insertions", 
+    paste('```{r ins-{{i}}, echo = F, results = "asis", ',
+          'fig.width=25, message=F, warning=F}', collapse = ''), 
+    paste('amplican::plot_insertions(alignments, config, "{{i}}",',
+          ' params$cut_buffer, params$xlab_spacing)', collapse = ''), 
+    '```\n', 
+    "### Mismatches", 
+    paste('```{r mis-{{i}}, echo = F, results = "asis", ',
+          'fig.width=25, message=F, warning=F}', collapse = ''), 
+    paste('amplican::plot_mismatches(alignments, config, "{{i}}",',
+          ' params$cut_buffer, params$xlab_spacing)', collapse = ''), 
+    '```\n', 
+    "### Variants", 
+    paste('```{r var-{{i}}, echo = F, results = "asis", ',
+          'message=F, warning=F}', collapse = ''),
+    paste('amplican::plot_variants(alignments, config, "{{i}}", ',
+          ' params$cut_buffer)', collapse = ''),
+    '```\n'))
+})
+# knit the source
+res = knitr::knit_child(text = src, quiet = TRUE)
+cat(res, sep = '\n')
 ```
 
 <script>

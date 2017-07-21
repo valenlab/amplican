@@ -47,5 +47,6 @@ Other specialized plots: \code{\link{metaplot_deletions}},
   \code{\link{metaplot_mismatches}},
   \code{\link{plot_cuts}}, \code{\link{plot_deletions}},
   \code{\link{plot_heterogeneity}},
-  \code{\link{plot_mismatches}}
+  \code{\link{plot_mismatches}},
+  \code{\link{plot_variants}}
 }

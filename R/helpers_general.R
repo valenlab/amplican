@@ -13,6 +13,20 @@ revComp <- function(x) {
 }
 
 
+#' Get codons for given string - translate
+#'
+#' @param x (string)
+#' @return (string) codons
+#'
+decode <- function(x) {
+  return(
+    strsplit(
+      as.character(
+        Biostrings::translate(
+          Biostrings::DNAString(paste0(x, collapse = "")))), "")[[1]])
+}
+
+
 #' amplicon sequence, reverse complemented when needed
 #'
 #' @param config (data.frame) config table
@@ -148,21 +162,22 @@ getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
   ins <- Biostrings::insertion(align)
   mm <- lapply(align, function(x) Biostrings::mismatchSummary(x)$subject)
 
-  ins_sft <- shift(ins, IRanges::IntegerList(lapply(ins, cumsumw)))
+  ins_sft <- IRanges::shift(ins, IRanges::IntegerList(lapply(ins, cumsumw)))
   ins_seq <- substr(rep(Biostrings::pattern(align),
                         times = sapply(ins_sft, length)),
                     start = unlist(BiocGenerics::start(ins_sft)),
                     stop = unlist(BiocGenerics::end(ins_sft)))
   names(ins) <- seq_along(ins)
 
-  del <- shift(del, IRanges::IntegerList(lapply(del, cumsumw)))
+  del <- IRanges::shift(del, IRanges::IntegerList(lapply(del, cumsumw)))
   # make deletions to be relative to the subject
   del <- mapply(function(x, y){
     if (length(y) > 0) { # shift when insertions are before deletions
       for (i in seq_along(x)) {
         ins_before <- BiocGenerics::start(x)[i] > BiocGenerics::start(y)
         if (any(ins_before)) {
-          x[i] <- shift(x[i], -1 * sum(BiocGenerics::width(y[ins_before])))
+          x[i] <- IRanges::shift(x[i], -1 *
+                                   sum(BiocGenerics::width(y[ins_before])))
         }
       }
     }
@@ -276,16 +291,16 @@ map_to_relative <- function(aln, cfgT) {
   aln <- GenomicRanges::GRanges(aln)
   no_upper <- FALSE
 
-  for (id in unique(seqnames(aln))) {
+  for (id in unique(GenomeInfoDb::seqnames(aln))) {
     amplicon <- get_amplicon(cfgT, id)
     zero_point <- upperGroups(amplicon)
     if (length(zero_point) == 0) {
       no_upper <- TRUE
-      aln <- aln[seqnames(aln) != id]
+      aln <- aln[GenomeInfoDb::seqnames(aln) != id]
       next()
     }
     aln[GenomicRanges::seqnames(aln) == id] <-
-      GenomicRanges::shift(aln[seqnames(aln) == id],
+      GenomicRanges::shift(aln[GenomeInfoDb::seqnames(aln) == id],
                            shift = -1 * GenomicRanges::start(zero_point)[1])
   }
 

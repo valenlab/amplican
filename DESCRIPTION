@@ -29,6 +29,8 @@ Imports:
     S4Vectors,
     doParallel,
     foreach,
+    gtable,
+    gridExtra,
     ggplot2 (>= 2.2.0),
     ggbio,
     stringr,
