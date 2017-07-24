@@ -41,6 +41,7 @@ cfgT <- data.frame(ID = 1:5,
                    Group = c("A", "A", "B", "B", "B"),
                    Control = c(TRUE, FALSE, TRUE, FALSE, FALSE))
 # all events are same as in the control group, therfore are filtered out
+# events from control groups stay
 amplicanNormalize(aln, cfgT)
 # events that are different from control group are preserved
 aln[2, "start"] <- 3

@@ -57,19 +57,21 @@ setValidity("AlignmentsExperimentSet", function(object) {
   err <- character()
 
   if (length(object@readCounts) != 0 &
-      listClasses(object@readCounts) != "integer") {
+      any(!listClasses(object@readCounts) %in% c("integer", "NULL"))) {
     err <- c(err, paste("'readCounts' has to have all elements ",
                         "of class 'integer'"))
   }
 
   if (length(object@fwdReads) != 0 &
-      listClasses(object@fwdReads) != "PairwiseAlignmentsSingleSubject") {
+      any(!listClasses(object@fwdReads) %in%
+          c("PairwiseAlignmentsSingleSubject", "NULL"))) {
     err <- c(err, paste("'fwdReads' has to have all elements ",
                         "of class PairwiseAlignmentsSingleSubject"))
   }
 
   if (length(object@rveReads) != 0 &
-      listClasses(object@rveReads) != "PairwiseAlignmentsSingleSubject") {
+      any(!listClasses(object@rveReads) %in%
+          c("PairwiseAlignmentsSingleSubject", "NULL"))) {
     err <- c(err, paste("'rveReads' has to have all elements ",
                         "of class PairwiseAlignmentsSingleSubject"))
   }
@@ -96,8 +98,6 @@ setValidity("AlignmentsExperimentSet", function(object) {
     err <- c(err, paste("Length of 'readCounts' should be same ",
                         "as length of 'fwdReads'."))
   }
-
-
 
   if (length(err) == 0) TRUE else err
 })
@@ -416,6 +416,7 @@ setMethod("writeAlignments", "AlignmentsExperimentSet",
 
             if (aln_format == "txt") {
               for (ID in x@experimentData$ID) {
+                if (is.null(readCounts(x)[[ID]])) next()
                 writeLines(as.vector(rbind(
                   paste("ID:", ID,
                         "read_id:",
@@ -435,6 +436,7 @@ setMethod("writeAlignments", "AlignmentsExperimentSet",
             if (aln_format == "fasta") {
               for (ID in x@experimentData$ID) {
                 counts = readCounts(x)[[ID]]
+                if (is.null(counts)) next()
                 writeLines(as.vector(rbind(
                   if (length(fwdReads(x)) > 0)
                     rbind(paste(">Forward read ID:", ID,
@@ -486,7 +488,7 @@ setGeneric("lookupAlignment", function(x, ID, read_id = 1){
 setMethod("lookupAlignment", "AlignmentsExperimentSet",
           function(x, ID, read_id = 1) {
 
-            if (length(readCounts(x)) == 0) return(NULL)
+            if (length(readCounts(x)[[ID]]) == 0) return(NULL)
             if (length(fwdReads(x)) > 0) {
               fwd <- capture.output(Biostrings::writePairwiseAlignments(
                 fwdReads(x)[[ID]][as.numeric(read_id)]))

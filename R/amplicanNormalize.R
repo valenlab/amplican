@@ -27,6 +27,7 @@
 #'                    Group = c("A", "A", "B", "B", "B"),
 #'                    Control = c(TRUE, FALSE, TRUE, FALSE, FALSE))
 #'# all events are same as in the control group, therfore are filtered out
+#'# events from control groups stay
 #' amplicanNormalize(aln, cfgT)
 #'# events that are different from control group are preserved
 #' aln[2, "start"] <- 3
@@ -47,24 +48,14 @@ amplicanNormalize <- function(aln, cfgT,
   aln[["Control"]] <- cfgT[["Control"]][map]
   aln_ctr <- aln[aln$Control, ]
   aln <- aln[!aln$Control, ]
+  data.table::setDT(aln)
+  data.table::setDT(aln_ctr)
 
-  skip <- c(skip, "Control", "seqnames", "read_id")
-  skip_col <- which(names(aln) %in% skip)
-  skip_col_ctr <- which(names(aln_ctr) %in% skip)
-  # restrict number of potential events that repeat - for speed
-  candid <- duplicated(rbind(aln[, -skip_col],
-                             aln_ctr[, -skip_col_ctr]),
-                       fromLast = TRUE)[seq_len(dim(aln)[1])]
-  # check which of candidates are really replicates
-  temp_aln_ctr <- aln_ctr[, -skip_col_ctr]
-  next_row <- dim(temp_aln_ctr)[1] + 1
-  to_norm <- apply(aln[candid, -skip_col], 1, function(x) {
-    temp_aln_ctr[next_row, ] <- x
-    duplicated(temp_aln_ctr, fromLast = FALSE)[next_row]
-  })
+  cols <- names(aln)[!names(aln) %in% c(skip, "Control", "seqnames", "read_id")]
+  aln <- aln[!aln_ctr, on = cols]
 
-  candid[candid] <- to_norm
-  aln <- aln[!candid, ]
-
-  rbind(aln, aln_ctr)
+  aln <- data.table::rbindlist(list(aln, aln_ctr))
+  aln <- aln[, colnames(aln)[!colnames(aln) %in% c(add, "Control")], with=FALSE]
+  data.table::setDF(aln)
+  aln
 }

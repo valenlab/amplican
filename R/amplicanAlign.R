@@ -36,6 +36,7 @@ amplicanAlign <- function(
 
   message("Checking configuration file...")
   cfgT <- readr::read_csv(config, col_types = "ccccclccclc", na = "")
+  cfgT <- data.frame(cfgT)
   colnames(cfgT) <- c("ID", "Barcode", "Forward_Reads_File",
                       "Reverse_Reads_File", "Group", "Control", "guideRNA",
                       "Forward_Primer", "Reverse_Primer", "Direction",

@@ -171,7 +171,7 @@ amplicanPipeline <- function(
                                      paste0("alignments.", frmt)), frmt)
     }
   }
-  # save parameters
+  message("Saving parameters...")
   logFileName <- file.path(results_folder, "RunParameters.txt")
   if (file.exists(logFileName)) {
     file.remove(logFileName)
@@ -191,16 +191,16 @@ amplicanPipeline <- function(
   utils::write.csv(scoring_matrix, logFileConn, quote = FALSE, row.names = TRUE)
   close(logFileConn)
 
-  # write unassigned sequences
+  message("Saving unassigned sequences...")
   readr::write_csv(unassignedData(aln),
                    file.path(resultsFolder, "unassigned_reads.csv"))
-  # write barcode statistics
+  message("Saving barcode statistics...")
   readr::write_csv(barcodeData(aln),
                    file.path(results_folder, "barcode_reads_filters.csv"))
-  # translate into events
+  message("Translating alignments into events...")
   cfgT <- experimentData(aln)
   aln <- methods::as(aln, "data.frame")
-  # save complete events - unfiltered
+  message("Saving complete events - unfiltered...")
   readr::write_csv(aln, file.path(resultsFolder, "raw_events.csv"))
 
   # find PRIMER DIMERS
@@ -225,15 +225,19 @@ amplicanPipeline <- function(
   aln <- aln[!eOP, ]
 
   # shift to relative (most left UPPER case is position 0)
+  message("Shifting events as relative...")
   aln <- data.frame(map_to_relative(aln, cfgT))
+  message("Saving shifted events - filtered...")
   readr::write_csv(aln,
                    file.path(resultsFolder,
                              "events_filtered_shifted.csv"))
   # revert guides to 5'-3'
   cfgT$guideRNA[cfgT$Direction] <- revComp(cfgT$guideRNA[cfgT$Direction])
   # normalize
+  message("Normalizing events...")
   aln <- amplicanNormalize(aln, cfgT, add = normalize)
   aln$overlaps <- amplicanOverlap(aln, cfgT, cut_buffer = cut_buffer)
+  message("Saving normalized events...")
   readr::write_csv(aln,
                    file.path(resultsFolder,
                              "events_filtered_shifted_normalized.csv"))
