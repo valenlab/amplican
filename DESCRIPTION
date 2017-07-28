@@ -20,28 +20,28 @@ LazyData: true
 Depends:
     R (>= 3.3.0),
     methods,
-    BiocGenerics,
-    Biostrings
+    BiocGenerics (>= 0.22.0),
+    Biostrings (>= 2.44.2)
 Imports:
-    utils,
-    S4Vectors,
-    ShortRead,
-    IRanges,
-    GenomicRanges,
-    GenomeInfoDb,
-    gtable,
-    gridExtra,
+    utils (>= 3.4.1),
+    S4Vectors (>= 0.14.3),
+    ShortRead (>= 1.34.0),
+    IRanges (>= 2.10.2),
+    GenomicRanges (>= 1.28.4),
+    GenomeInfoDb (>= 1.12.2),
+    gtable (>= 0.2.0),
+    gridExtra (>= 2.2.1),
     ggplot2 (>= 2.2.0),
-    ggbio,
-    stringr,
-    stats,
-    rmarkdown,
-    knitr,
-    matrixStats,
-    Matrix,
-    BiocParallel,
-    readr,
-    data.table
+    ggbio (>= 1.24.1),
+    stringr (>= 1.2.0),
+    stats (>= 3.4.1),
+    rmarkdown (>= 1.6),
+    knitr (>= 1.16),
+    matrixStats (>= 0.52.2),
+    Matrix (>= 1.2-10),
+    BiocParallel (>= 1.10.1),
+    readr (>= 1.1.1),
+    data.table (>= 1.10.4)
 RoxygenNote: 6.0.1
 Suggests:
     testthat,
