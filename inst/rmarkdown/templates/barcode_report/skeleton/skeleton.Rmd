@@ -18,8 +18,9 @@ params:
 ```{r load data, message=F, warning=FALSE, include=FALSE}
 library(amplican)
 library(ggplot2)
-alignments <- read.csv(params$alignments, stringsAsFactors = FALSE)
-config <- read.csv(params$config_summary, stringsAsFactors = FALSE)
+alignments <- data.table::fread(params$alignments)
+data.table::setDF(alignments)
+config <- data.frame(data.table::fread(params$config_summary))
 height <- amplican::plot_height(length(unique(config$Barcode)))
 ```
 
@@ -151,7 +152,8 @@ plot_heterogeneity(alignments, config, level = 'Barcode')
 
 ```{r plot read unassigned reads, results = "asis", echo=FALSE, message=F, warning=FALSE, comment = ''} 
 if (!is.na(config$Forward_Reads_File) && !is.na(config$Reverse_Reads_File)) {
-  unassigned_reads <- read.csv(params$unassigned_folder, stringsAsFactors = FALSE)
+  unassigned_reads <- data.table::fread(params$unassigned_folder)
+  data.table::setDF(unassigned_reads)
   
   cat("# Top unassigned reads  \n\n***  \n\n")
   for (b in unique(unassigned_reads$Barcode)) {

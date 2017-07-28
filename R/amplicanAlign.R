@@ -35,13 +35,15 @@ amplicanAlign <- function(
   fastqfiles = 0) {
 
   message("Checking configuration file...")
-  cfgT <- readr::read_csv(config, col_types = "ccccclccclc", na = "")
+  cfgT <- data.frame(data.table::fread(config))
   cfgT[is.na(cfgT)] <- ""
-  cfgT <- data.frame(cfgT)
   colnames(cfgT) <- c("ID", "Barcode", "Forward_Reads_File",
                       "Reverse_Reads_File", "Group", "Control", "guideRNA",
                       "Forward_Primer", "Reverse_Primer", "Direction",
-                      "Amplicon")
+                      "Amplicon",
+                      if (dim(cfgT)[2] > 11) colnames(cfgT)[12:dim(cfgT)[2]])
+  cfgT$Control <- as.logical(cfgT$Control)
+  cfgT$Direction <- as.logical(cfgT$Direction)
   cfgT$Forward_Reads_File <-
     ifelse(cfgT$Forward_Reads_File == "",
            "",

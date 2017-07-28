@@ -22,8 +22,9 @@ vignette: >
 ```{r load data, message=F, warning=FALSE, include=FALSE}
 library(amplican)
 library(ggplot2)
-alignments <- read.csv(params$alignments, stringsAsFactors = FALSE)
-config <- read.csv(params$config_summary, stringsAsFactors = FALSE)
+alignments <- data.table::fread(params$alignments)
+data.table::setDF(alignments)
+config <- data.frame(data.table::fread(params$config_summary))
 height <- plot_height(length(unique(config$ID)))
 ```
 

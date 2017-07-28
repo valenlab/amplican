@@ -50,7 +50,7 @@ if (params$links != "") {
 ```{r echo = F}
 library(ggplot2)
 library(waffle)
-summaryDF <- read.csv(params$barcode_summary, stringsAsFactors = FALSE)
+summaryDF <- data.frame(data.table::fread(params$barcode_summary))
 
 total_reads <- sum(summaryDF$read_count)
 total_good_reads <- sum(summaryDF$filtered_read_count)
@@ -90,7 +90,7 @@ waffle(read_a_per, legend_pos = 'bottom',
        rows = 10, colors = c('#E69F00', '#000000'))
 
 # PRIMER DIMER reads
-configDF <- read.csv(params$config_summary, stringsAsFactors = FALSE)
+configDF <- data.frame(data.table::fread(params$config_summary))
 height <- amplican:::plot_height(length(unique(configDF$Barcode)))
 
 PD_reads <- c(sum(configDF$Reads_noPD), sum(configDF$PRIMER_DIMER))
