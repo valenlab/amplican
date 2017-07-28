@@ -111,6 +111,7 @@ frameshifted_reads_by_ID <- function(aln, paired_end = TRUE) {
 #' @include helpers_general.R
 #'
 amplicanSummarize <- function(aln, cfgT, overlaps = "overlaps") {
+  # rewrite to make use of data.table
   paired_end <- length(unique(aln$strand)) > 0
 
   aln <- aln[aln$type != "mismatch",]
@@ -154,8 +155,8 @@ amplicanSummarize <- function(aln, cfgT, overlaps = "overlaps") {
     aln <- aln[aln$type == "deletion", ]
 
     aln$uniqID <- paste(aln$seqnames, aln$read_id, sep = "_")
-    aln_fwd <- aln[aln$strand == "+",]
-    aln_rve <- aln[aln$strand == "-",]
+    aln_fwd <- aln[aln$strand == "+", ]
+    aln_rve <- aln[aln$strand == "-", ]
     dup <- duplicated(rbind(aln_fwd[, c("uniqID", "start", "end")],
                             aln_rve[, c("uniqID", "start", "end")]),
                       fromLast = TRUE)[seq_len(dim(aln_fwd)[1])]
@@ -163,7 +164,8 @@ amplicanSummarize <- function(aln, cfgT, overlaps = "overlaps") {
     for (i in which(!dup)) {
       j <- which(aln_fwd[i, "uniqID"] == aln_rve$uniqID)
       if (length(j) > 0 && aln_fwd[i, "score"] < aln_rve[j, "score"]) {
-        aln_fwd[i, ] <- aln_rve[j, ]
+        aln_fwd <- aln_fwd[-i, ]
+        aln_fwd <- rbind(aln_fwd, aln_rve[j, ])
         aln_rve <- aln_rve[-j, ]
       }
     }

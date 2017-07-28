@@ -15,14 +15,8 @@
 #'
 #' @docType package
 #' @name amplican
+#' @import methods BiocGenerics Biostrings data.table
 "_PACKAGE"
-
-
-.onAttach = function(libname, pkgname) {
-  msg = "Welcome to ampliCan!"
-  msg = strwrap(msg, exdent=4, indent=4)
-  packageStartupMessage(paste(msg, collapse="\n"), appendLF=TRUE)
-}
 
 
 #' Wraps main package functionality into one function.
@@ -199,7 +193,7 @@ amplicanPipeline <- function(
                    file.path(results_folder, "barcode_reads_filters.csv"))
   message("Translating alignments into events...")
   cfgT <- experimentData(aln)
-  aln <- methods::as(aln, "data.frame")
+  aln <- extractEvents(aln, total_processors = total_processors)
   message("Saving complete events - unfiltered...")
   readr::write_csv(aln, file.path(resultsFolder, "raw_events.csv"))
 
@@ -226,7 +220,7 @@ amplicanPipeline <- function(
 
   # shift to relative (most left UPPER case is position 0)
   message("Shifting events as relative...")
-  aln <- data.frame(map_to_relative(aln, cfgT))
+  aln <- data.frame(map_to_relative(aln, cfgT), stringsAsFactors = FALSE)
   message("Saving shifted events - filtered...")
   readr::write_csv(aln,
                    file.path(resultsFolder,

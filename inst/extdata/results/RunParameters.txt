@@ -1,5 +1,5 @@
-Config file:         full/path/to/config/file/that/has/been/used.csv
-Processors used:     1
+Config file:         /home/ai/Projects/amplican/inst/extdata/config.csv
+Processors used:     2
 Average Quality:     30
 Minimum Quality:     20
 Write Alignments:    txt

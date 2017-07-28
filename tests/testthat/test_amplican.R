@@ -11,7 +11,7 @@ results_folder <- system.file("extdata", "results", package = "amplican")
 
 test_that("amplican runs through example files without any issues", {
   expect_message(
-    amplicanPipeline(config, fastq_folder, results_folder,
+    amplicanPipeline(config, fastq_folder, results_folder, total_processors = 2,
                      make_reports = FALSE))
 })
 

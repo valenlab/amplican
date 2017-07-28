@@ -43,13 +43,14 @@ makeAlignment <- function(cfgT,
   nucq <- alphabetQuality(fwdT) & alphabetQuality(rveT)
   goodReads <- goodq & avrq & nucq
 
-  barcodeTable <- data.frame(barcode = barcode,
+  barcodeTable <- data.frame(Barcode = barcode,
                              experiment_count = length(unique(cfgT$ID)),
                              read_count = length(goodReads),
                              bad_base_quality = sum(!goodq),
                              bad_average_quality = sum(!avrq),
                              bad_alphabet = sum(!nucq),
-                             filtered_read_count = sum(goodReads))
+                             filtered_read_count = sum(goodReads),
+                             stringsAsFactors = FALSE)
 
   fwdT <- fwdT[goodReads]
   rveT <- rveT[goodReads]
@@ -151,7 +152,7 @@ makeAlignment <- function(cfgT,
     unassignedTable$Barcode <- barcode
     unassignedTable <- unassignedTable[order(-unassignedTable$Total),]
   } else {
-    unassignedTable <- data.frame()
+    unassignedTable <- NULL
   }
 
   methods::new("AlignmentsExperimentSet",

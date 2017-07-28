@@ -20,7 +20,7 @@
 #' # path to example fastq files
 #' fastq_folder <- system.file("extdata", package = "amplican")
 #' aln <- amplicanAlign(config, fastq_folder)
-#' summary(aln)
+#' aln
 #'
 amplicanAlign <- function(
   config,
@@ -36,6 +36,7 @@ amplicanAlign <- function(
 
   message("Checking configuration file...")
   cfgT <- readr::read_csv(config, col_types = "ccccclccclc", na = "")
+  cfgT[is.na(cfgT)] <- ""
   cfgT <- data.frame(cfgT)
   colnames(cfgT) <- c("ID", "Barcode", "Forward_Reads_File",
                       "Reverse_Reads_File", "Group", "Control", "guideRNA",
@@ -75,10 +76,8 @@ amplicanAlign <- function(
   cfgT$Reads <- 0
 
   if (total_processors > 1) {
-    cl <- parallel::makeCluster(total_processors, outfile = "")
-    doParallel::registerDoParallel(cl)
-    p <- BiocParallel::DoparParam()
-
+    p <- BiocParallel::MulticoreParam(workers = total_processors)
+    BiocParallel::register(p)
     configSplit <- split(cfgT, f = cfgT$Barcode)
     finalAES <- BiocParallel::bplapply(configSplit, FUN = makeAlignment,
                                        average_quality,
@@ -87,8 +86,6 @@ amplicanAlign <- function(
                                        gap_opening,
                                        gap_extension,
                                        fastqfiles, BPPARAM=p)
-    parallel::stopCluster(cl)
-
   } else {
     finalAES <- vector("list", length(uBarcode))
     for (j in seq_along(uBarcode)) {
@@ -101,5 +98,5 @@ amplicanAlign <- function(
                                      fastqfiles)
     }
   }
-  Reduce(c, finalAES)
+  BiocGenerics::Reduce(c, finalAES)
 }

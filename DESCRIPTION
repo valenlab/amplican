@@ -18,17 +18,17 @@ biocViews: Technology, qPCR, CRISPR
 License: GPL-3
 LazyData: true
 Depends:
-    R (>= 3.3.0)
+    R (>= 3.3.0),
+    methods,
+    BiocGenerics,
+    Biostrings
 Imports:
     utils,
+    S4Vectors,
     ShortRead,
     IRanges,
-    BiocGenerics,
     GenomicRanges,
     GenomeInfoDb,
-    S4Vectors,
-    doParallel,
-    foreach,
     gtable,
     gridExtra,
     ggplot2 (>= 2.2.0),
@@ -37,10 +37,8 @@ Imports:
     stats,
     rmarkdown,
     knitr,
-    methods,
     matrixStats,
     Matrix,
-    Biostrings,
     BiocParallel,
     readr,
     data.table

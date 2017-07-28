@@ -176,9 +176,9 @@ return_plot <- function(freqAgr, amplicon, from, to, plot_fr, plot_re) {
                          xlim = from:to,
                          xlab = "Relative Nucleotide Position"))
   } else if (all(freqAgr$strand == "+")) {
-    return(annotate_with_amplicon(plot_fr, amplicon))
+    return(annotate_with_amplicon(plot_fr, amplicon, from, to))
   } else {
-    return(annotate_with_amplicon(plot_re, amplicon))
+    return(annotate_with_amplicon(plot_re, amplicon, from, to))
   }
 }
 
@@ -235,8 +235,15 @@ metaplot_mismatches <- function(alnmt, config, group,
 
   freqAgr <- stats::aggregate(frequency ~ replacement + start + strand + ID,
                               alnmt, sum)
+  if (dim(freqAgr)[1] == 0) {
+    return("No mismatches to plot.")
+  }
   freqAgr <- stats::aggregate(frequency ~ replacement + start + strand,
                               freqAgr, mean)
+
+  if (dim(freqAgr)[1] == 0) {
+    return("No mismatches to plot.")
+  }
 
   freqAgrPlus <- freqAgr[freqAgr$strand == "+", ]
   freqAgrMinus <- freqAgr[freqAgr$strand == "-", ]
@@ -305,9 +312,16 @@ metaplot_deletions <- function(alnmt, config, group,
 
   archRanges <- stats::aggregate(
     cbind(frequency, overlaps) ~ strand + start + end + ID, alnmt, sum)
+  if (dim(archRanges)[1] == 0) {
+    return("No deletions to plot.")
+  }
   archRanges$overlaps <- archRanges$overlaps > 0
   archRanges <- stats::aggregate(
     frequency ~ overlaps + strand + start + end, archRanges, mean)
+
+  if (dim(archRanges)[1] == 0) {
+    return("No deletions to plot.")
+  }
   archRanges$overlaps <- archRanges$overlaps > 0
 
   arch_plot_fr <- ggplot_deletions(archRanges[archRanges$strand == "+", ])
@@ -370,8 +384,14 @@ metaplot_insertions <- function(alnmt, config, group,
   # reduce
   idRangesReduced <- stats::aggregate(
     frequency ~ strand + start + end + ID, alnmt, sum)
+  if (dim(idRangesReduced)[1] == 0) {
+    return("No insertions to plot.")
+  }
   idRangesReduced <- stats::aggregate(
     frequency ~ strand + start + end, idRangesReduced, mean)
+  if (dim(idRangesReduced)[1] == 0) {
+    return("No insertions to plot.")
+  }
   idRangesFr <- idRangesReduced[idRangesReduced$strand == "+", ]
   triangleFr <- triangulate_ranges(idRangesFr)
   idRangesRe <- idRangesReduced[idRangesReduced$strand == "-", ]
@@ -493,8 +513,14 @@ plot_mismatches <- function(alignments,
 
   freqAgr <- stats::aggregate(
     frequency ~ replacement + start + strand + seqnames, idRanges, sum)
+  if (dim(freqAgr)[1] == 0) {
+    return("No mismatches to plot.")
+  }
   freqAgr <- stats::aggregate(
     frequency ~ replacement + start + strand, freqAgr, mean)
+  if (dim(freqAgr)[1] == 0) {
+    return("No mismatches to plot.")
+  }
   freqAgrPlus <- freqAgr[freqAgr$strand == "+", ]
   freqAgrMinus <- freqAgr[freqAgr$strand == "-", ]
 
@@ -586,14 +612,16 @@ plot_deletions <- function(alignments,
   archRanges <- stats::aggregate(
     cbind(frequency, overlaps) ~ strand + start + end + seqnames, archRanges,
     sum)
-  archRanges$overlaps <- archRanges$overlaps > 0
-  archRanges <- stats::aggregate(
-    cbind(frequency, overlaps) ~ strand + start + end, archRanges, mean)
-  archRanges$overlaps <- archRanges$overlaps > 0
-
   if (dim(archRanges)[1] == 0) {
     return("No deletions to plot.")
   }
+  archRanges$overlaps <- archRanges$overlaps > 0
+  archRanges <- stats::aggregate(
+    cbind(frequency, overlaps) ~ strand + start + end, archRanges, mean)
+  if (dim(archRanges)[1] == 0) {
+    return("No deletions to plot.")
+  }
+  archRanges$overlaps <- archRanges$overlaps > 0
 
   arch_plot_fr <- ggplot_deletions(archRanges[archRanges$strand == "+", ]) +
     ggplot2::ylim(0, max(archRanges$frequency, na.rm = TRUE))
@@ -664,8 +692,14 @@ plot_insertions <- function(alignments,
   # reduce
   idRangesReduced <- stats::aggregate(
     frequency ~ strand + start + end + seqnames, idRanges, sum)
+  if (dim(idRangesReduced)[1] == 0) {
+    return("No insertions to plot.")
+  }
   idRangesReduced <- stats::aggregate(
     frequency ~ strand + start + end, idRangesReduced, mean)
+  if (dim(idRangesReduced)[1] == 0) {
+    return("No insertions to plot.")
+  }
 
   idRangesFr <- idRangesReduced[idRangesReduced$strand == "+", ]
   triangleFr <- triangulate_ranges(idRangesFr)
@@ -949,11 +983,16 @@ aa_frame <- function(amplicon, sense = TRUE, frame = 1, ymin = 0, ymax = 1) {
                       ymax = ymax,
                       codon = c(s3_f, rep("", length(f_e))))
 }
-range01 <- function(x) (x - min(x))/diff(range(x))
+range01 <- function(x) {
+  nx <- (x - min(x))/diff(range(x))
+  nx[!is.finite(nx)] <- 0
+  nx
+}
 cRamp <- function(x){
   cols <- grDevices::colorRamp(c("#FFFFFF", "#98DDDE"))(range01(x))
-  apply(cols, 1, function (xt) grDevices::rgb(xt[1], xt[2], xt[3],
-                                              maxColorValue = 255))
+  apply(cols, 1, function (xt) {
+    grDevices::rgb(xt[1], xt[2], xt[3], maxColorValue = 255)
+  })
 }
 cRampF <- function(x) {
   greenF <- rep("#79C753", length(x))
@@ -1037,19 +1076,14 @@ plot_variants <- function(alignments, config, id,
       config$Reads_noPD[match(archRanges$seqnames, config$ID)]
   }
 
-  archRanges$read_names <- paste0(archRanges$seqnames, ":", archRanges$read_id)
-  archRanges <- archRanges[order(-archRanges$frequency, archRanges$read_names),]
-
-  if (length(unique(archRanges$read_names)) < top) {
-    top <- length(unique(archRanges$read_names))
-  }
-
   amplicon <- get_amplicon(config, id)
   box <- upperGroups(amplicon)[1]
   if (length(box) == 1) {
     box_shift <- IRanges::start(box)[1]
     upperBox <- IRanges::start(box):IRanges::end(box) - box_shift
     box <- box + cut_buffer
+    box <- IRanges::restrict(box, start = 1,
+                             end = nchar(amplicon))
   } else {
     box_shift <- 0
     upperBox <- 1:nchar(amplicon)
@@ -1059,6 +1093,16 @@ plot_variants <- function(alignments, config, id,
   box <- IRanges::shift(box, -1 * box_shift)
 
   xaxis <- IRanges::start(box[1]):IRanges::end(box[1])
+  archRanges <- GenomicRanges::restrict(GenomicRanges::GRanges(archRanges),
+                                        start = xaxis[1],
+                                        end = xaxis[length(xaxis)])
+  archRanges <- data.frame(archRanges)
+  archRanges$read_names <- paste0(archRanges$seqnames, ":", archRanges$read_id)
+  archRanges <- archRanges[order(-archRanges$frequency, archRanges$read_names),]
+
+  if (length(unique(archRanges$read_names)) < top) {
+    top <- length(unique(archRanges$read_names))
+  }
   yaxis <- seq_len(top + 1) # + amplicon reference
   yaxis_names <- c("amplicon", unique(archRanges$read_names)[seq_len(top)])
   archRanges <- archRanges[archRanges$read_names %in% yaxis_names, ]
@@ -1066,10 +1110,6 @@ plot_variants <- function(alignments, config, id,
                      nrow = length(yaxis),
                      ncol = length(amplicon), byrow = TRUE)
 
-  archRanges <- GenomicRanges::restrict(GenomicRanges::GRanges(archRanges),
-                                        start = xaxis[1],
-                                        end = xaxis[length(xaxis)])
-  archRanges <- data.frame(archRanges)
   # deletions and mismatches
   for (i in seq_len(dim(archRanges)[1])) {
     if (archRanges[i, "type"] == "insertion") next()
@@ -1164,13 +1204,18 @@ plot_variants <- function(alignments, config, id,
 
   vtable <- archRanges[, c("read_names", "frequency", "counts", "score")]
   widthT <- archRanges[archRanges$type != "mismatch", ]
-  widthT <- stats::aggregate(width ~ read_names, widthT, sum)
+  widthT <- if (dim(widthT)[1] == 0) {
+    data.frame(width = 0, read_names = "")
+  } else {
+    stats::aggregate(width ~ read_names, widthT, sum)
+  }
+
   vtable$Frameshift <- widthT$width[match(vtable$read_names, widthT$read_names)]
   vtable <- vtable[!duplicated(vtable), ]
   vtable <- vtable[, -1]
   vtable$frequency <- round(vtable$frequency, 2)
+  vtable[is.na(vtable) | !apply(vtable, 2, is.finite)] <- 0
   colnames(vtable) <- c("Freq", "Count", "Score", "F")
-
   tgb <- gridExtra::tableGrob(
     vtable, theme = gridExtra::ttheme_minimal(core = list(
       bg_params = list(fill = c(cRamp(vtable$Freq), cRamp(vtable$Count),

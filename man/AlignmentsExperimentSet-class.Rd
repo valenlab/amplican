@@ -5,9 +5,6 @@
 \alias{AlignmentsExperimentSet-class}
 \alias{AlignmentsExperimentSet}
 \alias{length,AlignmentsExperimentSet-method}
-\alias{names,AlignmentsExperimentSet-method}
-\alias{names<-,AlignmentsExperimentSet,ANY-method}
-\alias{names<-,AlignmentsExperimentSet-method}
 \alias{fwdReads,AlignmentsExperimentSet-method}
 \alias{fwdReads<-,AlignmentsExperimentSet-method}
 \alias{rveReads,AlignmentsExperimentSet-method}
@@ -22,20 +19,19 @@
 \alias{barcodeData<-,AlignmentsExperimentSet-method}
 \alias{unassignedCount,AlignmentsExperimentSet-method}
 \alias{assignedCount,AlignmentsExperimentSet-method}
+\alias{names,AlignmentsExperimentSet-method}
 \alias{c,AlignmentsExperimentSet-method}
-\alias{summary,AlignmentsExperimentSet-method}
+\alias{[,AlignmentsExperimentSet,numeric,missing,missing-method}
+\alias{as.list.AlignmentsExperimentSet}
+\alias{$,AlignmentsExperimentSet-method}
 \alias{writeAlignments,AlignmentsExperimentSet-method}
 \alias{lookupAlignment,AlignmentsExperimentSet-method}
-\alias{as}
+\alias{extractEvents,AlignmentsExperimentSet-method}
 \title{An S4 class to represent alignments from multiple experiments}
 \usage{
 AlignmentsExperimentSet(...)
 
 \S4method{length}{AlignmentsExperimentSet}(x)
-
-\S4method{names}{AlignmentsExperimentSet}(x)
-
-\S4method{names}{AlignmentsExperimentSet,ANY}(x) <- value
 
 \S4method{fwdReads}{AlignmentsExperimentSet}(x)
 
@@ -65,14 +61,24 @@ AlignmentsExperimentSet(...)
 
 \S4method{assignedCount}{AlignmentsExperimentSet}(x)
 
+\S4method{names}{AlignmentsExperimentSet}(x)
+
 \S4method{c}{AlignmentsExperimentSet}(x, ...)
 
-\S4method{summary}{AlignmentsExperimentSet}(object)
+\S4method{[}{AlignmentsExperimentSet,numeric,missing,missing}(x, i, j, ...,
+  drop = TRUE)
+
+\method{as.list}{AlignmentsExperimentSet}(x, ...)
+
+\S4method{$}{AlignmentsExperimentSet}(x, name)
 
 \S4method{writeAlignments}{AlignmentsExperimentSet}(x, file = "",
   aln_format = "txt")
 
 \S4method{lookupAlignment}{AlignmentsExperimentSet}(x, ID, read_id = 1)
+
+\S4method{extractEvents}{AlignmentsExperimentSet}(object,
+  total_processors = 1)
 }
 \arguments{
 \item{...}{pass any number of AlignmentsExperimentSet objects, make sure
@@ -81,6 +87,12 @@ experiment IDs can be unique after merging}
 \item{x, object}{(AlignmentsExperimentSet)}
 
 \item{value}{Represents assignment values for setter methods.}
+
+\item{i, j, name, drop}{(numeric, missing, character, missing)
+AlignmentsExperimentSet object can be subsetted using
+names of the experiments eg. \code{x$name} or \code{x[i]}, resulting in
+AlignmentsExperimentSet object that has only one experiment. During this
+subsetting, values of unassignedData and barcodeData are dropped.}
 
 \item{file}{(connection or string) Destination file. When empty, defaults to
 standard output.}
@@ -91,6 +103,10 @@ standard output.}
 
 \item{read_id}{(numeric) Read Identifier. Reads are sorted by frequency.
 Defaults to 1, most abundant read.}
+
+\item{total_processors}{(numeric) When using \code{extractEvents} you can
+specify how many processors to use as this is very slow function (despite
+vectorization).}
 }
 \description{
 Class \code{AlignmentsExperimentSet} holds data from multiple alignments for
@@ -129,19 +145,27 @@ Write out human readable alignments for given experiment and read_id.:  \cr
 \code{lookupAlignment(x, ID, read_id = 1)}
 }
 
-\section{Coercion}{
+\section{Coercion based on events}{
 
 Coerce to \code{data.frame} compatible with
 \code{\link[GenomicRanges]{GRanges}} .: \cr
-as(x, "data.frame")
+as.data.frame(x)
 }
 
 \examples{
-a <- new("AlignmentsExperimentSet")
-summary(a)
-
+exampleAlignments <- Biostrings::pairwiseAlignment(
+  Biostrings::DNAStringSet(c("ACTGACTG", "CGACGACG")), "ACGTACGTACGT")
+new("AlignmentsExperimentSet",
+     fwdReads = list(ID_1 = exampleAlignments, ID_2 = exampleAlignments),
+     rveReads = list(ID_1 = exampleAlignments, ID_2 = exampleAlignments),
+     readCounts = list(ID_1 = c(2, 20), ID_2 = c(30, 100)),
+     unassignedData = NULL,
+     experimentData = data.frame(ID = c("ID_1", "ID_2"),
+                                 Barcode = c("B1", "B1"),
+                                 whatever = c(50, 100)),
+     barcodeData = data.frame(Barcode = "B1", statistic1 = 100))
 # Coercion
-as(AlignmentsExperimentSet(), "data.frame")
-GenomicRanges::GRanges(as(AlignmentsExperimentSet(), "data.frame"))
+extractEvents(AlignmentsExperimentSet(), total_processors = 2)
+GenomicRanges::GRanges(extractEvents(AlignmentsExperimentSet()))
 
 }

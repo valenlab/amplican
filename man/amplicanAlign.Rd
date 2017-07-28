@@ -71,7 +71,7 @@ config <- system.file("extdata", "config.csv", package = "amplican")
 # path to example fastq files
 fastq_folder <- system.file("extdata", package = "amplican")
 aln <- amplicanAlign(config, fastq_folder)
-summary(aln)
+aln
 
 }
 \seealso{

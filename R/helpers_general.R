@@ -154,7 +154,7 @@ cumsumw <- function(x) {
 #' @return (GRanges) Object with meta-data for insertion, deletion, mismatch
 #'
 getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
-
+  if (length(align) == 0) return(GenomicRanges::GRanges())
   if (any(ampl_shift < 1)) stop("Amplicon shift can't be less than 1.")
   scores <- Biostrings::score(align)
 

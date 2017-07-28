@@ -40,22 +40,21 @@ amplicanNormalize <- function(aln, cfgT,
     warning("Column 'Control' has no TRUE/1 values. Nothing to normalize.")
     return(aln)
   }
+  data.table::setDT(aln)
 
   map <- match(aln$seqnames, cfgT$ID)
   for (column in add) {
     aln[[column]] <- cfgT[[column]][map]
   }
-  aln[["Control"]] <- cfgT[["Control"]][map]
-  aln_ctr <- aln[aln$Control, ]
-  aln <- aln[!aln$Control, ]
-  data.table::setDT(aln)
-  data.table::setDT(aln_ctr)
+  ctr_indices <- cfgT[["Control"]][map]
+  aln_ctr <- aln[ctr_indices, ]
+  aln <- aln[!ctr_indices, ]
 
-  cols <- names(aln)[!names(aln) %in% c(skip, "Control", "seqnames", "read_id")]
+  cols <- names(aln)[!names(aln) %in% c(skip, "seqnames", "read_id")]
   aln <- aln[!aln_ctr, on = cols]
 
   aln <- data.table::rbindlist(list(aln, aln_ctr))
-  aln <- aln[, colnames(aln)[!colnames(aln) %in% c(add, "Control")], with=FALSE]
+  aln <- aln[, colnames(aln)[!colnames(aln) %in% add], with=FALSE]
   data.table::setDF(aln)
   aln
 }
