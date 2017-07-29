@@ -27,8 +27,9 @@
 #' @param results_folder (string) Where do you want your results to be stored?
 #' The package will create files in that folder so make sure you have writing
 #' permissions.
-#' @param make_reports (boolean) whether function should create and "knit" all
-#' reports automatically for you (it is time consuming, but shows progress)
+#' @param knit_reports (boolean) whether function should "knit" all
+#' reports automatically for you (it is time consuming, be patient), when false
+#' reports will be prepared, but not knitted
 #' @param config (string) The path to your configuration file. For example:
 #' \code{system.file("extdata", "config.txt", package = "amplican")}
 #' @param fastq_folder (string) Path to FASTQ files. If not specified,
@@ -108,12 +109,12 @@
 #' results_folder <- tempdir()
 #'
 #' #full analysis, not knitting files automatically
-#' amplicanPipeline(config, fastq_folder, results_folder, make_reports = FALSE)
+#' amplicanPipeline(config, fastq_folder, results_folder, knit_reports = FALSE)
 #'
 # config <- system.file("extdata", "config.csv", package = "amplican")
 # fastq_folder <- system.file("extdata", package = "amplican")
 # results_folder <- tempdir()
-# make_reports = TRUE
+# knit_reports = TRUE
 # write_alignments_format = "txt"
 # average_quality = 30
 # min_quality = 20
@@ -128,7 +129,7 @@
 # normalize = c("guideRNA", "Group")
 
 amplicanPipeline <- function(
-  config, fastq_folder, results_folder, make_reports = TRUE,
+  config, fastq_folder, results_folder, knit_reports = TRUE,
   write_alignments_format = "txt", average_quality = 30,
   min_quality = 20, total_processors = 1,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
@@ -229,7 +230,7 @@ amplicanPipeline <- function(
   cfgT$guideRNA[cfgT$Direction] <- revComp(cfgT$guideRNA[cfgT$Direction])
   # normalize
   message("Normalizing events...")
-  aln <- amplicanNormalize(aln, cfgT, add = normalize)
+  aln2 <- amplicanNormalize(aln, cfgT, add = normalize)
   aln$overlaps <- amplicanOverlap(aln, cfgT, cut_buffer = cut_buffer)
   message("Saving normalized events...")
   data.table::fwrite(aln,
@@ -246,26 +247,24 @@ amplicanPipeline <- function(
     file.path(results_folder, "config_summary.csv"))
 
   # reports
-  if (make_reports) {
-
-    reportsFolder <- file.path(results_folder, "reports")
-    if (!dir.exists(reportsFolder)) {
-      dir.create(reportsFolder)
-    }
-
-    message(paste0("Making reports... \nDue to high quality ",
-                   "figures, it is time consuming. Use .Rmd templates for ",
-                   "more control."))
-    amplicanReport(results_folder,
-                   report_files = file.path(reportsFolder,
-                                            c("report_id",
-                                              "report_barcode",
-                                              "report_group",
-                                              "report_guide",
-                                              "report_amplicon",
-                                              "index")))
+  reportsFolder <- file.path(results_folder, "reports")
+  if (!dir.exists(reportsFolder)) {
+    dir.create(reportsFolder)
   }
 
+  message(paste0("Making reports... \nDue to high quality ",
+                 "figures, it is time consuming. Use .Rmd templates for ",
+                 "more control."))
+  amplicanReport(results_folder,
+                 knit_reports = knit_reports,
+                 cut_buffer = cut_buffer,
+                 report_files = file.path(reportsFolder,
+                                          c("id_report",
+                                            "barcode_report",
+                                            "group_report",
+                                            "guide_report",
+                                            "amplicon_report",
+                                            "index")))
   message("Finished.")
   invisible(results_folder)
 }

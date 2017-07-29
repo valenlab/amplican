@@ -26,10 +26,10 @@
 #'                    guideRNA = rep("ACTG", 5),
 #'                    Group = c("A", "A", "B", "B", "B"),
 #'                    Control = c(TRUE, FALSE, TRUE, FALSE, FALSE))
-#'# all events are same as in the control group, therfore are filtered out
-#'# events from control groups stay
+#' # all events are same as in the control group, therfore are filtered out
+#' # events from control groups stay
 #' amplicanNormalize(aln, cfgT)
-#'# events that are different from control group are preserved
+#' # events that are different from control group are preserved
 #' aln[2, "start"] <- 3
 #' amplicanNormalize(aln, cfgT)
 #'
@@ -46,12 +46,14 @@ amplicanNormalize <- function(aln, cfgT,
   for (column in add) {
     aln[[column]] <- cfgT[[column]][map]
   }
+  cols <- names(aln)[!names(aln) %in% c(skip, "seqnames", "read_id")]
+  data.table::setkeyv(aln, cols)
+
   ctr_indices <- cfgT[["Control"]][map]
   aln_ctr <- aln[ctr_indices, ]
   aln <- aln[!ctr_indices, ]
 
-  cols <- names(aln)[!names(aln) %in% c(skip, "seqnames", "read_id")]
-  aln <- aln[!aln_ctr, on = cols]
+  aln <- aln[!aln_ctr]
 
   aln <- data.table::rbindlist(list(aln, aln_ctr))
   aln <- aln[, colnames(aln)[!colnames(aln) %in% add], with=FALSE]

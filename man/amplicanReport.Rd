@@ -7,7 +7,7 @@
 amplicanReport(results_folder, levels = c("id", "barcode", "group", "guide",
   "amplicon", "summary"), report_files = c("id_report", "barcode_report",
   "group_report", "guide_report", "amplicon_report", "index"), cut_buffer = 5,
-  xlab_spacing = 4, top = 5)
+  xlab_spacing = 4, top = 5, knit_reports = TRUE)
 }
 \arguments{
 \item{results_folder}{(string) Folder containing results from the
@@ -31,6 +31,8 @@ axis of plots.}
 unassigned reads to report? It is only relevant when you used forward and
 reverse reads. We align them to each other as we could not specify correct
 amplicon.}
+
+\item{knit_reports}{(boolean) Whether to knit reports automatically.}
 }
 \value{
 (string) Path to the folder with results.
@@ -44,17 +46,15 @@ If you want to postpone kniting and edit reports, use .Rmd templates to
 create your own version of reports instead of this function.
 }
 \examples{
-\dontrun{
 results_folder <- tempdir()
 amplicanReport(results_folder, report_files = file.path(results_folder,
-                                                        "reports",
-                                                        c("report_id",
-                                                          "report_barcode",
-                                                          "report_group",
-                                                          "report_guide",
-                                                          "report_amplicon",
-                                                          "index")))
-}
+                                                        c("id_report",
+                                                          "barcode_report",
+                                                          "group_report",
+                                                          "guide_report",
+                                                          "amplicon_report",
+                                                          "index")),
+               knit_reports = FALSE)
 }
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},

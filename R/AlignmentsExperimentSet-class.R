@@ -523,11 +523,11 @@ setMethod("writeAlignments", "AlignmentsExperimentSet", function(
               "read_id:",
               format(seq_len(length(readCounts(x)[[ID]]))),
               "Count:", format(readCounts(x)[[ID]])),
-        if (length(fwdReads(x)) > 0) rbind(
+        if (length(fwdReads(x)[[ID]]) > 0) rbind(
           as.character(Biostrings::pattern(fwdReads(x)[[ID]])),
           as.character(Biostrings::subject(fwdReads(x)[[ID]]))),
-        if (length(fwdReads(x)) == length(rveReads(x))) "",
-        if (length(rveReads(x)) > 0) rbind(
+        if (length(fwdReads(x)[[ID]]) == length(rveReads(x)[[ID]])) "",
+        if (length(rveReads(x)[[ID]]) > 0) rbind(
           as.character(Biostrings::pattern(rveReads(x)[[ID]])),
           as.character(Biostrings::subject(rveReads(x)[[ID]]))), "")),
         file)
@@ -539,7 +539,7 @@ setMethod("writeAlignments", "AlignmentsExperimentSet", function(
       counts = readCounts(x)[[ID]]
       if (is.null(counts)) next()
       writeLines(as.vector(rbind(
-        if (length(fwdReads(x)) > 0)
+        if (length(fwdReads(x)[[ID]]) > 0)
           rbind(paste(">Forward read ID:", ID,
                       "read_id:",
                       format(seq_len(length(fwdReads(x)[[ID]]))),
@@ -550,7 +550,7 @@ setMethod("writeAlignments", "AlignmentsExperimentSet", function(
                       format(seq_len(length(fwdReads(x)[[ID]]))),
                       "Count:", format(counts)),
                 as.character(Biostrings::subject(fwdReads(x)[[ID]]))),
-        if (length(rveReads(x)) > 0)
+        if (length(rveReads(x)[[ID]]) > 0)
           rbind(paste(">Reverse read ID:", ID,
                       "read_id:",
                       format(seq_len(length(rveReads(x)[[ID]]))),
@@ -590,7 +590,7 @@ setMethod("lookupAlignment", "AlignmentsExperimentSet", function(
   x, ID, read_id = 1) {
 
   if (length(readCounts(x)[[ID]]) == 0) return(NULL)
-  if (length(fwdReads(x)) > 0) {
+  if (length(fwdReads(x)[[ID]]) >= read_id) {
     fwd <- capture.output(Biostrings::writePairwiseAlignments(
       fwdReads(x)[[ID]][as.numeric(read_id)]))
     fwd[7] <- "# Aligned sequences:"
@@ -600,7 +600,7 @@ setMethod("lookupAlignment", "AlignmentsExperimentSet", function(
              fwd[2:length(fwd)])
   } else {fwd <- NULL}
 
-  if (length(rveReads(x)) > 0) {
+  if (length(rveReads(x)[[ID]]) >= read_id) {
     rve <- capture.output(Biostrings::writePairwiseAlignments(
       fwdReads(x)[[ID]][as.numeric(read_id)]))
     rve[7] <- "# Aligned sequences:"
@@ -610,6 +610,7 @@ setMethod("lookupAlignment", "AlignmentsExperimentSet", function(
              rve[2:length(rve)])
   } else {rve <- NULL}
 
+  if (is.null(rve) & is.null(fwd)) stop("Subsetting out of bounds.")
   writeLines(c(fwd, rve))
 })
 

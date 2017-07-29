@@ -4,7 +4,7 @@
 \alias{amplicanPipeline}
 \title{Wraps main package functionality into one function.}
 \usage{
-amplicanPipeline(config, fastq_folder, results_folder, make_reports = TRUE,
+amplicanPipeline(config, fastq_folder, results_folder, knit_reports = TRUE,
   write_alignments_format = "txt", average_quality = 30, min_quality = 20,
   total_processors = 1,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5,
@@ -23,8 +23,9 @@ FASTQ files should be in the same directory as config file.}
 The package will create files in that folder so make sure you have writing
 permissions.}
 
-\item{make_reports}{(boolean) whether function should create and "knit" all
-reports automatically for you (it is time consuming, but shows progress)}
+\item{knit_reports}{(boolean) whether function should "knit" all
+reports automatically for you (it is time consuming, be patient), when false
+reports will be prepared, but not knitted}
 
 \item{write_alignments_format}{(character vector) Whether we should write
 alignments results to separate files for each ID, reverse reads are reverse
@@ -116,7 +117,7 @@ fastq_folder <- system.file("extdata", package = "amplican")
 results_folder <- tempdir()
 
 #full analysis, not knitting files automatically
-amplicanPipeline(config, fastq_folder, results_folder, make_reports = FALSE)
+amplicanPipeline(config, fastq_folder, results_folder, knit_reports = FALSE)
 
 }
 \seealso{

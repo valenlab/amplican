@@ -22,22 +22,21 @@
 #' unassigned reads to report? It is only relevant when you used forward and
 #' reverse reads. We align them to each other as we could not specify correct
 #' amplicon.
+#' @param knit_reports (boolean) Whether to knit reports automatically.
 #' @include helpers_rmd.R
 #' @return (string) Path to the folder with results.
 #' @export
 #' @family analysis steps
 #' @examples
-#' \dontrun{
 #' results_folder <- tempdir()
 #' amplicanReport(results_folder, report_files = file.path(results_folder,
-#'                                                         "reports",
-#'                                                         c("report_id",
-#'                                                           "report_barcode",
-#'                                                           "report_group",
-#'                                                           "report_guide",
-#'                                                           "report_amplicon",
-#'                                                           "index")))
-#' }
+#'                                                         c("id_report",
+#'                                                           "barcode_report",
+#'                                                           "group_report",
+#'                                                           "guide_report",
+#'                                                           "amplicon_report",
+#'                                                           "index")),
+#'                knit_reports = FALSE)
 amplicanReport <- function(results_folder,
                            levels = c("id",
                                       "barcode",
@@ -53,7 +52,8 @@ amplicanReport <- function(results_folder,
                                             "index"),
                            cut_buffer = 5,
                            xlab_spacing = 4,
-                           top = 5) {
+                           top = 5,
+                           knit_reports = TRUE) {
 
   existing_levels <- c("id", "barcode", "group",
                        "guide", "amplicon", "summary")
@@ -117,8 +117,22 @@ amplicanReport <- function(results_folder,
                            summary = list(barcode_summary = barcode_summary,
                                           config_summary = config_summary,
                                           links = links))
-    rmarkdown::render(report_name,
-                      params = rmdParamList)
+    rmd_content <- readLines(report_name)
+    for (k in seq_along(rmdParamList)) {
+      # 11th line is params:
+      new_param <- if (is.numeric(rmdParamList[[k]])) {
+        paste0(": ", rmdParamList[[k]], collapse = "")
+      } else {
+        paste0(": '", rmdParamList[[k]], "'", collapse = "")
+      }
+      rmd_content[11 + k] <- gsub(":.*", new_param, rmd_content[11 + k])
+    }
+    cat(rmd_content, file = report_name, sep = "\n")
+
+    if (knit_reports) {
+      rmarkdown::render(report_name,
+                        params = rmdParamList)
+    }
   }
 
   invisible(results_folder)
