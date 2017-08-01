@@ -707,8 +707,8 @@ plot_insertions <- function(alignments,
   triangleRe <- triangulate_ranges(idRangesRe)
 
   if (dim(idRangesRe)[1] != 0 | dim(idRangesFr)[1] != 0) {
-    ampl_len <- max(c(max(triangleFr$position, na.rm = TRUE),
-                      max(triangleRe$position, na.rm = TRUE),
+    ampl_len <- max(c(max(c(0, triangleFr$position), na.rm = TRUE),
+                      max(c(0, triangleRe$position), na.rm = TRUE),
                       ampl_len), na.rm = TRUE)
   }
 
@@ -911,9 +911,8 @@ plot_heterogeneity <- function(alignments,
   c_ord <- order(uniqueReadsByID[[by]], uniqueReadsByID$counts, decreasing = T)
   uniqueReadsByID <- uniqueReadsByID[c_ord, ]
 
-  cumsum_list <- tapply(uniqueReadsByID$counts,
-                        uniqueReadsByID[[by]], FUN = cumsum)
-  cumsum_list <- cumsum_list[unique(uniqueReadsByID[[by]])]
+  cumsum_list <- by(uniqueReadsByID$counts, uniqueReadsByID[[by]], cumsum)
+  cumsum_list <- cumsum_list[as.character(unique(uniqueReadsByID[[by]]))]
   uniqueReadsByID$cumsum <- unlist(cumsum_list)
 
   howManyTimes <- table(uniqueReadsByID[[by]])
@@ -999,6 +998,12 @@ cRampF <- function(x) {
   greenF[x %% 3 == 0] <- "#FFFFFF"
   greenF
 }
+typeToNum <- function(x) {
+  x <- unique(x)
+  if (length(x) >= 2) return(3)
+  if (x == "insertion") return(1)
+  2
+}
 
 
 #' Plots most frequent variants using ggplot2 and ggbio.
@@ -1063,7 +1068,7 @@ plot_variants <- function(alignments, config, id,
   archRanges <- alignments[alignments$seqnames %in% id, ]
   archRanges <- archRanges[archRanges$overlaps, ]
 
-  if (length(unique(archRanges$strand)) == 2) {
+  if (length(unique(archRanges$strand)) == 2) { # change this
     archRanges <- archRanges[archRanges$strand == "+", ]
   }
 
@@ -1093,6 +1098,20 @@ plot_variants <- function(alignments, config, id,
   box <- IRanges::shift(box, -1 * box_shift)
 
   xaxis <- IRanges::start(box[1]):IRanges::end(box[1])
+
+  # calculate frameshifts beforehand
+  widthT <- archRanges[archRanges$type != "mismatch", ]
+  data.table::setDT(widthT)
+  widthT[type == "deletion", width := width * -1L] # by reference
+  widthT <- if (dim(widthT)[1] == 0) {
+    data.table(width = 0, read_names = "")
+  } else {
+    widthT[, list(width = sum(width),
+                  type = typeToNum(type)), c("seqnames", "read_id")]
+  }
+  data.table::setDF(widthT)
+  widthT$read_names <- paste0(widthT$seqnames, ":", widthT$read_id)
+
   archRanges <- GenomicRanges::restrict(GenomicRanges::GRanges(archRanges),
                                         start = xaxis[1],
                                         end = xaxis[length(xaxis)])
@@ -1106,6 +1125,11 @@ plot_variants <- function(alignments, config, id,
   }
   yaxis <- seq_len(top + 1) # + amplicon reference
   yaxis_names <- c("amplicon", unique(archRanges$read_names)[seq_len(top)])
+  yaxis_names_display <- if (length(id) == 1) {
+    c("amplicon", unique(archRanges$read_id)[seq_len(top)])
+  } else {
+    yaxis_names
+  }
   archRanges <- archRanges[archRanges$read_names %in% yaxis_names, ]
   variants <- matrix(toupper(amplicon),
                      nrow = length(yaxis),
@@ -1155,7 +1179,8 @@ plot_variants <- function(alignments, config, id,
                        colour = "black", alpha = 0) +
     ggplot2::geom_point(data = insertion_melt,
                         ggplot2::aes(x = x, y = y), shape = 25,
-                        size = 5, fill = "black") +
+                        size = 4,
+                        fill = "black") +
     ggplot2::geom_text(ggplot2::aes(label = value)) +
     ggplot2::scale_fill_manual(values = amplicon_colors) +
     ggplot2::theme_bw() +
@@ -1167,10 +1192,11 @@ plot_variants <- function(alignments, config, id,
                    panel.background = ggplot2::element_blank(),
                    axis.ticks.y = ggplot2::element_blank()) +
     ggplot2::scale_y_continuous(breaks = (length(yaxis)-1):0 + 0.5,
-                                labels = yaxis_names,
+                                labels = yaxis_names_display,
                                 expand = c(0,0)) +
-    ggplot2::labs(y = "Variant",
-                  x = "Nucleotide Position Relative to PAM")
+    ggplot2::labs(y = trimws(paste0(
+      if (length(id) == 1) id else "", " Read ID", collapse = "")),
+      x = "Nucleotide Position Relative to PAM")
 
   codon_melt <- rbind(aa_frame(amplicon, TRUE, 1, 0, 1),
                       aa_frame(amplicon, TRUE, 2, 1, 2),
@@ -1204,12 +1230,6 @@ plot_variants <- function(alignments, config, id,
     ggplot2::labs(y = "Frame")
 
   vtable <- archRanges[, c("read_names", "frequency", "counts", "score")]
-  widthT <- archRanges[archRanges$type != "mismatch", ]
-  widthT <- if (dim(widthT)[1] == 0) {
-    data.frame(width = 0, read_names = "")
-  } else {
-    stats::aggregate(width ~ read_names, widthT, sum)
-  }
 
   vtable$Frameshift <- widthT$width[match(vtable$read_names, widthT$read_names)]
   vtable <- vtable[!duplicated(vtable), ]

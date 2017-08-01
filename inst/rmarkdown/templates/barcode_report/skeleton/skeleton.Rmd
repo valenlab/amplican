@@ -158,12 +158,12 @@ if (!is.na(config$Forward_Reads_File) && !is.na(config$Reverse_Reads_File)) {
   cat("# Top unassigned reads  \n\n***  \n\n")
   for (b in unique(unassigned_reads$Barcode)) {
     cat(paste0("## ", b, "  \n\n"))
-    b_unassiged <- unassigned_reads[, unassigned_reads$Barcode == b]
+    b_unassiged <- unassigned_reads[unassigned_reads$Barcode == b, ]
     b_unassiged <- b_unassiged[order(b_unassiged$BarcodeFrequency, decreasing = TRUE), ]
     if (dim(b_unassiged)[1] == 0) {
       cat(knitr::asis_output("No unassigned reads in this barcode. That\'s great!  \n\n"))
     } else {
-      topN <- if (dim(b_unassiged)[1] < params$top) dim(b_unassiged)[1] else top
+      topN <- if (dim(b_unassiged)[1] < params$top) dim(b_unassiged)[1] else params$top
       cat('\n')
       print(knitr::kable(data.frame(Forward = paste0('P', 1:topN),
                                     Reverse = paste0('S', 1:topN),

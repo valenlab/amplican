@@ -197,27 +197,26 @@ amplicanPipeline <- function(
   aln <- extractEvents(aln, total_processors = total_processors)
   message("Saving complete events - unfiltered...")
   data.table::fwrite(aln, file.path(resultsFolder, "raw_events.csv"))
-
+  data.table::setDT(aln)
+  seqnames <- read_id <- counts <- NULL
   # find PRIMER DIMERS
   PD <- findPD(aln, cfgT, PRIMER_DIMER = PRIMER_DIMER)
 
   # summarize how many PRIMER DIMER reads per ID
-  onlyPD <- aln[PD, c("seqnames", "read_id", "counts")]
-  onlyPD <- onlyPD[!duplicated(onlyPD[, c("seqnames", "read_id")]), ]
-  summaryPD <- stats::aggregate(counts ~ seqnames, onlyPD, sum)
+  onlyPD <- aln[PD, ]
+  onlyPD <- unique(onlyPD, by = c("seqnames", "read_id"))
+  summaryPD <- onlyPD[, list(counts  = sum(counts)), by = c("seqnames")]
   cfgT$PRIMER_DIMER <- 0
   cfgT$PRIMER_DIMER[match(summaryPD$seqnames, cfgT$ID)] <- summaryPD$counts
   cfgT$Reads_noPD <- cfgT$Reads - cfgT$PRIMER_DIMER
 
-  # apply filter
-  PD <- which(aln$seqnames %in% onlyPD$seqnames)
-  read_ids <- onlyPD$read_id[match(aln$seqnames[PD], onlyPD$seqnames)]
-  PD <- PD[aln$read_id[PD] == read_ids]
-  aln <- aln[-PD,]
+  # apply filter - remove all events that come from PD infected reads
+  aln <- aln[!onlyPD, on = list(seqnames, read_id)]
 
   # filter events overlaping primers
   eOP <- findEOP(aln, cfgT)
   aln <- aln[!eOP, ]
+  data.table::setDF(aln)
 
   # shift to relative (most left UPPER case is position 0)
   message("Shifting events as relative...")
@@ -230,7 +229,7 @@ amplicanPipeline <- function(
   cfgT$guideRNA[cfgT$Direction] <- revComp(cfgT$guideRNA[cfgT$Direction])
   # normalize
   message("Normalizing events...")
-  aln2 <- amplicanNormalize(aln, cfgT, add = normalize)
+  aln <- amplicanNormalize(aln, cfgT, add = normalize)
   aln$overlaps <- amplicanOverlap(aln, cfgT, cut_buffer = cut_buffer)
   message("Saving normalized events...")
   data.table::fwrite(aln,

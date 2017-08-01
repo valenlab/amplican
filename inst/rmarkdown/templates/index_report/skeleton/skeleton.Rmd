@@ -176,19 +176,19 @@ summaryDF_per[, c('filtered_read_count', 'bad_read_count')] <-
   round(summaryDF_per[, c('filtered_read_count', 'bad_read_count')]*100/summaryDF_per$read_count)
 summaryDF_per[is.na(summaryDF_per)] <- 0
 
-quality_melt <- melt(summaryDF_per, id.vars = c('Barcode'), 
+quality_melt <- melt(summaryDF_per, id.vars = c('barcode'), 
                      measure.vars = c('filtered_read_count', 'bad_read_count'))
 quality_det_melt <- melt(summaryDF_per,
-                     id.vars = c('Barcode'),
+                     id.vars = c('barcode'),
                      measure.vars = c('bad_base_quality',
                                       'bad_average_quality',
                                       'bad_alphabet'))
 assignment_melt <- melt(summaryDF_per,
-                        id.vars = c('Barcode'),
+                        id.vars = c('barcode'),
                         measure.vars = c('assigned_reads', 'unassigned_reads'))
 
 ggplot(data = quality_melt,
-       aes(x = as.factor(Barcode),
+       aes(x = as.factor(barcode),
            y = value,
            fill = factor(variable, labels = c('Good Reads', 'Bad Quality Reads')))) +
   geom_bar(position ='stack', stat ='identity') +
@@ -201,8 +201,11 @@ ggplot(data = quality_melt,
   coord_flip() +
   scale_fill_manual(values = c('#E69F00', '#000000'))
 
+```
+
+```{r fig.width=8, fig.height=height, echo = F}
 ggplot(data = quality_det_melt,
-       aes(x = as.factor(Barcode),
+       aes(x = as.factor(barcode),
            y = value,
            fill = factor(variable, labels = c('Bad Read Base Quality', 
                                               'Bad Average Read Quality', 
@@ -217,9 +220,11 @@ ggplot(data = quality_det_melt,
   coord_flip() + 
   scale_color_colorblind()+
   scale_fill_manual(values = c('#D55e00', '#f0e442', '#009e73'))
+```
 
+```{r fig.width=8, fig.height=height, echo = F}
 ggplot(data = assignment_melt,
-       aes(x = as.factor(Barcode),
+       aes(x = as.factor(barcode),
            y = value,
            fill = factor(variable, labels = c('Assigned Reads', 'Unassigned Reads')))) +
   geom_bar(position='stack', stat='identity') +

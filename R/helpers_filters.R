@@ -18,7 +18,7 @@
 #'
 findEOP <- function(aln, cfgT) {
   mapID <- match(aln$seqnames, cfgT$ID)
-  aln$start < cfgT$fwdPrPosEnd[mapID] | aln$end > cfgT$rvePrPos[mapID]
+  (aln$start < cfgT$fwdPrPosEnd[mapID]) | (aln$end > cfgT$rvePrPos[mapID])
 }
 
 

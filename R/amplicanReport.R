@@ -70,7 +70,7 @@ amplicanReport <- function(results_folder,
   template_names <- template_names[!invalid_levels]
   template_names <- template_names[match(levels, existing_levels)]
 
-  links <- c("***\n", "# Other Reports\n", "***\n")
+  links <- c()
   if ("summary" %in% levels) {
     summary <- which(levels == "summary")
     lvl_no_sum <- levels[-summary]
@@ -81,6 +81,7 @@ amplicanReport <- function(results_folder,
                              lvl_no_sum[i], "](",
                              file.path(".", files_no_sum[i]), ".html)"))
   }
+  if (length(levels) == 1) links <- ""
 
   barcode_summary <- file.path(results_folder, 'barcode_reads_filters.csv')
   config_summary <- file.path(results_folder, 'config_summary.csv')
@@ -88,7 +89,7 @@ amplicanReport <- function(results_folder,
                           'events_filtered_shifted_normalized.csv')
   unassigned_folder<- file.path(results_folder,
                                 'alignments',
-                                'unassigned_sequences')
+                                'unassigned_reads.csv')
 
   id_am_params <- list(alignments = alignments,
                        config_summary = config_summary,
@@ -116,14 +117,15 @@ amplicanReport <- function(results_folder,
                            amplicon = id_am_params,
                            summary = list(barcode_summary = barcode_summary,
                                           config_summary = config_summary,
-                                          links = links))
+                                          links = paste0(links,
+                                                         collapse = "\n")))
     rmd_content <- readLines(report_name)
     for (k in seq_along(rmdParamList)) {
       # 11th line is params:
       new_param <- if (is.numeric(rmdParamList[[k]])) {
-        paste0(": ", rmdParamList[[k]], collapse = "")
+        paste0(': ', rmdParamList[[k]], collapse = '')
       } else {
-        paste0(": '", rmdParamList[[k]], "'", collapse = "")
+        paste0(': "', rmdParamList[[k]], '"', collapse = '')
       }
       rmd_content[11 + k] <- gsub(":.*", new_param, rmd_content[11 + k])
     }
@@ -131,7 +133,8 @@ amplicanReport <- function(results_folder,
 
     if (knit_reports) {
       rmarkdown::render(report_name,
-                        params = rmdParamList)
+                        params = rmdParamList,
+                        envir = parent.frame())
     }
   }
 

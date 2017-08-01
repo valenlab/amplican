@@ -2,7 +2,9 @@
 % Please edit documentation in R/amplicanSummarize.R
 \name{frameshifted_reads_by_ID}
 \alias{frameshifted_reads_by_ID}
-\title{Summarize counts of reads with frameshifts for each experiment}
+\title{Summarize counts of reads with frameshifts for each experiment
+when seqnames not presnt it means no frameshift in any of the reads for this
+experiment. Normally counts for + and - are always the same.}
 \usage{
 frameshifted_reads_by_ID(aln, paired_end = TRUE)
 }
@@ -16,4 +18,6 @@ frameshifted_reads_by_ID(aln, paired_end = TRUE)
 }
 \description{
 Summarize counts of reads with frameshifts for each experiment
+when seqnames not presnt it means no frameshift in any of the reads for this
+experiment. Normally counts for + and - are always the same.
 }
