@@ -31,9 +31,6 @@ amplican_print_reads <- function(forward, reverse) {
 #' @export
 #'
 plot_height <- function(x) {
-  if (x < 10) {
-    x + 1
-  } else {
-    ceiling(9 * log(x))
-  }
+    x <- grid::unit(x, "char") + grid::unit(x * 0.2, "mm") + grid::unit(2, "cm")
+    ceiling(as.numeric(grid::convertUnit(x, "inches")))
 }

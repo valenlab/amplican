@@ -159,7 +159,7 @@ ggplot(data = ampliconTable, aes(x = as.factor(group), y = frameshift_over_perce
 
 ## Heterogeneity of reads  
 
-```{r plot read heterogeneity, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+```{r plot read heterogeneity, echo=FALSE, fig.height=height + 1, fig.width=14, message=F, warning=FALSE}
 plot_heterogeneity(alignments, config, level = 'group')
 # fix frequency to be relative to amplicon - not ID
 alignments$group <- config$group[match(alignments$seqnames, config$ID)]
@@ -201,12 +201,6 @@ src = sapply(seq_along(uniqueAmlicons), function(i) {
           'fig.width=25, message=F, warning=F}', collapse = ''), 
     paste('amplican::plot_cuts(alignments, config, {{ID}},',
           ' params$cut_buffer, params$xlab_spacing)', collapse = ''), 
-    '```\n', 
-    "### Variants", 
-    paste('```{r var-{{i}}, echo = F, results = "asis", ',
-          'message=F, warning=F}', collapse = ''),
-    paste('amplican::plot_variants(alignments, config, {{ID}}, ',
-          ' params$cut_buffer)', collapse = ''),
     '```\n'))
 })
 # knit the source

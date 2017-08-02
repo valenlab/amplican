@@ -130,7 +130,7 @@ ggplot(data = config, aes(x = as.factor(Group), y = frameshift_percentage_over, 
 
 ## Heterogeneity of reads  
 
-```{r plot read heterogeneity, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+```{r plot read heterogeneity, echo=FALSE, fig.height=height + 1, fig.width=14, message=F, warning=FALSE}
 plot_heterogeneity(alignments, config, level = 'Group')
 ``` 
 

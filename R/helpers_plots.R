@@ -525,7 +525,7 @@ plot_mismatches <- function(alignments,
   freqAgrMinus <- freqAgr[freqAgr$strand == "-", ]
 
   # sometimes barplot gets confused so we add mock data
-  mock <- mock_mm_df(ampl_len)
+  mock <- mock_mm_df(to)
   freqAgrPlus <- rbind(freqAgrPlus, mock)
   freqAgrMinus <- rbind(freqAgrMinus, mock)
 

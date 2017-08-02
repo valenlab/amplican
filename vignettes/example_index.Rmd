@@ -95,7 +95,7 @@ waffle(read_a_per, legend_pos = 'bottom',
 
 # PRIMER DIMER reads
 configDF <- data.frame(data.table::fread(params$config_summary))
-height <- amplican:::plot_height(length(unique(configDF$Barcode)))
+height <- amplican::plot_height(length(unique(configDF$Barcode)))
 
 PD_reads <- c(sum(configDF$Reads_noPD), sum(configDF$PRIMER_DIMER))
 PD_reads_per <- round(PD_reads*100/sum(configDF$Reads))
@@ -166,7 +166,7 @@ waffle(frameshift_per, legend_pos = 'bottom',
 
 ***
 
-```{r fig.width=8, fig.height=height, echo = F}
+```{r fig.width=8, fig.height = height + 1, echo = F}
 library(reshape2)
 library(ggthemes)
 summaryDF_per <- summaryDF
@@ -205,6 +205,9 @@ ggplot(data = quality_melt,
   coord_flip() +
   scale_fill_manual(values = c('#E69F00', '#000000'))
 
+```
+
+```{r fig.width=8, fig.height=height + 1, echo = F}
 ggplot(data = quality_det_melt,
        aes(x = as.factor(Barcode),
            y = value,
@@ -221,7 +224,9 @@ ggplot(data = quality_det_melt,
   coord_flip() + 
   scale_color_colorblind()+
   scale_fill_manual(values = c('#D55e00', '#f0e442', '#009e73'))
+```
 
+```{r fig.width=8, fig.height=height + 1, echo = F}
 ggplot(data = assignment_melt,
        aes(x = as.factor(Barcode),
            y = value,

@@ -91,7 +91,7 @@ waffle(read_a_per, legend_pos = 'bottom',
 
 # PRIMER DIMER reads
 configDF <- data.frame(data.table::fread(params$config_summary))
-height <- amplican:::plot_height(length(unique(configDF$Barcode)))
+height <- amplican::plot_height(length(unique(configDF$Barcode)))
 
 PD_reads <- c(sum(configDF$Reads_noPD), sum(configDF$PRIMER_DIMER))
 PD_reads_per <- round(PD_reads*100/sum(configDF$Reads))
@@ -162,7 +162,7 @@ waffle(frameshift_per, legend_pos = 'bottom',
 
 ***
 
-```{r fig.width=8, fig.height=height, echo = F}
+```{r fig.width=8, fig.height = height + 1, echo = F}
 library(reshape2)
 library(ggthemes)
 summaryDF_per <- summaryDF
@@ -176,19 +176,19 @@ summaryDF_per[, c('filtered_read_count', 'bad_read_count')] <-
   round(summaryDF_per[, c('filtered_read_count', 'bad_read_count')]*100/summaryDF_per$read_count)
 summaryDF_per[is.na(summaryDF_per)] <- 0
 
-quality_melt <- melt(summaryDF_per, id.vars = c('barcode'), 
+quality_melt <- melt(summaryDF_per, id.vars = c('Barcode'), 
                      measure.vars = c('filtered_read_count', 'bad_read_count'))
 quality_det_melt <- melt(summaryDF_per,
-                     id.vars = c('barcode'),
+                     id.vars = c('Barcode'),
                      measure.vars = c('bad_base_quality',
                                       'bad_average_quality',
                                       'bad_alphabet'))
 assignment_melt <- melt(summaryDF_per,
-                        id.vars = c('barcode'),
+                        id.vars = c('Barcode'),
                         measure.vars = c('assigned_reads', 'unassigned_reads'))
 
 ggplot(data = quality_melt,
-       aes(x = as.factor(barcode),
+       aes(x = as.factor(Barcode),
            y = value,
            fill = factor(variable, labels = c('Good Reads', 'Bad Quality Reads')))) +
   geom_bar(position ='stack', stat ='identity') +
@@ -203,9 +203,9 @@ ggplot(data = quality_melt,
 
 ```
 
-```{r fig.width=8, fig.height=height, echo = F}
+```{r fig.width=8, fig.height=height + 1, echo = F}
 ggplot(data = quality_det_melt,
-       aes(x = as.factor(barcode),
+       aes(x = as.factor(Barcode),
            y = value,
            fill = factor(variable, labels = c('Bad Read Base Quality', 
                                               'Bad Average Read Quality', 
@@ -222,9 +222,9 @@ ggplot(data = quality_det_melt,
   scale_fill_manual(values = c('#D55e00', '#f0e442', '#009e73'))
 ```
 
-```{r fig.width=8, fig.height=height, echo = F}
+```{r fig.width=8, fig.height=height + 1, echo = F}
 ggplot(data = assignment_melt,
-       aes(x = as.factor(barcode),
+       aes(x = as.factor(Barcode),
            y = value,
            fill = factor(variable, labels = c('Assigned Reads', 'Unassigned Reads')))) +
   geom_bar(position='stack', stat='identity') +
