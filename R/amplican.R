@@ -117,7 +117,7 @@
 # knit_reports = TRUE
 # write_alignments_format = "txt"
 # average_quality = 30
-# min_quality = 20
+# min_quality = 0
 # total_processors = 1
 # scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
 #   match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA")
@@ -131,7 +131,7 @@
 amplicanPipeline <- function(
   config, fastq_folder, results_folder, knit_reports = TRUE,
   write_alignments_format = "txt", average_quality = 30,
-  min_quality = 20, total_processors = 1,
+  min_quality = 0, total_processors = 1,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
     match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
   gap_opening = 50, gap_extension = 0, fastqfiles = 0,

@@ -21,7 +21,8 @@ Depends:
     R (>= 3.3.0),
     methods,
     BiocGenerics (>= 0.22.0),
-    Biostrings (>= 2.44.2)
+    Biostrings (>= 2.44.2),
+    data.table
 Imports:
     utils (>= 3.4.1),
     S4Vectors (>= 0.14.3),

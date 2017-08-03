@@ -53,13 +53,13 @@ amplicanAlign <- function(
            "",
            file.path(fastq_folder, cfgT$Reverse_Reads_File))
 
-  if (sum(cfgT$Reverse_Reads_File == "") > 0) {
+  if (sum(cfgT$Reverse_Reads_File == "") > 0 & fastqfiles != 1) {
     message(paste0("Reverse_Reads_File has empty rows. ",
                    "Changing fastqfiles parameter to 1, ",
                    "operating only on forward reads."))
     fastqfiles <- 1
   }
-  if (sum(cfgT$Forward_Reads_File == "") > 0) {
+  if (sum(cfgT$Forward_Reads_File == "" & fastqfiles != 2) > 0) {
     message(paste0("Forward_Reads_File has empty rows. ",
                    "Changing fastqfiles parameter to 2, ",
                    "operating only on reverse reads."))
