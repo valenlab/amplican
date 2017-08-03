@@ -47,11 +47,12 @@ amplicanNormalize <- function(aln, cfgT,
     aln[[column]] <- cfgT[[column]][map]
   }
   cols <- names(aln)[!names(aln) %in% c(skip, "seqnames", "read_id")]
-  data.table::setkeyv(aln, cols)
 
   ctr_indices <- cfgT[["Control"]][map]
   aln_ctr <- aln[ctr_indices, ]
+  data.table::setkeyv(aln_ctr, cols)
   aln <- aln[!ctr_indices, ]
+  data.table::setkeyv(aln, cols)
 
   aln <- aln[!aln_ctr]
 
