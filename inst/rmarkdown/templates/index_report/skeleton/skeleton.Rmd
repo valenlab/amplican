@@ -36,8 +36,7 @@ if (params$links != "") {
 **Bad Alphabet** - how many reads had alphabet with bases other than A, C, G, T  
 **Filtered Read Count** - how many reads were left after filtering  
 **Unique Reads** - how many reads (forward and reverse together) for this barcode is unique  
-**Assigned Reads/Unassigned Reads** - how many reads have been assigned/not assigned to any of the
-           experiments  
+**Assigned Reads/Unassigned Reads** - how many reads have been assigned/not assigned to any of the experiments  
 
 ***
 

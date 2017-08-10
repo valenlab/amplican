@@ -50,14 +50,13 @@ amplicanNormalize <- function(aln, cfgT,
 
   ctr_indices <- cfgT[["Control"]][map]
   aln_ctr <- aln[ctr_indices, ]
-  data.table::setkeyv(aln_ctr, cols)
+  # data.table::setkeyv(aln_ctr, cols)
   aln <- aln[!ctr_indices]
-  data.table::setkeyv(aln, cols)
+  # data.table::setkeyv(aln, cols)
 
-  # sometimes aln & aln_ctr are soo big that we need to use slower iterative
-  aln <- lapply(unique(aln$seqnames), function(x) aln[seqnames == x][!aln_ctr])
-  aln[[length(aln) + 1]] <- aln_ctr
-  aln <- data.table::rbindlist(aln)
+  # dplyr as data.table has many issues
+  aln <- dplyr::anti_join(aln, aln_ctr, by = cols)
+  aln <- data.table::rbindlist(list(aln, aln_ctr))
   aln <- aln[, colnames(aln)[!colnames(aln) %in% add], with=FALSE]
   data.table::setDF(aln)
   aln

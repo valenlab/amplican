@@ -59,16 +59,24 @@ kable(groupDF, row.names = FALSE)
 ## Read distribution  
 
 ```{r plot_total_reads, echo=FALSE, fig.height=height + height/4, fig.width=14, message=F, warning=FALSE}
-ggplot(data = config, aes(x = as.factor(Barcode), y = log10(Reads + 1), order = Barcode, fill = ID)) +
+p <- ggplot(data = config, 
+            aes(x = as.factor(Barcode), y = log10(Reads + 1), order = Barcode, fill = ID)) +
   geom_bar(position='stack', stat='identity') +
   ylab('Number of reads + 1, log10 scaled')  +
-  xlab('Barcode') +
-  theme(legend.position = 'top',
-        legend.direction = 'horizontal',
-        axis.text = element_text(size = 12),
-        axis.title = element_text(size = 14, face = 'bold'),
-        legend.title = element_blank()) +
-  coord_flip()
+  xlab('Barcode')
+if (length(groupDF$group) > 20) {
+  p <- p + theme(legend.position = 'none',
+                 legend.direction = 'horizontal',
+                 axis.text = element_text(size = 12),
+                 axis.title = element_text(size = 14, face = 'bold'))
+} else {
+  p <- p + theme(legend.position = 'top',
+                 legend.direction = 'horizontal',
+                 axis.text = element_text(size = 12),
+                 axis.title = element_text(size = 14, face = 'bold'),
+                 legend.title = element_blank())
+}
+p + coord_flip()
 ```
 
 ## PRIMER DIMER filter  

@@ -1117,6 +1117,9 @@ plot_variants <- function(alignments, config, id,
                                         end = xaxis[length(xaxis)])
   archRanges <- archRanges[!GenomicRanges::width(archRanges) == 0]
   archRanges <- data.frame(archRanges)
+  if (dim(archRanges)[1] == 0) {
+    return("No variants to plot.")
+  }
   archRanges$read_names <- paste0(archRanges$seqnames, ":", archRanges$read_id)
   archRanges <- archRanges[order(-archRanges$frequency, archRanges$read_names),]
 
