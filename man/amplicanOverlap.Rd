@@ -29,6 +29,7 @@ sequences.
 }
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},
+  \code{\link{amplicanConsensus}},
   \code{\link{amplicanFilter}},
   \code{\link{amplicanNormalize}},
   \code{\link{amplicanPipeline}},

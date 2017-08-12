@@ -12,14 +12,15 @@ amplicanAlign(config, fastq_folder, total_processors = 1,
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
-\code{system.file("extdata", "config.txt", package = "amplican")}}
+\code{system.file("extdata", "config.txt", package = "amplican")}.
+Configuration file can contain additional columns, but first 11 columns
+have to follow the example config specification.}
 
 \item{fastq_folder}{(string) Path to FASTQ files. If not specified,
 FASTQ files should be in the same directory as config file.}
 
 \item{total_processors}{(numeric) Set this to the number of processors you
-want to use. Default is 1. Works only if you have
-\code{\link[doParallel]{doParallel}} installed and accessible.}
+want to use. Default is 1.}
 
 \item{average_quality}{(numeric) The FASTQ file have a quality for each
 nucleotide, depending on sequencing technology there exist many formats.
@@ -27,13 +28,13 @@ This package uses \code{\link[ShortRead]{readFastq}} to parse the reads.
 If the average quality of the reads fall below value of
 \code{average_quality} then sequence is filtered. Default is 0.}
 
-\item{min_quality}{(numeric)  Similar as in average_quality, but this is
+\item{min_quality}{(numeric)  Similar as in average_quality, but depicts
 the minimum quality for ALL nucleotides in given read. If one of nucleotides
 has quality BELLOW \code{min_quality}, then the sequence is filtered.
 Default is 20.}
 
 \item{scoring_matrix}{(matrix) Default is 'NUC44'. Pass desired matrix using
-\code{\link[Biostrings]{nucleotideSubstitutionMatrix}}}
+\code{\link[Biostrings]{nucleotideSubstitutionMatrix}}.}
 
 \item{gap_opening}{(numeric) The opening gap score. Default is 50.}
 
@@ -75,7 +76,8 @@ aln
 
 }
 \seealso{
-Other analysis steps: \code{\link{amplicanFilter}},
+Other analysis steps: \code{\link{amplicanConsensus}},
+  \code{\link{amplicanFilter}},
   \code{\link{amplicanNormalize}},
   \code{\link{amplicanOverlap}},
   \code{\link{amplicanPipeline}},

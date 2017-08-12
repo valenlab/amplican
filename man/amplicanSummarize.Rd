@@ -2,35 +2,36 @@
 % Please edit documentation in R/amplicanSummarize.R
 \name{amplicanSummarize}
 \alias{amplicanSummarize}
-\title{Summarize how many reads has frameshift, frameshift overlapping cut site and
-how many reads with deletions overlaping cut site.}
+\title{Summarize how many reads have frameshift and how many reads have deletions.}
 \usage{
-amplicanSummarize(aln, cfgT, overlaps = "overlaps")
+amplicanSummarize(aln, cfgT)
 }
 \arguments{
 \item{aln}{(data.frame) Contains events from the alignments.}
 
 \item{cfgT}{(data.frame) Config file with the experiments details.}
-
-\item{overlaps}{(character) Specifies which column of aln contains
-output from \code{\link{amplicanOverlap}}. Defaults to "overlaps".}
 }
 \value{
 (data.frame) As cfgT, but with extra columns.
 }
 \description{
+Before using this function make sure events are filtered to represent
+consensus with \code{amplicanConsensus}, if you use both forward and
+reverse reads. If you want to calculate metrics over expected cut site,
+filter events using \code{amplicanOverlap}.
+}
+\details{
 Adds columns to cfgT:
 \itemize{
 \item{ReadsCut}{ Count of reads with deletions overlapping expected
 cut site.}
-\item{Reads_Frameshifted}{ Count of reads with frameshift overlapping
-expected cut site.}
-\item{Reads_Frameshifted_Overlapping}{ Count of reads with frameshift
+\item{Reads_Frameshifted}{ Count of reads with frameshift
 overlapping expected cut site.}
 }
 }
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},
+  \code{\link{amplicanConsensus}},
   \code{\link{amplicanFilter}},
   \code{\link{amplicanNormalize}},
   \code{\link{amplicanOverlap}},

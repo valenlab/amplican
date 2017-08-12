@@ -119,24 +119,6 @@ ggplot(data = config, aes(x = as.factor(ID), y = frameshift_percentage, order = 
   geom_text(aes(x = as.factor(ID), y = frameshift_percentage, label = Reads_Frameshifted), hjust = -1)
 ```  
 
-## Frameshift overlapping cut site  
-
-```{r plot_frameshift_per over, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
-config$frameshift_percentage_over <- config$Reads_Frameshifted_Overlapping * 100/config$Reads_noPD
-config$frameshift_percentage_over[is.nan(config$frameshift_percentage_over)] <- 0  
-
-ggplot(data = config, aes(x = as.factor(ID), y = frameshift_percentage_over, order = ID)) +
-  geom_bar(stat='identity') +
-  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift overlapping expected cut sites')  +
-  xlab('ID') +
-  theme(legend.position = 'none',
-        axis.text = element_text(size = 12),
-        axis.title = element_text(size = 14, face = 'bold')) +
-  coord_flip() +
-  geom_text(aes(x = as.factor(ID), y = frameshift_percentage_over, 
-                label = Reads_Frameshifted_Overlapping), hjust = -1)
-```  
-
 ## Heterogeneity of reads  
 
 ```{r plot read domination, echo=FALSE, fig.height=height + 1, fig.width=14, message=F, warning=FALSE}

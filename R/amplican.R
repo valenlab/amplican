@@ -23,32 +23,35 @@
 #'
 #' amplicanPipeline is convenient wrapper around all functionality of the
 #' package with the most robust settings. It will generate all results in the
-#' \code{result_folder} and also print prepared reports into 'reports' folder.
-#' @param results_folder (string) Where do you want your results to be stored?
+#' \code{result_folder} and also knit prepared reports into 'reports' folder.
+#' @param results_folder (string) Where do you want to store results?
 #' The package will create files in that folder so make sure you have writing
 #' permissions.
+#' @param config (string) The path to your configuration file. For example:
+#' \code{system.file("extdata", "config.txt", package = "amplican")}.
+#' Configuration file can contain additional columns, but first 11 columns
+#' have to follow the example config specification.
+#' @param fastq_folder (string) Path to FASTQ files. If not specified,
+#' FASTQ files should be in the same directory as config file.
 #' @param knit_reports (boolean) whether function should "knit" all
 #' reports automatically for you (it is time consuming, be patient), when false
 #' reports will be prepared, but not knitted
-#' @param config (string) The path to your configuration file. For example:
-#' \code{system.file("extdata", "config.txt", package = "amplican")}
-#' @param fastq_folder (string) Path to FASTQ files. If not specified,
-#' FASTQ files should be in the same directory as config file.
 #' @param total_processors (numeric) Set this to the number of processors you
-#' want to use. Default is 1. Works only if you have
-#' \code{\link[doParallel]{doParallel}} installed and accessible.
+#' want to use. Default is 1.
 #' @param average_quality (numeric) The FASTQ file have a quality for each
 #' nucleotide, depending on sequencing technology there exist many formats.
 #' This package uses \code{\link[ShortRead]{readFastq}} to parse the reads.
 #' If the average quality of the reads fall below value of
 #' \code{average_quality} then sequence is filtered. Default is 0.
-#' @param min_quality (numeric)  Similar as in average_quality, but this is
+#' @param min_quality (numeric)  Similar as in average_quality, but depicts
 #' the minimum quality for ALL nucleotides in given read. If one of nucleotides
 #' has quality BELLOW \code{min_quality}, then the sequence is filtered.
 #' Default is 20.
-#' @param write_alignments_format (character vector) Whether we should write
-#' alignments results to separate files for each ID, reverse reads are reverse
-#' complemented to minimize alignment bias, possible options are:
+#' @param write_alignments_format (character vector) Whether
+#' \code{amplicanPipeline} should write alignments results to separate files.
+#' Alignments are also always saved as .rds object of
+#' \code{\link{AlignmentsExperimentSet}} class.
+#' Possible options are:
 #' \itemize{
 #'  \item{"fasta"}{ outputs alignments in fasta format where header indicates
 #' experiment ID, read id and number of reads}
@@ -68,7 +71,7 @@
 #' above formats, pass a vector to get alginments in multiple formats.}
 #' }
 #' @param scoring_matrix (matrix) Default is 'NUC44'. Pass desired matrix using
-#' \code{\link[Biostrings]{nucleotideSubstitutionMatrix}}
+#' \code{\link[Biostrings]{nucleotideSubstitutionMatrix}}.
 #' @param gap_opening (numeric) The opening gap score. Default is 50.
 #' @param gap_extension (numeric) The gap extension score. Default is 30.
 #' @param fastqfiles (numeric) Normally you want to use both FASTQ files. But in
@@ -95,7 +98,7 @@
 #' found in 'Control' TRUE group will be removed in 'Control' FALSE group.
 #' This parameter by default uses columns 'guideRNA' and 'Group' to impose
 #' additional restrictions on normalized events eg. only events created by the
-#' same 'guideRNA' will be normalized.
+#' same 'guideRNA' in the same 'Group' will be normalized.
 #' @include amplicanAlign.R amplicanReport.R
 #' @return (invisible) results_folder path
 #' @export
@@ -231,18 +234,19 @@ amplicanPipeline <- function(
   message("Normalizing events...")
   aln <- amplicanNormalize(aln, cfgT, add = normalize)
   aln$overlaps <- amplicanOverlap(aln, cfgT, cut_buffer = cut_buffer)
+  aln$consensus <- if (fastqfiles <= 0.5) amplicanConsensus(aln, cfgT) else TRUE
+
   message("Saving normalized events...")
   data.table::fwrite(aln,
                      file.path(resultsFolder,
                                "events_filtered_shifted_normalized.csv"))
   # summarize
-  cfgT <- amplicanSummarize(aln, cfgT)
+  cfgT <- amplicanSummarize(aln[aln$consensus & aln$overlaps, ], cfgT)
   data.table::fwrite(
     cfgT[, c("ID", "Barcode", "Forward_Reads_File", "Reverse_Reads_File",
              "Group", "guideRNA", "Found_Guide", "Control", "Forward_Primer",
              "Reverse_Primer", "Direction", "Amplicon", "Reads", "PRIMER_DIMER",
-             "Reads_noPD", "Reads_Cut", "Reads_Frameshifted",
-             "Reads_Frameshifted_Overlapping")],
+             "Reads_noPD", "Reads_Cut", "Reads_Frameshifted")],
     file.path(results_folder, "config_summary.csv"))
 
   # reports

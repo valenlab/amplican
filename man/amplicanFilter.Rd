@@ -36,6 +36,7 @@ with reads that are potentially PRIMER DIMERS.
 \code{\link{findPD}} and \code{\link{findEOP}}
 
 Other analysis steps: \code{\link{amplicanAlign}},
+  \code{\link{amplicanConsensus}},
   \code{\link{amplicanNormalize}},
   \code{\link{amplicanOverlap}},
   \code{\link{amplicanPipeline}},

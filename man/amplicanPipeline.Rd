@@ -14,12 +14,14 @@ amplicanPipeline(config, fastq_folder, results_folder, knit_reports = TRUE,
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
-\code{system.file("extdata", "config.txt", package = "amplican")}}
+\code{system.file("extdata", "config.txt", package = "amplican")}.
+Configuration file can contain additional columns, but first 11 columns
+have to follow the example config specification.}
 
 \item{fastq_folder}{(string) Path to FASTQ files. If not specified,
 FASTQ files should be in the same directory as config file.}
 
-\item{results_folder}{(string) Where do you want your results to be stored?
+\item{results_folder}{(string) Where do you want to store results?
 The package will create files in that folder so make sure you have writing
 permissions.}
 
@@ -27,9 +29,11 @@ permissions.}
 reports automatically for you (it is time consuming, be patient), when false
 reports will be prepared, but not knitted}
 
-\item{write_alignments_format}{(character vector) Whether we should write
-alignments results to separate files for each ID, reverse reads are reverse
-complemented to minimize alignment bias, possible options are:
+\item{write_alignments_format}{(character vector) Whether
+\code{amplicanPipeline} should write alignments results to separate files.
+Alignments are also always saved as .rds object of
+\code{\link{AlignmentsExperimentSet}} class.
+Possible options are:
 \itemize{
  \item{"fasta"}{ outputs alignments in fasta format where header indicates
 experiment ID, read id and number of reads}
@@ -55,17 +59,16 @@ This package uses \code{\link[ShortRead]{readFastq}} to parse the reads.
 If the average quality of the reads fall below value of
 \code{average_quality} then sequence is filtered. Default is 0.}
 
-\item{min_quality}{(numeric)  Similar as in average_quality, but this is
+\item{min_quality}{(numeric)  Similar as in average_quality, but depicts
 the minimum quality for ALL nucleotides in given read. If one of nucleotides
 has quality BELLOW \code{min_quality}, then the sequence is filtered.
 Default is 20.}
 
 \item{total_processors}{(numeric) Set this to the number of processors you
-want to use. Default is 1. Works only if you have
-\code{\link[doParallel]{doParallel}} installed and accessible.}
+want to use. Default is 1.}
 
 \item{scoring_matrix}{(matrix) Default is 'NUC44'. Pass desired matrix using
-\code{\link[Biostrings]{nucleotideSubstitutionMatrix}}}
+\code{\link[Biostrings]{nucleotideSubstitutionMatrix}}.}
 
 \item{gap_opening}{(numeric) The opening gap score. Default is 50.}
 
@@ -98,7 +101,7 @@ normalization is strict, which means events that are
 found in 'Control' TRUE group will be removed in 'Control' FALSE group.
 This parameter by default uses columns 'guideRNA' and 'Group' to impose
 additional restrictions on normalized events eg. only events created by the
-same 'guideRNA' will be normalized.}
+same 'guideRNA' in the same 'Group' will be normalized.}
 }
 \value{
 (invisible) results_folder path
@@ -106,7 +109,7 @@ same 'guideRNA' will be normalized.}
 \description{
 amplicanPipeline is convenient wrapper around all functionality of the
 package with the most robust settings. It will generate all results in the
-\code{result_folder} and also print prepared reports into 'reports' folder.
+\code{result_folder} and also knit prepared reports into 'reports' folder.
 }
 \examples{
 # path to example config file
@@ -122,6 +125,7 @@ amplicanPipeline(config, fastq_folder, results_folder, knit_reports = FALSE)
 }
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},
+  \code{\link{amplicanConsensus}},
   \code{\link{amplicanFilter}},
   \code{\link{amplicanNormalize}},
   \code{\link{amplicanOverlap}},

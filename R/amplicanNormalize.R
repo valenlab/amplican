@@ -54,7 +54,7 @@ amplicanNormalize <- function(aln, cfgT,
   aln <- aln[!ctr_indices]
   # data.table::setkeyv(aln, cols)
 
-  # dplyr as data.table has many issues
+  # dplyr as data.table has issues handling too big dt
   aln <- dplyr::anti_join(aln, aln_ctr, by = cols)
   aln <- data.table::rbindlist(list(aln, aln_ctr))
   aln <- aln[, colnames(aln)[!colnames(aln) %in% add], with=FALSE]

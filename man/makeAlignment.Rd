@@ -16,13 +16,13 @@ This package uses \code{\link[ShortRead]{readFastq}} to parse the reads.
 If the average quality of the reads fall below value of
 \code{average_quality} then sequence is filtered. Default is 0.}
 
-\item{min_quality}{(numeric)  Similar as in average_quality, but this is
+\item{min_quality}{(numeric)  Similar as in average_quality, but depicts
 the minimum quality for ALL nucleotides in given read. If one of nucleotides
 has quality BELLOW \code{min_quality}, then the sequence is filtered.
 Default is 20.}
 
 \item{scoring_matrix}{(matrix) Default is 'NUC44'. Pass desired matrix using
-\code{\link[Biostrings]{nucleotideSubstitutionMatrix}}}
+\code{\link[Biostrings]{nucleotideSubstitutionMatrix}}.}
 
 \item{gap_opening}{(numeric) The opening gap score. Default is 50.}
 

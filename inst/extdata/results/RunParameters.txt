@@ -1,7 +1,7 @@
 Config file:         full/path/to/config/file/that/has/been/used.csv
 Processors used:     2
 Average Quality:     30
-Minimum Quality:     20
+Minimum Quality:     0
 Write Alignments:    txt
 Fastq files Mode:    0
 Gap Opening:         50

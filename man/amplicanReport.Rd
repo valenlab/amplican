@@ -58,6 +58,7 @@ amplicanReport(results_folder, report_files = file.path(results_folder,
 }
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},
+  \code{\link{amplicanConsensus}},
   \code{\link{amplicanFilter}},
   \code{\link{amplicanNormalize}},
   \code{\link{amplicanOverlap}},

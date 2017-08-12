@@ -82,8 +82,7 @@ p + coord_flip()
 ## PRIMER DIMER filter  
 
 ```{r plot_PD_per, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
-barcodeTable <- aggregate(cbind(Reads, PRIMER_DIMER, Reads_Cut, Reads_Frameshifted,
-                                Reads_Frameshifted_Overlapping) ~ Barcode, data = config, sum)
+barcodeTable <- aggregate(cbind(Reads, PRIMER_DIMER, Reads_Cut, Reads_Frameshifted) ~ Barcode, data = config, sum)
 barcodeTable$PD_percentage <- barcodeTable$PRIMER_DIMER * 100/barcodeTable$Reads
 barcodeTable$PD_percentage[is.nan(barcodeTable$PD_percentage)] <- 0  
 
@@ -131,23 +130,6 @@ ggplot(data = barcodeTable, aes(x = as.factor(Barcode), y = frameshift_percentag
   ylim(0, 100) +
   coord_flip() +
   geom_text(aes(x = as.factor(Barcode), y = frameshift_percentage, label = Reads_Frameshifted), hjust = -1)
-``` 
-
-## Frameshift overlapping cut site  
-
-```{r plot_frameshift_per overlap, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
-barcodeTable$frameshift_over_percentage <- barcodeTable$Reads_Frameshifted_Overlapping * 100/barcodeTable$Reads_noPD
-barcodeTable$frameshift_over_percentage[is.nan(barcodeTable$frameshift_over_percentage)] <- 0  
-
-ggplot(data = barcodeTable, aes(x = as.factor(Barcode), y = frameshift_over_percentage, order = Barcode)) +
-  geom_bar(position = 'stack', stat = 'identity') +
-  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift overlapping expected cut sites')  +
-  xlab('Barcode') +
-  theme(axis.text = element_text(size=12),
-        axis.title = element_text(size=14,face = 'bold')) +
-  ylim(0, 100) +
-  coord_flip() +
-  geom_text(aes(x = as.factor(Barcode), y = frameshift_over_percentage, label = Reads_Frameshifted_Overlapping), hjust = -1)
 ``` 
 
 ## Heterogeneity of reads  

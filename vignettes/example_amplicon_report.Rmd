@@ -77,8 +77,7 @@ config$group <- match(config$AmpliconUpper, ampliconDF$Amplicon)
 
 ```{r plot_total_reads, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
 ampliconTable <- aggregate(cbind(Reads, PRIMER_DIMER, 
-                                 Reads_Cut, Reads_Frameshifted,
-                                 Reads_Frameshifted_Overlapping) ~ group, data = config, sum)
+                                 Reads_Cut, Reads_Frameshifted) ~ group, data = config, sum)
 
 ggplot(data = ampliconTable, aes(x = as.factor(group), y = log10(Reads + 1)), order = group) +
   geom_bar(stat = 'identity') +
@@ -142,23 +141,6 @@ ggplot(data = ampliconTable, aes(x = as.factor(group), y = frameshift_percentage
   ylim(0, 100) +
   coord_flip() +
   geom_text(aes(x = as.factor(group), y = frameshift_percentage, label = Reads_Frameshifted), hjust = -1)
-```  
-
-## Frameshift overlapping cut site  
-
-```{r plot_frameshift_per_overlap, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
-ampliconTable$frameshift_over_percentage <- ampliconTable$Reads_Frameshifted_Overlapping * 100/ampliconTable$Reads_noPD
-ampliconTable$frameshift_over_percentage[is.nan(ampliconTable$frameshift_over_percentage)] <- 0 
-
-ggplot(data = ampliconTable, aes(x = as.factor(group), y = frameshift_over_percentage, order = group)) +
-  geom_bar(position = 'stack', stat = 'identity') +
-  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift overlapping expected cut sites')  +
-  xlab('Amplicon Group') +
-  theme(axis.text = element_text(size=12),
-        axis.title = element_text(size=14,face = 'bold')) +
-  ylim(0, 100) +
-  coord_flip() +
-  geom_text(aes(x = as.factor(group), y = frameshift_over_percentage, label = Reads_Frameshifted_Overlapping), hjust = -1)
 ```  
 
 ## Heterogeneity of reads  

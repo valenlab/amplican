@@ -50,6 +50,7 @@ amplicanNormalize(aln, cfgT)
 }
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},
+  \code{\link{amplicanConsensus}},
   \code{\link{amplicanFilter}},
   \code{\link{amplicanOverlap}},
   \code{\link{amplicanPipeline}},

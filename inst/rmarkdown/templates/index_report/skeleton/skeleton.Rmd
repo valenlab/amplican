@@ -138,21 +138,6 @@ waffle(frameshift_per, legend_pos = 'bottom',
        title = "\n\nReads with frameshift", 
        rows = 10, colors = c('#E69F00', '#000000', '#A9A9A9', '#F0E442'))
 
-
-frameshift <- c(sum(configDF$Reads_Frameshifted_Overlapping[!configDF$Control]), # Treatment
-                total_reads_tmt - sum(configDF$Reads_Frameshifted_Overlapping[!configDF$Control]),
-                sum(configDF$Reads_Frameshifted_Overlapping[configDF$Control]), # Control
-                total_reads_ctr - sum(configDF$Reads_Frameshifted_Overlapping[configDF$Control]))
-frameshift_per <- round(frameshift*100/total_reads)
-frameshift_per[is.na(frameshift_per)] <- 0
-names(frameshift_per) <- c(
-  paste0('Frameshift in Treatment\n', frameshift[1], ' (', frameshift_per[1], '%)'),
-  paste0('No Frameshift in Treatment\n', frameshift[2], ' (', frameshift_per[2], '%)'),
-  paste0('Frameshift in Control\n', frameshift[3], ' (', frameshift_per[3], '%)'), 
-  paste0('No Frameshift in Control\n', frameshift[4], ' (', frameshift_per[4], '%)'))
-waffle(frameshift_per, legend_pos = 'bottom', 
-       title = "\n\nReads with frameshift \n(overlapping expected cut site)", 
-       rows = 10, colors = c('#E69F00', '#000000', '#A9A9A9', '#F0E442'))
 ```
 
 ***
