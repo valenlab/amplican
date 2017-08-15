@@ -159,6 +159,7 @@ alignments$frequency <- alignments$count / ampliconTable$Reads[alignments$group]
 ***
 
 ```{r plot_alignments, results='asis', echo=F, message=F, warning=F}
+alignments_cons <- alignments[alignments$consensus & alignments$overlaps, ]
 src = sapply(seq_along(uniqueAmlicons), function(i) {
   ID = config$ID[config$AmpliconUpper == uniqueAmlicons[i]]
   ID = paste0("c('", paste0(ID, collapse = "','"), "')", collapse = "")
@@ -185,8 +186,14 @@ src = sapply(seq_along(uniqueAmlicons), function(i) {
     "### Cuts", 
     paste('```{r cuts-{{i}}, echo = F, results = "asis", ',
           'fig.width=25, message=F, warning=F}', collapse = ''), 
-    paste('amplican::plot_cuts(alignments, config, {{ID}},',
+    paste('amplican::plot_cuts(alignments_cons, config, {{ID}},',
           ' params$cut_buffer, params$xlab_spacing)', collapse = ''), 
+    '```\n',
+    "### Variants", 
+    paste('```{r var-{{i}}, echo = F, results = "asis", ',
+          'message=F, warning=F}', collapse = ''),
+    paste('amplican::plot_variants(alignments_cons, config, {{ID}}, ',
+          ' params$cut_buffer)', collapse = ''),
     '```\n'))
 })
 # knit the source

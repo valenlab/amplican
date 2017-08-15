@@ -234,7 +234,7 @@ amplicanPipeline <- function(
   message("Normalizing events...")
   aln <- amplicanNormalize(aln, cfgT, add = normalize)
   aln$overlaps <- amplicanOverlap(aln, cfgT, cut_buffer = cut_buffer)
-  aln$consensus <- if (fastqfiles <= 0.5) amplicanConsensus(aln, cfgT) else TRUE
+  aln$consensus <- if (fastqfiles <= 0.5) amplicanConsensus(aln) else TRUE
 
   message("Saving normalized events...")
   data.table::fwrite(aln,

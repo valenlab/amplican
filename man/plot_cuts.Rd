@@ -38,7 +38,8 @@ alignments_file <- system.file("extdata", "results", "alignments",
                                "events_filtered_shifted_normalized.csv",
                                package = "amplican")
 alignments <- read.csv(alignments_file)
-plot_cuts(alignments, config, c('ID_1','ID_3'))
+plot_cuts(alignments[alignments$consensus & alignments$overlaps, ],
+          config, c('ID_1','ID_3'))
 
 }
 \seealso{

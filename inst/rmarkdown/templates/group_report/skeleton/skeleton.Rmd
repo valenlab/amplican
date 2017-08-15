@@ -120,6 +120,7 @@ plot_heterogeneity(alignments, config, level = 'Group')
 ***
 
 ```{r plot_alignments, results='asis', echo=F, message=F, warning=F}
+alignments <- alignments[alignments$consensus & alignments$overlaps, ]
 src = sapply(unique(config$Group), function(i) {
   knitr::knit_expand(text = c(
     "## Group {{i}}  \n", 

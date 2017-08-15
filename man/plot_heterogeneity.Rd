@@ -43,7 +43,7 @@ alignments_file <- system.file("extdata", "results", "alignments",
                                "events_filtered_shifted_normalized.csv",
                                package = "amplican")
 alignments <- read.csv(alignments_file)
-plot_heterogeneity(alignments, config)
+plot_heterogeneity(alignments[alignments$consensus, ], config)
 
 }
 \seealso{

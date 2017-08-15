@@ -41,7 +41,8 @@ alignments_file <- system.file("extdata", "results", "alignments",
                                "events_filtered_shifted_normalized.csv",
                                package = "amplican")
 alignments <- read.csv(alignments_file)
-plot_mismatches(alignments, config, c('ID_1', 'ID_3'))
+plot_mismatches(alignments[alignments$consensus, ], config,
+                c('ID_1', 'ID_3'))
 
 }
 \seealso{

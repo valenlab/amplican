@@ -147,27 +147,28 @@ waffle(frameshift_per, legend_pos = 'bottom',
 ***
 
 ```{r fig.width=8, fig.height = height + 1, echo = F}
-library(reshape2)
 library(ggthemes)
 summaryDF_per <- summaryDF
 filters <- c('bad_base_quality', 'bad_average_quality', 'bad_alphabet')
-summaryDF_per[, filters] <- round(summaryDF_per[, filters]*100/rowSums(summaryDF_per[, filters]))
+summaryDF_per[, filters] <- 
+  round(summaryDF_per[, filters]*100/rowSums(summaryDF_per[, filters]))
 summaryDF_per[, c('assigned_reads', 'unassigned_reads')] <-
    round(summaryDF_per[, c('assigned_reads', 'unassigned_reads')]*100/
            summaryDF_per$unique_reads)
 summaryDF_per$bad_read_count <- summaryDF_per$read_count - summaryDF_per$filtered_read_count 
 summaryDF_per[, c('filtered_read_count', 'bad_read_count')] <- 
-  round(summaryDF_per[, c('filtered_read_count', 'bad_read_count')]*100/summaryDF_per$read_count)
+  round(
+    summaryDF_per[, c('filtered_read_count','bad_read_count')]*100/summaryDF_per$read_count)
 summaryDF_per[is.na(summaryDF_per)] <- 0
 
-quality_melt <- melt(summaryDF_per, id.vars = c('Barcode'), 
+quality_melt <- data.table::melt(summaryDF_per, id.vars = c('Barcode'), 
                      measure.vars = c('filtered_read_count', 'bad_read_count'))
-quality_det_melt <- melt(summaryDF_per,
+quality_det_melt <-  data.table::melt(summaryDF_per,
                      id.vars = c('Barcode'),
                      measure.vars = c('bad_base_quality',
                                       'bad_average_quality',
                                       'bad_alphabet'))
-assignment_melt <- melt(summaryDF_per,
+assignment_melt <-  data.table::melt(summaryDF_per,
                         id.vars = c('Barcode'),
                         measure.vars = c('assigned_reads', 'unassigned_reads'))
 

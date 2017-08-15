@@ -41,7 +41,8 @@ alignments_file <- system.file("extdata", "results", "alignments",
                                "events_filtered_shifted_normalized.csv",
                                package = "amplican")
 alignments <- read.csv(alignments_file)
-metaplot_mismatches(alignments, config, "Group", "Betty")
+metaplot_mismatches(alignments[alignments$consensus & alignments$overlaps, ],
+                    config, "Group", "Betty")
 
 }
 \seealso{

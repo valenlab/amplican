@@ -50,7 +50,7 @@ amplicanConsensus <- function(aln, overlaps = "overlaps") {
   # The last two columns should be the interval columns
   # find events that can are overlaping each other
   cols <- c("seqnames", "read_id", "strand", "score", "counts", "width",
-            "type", "num", "replacement", "overlaps", "start", "end")
+            "type", "num", "originally","replacement", overlaps, "start", "end")
   data.table::setcolorder(aln_fwd, cols)
   data.table::setcolorder(aln_rve, cols)
   cols <- c("seqnames", "read_id", "type", "replacement", "start", "end")

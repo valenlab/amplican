@@ -49,11 +49,8 @@ Table associated with variant plot represents:
 \item{Freq - }{Frequency of given read in experiment. Variants are ordered by
 frequency value.}
 \item{Count - }{Represents raw count of this variant reads in experiment.}
-\item{Score - }{Alignment score from alignment to the amplicon sequence.}
-\item{F - }{Sum of deletion and insertion widths over presented window. Green
-background indicates that frameshift is aparent in presented window. Be weary
-that this frameshift does not takes into account possible insetions and
-deletions that happen outside of presented window.}}
+\item{F - }{Sum of deletion and insertion widths of events overlapping
+presented window. Green background indicates frameshift. }}
 }
 \note{
 This function is inspired by \code{\link[CrispRVariants]{plotAlignments}}.
@@ -67,7 +64,8 @@ alignments_file <- system.file("extdata", "results", "alignments",
                                "events_filtered_shifted_normalized.csv",
                                package = "amplican")
 alignments <- read.csv(alignments_file)
-plot_variants(alignments, config, c('ID_1','ID_3'))
+plot_variants(alignments[alignments$consensus & alignments$overlaps, ],
+              config, c('ID_1','ID_3'))
 
 }
 \seealso{

@@ -136,6 +136,7 @@ plot_heterogeneity(alignments, config)
 ***
 
 ```{r plot_alignments, results='asis', echo=F, message=F, warning=F}
+alignments_cons <- alignments[alignments$consensus & alignments$overlaps, ]
 src = sapply(config$ID, function(i) {
   knitr::knit_expand(text = c(
     "## {{i}}", 
@@ -160,7 +161,7 @@ src = sapply(config$ID, function(i) {
     "### Variants", 
     paste('```{r var-{{i}}, echo = F, results = "asis", ',
           'message=F, warning=F}', collapse = ''),
-    paste('amplican::plot_variants(alignments, config, "{{i}}", ',
+    paste('amplican::plot_variants(alignments_cons, config, "{{i}}", ',
           ' params$cut_buffer)', collapse = ''),
     '```\n'))
 })

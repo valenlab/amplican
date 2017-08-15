@@ -124,6 +124,7 @@ plot_heterogeneity(alignments, config, level = 'guideRNA')
 ***
 
 ```{r plot_alignments, results='asis', echo=F, message=F, warning=F}
+alignments <- alignments[alignments$consensus & alignments$overlaps, ]
 src = sapply(unique(config$guideRNA), function(i) {
   knitr::knit_expand(text = c(
     "## Guide {{i}}  \n", 
