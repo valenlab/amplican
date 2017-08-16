@@ -18,7 +18,9 @@ map_to_relative(aln, cfgT)
 \description{
 Translate coordinates of GRanges events so that they can be relative to the
 amplicon. As point zero we assume first left sided UPPER case letter in the
-amplicon.
+amplicon. Be weary that events for amplicons without expected cut sites are
+filtered. Don't use this function, if you don't have expected cut sites
+specified and don't use any of the metaplots.
 }
 \examples{
 # example config

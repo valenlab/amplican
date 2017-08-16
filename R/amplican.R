@@ -130,7 +130,6 @@
 # PRIMER_DIMER = 30
 # cut_buffer = 5
 # normalize = c("guideRNA", "Group")
-
 amplicanPipeline <- function(
   config, fastq_folder, results_folder, knit_reports = TRUE,
   write_alignments_format = "txt", average_quality = 30,

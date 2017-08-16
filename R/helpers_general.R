@@ -270,7 +270,9 @@ flipRanges <- function(idR, cfgT) {
 #'
 #' Translate coordinates of GRanges events so that they can be relative to the
 #' amplicon. As point zero we assume first left sided UPPER case letter in the
-#' amplicon.
+#' amplicon. Be weary that events for amplicons without expected cut sites are
+#' filtered. Don't use this function, if you don't have expected cut sites
+#' specified and don't use any of the metaplots.
 #'
 #' @param aln (data.frame) List of events to map to the relative coordinates.
 #' @param cfgT (data.frame) config table

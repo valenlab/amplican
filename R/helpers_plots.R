@@ -998,17 +998,13 @@ plot_variants <- function(alignments, config, id,
   xaxis <- IRanges::start(box[1]):IRanges::end(box[1])
 
   # calculate frameshifts beforehand
-  widthT <- archRanges[archRanges$type != "mismatch", ]
-  data.table::setDT(widthT)
+  data.table::setDT(archRanges)
+  widthT <- archRanges
+  widthT[type == "mismatch", width := 0]
   widthT[type == "deletion", width := width * -1L] # by reference
-  widthT <- if (dim(widthT)[1] == 0) {
-    data.table(width = 0, read_names = "")
-  } else {
-    widthT[, list(width = sum(width)), c("seqnames", "read_id")]
-  }
+  widthT <- widthT[, list(width = sum(width)), c("seqnames", "read_id")]
 
   # cast reads from long to wide format
-  data.table::setDT(archRanges)
   archRanges <- archRanges[
     order(seqnames, read_id, type, start, end, replacement), ]
   archRanges <- archRanges[, `:=` (event_id = as.numeric(seq_len(.N))),
@@ -1123,7 +1119,7 @@ plot_variants <- function(alignments, config, id,
                                 labels = yaxis_names,
                                 expand = c(0, 0)) +
     ggplot2::labs(y = trimws(paste0(
-      if (length(id) == 1) id else "", " Read ID", collapse = "")),
+      if (length(id) == 1) id else "", collapse = "")),
       x = "Relative Nucleotide Position")
 
   codon_melt <- rbind(aa_frame(amplicon, TRUE, 1, 0, 1),
@@ -1155,7 +1151,7 @@ plot_variants <- function(alignments, config, id,
                    panel.border = ggplot2::element_blank(),
                    panel.background = ggplot2::element_blank(),
                    axis.ticks.y = ggplot2::element_blank(),
-                   plot.margin = grid::unit(c(0, 0, -3, 0), "char")) +
+                   plot.margin = grid::unit(c(0, 0, -2.5, 0), "char")) +
     ggplot2::labs(y = "Frame")
 
   vtable <- archRanges[, c("frequency", "counts", "width")]
