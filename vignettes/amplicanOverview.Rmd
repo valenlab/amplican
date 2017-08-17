@@ -21,6 +21,8 @@ This package, `amplican`, is created for fast and precise analysis of CRISPR exp
 
 For those inpatient of you, who want to see an example of our whole pipeline analysis on attached example data look [here](#default-options).
 
+![Conceptual map of amplican.](figures/amplican_conceptual_map.png)
+
 # Configuration file
 
 To successfully run our analysis it is mandatory to have a configuration file. Take a look at our example:
