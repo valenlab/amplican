@@ -1,6 +1,6 @@
 #' Extract consensus out of forward and reverse events.
 #'
-#' When forward and reverse reads are in aggrement on the events (eg. deletion)
+#' When forward and reverse reads are in agreement on the events (eg. deletion)
 #' \code{amplicanConsensus} will mark forward event as TRUE indicating that he
 #' represents consensus.
 #' In cases where forward and reverse read agree only partially, for example,
@@ -48,7 +48,7 @@ amplicanConsensus <- function(aln, overlaps = "overlaps") {
   aln_fwd <- aln_fwd[!f_both & aln_fwd$`overlaps`]
   aln_rve <- aln_rve[!r_both & aln_rve$`overlaps`]
   # The last two columns should be the interval columns
-  # find events that can are overlaping each other
+  # find events that can are overlapping each other
   cols <- c("seqnames", "read_id", "strand", "score", "counts", "width",
             "type", "num", "originally","replacement", overlaps, "start", "end")
   data.table::setcolorder(aln_fwd, cols)
@@ -78,7 +78,7 @@ amplicanConsensus <- function(aln, overlaps = "overlaps") {
 #' @param cut_buffer (numeric) Number of bases that should expand 5' and 3' of
 #' the specified expected cut sites.
 #' @param relative (boolean) Default is TRUE, which means 'aln' events are
-#' relative to thir cut sites, and most LEFT upper case letter specifies
+#' relative to their cut sites, and most LEFT upper case letter specifies
 #' position zero.
 #' @return (bolean vector) Where TRUE means that given event overlaps cut site.
 #' @export
@@ -106,7 +106,7 @@ amplicanOverlap <- function(aln, cfgT, cut_buffer = 5, relative = TRUE) {
 
   alnIR <- IRanges::IRanges(aln$start, aln$end, aln$width)
   overlap <- vector(length = dim(aln)[1])
-  # overlap assesment
+  # overlap assessment
   for(i in seq_along(cfgT$ID)) {
     map <- which(aln$seqnames == cfgT$ID[i])
     overlap[map] <- IRanges::overlapsAny(alnIR[map], cutSites[[i]])

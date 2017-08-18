@@ -11,7 +11,7 @@ getEventInfo(align, ID, ampl_shift, strand_info = "+")
 
 \item{ID}{(string)}
 
-\item{ampl_shift}{(numeric vector) Shift events additionaly by this value.
+\item{ampl_shift}{(numeric vector) Shift events additionally by this value.
 PairwiseAlignmentsSingleSubject returns truncated alignments.}
 
 \item{strand_info}{(string) Either '+', '-' or default '*'}

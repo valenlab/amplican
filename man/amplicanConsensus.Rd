@@ -17,7 +17,7 @@ indicates which events are overlapping expected cut site.}
 consensus out of forward and reverse reads.
 }
 \description{
-When forward and reverse reads are in aggrement on the events (eg. deletion)
+When forward and reverse reads are in agreement on the events (eg. deletion)
 \code{amplicanConsensus} will mark forward event as TRUE indicating that he
 represents consensus.
 In cases where forward and reverse read agree only partially, for example,

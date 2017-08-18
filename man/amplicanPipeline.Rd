@@ -37,7 +37,7 @@ Possible options are:
 \itemize{
  \item{"fasta"}{ outputs alignments in fasta format where header indicates
 experiment ID, read id and number of reads}
- \item{"txt"}{ simple format, read information followed by foward read and
+ \item{"txt"}{ simple format, read information followed by forward read and
  amplicon sequence followed by reverse read with its amplicon sequence
  eg.: \cr
 \preformatted{
@@ -50,7 +50,7 @@ ACTGACTGACTG
 }}
 \item{"None"}{ Don't write any alignments to files.}
 \item{c("fasta", "txt")}{ There are also possible combinations of
-above formats, pass a vector to get alginments in multiple formats.}
+above formats, pass a vector to get alignments in multiple formats.}
 }}
 
 \item{average_quality}{(numeric) The FASTQ file have a quality for each

@@ -19,7 +19,7 @@ file specifying levels to group by.}
 \item{colors}{(html colors vector) Two colours for gradient,
 eg. c('#000000', '#F0E442').}
 
-\item{bins}{(numeric vector) Numeric vector from 0 to 100 specyfying bins eg.
+\item{bins}{(numeric vector) Numeric vector from 0 to 100 specifying bins eg.
 c(0, 5, seq(10, 100, 10)).}
 }
 \value{
@@ -31,8 +31,8 @@ reads heterogeneity. It groups reads
 by user defined levels and measures how unique are reads in
 this level. Uniqueness of reads is simplified to the bins and
 colored according to the color gradient. Default color black
-indicates very high heterogeneity of the reads. The more yellow
-the more similar are reads and less heterogenic.
+indicates very high heterogeneity of the reads. The more yellow (default)
+the more similar are reads and less heterogeneous.
 }
 \examples{
 #example config

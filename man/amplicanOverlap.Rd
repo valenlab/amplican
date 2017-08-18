@@ -15,7 +15,7 @@ amplicanOverlap(aln, cfgT, cut_buffer = 5, relative = TRUE)
 the specified expected cut sites.}
 
 \item{relative}{(boolean) Default is TRUE, which means 'aln' events are
-relative to thir cut sites, and most LEFT upper case letter specifies
+relative to their cut sites, and most LEFT upper case letter specifies
 position zero.}
 }
 \value{

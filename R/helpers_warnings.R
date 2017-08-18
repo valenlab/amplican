@@ -1,8 +1,7 @@
-#' This function checks if the guideRNA is in the amplicon.
+#' Checks if the guideRNA is in the amplicon.
 #'
 #' @param configTable (data.frame) data frame of config file
 #' @return (boolean vector) Prints warning when some guides can't be found.
-#' @importFrom stringr str_detect
 #'
 checkTarget <- function(configTable) {
   targetPositions <- stringr::str_detect(tolower(configTable$Amplicon),
@@ -17,14 +16,13 @@ checkTarget <- function(configTable) {
   return(targetPositions)
 }
 
-#' This function checks if the forward and reverse primer are in the amplicon
+#' Checks if the forward and reverse primer are in the amplicon
 #' and where they are located.
 #'
 #' @param configTable (data.frame) A data frame of config file.
 #' @param fastqfiles (numeric) Which primers are important.
 #' @return configTable (data.frame) A data frame of config file with additional
 #' fields for start locations of the primers
-#' @importFrom stringr str_locate
 #'
 checkPrimers <- function(configTable, fastqfiles) {
 
@@ -43,11 +41,11 @@ checkPrimers <- function(configTable, fastqfiles) {
     stop(paste0(
         "Error: One of primers was not found in the amplicon.",
         if (length(fP) > 0)
-          paste0(" Could't locate forward primer in amplicon for row: ",
+          paste0(" Couldn't locate forward primer in amplicon for row: ",
                  toString(fP + 1))
         else "",
         if (length(rP) > 0)
-          paste0(" Could't locate reverse primer in amplicon for row: ",
+          paste0(" Couldn't locate reverse primer in amplicon for row: ",
                  toString(rP + 1))
         else ""
       )
@@ -58,7 +56,7 @@ checkPrimers <- function(configTable, fastqfiles) {
 }
 
 
-#' This function pre-process a config file and checks that everything is in
+#' Pre-process a config file and checks that everything is in
 #' order.
 #'
 #' Its takes care of the following:
@@ -69,7 +67,6 @@ checkPrimers <- function(configTable, fastqfiles) {
 #' @param configTable (data.frame) Config file.
 #' @param fastq_folder (string) Path to fastq folder.
 #' @return (boolean) TRUE, If anything goes wrong stops and prints error.
-#' @importFrom stats complete.cases
 #'
 checkConfigFile <- function(configTable, fastq_folder) {
 

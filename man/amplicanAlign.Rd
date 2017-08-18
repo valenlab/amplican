@@ -61,7 +61,7 @@ alignments visually.
 \description{
 amplicanAlign takes a configuration files, fastq reads and output
 directory to prepare alignments and summary. It uses global Needleman-Wunsch
-alghoritm with parameters optimized for CRISPR experiment. After alignments,
+algorithm with parameters optimized for CRISPR experiment. After alignments,
 object of \code{\link{AlignmentsExperimentSet}} is returned that allows for
 coercion into GRanges (plus is for forward and minus for reverse reads).
 It is also possible to output alignments in other, additional formats.

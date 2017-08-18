@@ -24,7 +24,8 @@ specified in group argument.}
 }
 \description{
 This function plots insertions in relation to the amplicons for given
-selection vector that groups values by given config group. All reads should
+\code{selection} vector that groups values by given config \code{group}.
+All reads should
 already be converted to their relative position to their respective amplicon
 using \code{\link{map_to_relative}}.
 Top plot is for the forward reads and bottom plot is for reverse reads.

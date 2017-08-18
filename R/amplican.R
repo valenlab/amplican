@@ -1,13 +1,16 @@
-#' amplican: fast and precise analysis of CRISPR experiments
+#' amplican: automated analysis of CRISPR experiments
 #'
-#' It has three main goals:
+#' Main goals:
 #'
 #' \enumerate{
-#' \item Alignment and analysis of the MiSeq or HiSeq data.
-#'
+#' \item
+#' \item Flexible pipeline for analysis of the CRISPR Mi-Seq or Hi-Seq data.
+#' \item Compatible with GRanges and data.table style.
+#' \item Precise quantification of mutation rates.
 #' \item Prepare automatic reports as .Rmd files that are flexible
 #' and open for manipulation.
-#' \item Provide specialized plots for deletions, insertions, mismatches.
+#' \item Provide specialized plots for deletions, insertions, mismatches,
+#' variants, heterogeneity of the reads.
 #' }
 #'
 #' To learn more about amplican, start with the vignettes:
@@ -55,7 +58,7 @@
 #' \itemize{
 #'  \item{"fasta"}{ outputs alignments in fasta format where header indicates
 #' experiment ID, read id and number of reads}
-#'  \item{"txt"}{ simple format, read information followed by foward read and
+#'  \item{"txt"}{ simple format, read information followed by forward read and
 #'  amplicon sequence followed by reverse read with its amplicon sequence
 #'  eg.: \cr
 #' \preformatted{
@@ -68,7 +71,7 @@
 #' }}
 #' \item{"None"}{ Don't write any alignments to files.}
 #' \item{c("fasta", "txt")}{ There are also possible combinations of
-#' above formats, pass a vector to get alginments in multiple formats.}
+#' above formats, pass a vector to get alignments in multiple formats.}
 #' }
 #' @param scoring_matrix (matrix) Default is 'NUC44'. Pass desired matrix using
 #' \code{\link[Biostrings]{nucleotideSubstitutionMatrix}}.
@@ -215,7 +218,7 @@ amplicanPipeline <- function(
   # apply filter - remove all events that come from PD infected reads
   aln <- aln[!onlyPD, on = list(seqnames, read_id)]
 
-  # filter events overlaping primers
+  # filter events overlapping primers
   eOP <- findEOP(aln, cfgT)
   aln <- aln[!eOP, ]
   data.table::setDF(aln)

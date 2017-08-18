@@ -112,7 +112,7 @@ makeAlignment <- function(cfgT,
       # do alignments with removed dna bases before primers to allow
       # reads and amplicons start with primer
       # when calling events into GRanges shift_ampl is used to adapt for
-      # substractions happening here
+      # subtractions happening here
       if (fastqfiles != 2) {
         fwdA[[cfgT$ID[i]]] <-
           Biostrings::pairwiseAlignment(

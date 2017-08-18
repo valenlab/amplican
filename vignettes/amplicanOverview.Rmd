@@ -10,16 +10,19 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-Welcome to the `amplican` package. This vignette will walk you through our main package usage with example MiSeq 
-dataset.  You will learn how to interpret results, create summary reports and plot deletions, 
-insertions and mutations with our functions. 
-This package, `amplican`, is created for fast and precise analysis of CRISPR experiments.
+Welcome to the `amplican` package. This vignette will walk you through our main 
+package usage with example MiSeq dataset.  You will learn how to interpret 
+results, create summary reports and plot deletions, insertions and mutations 
+with our functions. 
+This package, `amplican`, is created for fast and precise analysis of CRISPR 
+experiments.
 
 # Introduction
 
 `amplican` creates reports of deletions, insertions, frameshifts, cut rates and other metrics in *knitable* to HTML style. `amplican` uses many `Bioconductor` and `CRAN` packages, and is high level package with purpose to align your fastq samples and automate analysis across different experiments. `amplican` maintains elasticity through configuration file, which, with your fastq samples are the only requirements.
 
-For those inpatient of you, who want to see an example of our whole pipeline analysis on attached example data look [here](#default-options).
+For those inpatient of you, who want to see an example of our whole pipeline analysis on attached example data look [here](#default-options). Below you will find the conceptual
+map of amplican.
 
 ![Conceptual map of amplican.](figures/amplican_conceptual_map.png)
 
@@ -47,7 +50,7 @@ Columns of the config file:
  - **Group** - use this field if you want to group ID by other criteria, here for instance we will group by person that
 performed experiment, on later stage it is possible to generate report with breakdown using this field  
  - **guideRNA** - put your guideRNA in 5' to 3' fashion here, if he has to be reverse complemented to be found in the amplicon put "1" into **Direction** field, we will use this field to make sure your guideRNA is inside the amplicon and during plotting of the results  
- - **Forward_Primer**, **Reverse_Primer** - make sure these primers are correct for each of your IDs, **Forward_Primer** should be found in the amplicon as is, on the left side of the guide, **Reverse_Primer** should be found on the amplicon after making its reverse complement on the right side of the guide  
+ - **Forward_Primer**, **Reverse_Primer** - make sure these primers are correct for each of your IDs, **Forward_Primer** should be found in the amplicon as is, on the left side of the guide, **Reverse_Primer** reverse complement should be found on the amplicon on the right side of the guide  
  - **Direction** - here "0" means guide does not requires to be reverse complemented to be matched to the amplicon, "1" means it should be reverse complemented, this field is also used when plotting deletions, mismatches and insertions  
  - **Amplicon** - insert amplicon sequence as lower case letters, by putting UPPER CASE letters you can specify expected cut site, you should specify at least one cut site, here for example we specify in uppercase letter PAM sequence of the corresponding guideRNA  
 
@@ -73,21 +76,17 @@ amplicanPipeline(config, fastq_folder, results_folder)
 message(results_folder)
 ```
 
-Take a look into "results_folder" folder. Here you can find `.Rmd` files that are our reports for example dataset. We already crafted `.html` versions and you can find them in the "html" folder. Open one of the reports with your favourite browser now. To zoom on an image just open it in new window (right click -> open image in new tab). 
+Take a look into "results_folder" folder. Here you can find `.Rmd` files that are our reports for example dataset. We already crafted `.html` versions and you can find them in the "reports" folder. Open one of the reports with your favourite browser now. To zoom on an image just open it in new window (right click -> open image in new tab). 
 
 `amplicanPipeline` just crafted very detailed reports for you, but this is not all, if you need something different e.g. different plot colours, just change the `.Rmd` file and `knit` it again. This way you have all the power over plotting.
 
 # Files created during analysis
 
-## alignmentLog.txt
-
-Contains information about unpleasant errors and events found during analysis, we also print message on the screen when something requires your attention. This file should be empty with our example analysis on provided dataset. In case something goes wrong you should examine file and follow instructions inside. This file is also included in "summary" version of the report.
-
 ## barcode_reads_filters.csv
 
 First step of our analysis is to filter out reads that are not complying with our default restrictions:
 
- * bad base quality - default minimum base quality is 20  
+ * bad base quality - default minimum base quality is 0  
  * bad average quality - default minimum average quality is 30  
  * bad alphabet - by default we accept only reads with A,C,T,G bases  
 
@@ -110,14 +109,14 @@ config_summary <- config_summary[,c("ID", "Barcode", "Reads", "Reads_noPD", "Rea
 knitr::kable(head(config_summary))
 ```
 
-During `amplicanAlign` or `amplicanPipeline` these columns are added to the config file:
+During `amplicanPipeline` these columns are added to the config file:
 
- - **Cut** - number of deletions overlapping with user specified UPPER CASE group in the amplicon (extended by the buffer), cuts have to be deletions confirmed with the reverse strand when using paired-end reads  
- - **Frameshift** - number of reads that have frameshift (insertions and deletions)  
+ - **Reads_Cut** - number of deletions overlapping with user specified UPPER CASE group in the amplicon (extended by the buffer), cuts have to be deletions confirmed with the reverse strand when using paired-end reads, for more information check 
+`amplicanConsensus`  
+ - **Frameshifted** - number of reads that have frameshift (insertions and deletions)  
  - **PRIMER_DIMER** - number of reads that were classified as PRIMER DIMERs  
  - **Reads** - number of reads assigned to this unique ID  
- - **Found_Guide** - whether we found guide on the amplicon  
- - **Found_PAM** - whether amplicon has UPPER GROUP specified (advised)  
+ - **Reads_noPD** - number of reads assigned to this unique ID with excusion of PRIMER DIMERs 
 
 ## RunParameters.txt
 
@@ -134,23 +133,21 @@ readLines(run_params)
 
 ## "alignments" folder
 
-Contains alignments, for each ID there is separate folder. If you specified `write_alignments` option of the 
-`amplicanAlign` as "2", which is default, you will find here two files, one with just alignment forward read, reverse read and count.  
-
-Other file will contain very detailed information:
-
- - human readable alignment of read and amplicon,  
- - list of deletions, insertions and mismatches,  
- - same information, but relative towards amplicon coordinates
+As name indicates it contains all alignments.
 
 ```{r, echo=TRUE, eval=FALSE}
 # path to the example alignments folder
 system.file("extdata", "results", "alignments", package = "amplican")
 ```
 
-In `unassigned_sequences` folder you can find detailed information about unassigned reads. In example dataset there is no unassigned reads.  
+In `unassigned_reads.csv` you can find detailed information about unassigned reads. In example dataset there is one unassigned read.  
 
-Take a look at the alignment events file which contains all the insertions, deletions, cuts and mutations. This file can be used in various ways. Examples you can find in `.Rmd` files we prepare using `amplicanReport`. These can be easily converted into `GRanges` and used for further analysis!
+Take a look at the alignment events file which contains all the insertions, deletions, cuts and mutations. This file can be used in various ways. Examples you can find in `.Rmd` files we prepare using `amplicanReport`. These can be easily converted into `GRanges` and used for further analysis! Events are saved at three points of `amplicanPipeline` analysis.
+First file "raw_events.csv" contains all events directly extracted from aligned reads.
+After filtering PRIMER DIMER reads, removing events overlapping primers (alignment artifacts)
+and shifting events so that they are relative to the expected cut sites "events_filtered_shifted.csv" is saved. After normalization through `amplicanNormalize`
+"events_filtered_shifted_normalized.csv" is save, probably it is the file you should use
+for further analysis.
 
 ```{r, echo=FALSE}
 alignments <- system.file("extdata", "results", "alignments", "events_filtered_shifted_normalized.csv", package = "amplican")
@@ -158,26 +155,21 @@ alignments <- read.csv(alignments)
 knitr::kable(head(alignments))
 ```
 
-Human readable alignments format gives information about forward and reverse reads. To make more detailed alignment files `amplicanPipeline` or `amplicanAlign` should have option `write_alignments = TRUE` specified (Default behavior), but it adds a little to the computational time. First line is corresponding to the forward read alignment and amplicon, second line is for the reverse read alignment and amplicon. Human readable format looks like this:
+Human readable alignments can be accesed using `lookupAlignment` function of `AlignmentsExperimentSet` object which contains all information after alignments 
+from multiple experiments. 
+Human readable format looks like this:
 
-```{r, echo=FALSE, }
-hr_alignments <- system.file("extdata", "results", "alignments", "ID_1_barcode_1.txt", package = "amplican")
-readLines(hr_alignments, n = 6)
+```{r, echo=TRUE}
+aln <- readRDS(
+  system.file("extdata", "results", "alignments", "AlignmentsExperimentSet.rds", 
+              package = "amplican"))
+amplican::lookupAlignment(aln, ID = "ID_1") # will print most frequent alignment for ID_1
 ```
 
 
 ## reports folder
 
 Reports are automated for the convenience of the users. We provide 6 different reports. Reports are .Rmd files which can be easily crafted through `rmarkdown::render(path_to_report)` or by clicking `Knit` in Rstudio to make HTML version of the report. If you have run our example analysis, then you can open one of the reports with Rstudio and try knitting it now! Otherwise you can open one of already knitted example report in the vignettes. 
-
-```{r, echo=TRUE, eval=FALSE}
-# path to example reports folder
-system.file("extdata", "results", "reports", package = "amplican")
-
-# you can run code below as example how to knit file:
-report_id <- system.file("extdata", "results", "reports", "report_id.Rmd", package = "amplican")
-rmarkdown::render(report_id)
-```
 
 # Detailed analysis
 
@@ -211,10 +203,11 @@ Types of report:
 
 We provide specialized plots for each type of the alignment events. 
 
-`plot_mismatches` - plots mismatches as stacked bar-plot over the amplicon, top plot is for the forward and
-bottom is for reverse reads  
+`plot_mismatches` - plots mismatches as stacked bar-plot over the amplicon, top plot is for the forward and bottom is for reverse reads  
 `plot_deletions` - plots deletions as arch-plot from the ggbio package  
 `plot_insertions` - each insertion is represented by triangle over the amplicon  
 `plot_cuts` - gathers cuts from each of the experiments and overlays multiple arch-plots on top of each other, useful when analyzing what kind of cuts were introduced in the amplicon  
+`plot_variants` - presents most frequent mutations with frameshift and codon information   
+`plot_heterogeneity` - shows a measure of read "uniqueness"   
 
 You can take a look at all these plots and how to make them in the example reports. There are also meta versions of above plots, that discard amplicon information and allow to overlay multiple different amplicons on top of each other eg. `metaplot_deletions`.  

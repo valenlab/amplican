@@ -48,7 +48,7 @@ findPD <- function(aln, cfgT, PRIMER_DIMER = 30) {
 }
 
 
-#' This filters out sequences which have bad base quality readings.
+#' Filters out sequences which have bad base quality readings.
 #'
 #' @param reads (ShortRead object) Loaded reads from fastq.
 #' @param min (numeric) This is the minimum quality that we accept for

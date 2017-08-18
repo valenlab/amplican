@@ -3,8 +3,8 @@
 #' amplicanReport takes a configuration file, fastq reads and output directory
 #' to prepare summaries as an editable .Rmd file. You can specify whether you
 #' want to make summaries based on ID, Barcode, Group or even guideRNA and
-#' Amplicon. This function autmatically knits all reports after creation.
-#' If you want to postpone kniting and edit reports, use .Rmd templates to
+#' Amplicon. This function automatically knits all reports after creation.
+#' If you want to postpone knitting and edit reports, use .Rmd templates to
 #' create your own version of reports instead of this function.
 #' @param results_folder (string) Folder containing results from the
 #' \code{\link{amplicanAlign}} function, do not change names of the files.

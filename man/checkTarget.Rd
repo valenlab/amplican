@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_warnings.R
 \name{checkTarget}
 \alias{checkTarget}
-\title{This function checks if the guideRNA is in the amplicon.}
+\title{Checks if the guideRNA is in the amplicon.}
 \usage{
 checkTarget(configTable)
 }
@@ -13,5 +13,5 @@ checkTarget(configTable)
 (boolean vector) Prints warning when some guides can't be found.
 }
 \description{
-This function checks if the guideRNA is in the amplicon.
+Checks if the guideRNA is in the amplicon.
 }

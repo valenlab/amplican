@@ -6,8 +6,6 @@
 #' @param reverse (character or vector of characters) Will be reverse
 #' complemented before alignment.
 #' @return Vector with alignments ready to be printed.
-#' @import Biostrings
-#' @importFrom utils capture.output
 #' @include helpers_general.R
 #' @export
 #'
@@ -15,7 +13,7 @@ amplican_print_reads <- function(forward, reverse) {
 
   alignForwardReverse <- Biostrings::pairwiseAlignment(forward,
                                                        revComp(reverse))
-  wPA <- capture.output(
+  wPA <- utils::capture.output(
     Biostrings::writePairwiseAlignments(alignForwardReverse))
   wPA <- wPA[!grepl("#", wPA)]
 

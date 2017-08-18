@@ -24,10 +24,11 @@ specified in group argument.}
 }
 \description{
 Plots mismatches in relation to the amplicons for given
-selection vector that groups values by given config group. All reads should
+\code{selection} vector that groups values by given config \code{group}.
+All reads should
 already be converted to their relative position to their respective amplicon
 using \code{\link{map_to_relative}}.
-For zero position on new coordinates is the most left UPPER case letter of
+Zero position on new coordinates is the most left UPPER case letter of
 the respective amplicon. This function filters out all alignment events
 that have amplicons without UPPER case defined.
 Top plot is for the forward reads and bottom plot is for reverse reads.

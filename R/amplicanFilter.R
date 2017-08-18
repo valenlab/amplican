@@ -36,7 +36,7 @@ amplicanFilter <- function(aln, cfgT, PRIMER_DIMER) {
   PD <- PD[aln$read_id[PD] == read_ids]
   aln <- aln[-PD,]
 
-  # filter events overlaping primers
+  # filter events overlapping primers
   eOP <- findEOP(aln, cfgT)
   aln[!eOP, ]
 }

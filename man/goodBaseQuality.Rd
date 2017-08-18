@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_filters.R
 \name{goodBaseQuality}
 \alias{goodBaseQuality}
-\title{This filters out sequences which have bad base quality readings.}
+\title{Filters out sequences which have bad base quality readings.}
 \usage{
 goodBaseQuality(reads, min = 20)
 }
@@ -18,5 +18,5 @@ will be a bad sequence. The minimum is set to 0 by default.}
 (boolean) Logical vector with the valid rows as TRUE.
 }
 \description{
-This filters out sequences which have bad base quality readings.
+Filters out sequences which have bad base quality readings.
 }

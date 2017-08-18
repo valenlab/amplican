@@ -26,8 +26,7 @@ used in the analysis.}
 }
 \description{
 This function plots cuts in relation to the amplicon with distinction for
-each ID. Top plot is meta-plot of all cuts combined with frequencies for all
-reads in the  amplicon group. Bottom plot shows cuts with facets for each ID.
+each ID.
 }
 \examples{
 #example config

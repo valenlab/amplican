@@ -591,7 +591,7 @@ setMethod("lookupAlignment", "AlignmentsExperimentSet", function(
 
   if (length(readCounts(x)[[ID]]) == 0) return(NULL)
   if (length(fwdReads(x)[[ID]]) >= read_id) {
-    fwd <- capture.output(Biostrings::writePairwiseAlignments(
+    fwd <- utils::capture.output(Biostrings::writePairwiseAlignments(
       fwdReads(x)[[ID]][as.numeric(read_id)]))
     fwd[7] <- "# Aligned sequences:"
     fwd[8] <- "# Forward read: P1"
@@ -601,7 +601,7 @@ setMethod("lookupAlignment", "AlignmentsExperimentSet", function(
   } else {fwd <- NULL}
 
   if (length(rveReads(x)[[ID]]) >= read_id) {
-    rve <- capture.output(Biostrings::writePairwiseAlignments(
+    rve <- utils::capture.output(Biostrings::writePairwiseAlignments(
       fwdReads(x)[[ID]][as.numeric(read_id)]))
     rve[7] <- "# Aligned sequences:"
     rve[8] <- "# Reverse read: P1"
@@ -630,14 +630,14 @@ getEventInfoObj <- function(object) {
 }
 #' Extract AlignmentsExperimentSet events into data.frame.
 #'
-#' Extracts events (insertions, deltions, mismatches) from alignments into
+#' Extracts events (insertions, deletions, mismatches) from alignments into
 #' data.frame. Can use multiple cores as process is quite slow. All events are
 #' relative towards forward strand. "-" in strand column indicates which events
 #' were from reverse reads.
 #' @name extractEvents
 #' @param object (AlignmentsExperimentSet)
 #' @param total_processors (numeric) Number of cores to use, defaults to 1.
-#' @return (data.frame) Comaptible with \code{\link[GenomicRanges]{GRanges}}
+#' @return (data.frame) Compatible with \code{\link[GenomicRanges]{GRanges}}
 #' style.
 #' @export
 setGeneric("extractEvents", function(object, total_processors = 1){

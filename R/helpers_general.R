@@ -148,7 +148,7 @@ cumsumw <- function(x) {
 #'
 #' @param align (PairwiseAlignmentsSingleSubject)
 #' @param ID (string)
-#' @param ampl_shift (numeric vector) Shift events additionaly by this value.
+#' @param ampl_shift (numeric vector) Shift events additionally by this value.
 #' PairwiseAlignmentsSingleSubject returns truncated alignments.
 #' @param strand_info (string) Either '+', '-' or default '*'
 #' @return (GRanges) Object with meta-data for insertion, deletion, mismatch

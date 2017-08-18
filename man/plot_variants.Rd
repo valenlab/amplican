@@ -28,7 +28,7 @@ reads will be enough to give good overview of your variants.}
 }
 \description{
 This function plots variants in relation to the amplicon. Shows sequences of
-top mutants without agregating on deletions, insertions and mismatches.
+top mutants without aggregating on deletions, insertions and mismatches.
 }
 \details{
 Top plot shows all six possible frames for given amplicon. Amino acids are

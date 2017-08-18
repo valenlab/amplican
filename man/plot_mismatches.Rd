@@ -26,8 +26,8 @@ used in the analysis.}
 (mismatches plot) ggplot2 object of mismatches plot
 }
 \description{
-This function plots mismatches in relation to the amplicon, function assumes
-your reads are relative to the respective amplicon sequences prediced cut
+Plots mismatches in relation to the amplicon, assumes
+your reads are relative to the respective amplicon sequences predicted cut
 sites.
 Top plot is for the forward reads, middle one shows
 amplicon sequence, and bottom plot is for reverse reads.

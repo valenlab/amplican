@@ -12,11 +12,11 @@ extractEvents(object, total_processors = 1)
 \item{total_processors}{(numeric) Number of cores to use, defaults to 1.}
 }
 \value{
-(data.frame) Comaptible with \code{\link[GenomicRanges]{GRanges}}
+(data.frame) Compatible with \code{\link[GenomicRanges]{GRanges}}
 style.
 }
 \description{
-Extracts events (insertions, deltions, mismatches) from alignments into
+Extracts events (insertions, deletions, mismatches) from alignments into
 data.frame. Can use multiple cores as process is quite slow. All events are
 relative towards forward strand. "-" in strand column indicates which events
 were from reverse reads.

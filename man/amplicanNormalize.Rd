@@ -13,7 +13,7 @@ amplicanNormalize(aln, cfgT, add = c("guideRNA", "Group"),
 \item{cfgT}{(data.frame) Config table with information about experiments.}
 
 \item{add}{(character vector) Columns from cfgT that should be included
-in event table for normaliztion matching. Defaults to c("guideRNA", "Group"),
+in event table for normalization matching. Defaults to c("guideRNA", "Group"),
 which means that only those events created by the same guideRNA in the same
 Group will be removed if found in Control.}
 
@@ -26,7 +26,7 @@ and sequencing errors.}
 }
 \value{
 (data.frame) Same as aln, but events are normalized. Events from
-Control are not changed. Additionaly columns from add are added to the
+Control are not changed. Additionally columns from add are added to the
 data.frame.
 }
 \description{
@@ -47,7 +47,7 @@ cfgT <- data.frame(ID = 1:5, guideRNA = rep("ACTG", 5),
                    Reads_noPD = c(2, 2, 3, 3, 4),
                    Group = c("A", "A", "B", "B", "B"),
                    Control = c(TRUE, FALSE, TRUE, FALSE, FALSE))
-# all events are same as in the control group, therfore are filtered out
+# all events are same as in the control group, therefore are filtered out
 # events from control groups stay
 amplicanNormalize(aln, cfgT)
 # events that are different from control group are preserved

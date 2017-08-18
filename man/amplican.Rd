@@ -5,17 +5,20 @@
 \alias{amplican}
 \alias{amplican-package}
 \alias{amplican-package}
-\title{amplican: fast and precise analysis of CRISPR experiments}
+\title{amplican: automated analysis of CRISPR experiments}
 \description{
-It has three main goals:
+Main goals:
 }
 \details{
 \enumerate{
-\item Alignment and analysis of the MiSeq or HiSeq data.
-
+\item
+\item Flexible pipeline for analysis of the CRISPR Mi-Seq or Hi-Seq data.
+\item Compatible with GRanges and data.table style.
+\item Precise quantification of mutation rates.
 \item Prepare automatic reports as .Rmd files that are flexible
 and open for manipulation.
-\item Provide specialized plots for deletions, insertions, mismatches.
+\item Provide specialized plots for deletions, insertions, mismatches,
+variants, heterogeneity of the reads.
 }
 
 To learn more about amplican, start with the vignettes:

@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_warnings.R
 \name{checkPrimers}
 \alias{checkPrimers}
-\title{This function checks if the forward and reverse primer are in the amplicon
+\title{Checks if the forward and reverse primer are in the amplicon
 and where they are located.}
 \usage{
 checkPrimers(configTable, fastqfiles)
@@ -17,6 +17,6 @@ configTable (data.frame) A data frame of config file with additional
 fields for start locations of the primers
 }
 \description{
-This function checks if the forward and reverse primer are in the amplicon
+Checks if the forward and reverse primer are in the amplicon
 and where they are located.
 }

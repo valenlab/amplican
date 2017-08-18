@@ -190,10 +190,11 @@ return_plot <- function(freqAgr, amplicon, from, to, plot_fr, plot_re) {
 #' MetaPlots mismatches using ggplot2 and ggbio.
 #'
 #' Plots mismatches in relation to the amplicons for given
-#' selection vector that groups values by given config group. All reads should
+#' \code{selection} vector that groups values by given config \code{group}.
+#' All reads should
 #' already be converted to their relative position to their respective amplicon
 #' using \code{\link{map_to_relative}}.
-#' For zero position on new coordinates is the most left UPPER case letter of
+#' Zero position on new coordinates is the most left UPPER case letter of
 #' the respective amplicon. This function filters out all alignment events
 #' that have amplicons without UPPER case defined.
 #' Top plot is for the forward reads and bottom plot is for reverse reads.
@@ -259,7 +260,8 @@ metaplot_mismatches <- function(alnmt, config, group, selection) {
 #' MetaPlots deletions using ggplot2 and ggbio.
 #'
 #' This function plots deletions in relation to the amplicons for given
-#' selection vector that groups values by given config group. All reads should
+#' \code{selection} vector that groups values by given config \code{group}.
+#' All reads should
 #' already be converted to their relative position to their respective amplicon
 #' using \code{\link{map_to_relative}}.
 #' Top plot is for the forward reads and bottom plot is for reverse reads.
@@ -319,7 +321,8 @@ metaplot_deletions <- function(alnmt, config, group,
 #' MetaPlots insertions using ggplot2 and ggbio.
 #'
 #' This function plots insertions in relation to the amplicons for given
-#' selection vector that groups values by given config group. All reads should
+#' \code{selection} vector that groups values by given config \code{group}.
+#' All reads should
 #' already be converted to their relative position to their respective amplicon
 #' using \code{\link{map_to_relative}}.
 #' Top plot is for the forward reads and bottom plot is for reverse reads.
@@ -416,8 +419,8 @@ plot_amplicon <- function(amplicon, from, to) {
 
 #' Plots mismatches using ggplot2 and ggbio.
 #'
-#' This function plots mismatches in relation to the amplicon, function assumes
-#' your reads are relative to the respective amplicon sequences prediced cut
+#' Plots mismatches in relation to the amplicon, assumes
+#' your reads are relative to the respective amplicon sequences predicted cut
 #' sites.
 #' Top plot is for the forward reads, middle one shows
 #' amplicon sequence, and bottom plot is for reverse reads.
@@ -674,8 +677,7 @@ plot_insertions <- function(alignments,
 #' Plots cuts using ggplot2 and ggbio.
 #'
 #' This function plots cuts in relation to the amplicon with distinction for
-#' each ID. Top plot is meta-plot of all cuts combined with frequencies for all
-#' reads in the  amplicon group. Bottom plot shows cuts with facets for each ID.
+#' each ID.
 #'
 #' @param alignments (data.frame) Loaded alignment information from
 #' alignments_events.csv file.
@@ -778,8 +780,8 @@ plot_cuts <- function(alignments,
 #' by user defined levels and measures how unique are reads in
 #' this level. Uniqueness of reads is simplified to the bins and
 #' colored according to the color gradient. Default color black
-#' indicates very high heterogeneity of the reads. The more yellow
-#' the more similar are reads and less heterogenic.
+#' indicates very high heterogeneity of the reads. The more yellow (default)
+#' the more similar are reads and less heterogeneous.
 #'
 #' @param alignments (data.frame) Loaded alignment information from
 #' alignments_events.csv file.
@@ -788,7 +790,7 @@ plot_cuts <- function(alignments,
 #' file specifying levels to group by.
 #' @param colors (html colors vector) Two colours for gradient,
 #' eg. c('#000000', '#F0E442').
-#' @param bins (numeric vector) Numeric vector from 0 to 100 specyfying bins eg.
+#' @param bins (numeric vector) Numeric vector from 0 to 100 specifying bins eg.
 #' c(0, 5, seq(10, 100, 10)).
 #' @return (heterogeneity plot) ggplot2 object of heterogeneity plot
 #' @export
@@ -809,64 +811,45 @@ plot_heterogeneity <- function(alignments,
                                level = "ID",
                                colors = c('#000000', '#F0E442'),
                                bins = c(0, 5, seq(10, 100, 10))) {
+  seqnames <- read_id <- replacement <- read_shares <- NULL
+  #long into wide
+  data.table::setDT(alignments)
+  alignments <- alignments[
+    order(seqnames, read_id, type, start, end, replacement), ]
+  alignments <- alignments[, `:=` (event_id = as.numeric(seq_len(.N))),
+                           by = c("seqnames", "read_id")]
+  alignments <- data.table::dcast(alignments,
+                                  seqnames + read_id + counts ~ event_id,
+                                  value.var = c(
+                                    "start", "end", "type", "replacement"))
+  alignments[[level]] <- config[[level]][match(alignments$seqnames, config$ID)]
+  # collapse reads
+  cols <- colnames(alignments)[!colnames(alignments) %in%
+                                 c("seqnames", "read_id", "counts")]
+  alignments <- alignments[, list(counts = sum(counts)), by = cols]
+  alignments <- alignments[, `:=` (read_id = as.numeric(seq_len(.N))),
+                           by = level]
+  alignments <- alignments[, c(level, "counts", "read_id"), with = FALSE]
 
-  alignments$ID_read_id <- paste0(alignments$seqnames, '_', alignments$read_id)
-  uniqueReadsByID <- alignments[!duplicated(alignments$ID_read_id),
-                                c('seqnames', 'read_id', 'counts')]
-  if (level != "ID") {
-    by = level
-    howManyTimes <- stats::aggregate(read_id ~ seqnames,
-                                     data = uniqueReadsByID, length)
-    howManyTimes <- howManyTimes[
-      order(match(howManyTimes$seqnames, unique(uniqueReadsByID$seqnames))),]
-
-    uniqueReadsByID[[by]] <- rep(
-      config[order(match(howManyTimes$seqnames, unique(config$ID))), by],
-      times = howManyTimes$read_id)
-  } else {
-    by = "seqnames"
-  }
-  c_ord <- order(uniqueReadsByID[[by]], uniqueReadsByID$counts, decreasing = T)
-  uniqueReadsByID <- uniqueReadsByID[c_ord, ]
-
-  cumsum_list <- by(uniqueReadsByID$counts, uniqueReadsByID[[by]], cumsum)
-  cumsum_list <- cumsum_list[as.character(unique(uniqueReadsByID[[by]]))]
-  uniqueReadsByID$cumsum <- unlist(cumsum_list)
-
-  howManyTimes <- table(uniqueReadsByID[[by]])
-  howManyTimes <- howManyTimes[
-    order(match(names(howManyTimes), unique(uniqueReadsByID[[by]])))]
-  dimHMT <- if (is.null(dim(howManyTimes)[1])) {
-    length(howManyTimes)
-  } else {
-    dim(howManyTimes)[1]
-  }
-  uniqueReadsByID$read_number <-
-    as.vector(unlist(seq2(from = rep(1, dimHMT), to = howManyTimes, by = 1)))
-
-  ids_with_reads <- tapply(
-    uniqueReadsByID$cumsum, uniqueReadsByID[[by]], FUN = max)
-  ids_with_reads <- ids_with_reads[
-    order(match(names(ids_with_reads), unique(uniqueReadsByID[[by]])))]
-  toDivide <- rep(ids_with_reads, times = howManyTimes)
-  uniqueReadsByID$read_share_percentage_normal <-
-    uniqueReadsByID$counts * 100 / toDivide
+  c_ord <- order(alignments[[level]], alignments$counts, decreasing = T)
+  alignments <- alignments[c_ord, ]
+  alignments[, read_shares:= counts*100/sum(counts),
+             by = level]
 
   # divide into bins for colour
-  uniqueReadsByID$bins <- cut(uniqueReadsByID$read_share_percentage_normal,
-                              bins)
+  alignments$bins <- cut(alignments$read_shares, bins)
   # reduce number of reads in 0-5 group - faster plots without artifacts
-  uniqueReadsByID <- stats::aggregate(
-    stats::formula(paste0("read_share_percentage_normal ~ ", by, " + bins")),
-    data = uniqueReadsByID, sum)
+  alignments <- alignments[, list(read_shares = sum(read_shares)),
+                                  by = c(level, "bins")]
   colorPalette <- grDevices::colorRampPalette(colors)(
-    length(levels(uniqueReadsByID$bins)))
-  names(colorPalette) <- levels(uniqueReadsByID$bins)
-  ggplot2::ggplot(data = uniqueReadsByID,
-                  ggplot2::aes_string(x = paste0("as.factor(", by, ")"),
-                                      y = "read_share_percentage_normal",
-                                      fill = "bins",
-                                      order =  paste0("as.factor(", by, ")"))) +
+    length(levels(alignments$bins)))
+  names(colorPalette) <- levels(alignments$bins)
+  ggplot2::ggplot(data = alignments,
+                  ggplot2::aes_string(
+                    x = paste0("as.factor(", level, ")"),
+                    y = "read_shares",
+                    fill = "bins",
+                    order =  paste0("as.factor(", level, ")"))) +
     ggplot2::geom_bar(position='stack', stat='identity') +
     ggplot2::theme(axis.text = ggplot2::element_text(size = 12),
                    axis.title = ggplot2::element_text(size = 14, face = 'bold'),
@@ -921,7 +904,7 @@ cRampF <- function(x) {
 #' Plots most frequent variants using ggplot2 and ggbio.
 #'
 #' This function plots variants in relation to the amplicon. Shows sequences of
-#' top mutants without agregating on deletions, insertions and mismatches.
+#' top mutants without aggregating on deletions, insertions and mismatches.
 #'
 #' Top plot shows all six possible frames for given amplicon. Amino acids are
 #' colored as follows:\cr
@@ -1009,9 +992,10 @@ plot_variants <- function(alignments, config, id,
     order(seqnames, read_id, type, start, end, replacement), ]
   archRanges <- archRanges[, `:=` (event_id = as.numeric(seq_len(.N))),
                            by = c("seqnames", "read_id")]
-  archRanges <- dcast(archRanges,
-                      seqnames + read_id + counts ~ event_id,
-                      value.var = c("start", "end", "type", "replacement"))
+  archRanges <- data.table::dcast(archRanges,
+                                  seqnames + read_id + counts ~ event_id,
+                                  value.var = c(
+                                    "start", "end", "type", "replacement"))
   # add frameshift info
   data.table::setkeyv(widthT, c("seqnames", "read_id"))
   data.table::setkeyv(archRanges, c("seqnames", "read_id"))

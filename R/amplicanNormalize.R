@@ -12,7 +12,7 @@
 #' @param aln (data.frame) Contains events from alignments.
 #' @param cfgT (data.frame) Config table with information about experiments.
 #' @param add (character vector) Columns from cfgT that should be included
-#' in event table for normaliztion matching. Defaults to c("guideRNA", "Group"),
+#' in event table for normalization matching. Defaults to c("guideRNA", "Group"),
 #' which means that only those events created by the same guideRNA in the same
 #' Group will be removed if found in Control.
 #' @param skip (character vector) Specifies which column of aln to skip,
@@ -21,7 +21,7 @@
 #' will be not included in filtering. Use this to filter out background noise
 #' and sequencing errors.
 #' @return (data.frame) Same as aln, but events are normalized. Events from
-#' Control are not changed. Additionaly columns from add are added to the
+#' Control are not changed. Additionally columns from add are added to the
 #' data.frame.
 #' @family analysis steps
 #' @export
@@ -32,7 +32,7 @@
 #'                    Reads_noPD = c(2, 2, 3, 3, 4),
 #'                    Group = c("A", "A", "B", "B", "B"),
 #'                    Control = c(TRUE, FALSE, TRUE, FALSE, FALSE))
-#' # all events are same as in the control group, therfore are filtered out
+#' # all events are same as in the control group, therefore are filtered out
 #' # events from control groups stay
 #' amplicanNormalize(aln, cfgT)
 #' # events that are different from control group are preserved
@@ -43,6 +43,7 @@ amplicanNormalize <- function(aln, cfgT,
                               add = c("guideRNA", "Group"),
                               skip = c("counts", "score"),
                               min_freq = 0.1){
+  Reads_noPD <- frequency <- NULL
   if (!any(cfgT$Control)) {
     warning("Column 'Control' has no TRUE/1 values. Nothing to normalize.")
     return(aln)
