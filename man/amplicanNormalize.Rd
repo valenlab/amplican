@@ -5,7 +5,7 @@
 \title{Remove events that can be found in Controls.}
 \usage{
 amplicanNormalize(aln, cfgT, add = c("guideRNA", "Group"),
-  skip = c("counts", "score"))
+  skip = c("counts", "score"), min_freq = 0.1)
 }
 \arguments{
 \item{aln}{(data.frame) Contains events from alignments.}
@@ -19,6 +19,10 @@ Group will be removed if found in Control.}
 
 \item{skip}{(character vector) Specifies which column of aln to skip,
 defaults to c('counts', 'score').}
+
+\item{min_freq}{(numeric) All events from control group below this frequency
+will be not included in filtering. Use this to filter out background noise
+and sequencing errors.}
 }
 \value{
 (data.frame) Same as aln, but events are normalized. Events from
@@ -28,16 +32,19 @@ data.frame.
 \description{
 This function can adjust events for small differences between
 known annotations (amplicon sequences) and real DNA of the strain that
-was sequenced.
+was sequenced. Events from the control are grouped by \code{add} and
+their frequencies are calculated in respect to number of total reads in that
+groups. In next step events from the control are filtered according to
+\code{min_freq}, all events below are treated as sequencing errors and
+rejected. Finally, all events that can be found in treatment group that find
+their exact match in control group are removed. All events from control group
+are returned back.
 }
 \examples{
-aln <- data.frame(seqnames = 1:5,
-                  start = 1,
-                  end = 2,
-                  width = 2,
+aln <- data.frame(seqnames = 1:5, start = 1, end = 2, width = 2,
                   counts = 101:105)
-cfgT <- data.frame(ID = 1:5,
-                   guideRNA = rep("ACTG", 5),
+cfgT <- data.frame(ID = 1:5, guideRNA = rep("ACTG", 5),
+                   Reads_noPD = c(2, 2, 3, 3, 4),
                    Group = c("A", "A", "B", "B", "B"),
                    Control = c(TRUE, FALSE, TRUE, FALSE, FALSE))
 # all events are same as in the control group, therfore are filtered out
