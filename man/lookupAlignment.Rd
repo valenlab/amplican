@@ -14,6 +14,18 @@ lookupAlignment(x, ID, read_id = 1)
 \item{read_id}{(numeric) Read Identifier. Reads are sorted by frequency.
 Defaults to 1, most abundant read.}
 }
+\value{
+(print to view)
+}
 \description{
 Prints alignments in blast-like style for human examination.
+}
+\examples{
+# load example object
+file_path <- system.file("extdata", "results", "alignments",
+                         "AlignmentsExperimentSet.rds", package = "amplican")
+aln <- readRDS(file_path)
+# look at most frequent reads aligned from experiment ID_1
+lookupAlignment(aln, "ID_1")
+
 }

@@ -22,6 +22,14 @@
 #' @family analysis steps
 #' @seealso \code{\link{findPD}} and \code{\link{findEOP}}
 #' @include helpers_filters.R
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "raw_events.csv", package = "amplican")
+#' aln <- data.table::fread(file_path)
+#' cfgT <- data.table::fread(
+#'   system.file("extdata", "results", "config_summary.csv",
+#'               package = "amplican"))
+#' amplicanFilter(aln, cfgT, 30)
 #'
 amplicanFilter <- function(aln, cfgT, PRIMER_DIMER) {
   PD <- findPD(aln, cfgT, PRIMER_DIMER = PRIMER_DIMER)

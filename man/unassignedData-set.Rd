@@ -9,9 +9,18 @@ unassignedData(x) <- value
 \arguments{
 \item{x}{(AlignmentsExperimentSet)}
 
-\item{value}{(list) Named (experiment IDs) list with elements of
-\code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}} class.}
+\item{value}{(list) Named (experiment IDs) list with elements of}
+}
+\value{
+(AlignmentsExperimentSet)
+\code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}} class.
 }
 \description{
 Set alignments for forward reads.
+}
+\examples{
+file_path <- system.file("extdata", "results", "alignments",
+                         "AlignmentsExperimentSet.rds", package = "amplican")
+aln <- readRDS(file_path)
+unassignedData(aln) <- unassignedData(aln) #replace with the same values
 }

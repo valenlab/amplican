@@ -11,6 +11,15 @@ barcodeData(x) <- value
 
 \item{value}{(data.frame)}
 }
+\value{
+(AlignmentsExperimentSet)
+}
 \description{
 Set barcode data.frame with information on the barcode level.
+}
+\examples{
+file_path <- system.file("extdata", "results", "alignments",
+                         "AlignmentsExperimentSet.rds", package = "amplican")
+aln <- readRDS(file_path)
+barcodeData(aln) <- barcodeData(aln) #replace with the same values as before
 }

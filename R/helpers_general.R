@@ -287,9 +287,9 @@ flipRanges <- function(idR, cfgT) {
 #' events <- read.csv(system.file("extdata", "results", "alignments",
 #'                    "raw_events.csv", package = "amplican"))
 #' # make events relative to the UPPER case
-#' map_to_relative(events, config)
+#' amplicanMap(events, config)
 #'
-map_to_relative <- function(aln, cfgT) {
+amplicanMap <- function(aln, cfgT) {
   aln <- GenomicRanges::GRanges(aln)
   no_upper <- FALSE
 

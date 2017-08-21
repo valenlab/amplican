@@ -108,6 +108,9 @@ Defaults to 1, most abundant read.}
 specify how many processors to use as this is very slow function (despite
 vectorization).}
 }
+\value{
+depending on the function used
+}
 \description{
 Class \code{AlignmentsExperimentSet} holds data from multiple alignments for
 many experiments. Allows to examine alignments in great detail.

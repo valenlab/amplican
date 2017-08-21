@@ -9,6 +9,15 @@ readCounts(x)
 \arguments{
 \item{x}{(AlignmentsExperimentSet)}
 }
+\value{
+(listOrNULL)
+}
 \description{
 Set alignments for forward reads.
+}
+\examples{
+file_path <- system.file("extdata", "results", "alignments",
+                         "AlignmentsExperimentSet.rds", package = "amplican")
+aln <- readRDS(file_path)
+readCounts(aln)
 }

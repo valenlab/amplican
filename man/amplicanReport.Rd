@@ -59,10 +59,9 @@ amplicanReport(results_folder, report_files = file.path(results_folder,
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanConsensus}},
-  \code{\link{amplicanFilter}},
+  \code{\link{amplicanFilter}}, \code{\link{amplicanMap}},
   \code{\link{amplicanNormalize}},
   \code{\link{amplicanOverlap}},
   \code{\link{amplicanPipeline}},
-  \code{\link{amplicanSummarize}},
-  \code{\link{map_to_relative}}
+  \code{\link{amplicanSummarize}}
 }

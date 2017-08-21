@@ -21,3 +21,10 @@ data.frame. Can use multiple cores as process is quite slow. All events are
 relative towards forward strand. "-" in strand column indicates which events
 were from reverse reads.
 }
+\examples{
+file_path <- system.file("extdata", "results", "alignments",
+                         "AlignmentsExperimentSet.rds", package = "amplican")
+aln <- readRDS(file_path)
+extractEvents(aln)
+
+}

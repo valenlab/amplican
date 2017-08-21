@@ -8,6 +8,18 @@
 #' @return Vector with alignments ready to be printed.
 #' @include helpers_general.R
 #' @export
+#' @examples
+#' # load example data
+#' unassigned_file <- system.file('extdata', 'results',  'alignments',
+#'                                'unassigned_reads.csv', package = 'amplican')
+#' unassigned <- data.table::setDF(data.table::fread(unassigned_file))
+#' # sort by frequency
+#' unassigned <- unassigned[order(unassigned$BarcodeFrequency,
+#'                                decreasing = TRUE), ]
+#' # print alignment of most frequent unassigned reads
+#' cat(paste(amplican_print_reads(unassigned[1, 'Forward'],
+#'                                unassigned[1, 'Reverse']),
+#'           collapse = "\n"))
 #'
 amplican_print_reads <- function(forward, reverse) {
 
@@ -25,8 +37,10 @@ amplican_print_reads <- function(forward, reverse) {
 #' based on number of elements to plot.
 #'
 #' @param x (numeric) number of elements to fit onto height axis
-#' @return (numeric)
+#' @return (numeric) In inches
 #' @export
+#' @examples
+#' plot_height(20)
 #'
 plot_height <- function(x) {
     x <- grid::unit(x, "char") + grid::unit(x * 0.2, "mm") + grid::unit(2, "cm")

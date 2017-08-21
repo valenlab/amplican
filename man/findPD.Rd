@@ -24,6 +24,16 @@ alignment will introduce gap of size bigger than: \cr
 \description{
 Use to filter reads that are most likely PRIMER DIMERS.
 }
+\examples{
+file_path <- system.file("extdata", "results", "alignments",
+                         "raw_events.csv", package = "amplican")
+aln <- data.table::fread(file_path)
+cfgT <- data.table::fread(
+  system.file("extdata", "results", "config_summary.csv",
+              package = "amplican"))
+findPD(aln, cfgT)
+
+}
 \seealso{
 \code{\link{findEOP}}
 

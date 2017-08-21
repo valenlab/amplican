@@ -21,6 +21,7 @@ methods::setClassUnion("data.frameOrNULL", members = c("data.frame", "NULL"))
 #' experiment IDs can be unique after merging
 #' @inheritParams writeAlignments
 #' @inheritParams lookupAlignment
+#' @return depending on the function used
 #'
 #' @slot fwdReads,rveReads (list) Named list where each element is of class
 #' \code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}}. Names correspond
@@ -192,7 +193,13 @@ setMethod("length", "AlignmentsExperimentSet", function(x) {
 #' Get alignments for forward reads.
 #' @name fwdReads
 #' @param x (AlignmentsExperimentSet)
+#' @return (listOrNULL) list with objects of PairwiseAlignmentsSingleSubject
 #' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' fwdReads(aln)
 setGeneric("fwdReads", function(x) standardGeneric("fwdReads"))
 #' @aliases fwdReads,AlignmentsExperimentSet-method
 #' @rdname AlignmentsExperimentSet-class
@@ -205,8 +212,14 @@ setMethod("fwdReads", "AlignmentsExperimentSet", function(x) x@fwdReads)
 #' @name fwdReads<-
 #' @param x (AlignmentsExperimentSet)
 #' @param value (list) Named (experiment IDs) list with elements of
+#' @return (AlignmentsExperimentSet)
 #' \code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}} class.
 #' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' fwdReads(aln) <- fwdReads(aln) # replace with the same values
 setGeneric("fwdReads<-", function(x, value) standardGeneric("fwdReads<-"))
 #' @aliases fwdReads<-,AlignmentsExperimentSet-method
 #' @rdname AlignmentsExperimentSet-class
@@ -220,7 +233,13 @@ setMethod("fwdReads<-", "AlignmentsExperimentSet", function(x, value) {
 #' Get alignments for reverse reads.
 #' @name rveReads
 #' @param x (AlignmentsExperimentSet)
+#' @return (listOrNULL) list with objects of PairwiseAlignmentsSingleSubject
 #' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' rveReads(aln)
 setGeneric("rveReads", function(x) standardGeneric("rveReads"))
 #' @rdname AlignmentsExperimentSet-class
 #' @aliases rveReads,AlignmentsExperimentSet-method
@@ -233,8 +252,14 @@ setMethod("rveReads", "AlignmentsExperimentSet", function(x) x@rveReads)
 #' @name rveReads<-
 #' @param x (AlignmentsExperimentSet)
 #' @param value (list) Named (experiment IDs) list with elements of
+#' @return (AlignmentsExperimentSet)
 #' \code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}} class.
 #' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' rveReads(aln) <- rveReads(aln) # replace with the same values
 setGeneric("rveReads<-", function(x, value) standardGeneric("rveReads<-"))
 #' @rdname AlignmentsExperimentSet-class
 #' @aliases rveReads<-,AlignmentsExperimentSet-method
@@ -248,7 +273,13 @@ setMethod("rveReads<-", "AlignmentsExperimentSet", function(x, value) {
 #' Get unassigned reads and their characteristics.
 #' @name unassignedData
 #' @param x (AlignmentsExperimentSet)
+#' @return (data.frameOrNULL)
 #' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' unassignedData(aln)
 setGeneric("unassignedData", function(x) standardGeneric("unassignedData"))
 #' @rdname AlignmentsExperimentSet-class
 #' @aliases unassignedData,AlignmentsExperimentSet-method
@@ -263,8 +294,14 @@ setMethod("unassignedData", "AlignmentsExperimentSet", function(x) {
 #' @name unassignedData<-
 #' @param x (AlignmentsExperimentSet)
 #' @param value (list) Named (experiment IDs) list with elements of
+#' @return (AlignmentsExperimentSet)
 #' \code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}} class.
 #' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' unassignedData(aln) <- unassignedData(aln) #replace with the same values
 setGeneric("unassignedData<-", function(x, value) {
   standardGeneric("unassignedData<-")
 })
@@ -280,7 +317,13 @@ setMethod("unassignedData<-", "AlignmentsExperimentSet", function(x, value) {
 #' Set alignments for forward reads.
 #' @name readCounts
 #' @param x (AlignmentsExperimentSet)
+#' @return (listOrNULL)
 #' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' readCounts(aln)
 setGeneric("readCounts", function(x) standardGeneric("readCounts"))
 #' @rdname AlignmentsExperimentSet-class
 #' @aliases readCounts,AlignmentsExperimentSet-method
@@ -295,8 +338,14 @@ setMethod("readCounts", "AlignmentsExperimentSet", function(x) {
 #' @name readCounts<-
 #' @param x (AlignmentsExperimentSet)
 #' @param value (list) Named (experiment IDs) list with elements of
+#' @return (AlignmentsExperimentSet)
 #' \code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}} class.
 #' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' readCounts(aln) <- readCounts(aln) # replace with the same values
 setGeneric("readCounts<-", function(x, value) {
   standardGeneric("readCounts<-")
 })
@@ -312,7 +361,13 @@ setMethod("readCounts<-", "AlignmentsExperimentSet", function(x, value) {
 #' Get experiment data.frame with information on the experiment level.
 #' @name experimentData
 #' @param x (AlignmentsExperimentSet)
+#' @return (data.frameOrNULL)
 #' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' experimentData(aln)
 setGeneric("experimentData", function(x) standardGeneric("experimentData"))
 #' @rdname AlignmentsExperimentSet-class
 #' @aliases experimentData,AlignmentsExperimentSet-method
@@ -327,7 +382,13 @@ setMethod("experimentData", "AlignmentsExperimentSet", function(x) {
 #' @name experimentData<-
 #' @param x (AlignmentsExperimentSet)
 #' @param value (data.frame)
+#' @return (AlignmentsExperimentSet)
 #' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' experimentData(aln) <- experimentData(aln) # replace with the same values
 setGeneric("experimentData<-", function(x, value) {
   standardGeneric("experimentData<-")
 })
@@ -343,7 +404,13 @@ setMethod("experimentData<-", "AlignmentsExperimentSet", function(x, value) {
 #' Get barcode data.frame with information on the barcode level.
 #' @name barcodeData
 #' @param x (AlignmentsExperimentSet)
+#' @return (data.tableOrNULL)
 #' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' barcodeData(aln)
 setGeneric("barcodeData", function(x) standardGeneric("barcodeData"))
 #' @rdname AlignmentsExperimentSet-class
 #' @aliases barcodeData,AlignmentsExperimentSet-method
@@ -358,7 +425,13 @@ setMethod("barcodeData", "AlignmentsExperimentSet", function(x) {
 #' @name barcodeData<-
 #' @param x (AlignmentsExperimentSet)
 #' @param value (data.frame)
+#' @return (AlignmentsExperimentSet)
 #' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' barcodeData(aln) <- barcodeData(aln) #replace with the same values as before
 setGeneric("barcodeData<-", function(x, value) {
   standardGeneric("barcodeData<-")
 })
@@ -373,7 +446,13 @@ setMethod("barcodeData<-", "AlignmentsExperimentSet", function(x, value) {
 #'
 #' @name unassignedCount
 #' @param x (AlignmentsExperimentSet)
+#' @return (numeric)
 #' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' unassignedCount(aln)
 setGeneric("unassignedCount", function(x) standardGeneric("unassignedCount"))
 #' @rdname AlignmentsExperimentSet-class
 #' @aliases unassignedCount,AlignmentsExperimentSet-method
@@ -386,7 +465,14 @@ setMethod("unassignedCount", "AlignmentsExperimentSet", function(x) {
 #'
 #' @name assignedCount
 #' @param x (AlignmentsExperimentSet)
+#' @return (numeric)
 #' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' writeAlignments(aln, file.path(tempdir(), "aln.txt"))
+#'
 setGeneric("assignedCount", function(x) standardGeneric("assignedCount"))
 #' @rdname AlignmentsExperimentSet-class
 #' @aliases assignedCount,AlignmentsExperimentSet-method
@@ -402,33 +488,6 @@ setMethod("names", "AlignmentsExperimentSet", function(x) {
   as.character(x@experimentData$ID)
 })
 
-
-# Commented out, due to bplapply(object, getEventInfoObj) with multiple cores:
-# .splitX(X, bpnworkers(BPPARAM), bptasks(BPPARAM))
-# relist(X, idx)
-# relist.list(X, idx)
-# relist(flesh[seq.int(ind, length.out = size)], result[[i]])
-# relist.default(flesh[seq.int(ind, length.out = size)], result[[i]])
-# `names<-`(`*tmp*`, value = names(skeleton))
-# stop("New names must be of the same length as previous names.")
-#
-# #' @aliases names<-,AlignmentsExperimentSet-method
-# #' @rdname AlignmentsExperimentSet-class
-# setMethod("names<-", "AlignmentsExperimentSet", function(x, value) {
-#   # if (length(x) != length(value)) {
-#   #   stop("New names must be of the same length as previous names.")
-#   # }
-#   fwdReads <- fwdReads(x)
-#   if (!is.null(fwdReads)) names(fwdReads) <- value
-#   rveReads <- rveReads(x)
-#   if (!is.null(rveReads)) names(rveReads) <- value
-#   experimentData <- experimentData(x)
-#   if (!is.null(experimentData)) experimentData$ID <- value
-#   readCounts <- readCounts(x)
-#   if (!is.null(readCounts)) names(readCounts) <- value
-#   initialize(x, fwdReads = fwdReads, rveReads = rveReads,
-#              experimentData = experimentData, readCounts = readCounts)
-# })
 
 #' @rdname AlignmentsExperimentSet-class
 #' @aliases c,AlignmentsExperimentSet-method
@@ -480,15 +539,22 @@ setMethod("$", "AlignmentsExperimentSet", function(x, name) {
 })
 
 
-#' Alignments for forward reads.
+#' Write alignments to file.
 #'
-#' Set alignments for forward reads.
+#' Saves alignments into txt or fasta file.
 #' @name writeAlignments
 #' @param x (AlignmentsExperimentSet)
 #' @param file (connection or string) Destination file. When empty, defaults to
 #' standard output.
 #' @param aln_format ("txt" or "fasta") Specifies format of the file.
+#' @return (invisible)
 #' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' writeAlignments(aln, file.path(tempdir(), "aln.txt"))
+#'
 setGeneric("writeAlignments", function(x, file = "", aln_format = "txt") {
   standardGeneric("writeAlignments")
 })
@@ -497,6 +563,7 @@ setGeneric("writeAlignments", function(x, file = "", aln_format = "txt") {
 #' \code{writeAlignments(x, file = "", aln_format = "txt")}
 #' @rdname AlignmentsExperimentSet-class
 #' @aliases writeAlignments,AlignmentsExperimentSet-method
+#'
 setMethod("writeAlignments", "AlignmentsExperimentSet", function(
   x, file = "", aln_format = "txt") {
 
@@ -577,7 +644,16 @@ setMethod("writeAlignments", "AlignmentsExperimentSet", function(
 #' @param ID (string) Experiment Identifier
 #' @param read_id (numeric) Read Identifier. Reads are sorted by frequency.
 #' Defaults to 1, most abundant read.
+#' @return (print to view)
 #' @export
+#' @examples
+#' # load example object
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' # look at most frequent reads aligned from experiment ID_1
+#' lookupAlignment(aln, "ID_1")
+#'
 setGeneric("lookupAlignment", function(x, ID, read_id = 1){
   standardGeneric("lookupAlignment")
 })
@@ -640,6 +716,12 @@ getEventInfoObj <- function(object) {
 #' @return (data.frame) Compatible with \code{\link[GenomicRanges]{GRanges}}
 #' style.
 #' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' extractEvents(aln)
+#'
 setGeneric("extractEvents", function(object, total_processors = 1){
   standardGeneric("extractEvents")
 })

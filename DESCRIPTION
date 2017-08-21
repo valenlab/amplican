@@ -13,11 +13,11 @@ Authors@R: c(
   )
 URL: https://github.com/valenlab/amplican
 BugReports: https://github.com/valenlab/amplican/issues
-biocViews: Technology, qPCR, CRISPR
+biocViews: Technology, Alignment, qPCR, CRISPR
 License: GPL-3
 LazyData: true
 Depends:
-    R (>= 3.3.0),
+    R (>= 3.4.0),
     methods,
     BiocGenerics (>= 0.22.0),
     Biostrings (>= 2.44.2),

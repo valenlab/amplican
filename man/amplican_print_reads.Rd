@@ -18,3 +18,17 @@ Vector with alignments ready to be printed.
 \description{
 Usefull and needed for barcode reports.
 }
+\examples{
+# load example data
+unassigned_file <- system.file('extdata', 'results',  'alignments',
+                               'unassigned_reads.csv', package = 'amplican')
+unassigned <- data.table::setDF(data.table::fread(unassigned_file))
+# sort by frequency
+unassigned <- unassigned[order(unassigned$BarcodeFrequency,
+                               decreasing = TRUE), ]
+# print alignment of most frequent unassigned reads
+cat(paste(amplican_print_reads(unassigned[1, 'Forward'],
+                               unassigned[1, 'Reverse']),
+          collapse = "\\n"))
+
+}

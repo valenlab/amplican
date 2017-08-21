@@ -29,13 +29,22 @@ cut site.}
 overlapping expected cut site.}
 }
 }
+\examples{
+file_path <- system.file("extdata", "results", "alignments",
+                         "events_filtered_shifted_normalized.csv",
+                         package = "amplican")
+aln <- data.table::fread(file_path)
+cfgT <- data.table::fread(
+  system.file("extdata", "results", "config_summary.csv",
+              package = "amplican"))
+amplicanSummarize(aln, cfgT)
+}
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanConsensus}},
-  \code{\link{amplicanFilter}},
+  \code{\link{amplicanFilter}}, \code{\link{amplicanMap}},
   \code{\link{amplicanNormalize}},
   \code{\link{amplicanOverlap}},
   \code{\link{amplicanPipeline}},
-  \code{\link{amplicanReport}},
-  \code{\link{map_to_relative}}
+  \code{\link{amplicanReport}}
 }

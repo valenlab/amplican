@@ -77,11 +77,10 @@ aln
 }
 \seealso{
 Other analysis steps: \code{\link{amplicanConsensus}},
-  \code{\link{amplicanFilter}},
+  \code{\link{amplicanFilter}}, \code{\link{amplicanMap}},
   \code{\link{amplicanNormalize}},
   \code{\link{amplicanOverlap}},
   \code{\link{amplicanPipeline}},
   \code{\link{amplicanReport}},
-  \code{\link{amplicanSummarize}},
-  \code{\link{map_to_relative}}
+  \code{\link{amplicanSummarize}}
 }

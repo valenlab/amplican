@@ -193,7 +193,7 @@ return_plot <- function(freqAgr, amplicon, from, to, plot_fr, plot_re) {
 #' \code{selection} vector that groups values by given config \code{group}.
 #' All reads should
 #' already be converted to their relative position to their respective amplicon
-#' using \code{\link{map_to_relative}}.
+#' using \code{\link{amplicanMap}}.
 #' Zero position on new coordinates is the most left UPPER case letter of
 #' the respective amplicon. This function filters out all alignment events
 #' that have amplicons without UPPER case defined.
@@ -263,7 +263,7 @@ metaplot_mismatches <- function(alnmt, config, group, selection) {
 #' \code{selection} vector that groups values by given config \code{group}.
 #' All reads should
 #' already be converted to their relative position to their respective amplicon
-#' using \code{\link{map_to_relative}}.
+#' using \code{\link{amplicanMap}}.
 #' Top plot is for the forward reads and bottom plot is for reverse reads.
 #'
 #' @param alnmt (data.frame) Loaded alignment information from
@@ -324,7 +324,7 @@ metaplot_deletions <- function(alnmt, config, group,
 #' \code{selection} vector that groups values by given config \code{group}.
 #' All reads should
 #' already be converted to their relative position to their respective amplicon
-#' using \code{\link{map_to_relative}}.
+#' using \code{\link{amplicanMap}}.
 #' Top plot is for the forward reads and bottom plot is for reverse reads.
 #'
 #' @param alnmt (data.frame) Loaded alignment information from
@@ -831,7 +831,7 @@ plot_heterogeneity <- function(alignments,
                            by = level]
   alignments <- alignments[, c(level, "counts", "read_id"), with = FALSE]
 
-  c_ord <- order(alignments[[level]], alignments$counts, decreasing = T)
+  c_ord <- order(alignments[[level]], alignments$counts, decreasing = TRUE)
   alignments <- alignments[c_ord, ]
   alignments[, read_shares:= counts*100/sum(counts),
              by = level]
@@ -1147,7 +1147,8 @@ plot_variants <- function(alignments, config, id,
   tgb <- gridExtra::tableGrob(
     vtable, theme = gridExtra::ttheme_minimal(core = list(
       bg_params = list(
-        fill = c(cRamp(vtable$Freq), cRamp(vtable$Count), cRampF(vtable$F)),
+        fill = c(cRamp(vtable$Freq), cRamp(vtable$Count),
+                 cRampF(vtable[["F"]])),
         col = NA))), rows = NULL)
   # tgb <- gtable::gtable_add_grob(tgb,
   #                      grobs = grid::rectGrob(gp = grid::gpar(fill = NA)),

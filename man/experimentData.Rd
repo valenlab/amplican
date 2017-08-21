@@ -9,6 +9,15 @@ experimentData(x)
 \arguments{
 \item{x}{(AlignmentsExperimentSet)}
 }
+\value{
+(data.frameOrNULL)
+}
 \description{
 Get experiment data.frame with information on the experiment level.
+}
+\examples{
+file_path <- system.file("extdata", "results", "alignments",
+                         "AlignmentsExperimentSet.rds", package = "amplican")
+aln <- readRDS(file_path)
+experimentData(aln)
 }

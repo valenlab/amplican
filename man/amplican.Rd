@@ -11,7 +11,6 @@ Main goals:
 }
 \details{
 \enumerate{
-\item
 \item Flexible pipeline for analysis of the CRISPR Mi-Seq or Hi-Seq data.
 \item Compatible with GRanges and data.table style.
 \item Precise quantification of mutation rates.

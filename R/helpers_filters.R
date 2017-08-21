@@ -15,6 +15,14 @@
 #' @export
 #' @family filters
 #' @seealso \code{\link{findPD}}
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "raw_events.csv", package = "amplican")
+#' aln <- data.table::fread(file_path)
+#' cfgT <- data.table::fread(
+#'   system.file("extdata", "results", "config_summary.csv",
+#'               package = "amplican"))
+#' findEOP(aln, cfgT)
 #'
 findEOP <- function(aln, cfgT) {
   mapID <- match(aln$seqnames, cfgT$ID)
@@ -37,6 +45,14 @@ findEOP <- function(aln, cfgT) {
 #' @export
 #' @family filters
 #' @seealso \code{\link{findEOP}}
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "raw_events.csv", package = "amplican")
+#' aln <- data.table::fread(file_path)
+#' cfgT <- data.table::fread(
+#'   system.file("extdata", "results", "config_summary.csv",
+#'               package = "amplican"))
+#' findPD(aln, cfgT)
 #'
 findPD <- function(aln, cfgT, PRIMER_DIMER = 30) {
 

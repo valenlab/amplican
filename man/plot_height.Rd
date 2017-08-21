@@ -11,9 +11,13 @@ plot_height(x)
 \item{x}{(numeric) number of elements to fit onto height axis}
 }
 \value{
-(numeric)
+(numeric) In inches
 }
 \description{
 Helper function to calculate figure height
 based on number of elements to plot.
+}
+\examples{
+plot_height(20)
+
 }

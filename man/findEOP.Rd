@@ -25,6 +25,16 @@ ACTGAAAAA------- <- this "deletion" should be filtered
 ACTG----ACTGACTG
 }
 }
+\examples{
+file_path <- system.file("extdata", "results", "alignments",
+                         "raw_events.csv", package = "amplican")
+aln <- data.table::fread(file_path)
+cfgT <- data.table::fread(
+  system.file("extdata", "results", "config_summary.csv",
+              package = "amplican"))
+findEOP(aln, cfgT)
+
+}
 \seealso{
 \code{\link{findPD}}
 

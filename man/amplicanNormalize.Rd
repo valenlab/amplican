@@ -13,8 +13,8 @@ amplicanNormalize(aln, cfgT, add = c("guideRNA", "Group"),
 \item{cfgT}{(data.frame) Config table with information about experiments.}
 
 \item{add}{(character vector) Columns from cfgT that should be included
-in event table for normalization matching. Defaults to c("guideRNA", "Group"),
-which means that only those events created by the same guideRNA in the same
+in event table for normalization matching. Defaults to c("guideRNA", "Group")
+, which means that only those events created by the same guideRNA in the same
 Group will be removed if found in Control.}
 
 \item{skip}{(character vector) Specifies which column of aln to skip,
@@ -58,10 +58,9 @@ amplicanNormalize(aln, cfgT)
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanConsensus}},
-  \code{\link{amplicanFilter}},
+  \code{\link{amplicanFilter}}, \code{\link{amplicanMap}},
   \code{\link{amplicanOverlap}},
   \code{\link{amplicanPipeline}},
   \code{\link{amplicanReport}},
-  \code{\link{amplicanSummarize}},
-  \code{\link{map_to_relative}}
+  \code{\link{amplicanSummarize}}
 }

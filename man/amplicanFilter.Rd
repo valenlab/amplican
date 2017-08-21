@@ -32,15 +32,25 @@ ACTG----ACTGACTG
 We call them Events Overlapping Primers and filter them together
 with reads that are potentially PRIMER DIMERS.
 }
+\examples{
+file_path <- system.file("extdata", "results", "alignments",
+                         "raw_events.csv", package = "amplican")
+aln <- data.table::fread(file_path)
+cfgT <- data.table::fread(
+  system.file("extdata", "results", "config_summary.csv",
+              package = "amplican"))
+amplicanFilter(aln, cfgT, 30)
+
+}
 \seealso{
 \code{\link{findPD}} and \code{\link{findEOP}}
 
 Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanConsensus}},
+  \code{\link{amplicanMap}},
   \code{\link{amplicanNormalize}},
   \code{\link{amplicanOverlap}},
   \code{\link{amplicanPipeline}},
   \code{\link{amplicanReport}},
-  \code{\link{amplicanSummarize}},
-  \code{\link{map_to_relative}}
+  \code{\link{amplicanSummarize}}
 }

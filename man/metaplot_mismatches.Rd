@@ -27,7 +27,7 @@ Plots mismatches in relation to the amplicons for given
 \code{selection} vector that groups values by given config \code{group}.
 All reads should
 already be converted to their relative position to their respective amplicon
-using \code{\link{map_to_relative}}.
+using \code{\link{amplicanMap}}.
 Zero position on new coordinates is the most left UPPER case letter of
 the respective amplicon. This function filters out all alignment events
 that have amplicons without UPPER case defined.

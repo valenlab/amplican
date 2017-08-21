@@ -12,8 +12,8 @@
 #' @param aln (data.frame) Contains events from alignments.
 #' @param cfgT (data.frame) Config table with information about experiments.
 #' @param add (character vector) Columns from cfgT that should be included
-#' in event table for normalization matching. Defaults to c("guideRNA", "Group"),
-#' which means that only those events created by the same guideRNA in the same
+#' in event table for normalization matching. Defaults to c("guideRNA", "Group")
+#' , which means that only those events created by the same guideRNA in the same
 #' Group will be removed if found in Control.
 #' @param skip (character vector) Specifies which column of aln to skip,
 #' defaults to c('counts', 'score').
@@ -63,7 +63,7 @@ amplicanNormalize <- function(aln, cfgT,
 
   data.table::setDT(cfgT)
   cfgT_total_reads <- cfgT[, list(Reads_noPD = sum(Reads_noPD)),
-                           by = c(add, "Control")]
+                          by = c(add, "Control")]
   cfgT_total_reads <- cfgT_total_reads[cfgT_total_reads$Control, ]
 
   aln_ctr_freq <- aln_ctr[, list(counts = sum(counts)), by = cols]

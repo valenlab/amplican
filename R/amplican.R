@@ -3,7 +3,6 @@
 #' Main goals:
 #'
 #' \enumerate{
-#' \item
 #' \item Flexible pipeline for analysis of the CRISPR Mi-Seq or Hi-Seq data.
 #' \item Compatible with GRanges and data.table style.
 #' \item Precise quantification of mutation rates.
@@ -18,7 +17,7 @@
 #'
 #' @docType package
 #' @name amplican
-#' @import methods BiocGenerics Biostrings data.table
+#' @import ggthemes waffle knitr methods BiocGenerics Biostrings data.table
 "_PACKAGE"
 
 
@@ -225,7 +224,7 @@ amplicanPipeline <- function(
 
   # shift to relative (most left UPPER case is position 0)
   message("Shifting events as relative...")
-  aln <- data.frame(map_to_relative(aln, cfgT), stringsAsFactors = FALSE)
+  aln <- data.frame(amplicanMap(aln, cfgT), stringsAsFactors = FALSE)
   message("Saving shifted events - filtered...")
   data.table::fwrite(aln,
                      file.path(resultsFolder,

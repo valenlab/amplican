@@ -27,13 +27,22 @@ created by CRISPR we check whether they overlap expected cut sites. Expected
 cut sites should be specified in UPPER CASE letters in the amplicon
 sequences.
 }
+\examples{
+file_path <- system.file("extdata", "results", "alignments",
+                         "raw_events.csv", package = "amplican")
+aln <- data.table::fread(file_path)
+cfgT <- data.table::fread(
+  system.file("extdata", "results", "config_summary.csv",
+              package = "amplican"))
+all(aln$overlaps == amplicanOverlap(aln, cfgT))
+
+}
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanConsensus}},
-  \code{\link{amplicanFilter}},
+  \code{\link{amplicanFilter}}, \code{\link{amplicanMap}},
   \code{\link{amplicanNormalize}},
   \code{\link{amplicanPipeline}},
   \code{\link{amplicanReport}},
-  \code{\link{amplicanSummarize}},
-  \code{\link{map_to_relative}}
+  \code{\link{amplicanSummarize}}
 }

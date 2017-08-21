@@ -9,6 +9,15 @@ barcodeData(x)
 \arguments{
 \item{x}{(AlignmentsExperimentSet)}
 }
+\value{
+(data.tableOrNULL)
+}
 \description{
 Get barcode data.frame with information on the barcode level.
+}
+\examples{
+file_path <- system.file("extdata", "results", "alignments",
+                         "AlignmentsExperimentSet.rds", package = "amplican")
+aln <- readRDS(file_path)
+barcodeData(aln)
 }

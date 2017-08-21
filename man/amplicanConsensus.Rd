@@ -36,13 +36,20 @@ Consensus out of the forward + reverse reads is required for
 \code{amplicanSummary}, and \code{amplicanConsensus} requires
 \code{amplicanOverlap}.
 }
+\examples{
+file_path <- system.file("extdata", "results", "alignments",
+                         "events_filtered_shifted_normalized.csv",
+                         package = "amplican")
+aln <- data.table::fread(file_path)
+all(aln$consensus == amplicanConsensus(aln))
+
+}
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},
-  \code{\link{amplicanFilter}},
+  \code{\link{amplicanFilter}}, \code{\link{amplicanMap}},
   \code{\link{amplicanNormalize}},
   \code{\link{amplicanOverlap}},
   \code{\link{amplicanPipeline}},
   \code{\link{amplicanReport}},
-  \code{\link{amplicanSummarize}},
-  \code{\link{map_to_relative}}
+  \code{\link{amplicanSummarize}}
 }

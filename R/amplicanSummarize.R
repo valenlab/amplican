@@ -26,16 +26,27 @@
 #' @export
 #' @include helpers_general.R
 #' @family analysis steps
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "events_filtered_shifted_normalized.csv",
+#'                          package = "amplican")
+#' aln <- data.table::fread(file_path)
+#' all(aln$consensus == amplicanConsensus(aln))
 #'
 amplicanConsensus <- function(aln, overlaps = "overlaps") {
 
+  cols <- c("seqnames", "read_id", "replacement", "type", "start", "end")
+  cols_all <- c(
+    "strand", "score", "counts", "width", "num", "originally", overlaps, cols)
   data.table::setDT(aln)
+
+  aln <- aln[, which(colnames(aln) %in% cols_all), with = FALSE]
   consensus <- rep(FALSE, nrow(aln))
 
   aln$num <- seq_len(nrow(aln))
   aln_fwd <- aln[strand == "+"]
   aln_rve <- aln[strand == "-"]
-  cols <- c("seqnames", "read_id", "start", "end", "replacement", "type")
+
   data.table::setkeyv(aln_fwd, cols)
   data.table::setkeyv(aln_rve, cols)
 
@@ -49,11 +60,8 @@ amplicanConsensus <- function(aln, overlaps = "overlaps") {
   aln_rve <- aln_rve[!r_both & aln_rve$`overlaps`]
   # The last two columns should be the interval columns
   # find events that can are overlapping each other
-  cols <- c("seqnames", "read_id", "strand", "score", "counts", "width",
-            "type", "num", "originally","replacement", overlaps, "start", "end")
-  data.table::setcolorder(aln_fwd, cols)
-  data.table::setcolorder(aln_rve, cols)
-  cols <- c("seqnames", "read_id", "type", "replacement", "start", "end")
+  data.table::setcolorder(aln_fwd, cols_all)
+  data.table::setcolorder(aln_rve, cols_all)
   data.table::setkeyv(aln_fwd, cols)
   data.table::setkeyv(aln_rve, cols)
   oMatch <- data.table::foverlaps(aln_fwd, aln_rve,
@@ -84,6 +92,14 @@ amplicanConsensus <- function(aln, overlaps = "overlaps") {
 #' @export
 #' @include helpers_general.R
 #' @family analysis steps
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "raw_events.csv", package = "amplican")
+#' aln <- data.table::fread(file_path)
+#' cfgT <- data.table::fread(
+#'   system.file("extdata", "results", "config_summary.csv",
+#'               package = "amplican"))
+#' all(aln$overlaps == amplicanOverlap(aln, cfgT))
 #'
 amplicanOverlap <- function(aln, cfgT, cut_buffer = 5, relative = TRUE) {
 
@@ -135,7 +151,15 @@ amplicanOverlap <- function(aln, cfgT, cut_buffer = 5, relative = TRUE) {
 #' @export
 #' @family analysis steps
 #' @include helpers_general.R
-#'
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "events_filtered_shifted_normalized.csv",
+#'                          package = "amplican")
+#' aln <- data.table::fread(file_path)
+#' cfgT <- data.table::fread(
+#'   system.file("extdata", "results", "config_summary.csv",
+#'               package = "amplican"))
+#' amplicanSummarize(aln, cfgT)
 amplicanSummarize <- function(aln, cfgT) {
 
   seqnames <- read_id <- counts <- start <- end <- score <- NULL
