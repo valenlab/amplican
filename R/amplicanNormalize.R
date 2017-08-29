@@ -41,8 +41,9 @@
 #'
 amplicanNormalize <- function(aln, cfgT,
                               add = c("guideRNA", "Group"),
-                              skip = c("counts", "score"),
-                              min_freq = 0.1){
+                              skip = c("counts", "score", "seqnames",
+                                       "read_id", "strand"),
+                              min_freq = 0.01){
   Reads_noPD <- frequency <- NULL
   if (!any(cfgT$Control)) {
     warning("Column 'Control' has no TRUE/1 values. Nothing to normalize.")
@@ -53,7 +54,7 @@ amplicanNormalize <- function(aln, cfgT,
   for (column in add) {
     aln[[column]] <- cfgT[[column]][map]
   }
-  cols <- names(aln)[!names(aln) %in% c(skip, "seqnames", "read_id")]
+  cols <- names(aln)[!names(aln) %in% skip]
 
   ctr_indices <- cfgT[["Control"]][map]
   aln_ctr <- aln[ctr_indices, ]

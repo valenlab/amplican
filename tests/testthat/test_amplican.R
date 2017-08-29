@@ -8,15 +8,16 @@ context("amplican main making analysis of example files")
 
 config <- system.file("extdata", "config.csv", package = "amplican")
 fastq_folder <- system.file("extdata", package = "amplican")
-results_folder <- system.file("extdata", "results", package = "amplican")
-vignettes_path <- system.file('vignettes', package = 'amplican')
+results_folder <- tempdir()
+# results_folder <- system.file("extdata", "results", package = "amplican")
+# vignettes_path <- system.file('vignettes', package = 'amplican')
 
 # devtools::unload()
 # library(amplican)
 
 test_that("amplican runs through example files without any issues", {
   expect_message(
-    amplicanPipeline(config, fastq_folder, results_folder, total_processors = 2,
+    amplicanPipeline(config, fastq_folder, results_folder,
                      knit_reports = FALSE))
 })
 

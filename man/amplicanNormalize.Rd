@@ -5,7 +5,8 @@
 \title{Remove events that can be found in Controls.}
 \usage{
 amplicanNormalize(aln, cfgT, add = c("guideRNA", "Group"),
-  skip = c("counts", "score"), min_freq = 0.1)
+  skip = c("counts", "score", "seqnames", "read_id", "strand"),
+  min_freq = 0.01)
 }
 \arguments{
 \item{aln}{(data.frame) Contains events from alignments.}

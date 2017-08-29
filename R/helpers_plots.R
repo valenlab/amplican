@@ -960,7 +960,7 @@ plot_variants <- function(alignments, config, id,
   seqnames <- read_id <- replacement <- NULL
 
   archRanges <- alignments[alignments$seqnames %in% id, ]
-  archRanges <- archRanges[archRanges$strand == "+", ]
+  archRanges$strand <- "*"
   if (dim(archRanges)[1] == 0) return("No variants to plot.")
 
   amplicon <- get_amplicon(config, id)
@@ -1135,7 +1135,7 @@ plot_variants <- function(alignments, config, id,
                    panel.border = ggplot2::element_blank(),
                    panel.background = ggplot2::element_blank(),
                    axis.ticks.y = ggplot2::element_blank(),
-                   plot.margin = grid::unit(c(0, 0, -2.5, 0), "char")) +
+                   plot.margin = grid::unit(c(0, 0, -2, 0), "char")) +
     ggplot2::labs(y = "Frame")
 
   vtable <- archRanges[, c("frequency", "counts", "width")]
@@ -1200,6 +1200,5 @@ plot_variants <- function(alignments, config, id,
     heights = grid::unit.c(grid::unit(8, "char"),
                            grid::unit(1, "npc") - grid::unit(8, "char")),
     nrow = 2)
-  grid::grid.newpage()
-  grid::grid.draw(fin)
+  fin
 }

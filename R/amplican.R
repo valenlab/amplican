@@ -191,8 +191,10 @@ amplicanPipeline <- function(
   close(logFileConn)
 
   message("Saving unassigned sequences...")
-  data.table::fwrite(unassignedData(aln),
-                     file.path(resultsFolder, "unassigned_reads.csv"))
+  unData <- unassignedData(aln)
+  if (!is.null(unData)) data.table::fwrite(
+    unData, file.path(resultsFolder, "unassigned_reads.csv"))
+  
   message("Saving barcode statistics...")
   data.table::fwrite(barcodeData(aln),
                      file.path(results_folder, "barcode_reads_filters.csv"))
