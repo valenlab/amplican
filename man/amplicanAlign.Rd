@@ -8,7 +8,7 @@ amplicanAlign(config, fastq_folder, total_processors = 1,
   average_quality = 30, min_quality = 20,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5,
   mismatch = -4, baseOnly = TRUE, type = "DNA"), gap_opening = 50,
-  gap_extension = 0, fastqfiles = 0)
+  gap_extension = 0, fastqfiles = 0, primer_mismatch = 2)
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
@@ -52,6 +52,11 @@ the reverse file. Possible options:
  \item{1}{ Use only the forward FASTQ file.}
  \item{2}{ Use only the reverse FASTQ file.}
 }}
+
+\item{primer_mismatch}{(numeric) Decide how many mismatches are allowed
+during primer matching of the reads, that groups reads by experiments.
+When \code{primer_mismatch = 0} no mismatches are allowed, which can increase
+number of unasssigned reads (to expected value of around 25\%).}
 }
 \value{
 (AlignmentsExperimentSet) Check \code{\link{AlignmentsExperimentSet}}

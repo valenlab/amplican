@@ -1,5 +1,5 @@
 Config file:         full/path/to/config/file/that/has/been/used.csv
-Processors used:     2
+Processors used:     1
 Average Quality:     30
 Minimum Quality:     0
 Write Alignments:    txt

@@ -1,3 +1,47 @@
+#' Generate all combinations along string exchanging m characters at a time with
+#' dictionary letters.
+#'
+#' Generate all combinations along string \code{seq} swapping \code{m}
+#' characters at a time with letters defined in dictionary \code{letters}.
+#' Allows, for instance, to create a list of possible primers with two
+#' mismatches.
+#'
+#' @param seq (character) input character to permutate
+#' @param m (integer) number of elements to permutate at each step
+#' @param letters (character vector) dictionary source for combinations of
+#' elements
+#' @return (character vector) all unique combinations of permutated string
+#' @export
+#' @examples
+#' comb_along("AC")
+#' comb_along("AAA", 1)
+#' comb_along("AAA")
+#' comb_along("AAA", 3)
+#' comb_along("AAAAAAAAAA")
+#'
+comb_along <- function(seq, m = 2, letters = c("A", "C", "T", "G")) {
+  seq <- as.list(strsplit(seq, "")[[1]])
+  indices <- utils::combn(seq_along(seq), m)
+  letters <- list(letters)
+
+  seq <- apply(indices, 2, function(x) {
+    seq[x] <- letters
+    do.call(paste0, expand.grid(seq))
+  })
+
+  unique(as.vector(seq))
+}
+
+
+locate_pr_start <- function(reads, primer, m = 2) {
+  primer <- comb_along(primer, m)
+  primer <- sapply(primer, function(pr) {
+    stringr::str_locate(reads, pr)[, 1]
+  }, simplify = TRUE, USE.NAMES = FALSE)
+  matrixStats::rowMaxs(primer, na.rm = TRUE)
+}
+
+
 #' Make alignments helper.
 #'
 #' Aligning reads to the amplicons for each ID in this barcode, constructing
@@ -13,7 +57,8 @@ makeAlignment <- function(cfgT,
                           scoring_matrix,
                           gap_opening,
                           gap_extension,
-                          fastqfiles) {
+                          fastqfiles,
+                          primer_mismatch) {
 
   barcode <- cfgT$Barcode[1]
   message(paste0("Aligning reads for ", barcode))
@@ -78,19 +123,21 @@ makeAlignment <- function(cfgT,
     amplicon <- toupper(cfgT$Amplicon[i])
 
     # Search for the forward, reverse and targets
-    unqT$fwdPrInReadPos <- stringr::str_locate(unqT$Forward, fwdPrimer)[,1]
+    unqT$fwdPrInReadPos <- locate_pr_start(
+      unqT$Forward, fwdPrimer, primer_mismatch)
     unqT$forwardFound <-
       if (fastqfiles == 2 | fwdPrimer == "") {
         FALSE
       } else {
-        !is.na(unqT$fwdPrInReadPos)
+        is.finite(unqT$fwdPrInReadPos)
       }
-    unqT$rvePrInReadPos <- stringr::str_locate(unqT$Reverse, rvePrimer)[,1]
+    unqT$rvePrInReadPos <- locate_pr_start(
+      unqT$Reverse, rvePrimer, primer_mismatch)
     unqT$reverseFound <-
       if (fastqfiles == 1) {
         FALSE
       } else {
-        !is.na(unqT$rvePrInReadPos)
+        is.finite(unqT$rvePrInReadPos)
       }
     primersFound <-
       if (fastqfiles == 0.5) {

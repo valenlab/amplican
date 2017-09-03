@@ -32,7 +32,8 @@ amplicanAlign <- function(
     match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
   gap_opening = 50,
   gap_extension = 0,
-  fastqfiles = 0) {
+  fastqfiles = 0,
+  primer_mismatch = 2) {
 
   message("Checking configuration file...")
   cfgT <- data.frame(data.table::fread(config))
@@ -87,7 +88,8 @@ amplicanAlign <- function(
                                        scoring_matrix,
                                        gap_opening,
                                        gap_extension,
-                                       fastqfiles, BPPARAM=p)
+                                       fastqfiles,
+                                       primer_mismatch, BPPARAM=p)
   } else {
     finalAES <- vector("list", length(uBarcode))
     for (j in seq_along(uBarcode)) {
@@ -97,7 +99,8 @@ amplicanAlign <- function(
                                      scoring_matrix,
                                      gap_opening,
                                      gap_extension,
-                                     fastqfiles)
+                                     fastqfiles,
+                                     primer_mismatch)
     }
   }
   BiocGenerics::Reduce(c, finalAES)

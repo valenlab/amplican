@@ -141,7 +141,8 @@ plot_heterogeneity(alignments, config, level = 'Barcode')
 ***  
 
 ```{r plot read unassigned reads, results = "asis", echo=FALSE, message=F, warning=FALSE, comment = ''} 
-if (!is.na(config$Forward_Reads_File) && !is.na(config$Reverse_Reads_File)) {
+if (!is.na(config$Forward_Reads_File) && !is.na(config$Reverse_Reads_File) &&
+    file.exists(params$unassigned_folder)) {
   unassigned_reads <- data.table::fread(params$unassigned_folder)
   data.table::setDF(unassigned_reads)
   

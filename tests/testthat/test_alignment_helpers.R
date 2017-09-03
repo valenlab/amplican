@@ -2,6 +2,13 @@ library(amplican)
 library(testthat)
 context("alignment helper functions")
 
+test_that("comb_along returns correct number of elements", {
+  expect_equal(length(comb_along("AC")), 4^2) # 4 letters of alphabet
+  expect_equal(length(comb_along("AAA")), 37)
+  expect_equal(length(comb_along("AAA", 3)), 4^3)
+  expect_equal(length(comb_along("AAA", 1)), 10)
+})
+
 test_that("upperGroups returns correct IRanges", {
   expect_identical(upperGroups("aaaccTTTTGGggg"),
                    IRanges::IRanges(6, 11))

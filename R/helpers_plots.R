@@ -141,11 +141,18 @@ mock_mm_df <- function(ampl_max, ampl_min = 0) {
 
 return_metaplot <- function(freqAgr, plot_fr, plot_re) {
   if (any(freqAgr$strand == "+") & any(freqAgr$strand == "-")) {
-    return(ggbio::tracks(plot_fr,
+    return(ggbio::tracks(plot_fr +
+                           ggplot2::scale_alpha(limits = c(
+                             0, max(freqAgr$frequency, na.rm = TRUE))) +
+                           ggplot2::scale_size(limits = c(
+                             0, max(freqAgr$frequency, na.rm = TRUE))),
                          plot_re +
-                           ggplot2::scale_y_reverse(
-                             limits = c(max(freqAgr$frequency, na.rm = TRUE),
-                                        0)),
+                           ggplot2::scale_y_reverse(limits = c(
+                             max(freqAgr$frequency, na.rm = TRUE), 0)) +
+                           ggplot2::scale_alpha(limits = c(
+                             0, max(freqAgr$frequency, na.rm = TRUE))) +
+                           ggplot2::scale_size(limits = c(
+                             0, max(freqAgr$frequency, na.rm = TRUE))),
                          heights = c(0.5, 0.5),
                          padding = -1))
   } else if (all(freqAgr$strand == "+")) {
@@ -172,9 +179,17 @@ annotate_with_amplicon <- function(p, amplicon, from, to) {
 
 return_plot <- function(freqAgr, amplicon, from, to, plot_fr, plot_re) {
   if (any(freqAgr$strand == "+") & any(freqAgr$strand == "-")) {
-    return(ggbio::tracks(plot_fr,
+    return(ggbio::tracks(plot_fr +
+                           ggplot2::scale_alpha(limits = c(
+                             0, max(freqAgr$frequency, na.rm = TRUE))) +
+                           ggplot2::scale_size(limits = c(
+                             0, max(freqAgr$frequency, na.rm = TRUE))),
                          plot_amplicon(amplicon, from, to),
-                         plot_re,
+                         plot_re +
+                           ggplot2::scale_alpha(limits = c(
+                             0, max(freqAgr$frequency, na.rm = TRUE))) +
+                           ggplot2::scale_size(limits = c(
+                             0, max(freqAgr$frequency, na.rm = TRUE))),
                          heights = c(0.5, 0.06, 0.5),
                          padding = -1,
                          xlim = from:to,

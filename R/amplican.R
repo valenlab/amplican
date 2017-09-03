@@ -88,6 +88,10 @@
 #'  \item{1}{ Use only the forward FASTQ file.}
 #'  \item{2}{ Use only the reverse FASTQ file.}
 #' }
+#' @param primer_mismatch (numeric) Decide how many mismatches are allowed
+#' during primer matching of the reads, that groups reads by experiments.
+#' When \code{primer_mismatch = 0} no mismatches are allowed, which can increase
+#' number of unasssigned reads (to expected value of around 25\%).
 #' @param PRIMER_DIMER (numeric) Value specifying buffer for PRIMER DIMER
 #' detection. For a given read it will be recognized as PRIMER DIMER when
 #' alignment will introduce gap of size bigger than: \cr
@@ -131,6 +135,7 @@
 # fastqfiles = 0
 # PRIMER_DIMER = 30
 # cut_buffer = 5
+# primer_mismatch = 2
 # normalize = c("guideRNA", "Group")
 amplicanPipeline <- function(
   config, fastq_folder, results_folder, knit_reports = TRUE,
@@ -138,7 +143,7 @@ amplicanPipeline <- function(
   min_quality = 0, total_processors = 1,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
     match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
-  gap_opening = 50, gap_extension = 0, fastqfiles = 0,
+  gap_opening = 50, gap_extension = 0, fastqfiles = 0, primer_mismatch = 2,
   PRIMER_DIMER = 30, cut_buffer = 5,
   normalize = c("guideRNA", "Group")) {
 
@@ -153,7 +158,8 @@ amplicanPipeline <- function(
                        gap_opening = gap_opening,
                        gap_extension = gap_extension,
                        min_quality = min_quality,
-                       fastqfiles = fastqfiles)
+                       fastqfiles = fastqfiles,
+                       primer_mismatch = primer_mismatch)
   message("Saving alignments...")
 
   resultsFolder <- file.path(results_folder, "alignments")
@@ -194,7 +200,7 @@ amplicanPipeline <- function(
   unData <- unassignedData(aln)
   if (!is.null(unData)) data.table::fwrite(
     unData, file.path(resultsFolder, "unassigned_reads.csv"))
-  
+
   message("Saving barcode statistics...")
   data.table::fwrite(barcodeData(aln),
                      file.path(results_folder, "barcode_reads_filters.csv"))

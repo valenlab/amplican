@@ -5,7 +5,7 @@
 \title{Make alignments helper.}
 \usage{
 makeAlignment(cfgT, average_quality, min_quality, scoring_matrix, gap_opening,
-  gap_extension, fastqfiles)
+  gap_extension, fastqfiles, primer_mismatch)
 }
 \arguments{
 \item{cfgT}{config file as data table}
@@ -40,6 +40,11 @@ the reverse file. Possible options:
  \item{1}{ Use only the forward FASTQ file.}
  \item{2}{ Use only the reverse FASTQ file.}
 }}
+
+\item{primer_mismatch}{(numeric) Decide how many mismatches are allowed
+during primer matching of the reads, that groups reads by experiments.
+When \code{primer_mismatch = 0} no mismatches are allowed, which can increase
+number of unasssigned reads (to expected value of around 25\%).}
 }
 \value{
 amplicanAlignment object for this barcode experiments
