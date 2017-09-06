@@ -21,7 +21,7 @@ primers
 Very often alignments return deletions that are not real deletions, but
 rather artifact of incomplete reads eg.: \cr
 \preformatted{
-ACTGAAAAA------- <- this "deletion" should be filtered
+ACTGAAAAA------- <- this "insertion" should be filtered
 ACTG----ACTGACTG
 }
 }

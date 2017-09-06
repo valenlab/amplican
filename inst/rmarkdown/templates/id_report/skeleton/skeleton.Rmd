@@ -84,22 +84,22 @@ ggplot(data = config, aes(x = as.factor(ID), y = PD_percentage, order = ID)) +
   geom_text(aes(x = as.factor(ID), y = PD_percentage, label = PRIMER_DIMER), hjust = -1)
 ```  
 
-## Cut rates  
+## Indel rates  
 
-```{r plot cut percentage, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+```{r plot mut percentage, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
 config$Reads_noPD <- config$Reads - config$PRIMER_DIMER
-config$cut_percentage <- config$Reads_Cut * 100/config$Reads_noPD
-config$cut_percentage[is.nan(config$cut_percentage)] <- 0  
+config$indel_percentage <- config$Reads_Indel * 100/config$Reads_noPD
+config$indel_percentage[is.nan(config$indel_percentage)] <- 0  
 
-ggplot(data = config, aes(x = as.factor(ID), y = cut_percentage, order = ID)) +
+ggplot(data = config, aes(x = as.factor(ID), y = indel_percentage, order = ID)) +
   geom_bar(stat='identity') +
-  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have cut site')  +
+  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have indel')  +
   xlab('ID') +
   theme(legend.position = 'none',
         axis.text = element_text(size = 12),
         axis.title = element_text(size = 14, face = 'bold')) +
   coord_flip() +
-  geom_text(aes(x = as.factor(ID), y = cut_percentage, label = Reads_Cut), hjust = -1)
+  geom_text(aes(x = as.factor(ID), y = indel_percentage, label = Reads_Indel), hjust = -1)
 ```  
 
 ## Frameshift  

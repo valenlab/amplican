@@ -38,6 +38,7 @@ cfgT <- data.table::fread(
   system.file("extdata", "results", "config_summary.csv",
               package = "amplican"))
 amplicanSummarize(aln, cfgT)
+
 }
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},

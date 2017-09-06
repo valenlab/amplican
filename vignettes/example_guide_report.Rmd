@@ -76,17 +76,17 @@ ggplot(data = config, aes(x = as.factor(guideRNA), y = PD_percentage, order = gu
   coord_flip()
 ``` 
 
-## Cut rates  
+## Indel rates  
 
-```{r plot cut percentage, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+```{r plot mut percentage, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
 config$Reads_noPD <- config$Reads - config$PRIMER_DIMER
-config$cut_percentage <- config$Reads_Cut * 100/config$Reads_noPD
-config$cut_percentage[is.nan(config$cut_percentage)] <- 0  
+config$indel_percentage <- config$Reads_Indel * 100/config$Reads_noPD
+config$indel_percentage[is.nan(config$indel_percentage)] <- 0  
 
-ggplot(data = config, aes(x = as.factor(guideRNA), y = cut_percentage, order = guideRNA, fill = guideRNA)) +
+ggplot(data = config, aes(x = as.factor(guideRNA), y = indel_percentage, order = guideRNA, fill = guideRNA)) +
   geom_boxplot() +
   xlab('guideRNA') + 
-  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have cut site')  +
+  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have indel')  +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14, face = 'bold'),
         legend.position = 'None') +

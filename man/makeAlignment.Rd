@@ -44,7 +44,7 @@ the reverse file. Possible options:
 \item{primer_mismatch}{(numeric) Decide how many mismatches are allowed
 during primer matching of the reads, that groups reads by experiments.
 When \code{primer_mismatch = 0} no mismatches are allowed, which can increase
-number of unasssigned reads (to expected value of around 25\%).}
+number of unasssigned read.}
 }
 \value{
 amplicanAlignment object for this barcode experiments

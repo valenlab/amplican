@@ -4,7 +4,7 @@ context("amplican main making analysis of example files")
 # uncoment line below this coment and below test_that to make vignettes
 # after any changes to rmarkdown templates
 # changes paths so that system.file points to the actual development folder
-devtools::load_all()
+# devtools::load_all()
 
 config <- system.file("extdata", "config.csv", package = "amplican")
 fastq_folder <- system.file("extdata", package = "amplican")

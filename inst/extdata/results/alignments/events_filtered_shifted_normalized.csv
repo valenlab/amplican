@@ -23,10 +23,10 @@ ID_1,-35,-35,1,-,A,G,mismatch,4,507,1,FALSE,FALSE
 ID_1,105,105,1,-,G,A,mismatch,4,507,1,FALSE,FALSE
 ID_2,5,17,13,-,,,deletion,1,850,3,TRUE,FALSE
 ID_2,-4,4,9,-,,,deletion,2,870,2,TRUE,FALSE
-ID_2,-9,-5,5,-,,,deletion,3,890,1,FALSE,FALSE
+ID_2,-9,-5,5,-,,,deletion,3,890,1,TRUE,FALSE
 ID_2,5,17,13,+,,,deletion,1,885,3,TRUE,TRUE
 ID_2,-4,4,9,+,,,deletion,2,905,2,TRUE,TRUE
-ID_2,-9,-5,5,+,,,deletion,3,925,1,FALSE,TRUE
+ID_2,-9,-5,5,+,,,deletion,3,925,1,TRUE,TRUE
 ID_3,105,105,1,+,,T,insertion,1,769,5,FALSE,TRUE
 ID_3,8,23,16,+,,CCCCCCCCCCCCCCCC,insertion,3,810,1,TRUE,TRUE
 ID_3,0,17,18,+,,,deletion,1,769,5,TRUE,TRUE
@@ -55,7 +55,7 @@ ID_4,10,11,2,+,,,deletion,1,397,4,TRUE,FALSE
 ID_4,43,62,20,+,,,deletion,1,397,4,FALSE,TRUE
 ID_4,-68,-42,27,+,,,deletion,2,717,2,FALSE,TRUE
 ID_4,-52,-41,12,+,,,deletion,3,783,1,FALSE,TRUE
-ID_4,-2,-2,1,+,C,A,mismatch,1,397,4,FALSE,FALSE
+ID_4,-2,-2,1,+,C,A,mismatch,1,397,4,TRUE,FALSE
 ID_4,0,0,1,+,G,C,mismatch,1,397,4,TRUE,FALSE
 ID_4,2,2,1,+,C,G,mismatch,1,397,4,TRUE,FALSE
 ID_4,3,3,1,+,C,A,mismatch,1,397,4,TRUE,FALSE

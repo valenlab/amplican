@@ -38,8 +38,10 @@ locate_pr_start <- function(reads, primer, m = 2) {
   primer <- sapply(primer, function(pr) {
     stringr::str_locate(reads, pr)[, 1]
   }, simplify = TRUE, USE.NAMES = FALSE)
-  matrixStats::rowMaxs(primer, na.rm = TRUE)
-}
+  reads <- matrixStats::rowMaxs(primer, na.rm = TRUE)
+  reads[!is.finite(reads)] <- NA
+  reads
+ }
 
 
 #' Make alignments helper.

@@ -5,7 +5,8 @@
 \alias{amplican}
 \alias{amplican-package}
 \alias{amplican-package}
-\title{amplican: automated analysis of CRISPR experiments}
+\title{amplican: automated analysis of CRISPR experiments
+amplican: automated analysis of CRISPR experiments}
 \description{
 Main goals:
 }

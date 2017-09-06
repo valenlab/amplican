@@ -106,25 +106,25 @@ waffle(PD_reads_per, legend_pos = 'bottom',
        rows = 10, colors = c('#E69F00', '#000000'))
 ```
 
-## Mutants
+## Indels
 
 ```{r echo = F}
 total_reads <- sum(configDF$Reads_noPD)
 total_reads_ctr <- sum(configDF$Reads_noPD[configDF$Control])
 total_reads_tmt <- sum(configDF$Reads_noPD[!configDF$Control])
-reads_cut <- c(sum(configDF$Reads_Cut[!configDF$Control]), # Treatment
-               total_reads_tmt - sum(configDF$Reads_Cut[!configDF$Control]),
-               sum(configDF$Reads_Cut[configDF$Control]), # Control
-               total_reads_ctr - sum(configDF$Reads_Cut[configDF$Control]))
-reads_cut_per <- round(reads_cut*100/total_reads)
-reads_cut_per[is.na(reads_cut_per)] <- 0
-names(reads_cut_per) <- c(
-  paste0('DSB in Treatment\n', reads_cut[1], ' (', reads_cut_per[1], '%)'),
-  paste0('No DSB in Treatment\n', reads_cut[2], ' (', reads_cut_per[2], '%)'),
-  paste0('DSB in Control\n', reads_cut[3], ' (', reads_cut_per[3], '%)'), 
-  paste0('No DSB in Control\n', reads_cut[4], ' (', reads_cut_per[4], '%)'))
-waffle(reads_cut_per, legend_pos = 'bottom', 
-       title = "Reads with Double Stranded Break (Cut rate)", 
+reads_indel <- c(sum(configDF$Reads_Indel[!configDF$Control]), # Treatment
+               total_reads_tmt - sum(configDF$Reads_Indel[!configDF$Control]),
+               sum(configDF$Reads_Indel[configDF$Control]), # Control
+               total_reads_ctr - sum(configDF$Reads_Indel[configDF$Control]))
+reads_indel_per <- round(reads_indel*100/total_reads)
+reads_indel_per[is.na(reads_indel_per)] <- 0
+names(reads_indel_per) <- c(
+  paste0('DSB in Treatment\n', reads_indel[1], ' (', reads_indel_per[1], '%)'),
+  paste0('No DSB in Treatment\n', reads_indel[2], ' (', reads_indel_per[2], '%)'),
+  paste0('DSB in Control\n', reads_indel[3], ' (', reads_indel_per[3], '%)'), 
+  paste0('No DSB in Control\n', reads_indel[4], ' (', reads_indel_per[4], '%)'))
+waffle(reads_indel_per, legend_pos = 'bottom', 
+       title = "Reads with mutation", 
        rows = 10, colors = c('#E69F00', '#000000', '#A9A9A9', '#F0E442'))
 
 frameshift <- c(sum(configDF$Reads_Frameshifted[!configDF$Control]), # Treatment

@@ -4,10 +4,13 @@
 \alias{amplicanConsensus}
 \title{Extract consensus out of forward and reverse events.}
 \usage{
-amplicanConsensus(aln, overlaps = "overlaps")
+amplicanConsensus(aln, cfgT, overlaps = "overlaps")
 }
 \arguments{
 \item{aln}{(data.frame) Contains relevant events in GRanges style.}
+
+\item{cfgT}{(data.frame) Should be table containing at least
+positions of primers in the amplicons and their identifiers}
 
 \item{overlaps}{(character) Specifies which metadata column of \code{aln}
 indicates which events are overlapping expected cut site.}
@@ -37,11 +40,11 @@ Consensus out of the forward + reverse reads is required for
 \code{amplicanOverlap}.
 }
 \examples{
-file_path <- system.file("extdata", "results", "alignments",
-                         "events_filtered_shifted_normalized.csv",
-                         package = "amplican")
+file_path <- system.file("test_data", "test_aln.csv", package = "amplican")
 aln <- data.table::fread(file_path)
-all(aln$consensus == amplicanConsensus(aln))
+cfgT <- data.table::fread(
+  system.file("test_data", "test_cfg.csv", package = "amplican"))
+all(aln$consensus == amplicanConsensus(aln, cfgT))
 
 }
 \seealso{

@@ -4,7 +4,7 @@
 \alias{amplicanOverlap}
 \title{Check which events overlap expected cut sites.}
 \usage{
-amplicanOverlap(aln, cfgT, cut_buffer = 5, relative = TRUE)
+amplicanOverlap(aln, cfgT, cut_buffer = 5)
 }
 \arguments{
 \item{aln}{(data.frame) Contains relevant events in GRanges style.}
@@ -13,10 +13,6 @@ amplicanOverlap(aln, cfgT, cut_buffer = 5, relative = TRUE)
 
 \item{cut_buffer}{(numeric) Number of bases that should expand 5' and 3' of
 the specified expected cut sites.}
-
-\item{relative}{(boolean) Default is TRUE, which means 'aln' events are
-relative to their cut sites, and most LEFT upper case letter specifies
-position zero.}
 }
 \value{
 (bolean vector) Where TRUE means that given event overlaps cut site.
@@ -28,12 +24,10 @@ cut sites should be specified in UPPER CASE letters in the amplicon
 sequences.
 }
 \examples{
-file_path <- system.file("extdata", "results", "alignments",
-                         "raw_events.csv", package = "amplican")
+file_path <- system.file("test_data", "test_aln.csv", package = "amplican")
 aln <- data.table::fread(file_path)
 cfgT <- data.table::fread(
-  system.file("extdata", "results", "config_summary.csv",
-              package = "amplican"))
+  system.file("test_data", "test_cfg.csv", package = "amplican"))
 all(aln$overlaps == amplicanOverlap(aln, cfgT))
 
 }

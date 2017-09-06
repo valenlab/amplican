@@ -150,13 +150,27 @@ cumsumw <- function(x) {
 #' @param ID (string)
 #' @param ampl_shift (numeric vector) Shift events additionally by this value.
 #' PairwiseAlignmentsSingleSubject returns truncated alignments.
+#' @param ampl_len (numeric) Length of the amplicon (subject)
 #' @param strand_info (string) Either '+', '-' or default '*'
 #' @return (GRanges) Object with meta-data for insertion, deletion, mismatch
 #'
-getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
+getEventInfo <- function(align, ID, ampl_shift, ampl_len, strand_info = "+") {
   if (length(align) == 0) return(GenomicRanges::GRanges())
   if (any(ampl_shift < 1)) stop("Amplicon shift can't be less than 1.")
   scores <- Biostrings::score(align)
+  sizes <- nchar(align)
+  if (strand_info == "+") {
+    s_err <- sizes + ampl_shift - 1 >= ampl_len
+    sizes <- if (all(s_err)) IRanges::IRanges() else
+      IRanges::IRanges(start = sizes[!s_err] + ampl_shift,
+                       end = ampl_len)
+    names(sizes) <- which(!s_err)
+  } else {
+    s_err <- sizes + abs(ampl_shift - ampl_len) >= ampl_len
+    sizes <- if (all(s_err)) IRanges::IRanges() else
+      IRanges::IRanges(start = 1, end = ampl_shift - sizes[!s_err])
+    names(sizes) <- which(!s_err)
+  }
 
   del <- Biostrings::deletion(align)
   ins <- Biostrings::insertion(align)
@@ -198,6 +212,8 @@ getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
     defGR(unlist(IRanges::IRangesList(del)), ID,
           rep(scores, times = sapply(del, length)),
           strand_info),
+    # artificial deletions indicating end of reads
+    defGR(sizes, ID, scores[!s_err], strand_info),
     defGR(unlist(IRanges::IRangesList(mism)), ID,
           rep(scores, times = sapply(mism, length)),
           strand_info,
@@ -298,7 +314,7 @@ amplicanMap <- function(aln, cfgT) {
     zero_point <- upperGroups(amplicon)
     if (length(zero_point) == 0) {
       no_upper <- TRUE
-      aln <- aln[GenomeInfoDb::seqnames(aln) != id]
+      aln <- aln[GenomeInfoDb::seqnames(aln) != id, ]
       next()
     }
     aln[GenomicRanges::seqnames(aln) == id] <-

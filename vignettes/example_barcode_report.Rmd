@@ -86,7 +86,7 @@ p + coord_flip()
 ## PRIMER DIMER filter  
 
 ```{r plot_PD_per, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
-barcodeTable <- aggregate(cbind(Reads, PRIMER_DIMER, Reads_Cut, Reads_Frameshifted) ~ Barcode, data = config, sum)
+barcodeTable <- aggregate(cbind(Reads, PRIMER_DIMER, Reads_Indel, Reads_Frameshifted) ~ Barcode, data = config, sum)
 barcodeTable$PD_percentage <- barcodeTable$PRIMER_DIMER * 100/barcodeTable$Reads
 barcodeTable$PD_percentage[is.nan(barcodeTable$PD_percentage)] <- 0  
 
@@ -101,22 +101,22 @@ ggplot(data = barcodeTable, aes(x = as.factor(Barcode), y = PD_percentage, order
   geom_text(aes(x = as.factor(Barcode), y = PD_percentage, label = PRIMER_DIMER), hjust = -1)
 ``` 
 
-## Cut rates  
+## Indel rates  
 
-```{r plot cut percentage, echo=FALSE, fig.height=height,fig.width=14, message=F, warning=FALSE}
+```{r plot mut percentage, echo=FALSE, fig.height=height,fig.width=14, message=F, warning=FALSE}
 barcodeTable$Reads_noPD <- barcodeTable$Reads - barcodeTable$PRIMER_DIMER
-barcodeTable$cut_percentage <- barcodeTable$Reads_Cut * 100/barcodeTable$Reads_noPD
-barcodeTable$cut_percentage[is.nan(barcodeTable$cut_percentage)] <- 0  
+barcodeTable$indel_percentage <- barcodeTable$Reads_Indel * 100/barcodeTable$Reads_noPD
+barcodeTable$indel_percentage[is.nan(barcodeTable$indel_percentage)] <- 0  
 
-ggplot(data = barcodeTable, aes(x = as.factor(Barcode), y = cut_percentage, order = Barcode)) +
+ggplot(data = barcodeTable, aes(x = as.factor(Barcode), y = indel_percentage, order = Barcode)) +
   geom_bar(stat = 'identity') +
-  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have cut site')  +
+  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have indel')  +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14, face = 'bold')) +
   ylim(0,100) +
   xlab('Barcode') +
   coord_flip() +
-  geom_text(aes(x = as.factor(Barcode), y = cut_percentage, label = Reads_Cut), hjust = -1)
+  geom_text(aes(x = as.factor(Barcode), y = indel_percentage, label = Reads_Indel), hjust = -1)
 ``` 
 
 ## Frameshift  
@@ -145,7 +145,8 @@ plot_heterogeneity(alignments, config, level = 'Barcode')
 ***  
 
 ```{r plot read unassigned reads, results = "asis", echo=FALSE, message=F, warning=FALSE, comment = ''} 
-if (!is.na(config$Forward_Reads_File) && !is.na(config$Reverse_Reads_File)) {
+if (!is.na(config$Forward_Reads_File) && !is.na(config$Reverse_Reads_File) &&
+    file.exists(params$unassigned_folder)) {
   unassigned_reads <- data.table::fread(params$unassigned_folder)
   data.table::setDF(unassigned_reads)
   

@@ -77,7 +77,7 @@ config$group <- match(config$AmpliconUpper, ampliconDF$Amplicon)
 
 ```{r plot_total_reads, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
 ampliconTable <- aggregate(cbind(Reads, PRIMER_DIMER, 
-                                 Reads_Cut, Reads_Frameshifted) ~ group, data = config, sum)
+                                 Reads_Indel, Reads_Frameshifted) ~ group, data = config, sum)
 
 ggplot(data = ampliconTable, aes(x = as.factor(group), y = log10(Reads + 1)), order = group) +
   geom_bar(stat = 'identity') +
@@ -108,22 +108,22 @@ ggplot(data = ampliconTable, aes(x = as.factor(group), y = PD_percentage, order 
   geom_text(aes(x = as.factor(group), y = PD_percentage, label = PRIMER_DIMER), hjust = -1)
 ```  
 
-## Cut rates  
+## Indel rates  
 
-```{r plot_cut_rate, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+```{r plot_indel_rate, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
 ampliconTable$Reads_noPD <- ampliconTable$Reads - ampliconTable$PRIMER_DIMER
-ampliconTable$cut_percentage <- ampliconTable$Reads_Cut * 100/ampliconTable$Reads_noPD
-ampliconTable$cut_percentage[is.nan(ampliconTable$cut_percentage)] <- 0  
+ampliconTable$indel_percentage <- ampliconTable$Reads_Indel * 100/ampliconTable$Reads_noPD
+ampliconTable$indel_percentage[is.nan(ampliconTable$indel_percentage)] <- 0  
 
-ggplot(data = ampliconTable, aes(x = as.factor(group), y = cut_percentage, order = group)) +
+ggplot(data = ampliconTable, aes(x = as.factor(group), y = indel_percentage, order = group)) +
   geom_bar(stat = 'identity') +
-  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have cut site')  +
+  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have indel')  +
   xlab('Amplicon Group') +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14, face = 'bold')) +
   ylim(0,100) +
   coord_flip() +
-  geom_text(aes(x = as.factor(group), y = cut_percentage, label = Reads_Cut), hjust = -1)
+  geom_text(aes(x = as.factor(group), y = indel_percentage, label = Reads_Indel), hjust = -1)
 ```  
 
 ## Frameshift  

@@ -4,7 +4,7 @@
 \alias{getEventInfo}
 \title{This function takes alignments and gives back the events coordinates.}
 \usage{
-getEventInfo(align, ID, ampl_shift, strand_info = "+")
+getEventInfo(align, ID, ampl_shift, ampl_len, strand_info = "+")
 }
 \arguments{
 \item{align}{(PairwiseAlignmentsSingleSubject)}
@@ -13,6 +13,8 @@ getEventInfo(align, ID, ampl_shift, strand_info = "+")
 
 \item{ampl_shift}{(numeric vector) Shift events additionally by this value.
 PairwiseAlignmentsSingleSubject returns truncated alignments.}
+
+\item{ampl_len}{(numeric) Length of the amplicon (subject)}
 
 \item{strand_info}{(string) Either '+', '-' or default '*'}
 }

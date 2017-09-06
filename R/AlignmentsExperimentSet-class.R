@@ -678,7 +678,7 @@ setMethod("lookupAlignment", "AlignmentsExperimentSet", function(
 
   if (length(rveReads(x)[[ID]]) >= read_id) {
     rve <- utils::capture.output(Biostrings::writePairwiseAlignments(
-      fwdReads(x)[[ID]][as.numeric(read_id)]))
+      rveReads(x)[[ID]][as.numeric(read_id)]))
     rve[7] <- "# Aligned sequences:"
     rve[8] <- "# Reverse read: P1"
     rve[9] <- "# Amplicon sequence: S1"
@@ -696,10 +696,16 @@ getEventInfoObj <- function(object) {
   ID <- names(object)[1]
   cfg <- experimentData(object)[experimentData(object)$ID == ID]
   fwdPrPos <- if (is.null(cfg$fwdPrPos)) 1 else cfg$fwdPrPos
-  rvePrPosEnd <- if (is.null(cfg$rvePrPosEnd)) 1 else cfg$rvePrPosEnd
+  rvePrPosEnd <- if (is.null(cfg$rvePrPosEnd)) {
+    nchar(cfg$Amplicon)
+  } else {
+    cfg$rvePrPosEnd
+  }
   tempGR <- c(
-    getEventInfo(fwdReads(object)[[ID]], ID, fwdPrPos, "+"),
-    getEventInfo(rveReads(object)[[ID]], ID, rvePrPosEnd, "-")
+    getEventInfo(fwdReads(object)[[ID]], ID, fwdPrPos,
+                 nchar(cfg$Amplicon), "+"),
+    getEventInfo(rveReads(object)[[ID]], ID, rvePrPosEnd,
+                 nchar(cfg$Amplicon), "-")
   )
   tempGR$counts <- readCounts(object)[[ID]][as.integer(tempGR$read_id)]
   tempGR

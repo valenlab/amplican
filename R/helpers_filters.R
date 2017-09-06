@@ -3,7 +3,7 @@
 #' Very often alignments return deletions that are not real deletions, but
 #' rather artifact of incomplete reads eg.: \cr
 #' \preformatted{
-#' ACTGAAAAA------- <- this "deletion" should be filtered
+#' ACTGAAAAA------- <- this "insertion" should be filtered
 #' ACTG----ACTGACTG
 #' }
 #' @param aln (data.frame) Should contain events from alignments in GRanges
@@ -26,6 +26,17 @@
 #'
 findEOP <- function(aln, cfgT) {
   mapID <- match(aln$seqnames, cfgT$ID)
+  if (any(aln$start < 0 | aln$end < 0)) {
+    for (i in seq_along(cfgT$ID)) {
+      amplicon <- get_amplicon(cfgT, cfgT$ID[i])
+      zero_point <- upperGroups(amplicon)
+      if (length(zero_point) == 0) next()
+      cfgT$fwdPrPosEnd[i] <- cfgT$fwdPrPosEnd[i] - 1 *
+        GenomicRanges::start(zero_point)[1]
+      cfgT$rvePrPos[i] <- cfgT$rvePrPos[i] - 1 *
+        GenomicRanges::start(zero_point)[1]
+    }
+  }
   (aln$start < cfgT$fwdPrPosEnd[mapID]) | (aln$end > cfgT$rvePrPos[mapID])
 }
 

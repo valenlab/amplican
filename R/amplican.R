@@ -1,4 +1,5 @@
 #' amplican: automated analysis of CRISPR experiments
+#' amplican: automated analysis of CRISPR experiments
 #'
 #' Main goals:
 #'
@@ -91,7 +92,7 @@
 #' @param primer_mismatch (numeric) Decide how many mismatches are allowed
 #' during primer matching of the reads, that groups reads by experiments.
 #' When \code{primer_mismatch = 0} no mismatches are allowed, which can increase
-#' number of unasssigned reads (to expected value of around 25\%).
+#' number of unasssigned read.
 #' @param PRIMER_DIMER (numeric) Value specifying buffer for PRIMER DIMER
 #' detection. For a given read it will be recognized as PRIMER DIMER when
 #' alignment will introduce gap of size bigger than: \cr
@@ -211,12 +212,21 @@ amplicanPipeline <- function(
   data.table::fwrite(aln, file.path(resultsFolder, "raw_events.csv"))
   data.table::setDT(aln)
   seqnames <- read_id <- counts <- NULL
+
+  aln$overlaps <- amplicanOverlap(aln, cfgT, cut_buffer = cut_buffer)
+  aln$consensus <- if (fastqfiles <= 0.5) amplicanConsensus(aln, cfgT) else TRUE
+
+  # filter events overlapping primers
+  eOP <- findEOP(aln, cfgT)
+  aln <- aln[!eOP, ]
+
   # find PRIMER DIMERS
   PD <- findPD(aln, cfgT, PRIMER_DIMER = PRIMER_DIMER)
 
   # summarize how many PRIMER DIMER reads per ID
   onlyPD <- aln[PD, ]
   onlyPD <- unique(onlyPD, by = c("seqnames", "read_id"))
+  data.table::setDT(onlyPD)
   summaryPD <- onlyPD[, list(counts  = sum(counts)), by = c("seqnames")]
   cfgT$PRIMER_DIMER <- 0
   cfgT$PRIMER_DIMER[match(summaryPD$seqnames, cfgT$ID)] <- summaryPD$counts
@@ -225,25 +235,18 @@ amplicanPipeline <- function(
   # apply filter - remove all events that come from PD infected reads
   aln <- aln[!onlyPD, on = list(seqnames, read_id)]
 
-  # filter events overlapping primers
-  eOP <- findEOP(aln, cfgT)
-  aln <- aln[!eOP, ]
-  data.table::setDF(aln)
-
   # shift to relative (most left UPPER case is position 0)
   message("Shifting events as relative...")
+  data.table::setDF(aln)
   aln <- data.frame(amplicanMap(aln, cfgT), stringsAsFactors = FALSE)
   message("Saving shifted events - filtered...")
   data.table::fwrite(aln,
-                     file.path(resultsFolder,
-                               "events_filtered_shifted.csv"))
+                     file.path(resultsFolder, "events_filtered_shifted.csv"))
   # revert guides to 5'-3'
   cfgT$guideRNA[cfgT$Direction] <- revComp(cfgT$guideRNA[cfgT$Direction])
   # normalize
   message("Normalizing events...")
   aln <- amplicanNormalize(aln, cfgT, add = normalize)
-  aln$overlaps <- amplicanOverlap(aln, cfgT, cut_buffer = cut_buffer)
-  aln$consensus <- if (fastqfiles <= 0.5) amplicanConsensus(aln) else TRUE
 
   message("Saving normalized events...")
   data.table::fwrite(aln,
@@ -254,8 +257,10 @@ amplicanPipeline <- function(
   data.table::fwrite(
     cfgT[, c("ID", "Barcode", "Forward_Reads_File", "Reverse_Reads_File",
              "Group", "guideRNA", "Found_Guide", "Control", "Forward_Primer",
-             "Reverse_Primer", "Direction", "Amplicon", "Reads", "PRIMER_DIMER",
-             "Reads_noPD", "Reads_Cut", "Reads_Frameshifted")],
+             "Reverse_Primer", "Direction", "Amplicon", "fwdPrPosEnd",
+             "rvePrPos", "Reads", "PRIMER_DIMER",
+             "Reads_noPD", "Reads_Del", "Reads_In", "Reads_Indel",
+             "Reads_Frameshifted")],
     file.path(results_folder, "config_summary.csv"))
 
   # reports

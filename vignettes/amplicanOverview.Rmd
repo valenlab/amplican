@@ -105,14 +105,13 @@ This table is also summarized in one of the reports. As you can see for our exam
 ```{r, echo=FALSE}
 config_summary <- system.file("extdata", "results", "config_summary.csv", package = "amplican")
 config_summary <- read.csv(config_summary)
-config_summary <- config_summary[,c("ID", "Barcode", "Reads", "Reads_noPD", "Reads_Cut", "Reads_Frameshifted")]
+config_summary <- config_summary[,c("ID", "Barcode", "Reads", "Reads_noPD", "Reads_Indel", "Reads_In", "Reads_Del", "Reads_Frameshifted")]
 knitr::kable(head(config_summary))
 ```
 
 During `amplicanPipeline` these columns are added to the config file:
 
- - **Reads_Cut** - number of deletions overlapping with user specified UPPER CASE group in the amplicon (extended by the buffer), cuts have to be deletions confirmed with the reverse strand when using paired-end reads, for more information check 
-`amplicanConsensus`  
+ - **Reads_Del, Reads_In, Reads_Indel** - number of deletions, insertions or any of those two (mutations) overlapping with user specified UPPER CASE group in the amplicon (extended by the buffer), events are confirmed with the reverse strand when using paired-end reads, for more information check `amplicanConsensus`  
  - **Frameshifted** - number of reads that have frameshift (insertions and deletions)  
  - **PRIMER_DIMER** - number of reads that were classified as PRIMER DIMERs  
  - **Reads** - number of reads assigned to this unique ID  
