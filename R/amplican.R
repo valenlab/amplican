@@ -75,8 +75,8 @@
 #' }
 #' @param scoring_matrix (matrix) Default is 'NUC44'. Pass desired matrix using
 #' \code{\link[Biostrings]{nucleotideSubstitutionMatrix}}.
-#' @param gap_opening (numeric) The opening gap score. Default is 50.
-#' @param gap_extension (numeric) The gap extension score. Default is 30.
+#' @param gap_opening (numeric) The opening gap score.
+#' @param gap_extension (numeric) The gap extension score.
 #' @param fastqfiles (numeric) Normally you want to use both FASTQ files. But in
 #' some special cases, you may want to use only the forward file, or only
 #' the reverse file. Possible options:
@@ -143,8 +143,8 @@ amplicanPipeline <- function(
   write_alignments_format = "txt", average_quality = 30,
   min_quality = 0, total_processors = 1,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
-    match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
-  gap_opening = 50, gap_extension = 0, fastqfiles = 0, primer_mismatch = 2,
+    match = 6, mismatch = -4, baseOnly = TRUE, type = "DNA"),
+  gap_opening = 11, gap_extension = 4, fastqfiles = 0, primer_mismatch = 2,
   PRIMER_DIMER = 30, cut_buffer = 5,
   normalize = c("guideRNA", "Group")) {
 

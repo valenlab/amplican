@@ -1100,10 +1100,6 @@ plot_variants <- function(alignments, config, id,
                        ggplot2::aes(xmin = xmin, xmax = xmax,
                                     ymin = ymin, ymax = ymax),
                        colour = "black", alpha = 0) +
-    ggplot2::geom_point(data = data.frame(insertion_melt),
-                        ggplot2::aes(x = x, y = y), shape = 25,
-                        size = 4,
-                        fill = "black") +
     ggplot2::geom_text(ggplot2::aes(label = value)) +
     ggplot2::scale_fill_manual(values = amplicon_colors) +
     ggplot2::theme_bw() +
@@ -1120,6 +1116,12 @@ plot_variants <- function(alignments, config, id,
     ggplot2::labs(y = trimws(paste0(
       if (length(id) == 1) id else "", collapse = "")),
       x = "Relative Nucleotide Position")
+
+  if (dim(insertion_melt)[1] > 0) {
+    vplot <- vplot + ggplot2::geom_point(data = data.frame(insertion_melt),
+                                         ggplot2::aes(x = x, y = y), shape = 25,
+                                         size = 4,
+                                         fill = "black") }
 
   codon_melt <- rbind(aa_frame(amplicon, TRUE, 1, 0, 1),
                       aa_frame(amplicon, TRUE, 2, 1, 2),
