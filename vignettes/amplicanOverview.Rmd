@@ -26,6 +26,10 @@ map of amplican.
 
 ![Conceptual map of amplican.](figures/amplican_conceptual_map.png)
 
+Below you will find the `amplicanConsensus` rules. That allow you to understand how ampliCan treats unambiguous forward and reverse reads. Green color indicates events that will be accepted. When forward and reverse reads agree, their events are in the same place and span the same length, we will take forward read event as representative. In case when events from forward and reverse read don't agree we select event from strand with higher alignment score. In situation where one of the reads is not spanning event in question we consider this event as real (as we don't have other information). If both strands cover event in question, but one strand has no indel, `amplicanConsensus` will change behavior according to the `strict` parameter. 
+
+![Consensus rules of ampliCan.](figures/amplican_consensus_rules.png){width=400px}
+
 # Configuration file
 
 To successfully run our analysis it is mandatory to have a configuration file. Take a look at our example:

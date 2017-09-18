@@ -24,9 +24,9 @@ Default is 20.}
 \item{scoring_matrix}{(matrix) Default is 'NUC44'. Pass desired matrix using
 \code{\link[Biostrings]{nucleotideSubstitutionMatrix}}.}
 
-\item{gap_opening}{(numeric) The opening gap score. Default is 50.}
+\item{gap_opening}{(numeric) The opening gap score.}
 
-\item{gap_extension}{(numeric) The gap extension score. Default is 30.}
+\item{gap_extension}{(numeric) The gap extension score.}
 
 \item{fastqfiles}{(numeric) Normally you want to use both FASTQ files. But in
 some special cases, you may want to use only the forward file, or only

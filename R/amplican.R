@@ -99,6 +99,10 @@
 #' \code{length of amplicon - (lengths of PRIMERS + PRIMER_DIMER value)}
 #' @param cut_buffer The number of bases by which extend expected cut sites
 #' (specified as UPPER case letters in the amplicon) in 5' and 3' directions.
+#' @param strict_consensus (boolean) Whether rules of
+#' \code{\link{amplicanConsensus}} should be \code{strict}. When strict, we
+#' don't allow indels that have no confirmation on the other strand (with the
+#' exception of premature strand end).
 #' @param normalize (character vector) If column 'Control' in config table
 #' has all FALSE/0 values then normalization is skipped. Otherwise,
 #' normalization is strict, which means events that are
@@ -133,20 +137,21 @@
 #   match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA")
 # gap_opening = 50
 # gap_extension = 0
-# fastqfiles = 0
+# fastqfiles = 0.5
 # PRIMER_DIMER = 30
 # cut_buffer = 5
 # primer_mismatch = 2
+# strict_consensus = TRUE
 # normalize = c("guideRNA", "Group")
 amplicanPipeline <- function(
   config, fastq_folder, results_folder, knit_reports = TRUE,
   write_alignments_format = "txt", average_quality = 30,
   min_quality = 0, total_processors = 1,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
-    match = 6, mismatch = -4, baseOnly = TRUE, type = "DNA"),
-  gap_opening = 11, gap_extension = 4, fastqfiles = 0, primer_mismatch = 2,
-  PRIMER_DIMER = 30, cut_buffer = 5,
-  normalize = c("guideRNA", "Group")) {
+    match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
+  gap_opening = 50, gap_extension = 0, fastqfiles = 0.5,
+  primer_mismatch = 2, PRIMER_DIMER = 30, cut_buffer = 5,
+  strict_consensus = TRUE, normalize = c("guideRNA", "Group")) {
 
   message("Checking write access...")
   checkFileWriteAccess(results_folder)
@@ -191,6 +196,8 @@ amplicanPipeline <- function(
                paste("Fastq files Mode:   ", fastqfiles),
                paste("Gap Opening:        ", gap_opening),
                paste("Gap Extension:      ", gap_extension),
+               paste("Consensus:          ", strict_consensus),
+               paste("Normalize:          ", toString(normalize)),
                paste("PRIMER DIMER buffer:", PRIMER_DIMER),
                paste("Cut buffer:", cut_buffer),
                "Scoring Matrix:"), logFileConn)
@@ -214,7 +221,9 @@ amplicanPipeline <- function(
   seqnames <- read_id <- counts <- NULL
 
   aln$overlaps <- amplicanOverlap(aln, cfgT, cut_buffer = cut_buffer)
-  aln$consensus <- if (fastqfiles <= 0.5) amplicanConsensus(aln, cfgT) else TRUE
+  aln$consensus <- if (fastqfiles <= 0.5) {
+    amplicanConsensus(aln, cfgT, strict = strict_consensus)
+  } else { TRUE }
 
   # filter events overlapping primers
   eOP <- findEOP(aln, cfgT)

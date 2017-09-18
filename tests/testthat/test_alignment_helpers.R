@@ -160,23 +160,26 @@ test_that("getEventInfo returns correct GRanges", {
                                "AGGGTAAAAGTCCATGGCCCAATTTGTGTGTAG")),
     Biostrings::DNAString("CCCCCCCCCCCAGTGAAGTCAAACATGGAATTAGTGTGTTAA"),
     type = "global")
-  read_ids <- c("5", "6", "6", "3", "5", "5", "5", "6", "6", "1", "2", "3", "4", "2", "3",
-                "3", "4", "4", "5", "5", "5", "5", "5", "5", "6", "6", "6")
+  read_ids <- c("5", "6", "6", "3", "5", "5", "5", "6", "6", "1", "2", "3",
+                "4", "6", "2", "3",
+                "3", "4", "4", "5","5", "5", "5", "5", "5", "6", "6", "6")
   gr8 <- GenomicRanges::GRanges(
     seqnames = "test",
-    ranges = IRanges::IRanges(c(29, 16, 29, 4, 4, 21, 40, 21, 40, 5, 7, 20, 9, 31, 1, 3, 13,
+    ranges = IRanges::IRanges(c(29, 5, 18, 4, 4, 21, 40, 10, 29, 5, 7, 20, 9, 38,
+                                31, 1, 3, 13,
                                 15, 1, 2, 3, 15, 33, 42, 14, 33, 42),
-                              c(32, 18, 31, 15, 12, 23, 40, 23, 40, 42, 42, 42, 42, 31, 1, 3,
+                              c(32, 7, 20, 15, 12, 23, 40, 12, 29, 42, 42, 42,
+                                42, 42, 31, 1, 3,
                                 13, 15, 1, 2, 3, 15, 33, 42, 14, 33, 42)),
-    strand = rep("+", 27),
-    originally = c(rep("", 13), "T", "C", "C", "G", "G", "C",
+    strand = rep("+", 28),
+    originally = c(rep("", 14), "T", "C", "C", "G", "G", "C",
                    "C", "C", "G", "A", "A", "T", "A", "A"),
-    replacement = c("CCCC", "TAA", "CCC", rep("", 10), "C", "A", "T", "C", "A",
+    replacement = c("CCCC", "TAA", "CCC", rep("", 11), "C", "A", "T", "C", "A",
                     "A", "G", "G", "A", "T", "G", "G", "T", "G"),
-    type = c(rep("insertion", 3), rep("deletion", 10), rep("mismatch", 14)),
+    type = c(rep("insertion", 3), rep("deletion", 11), rep("mismatch", 14)),
     read_id = read_ids)
   names(gr8) <- read_ids
-  test_gr8 <- getEventInfo(events, "test", c(1, 1, 1, 1, 1, 12), 42)
+  test_gr8 <- getEventInfo(events, "test", 1, 42)
   test_gr8$score <- NULL
   expect_identical(test_gr8, gr8)
 })

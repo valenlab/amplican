@@ -32,7 +32,7 @@ amplicanAlign <- function(
     match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
   gap_opening = 50,
   gap_extension = 0,
-  fastqfiles = 0,
+  fastqfiles = 0.5,
   primer_mismatch = 2) {
 
   message("Checking configuration file...")

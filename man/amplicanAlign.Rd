@@ -8,7 +8,7 @@ amplicanAlign(config, fastq_folder, total_processors = 1,
   average_quality = 30, min_quality = 20,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5,
   mismatch = -4, baseOnly = TRUE, type = "DNA"), gap_opening = 50,
-  gap_extension = 0, fastqfiles = 0, primer_mismatch = 2)
+  gap_extension = 0, fastqfiles = 0.5, primer_mismatch = 2)
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
@@ -36,9 +36,9 @@ Default is 20.}
 \item{scoring_matrix}{(matrix) Default is 'NUC44'. Pass desired matrix using
 \code{\link[Biostrings]{nucleotideSubstitutionMatrix}}.}
 
-\item{gap_opening}{(numeric) The opening gap score. Default is 50.}
+\item{gap_opening}{(numeric) The opening gap score.}
 
-\item{gap_extension}{(numeric) The gap extension score. Default is 30.}
+\item{gap_extension}{(numeric) The gap extension score.}
 
 \item{fastqfiles}{(numeric) Normally you want to use both FASTQ files. But in
 some special cases, you may want to use only the forward file, or only

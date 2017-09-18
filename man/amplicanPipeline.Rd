@@ -9,8 +9,9 @@ amplicanPipeline(config, fastq_folder, results_folder, knit_reports = TRUE,
   total_processors = 1,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5,
   mismatch = -4, baseOnly = TRUE, type = "DNA"), gap_opening = 50,
-  gap_extension = 0, fastqfiles = 0, primer_mismatch = 2,
-  PRIMER_DIMER = 30, cut_buffer = 5, normalize = c("guideRNA", "Group"))
+  gap_extension = 0, fastqfiles = 0.5, primer_mismatch = 2,
+  PRIMER_DIMER = 30, cut_buffer = 5, strict_consensus = TRUE,
+  normalize = c("guideRNA", "Group"))
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
@@ -70,9 +71,9 @@ want to use. Default is 1.}
 \item{scoring_matrix}{(matrix) Default is 'NUC44'. Pass desired matrix using
 \code{\link[Biostrings]{nucleotideSubstitutionMatrix}}.}
 
-\item{gap_opening}{(numeric) The opening gap score. Default is 50.}
+\item{gap_opening}{(numeric) The opening gap score.}
 
-\item{gap_extension}{(numeric) The gap extension score. Default is 30.}
+\item{gap_extension}{(numeric) The gap extension score.}
 
 \item{fastqfiles}{(numeric) Normally you want to use both FASTQ files. But in
 some special cases, you may want to use only the forward file, or only
@@ -99,6 +100,11 @@ alignment will introduce gap of size bigger than: \cr
 
 \item{cut_buffer}{The number of bases by which extend expected cut sites
 (specified as UPPER case letters in the amplicon) in 5' and 3' directions.}
+
+\item{strict_consensus}{(boolean) Whether rules of
+\code{\link{amplicanConsensus}} should be \code{strict}. When strict, we
+don't allow indels that have no confirmation on the other strand (with the
+exception of premature strand end).}
 
 \item{normalize}{(character vector) If column 'Control' in config table
 has all FALSE/0 values then normalization is skipped. Otherwise,

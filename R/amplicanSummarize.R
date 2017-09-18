@@ -23,6 +23,9 @@
 #' positions of primers in the amplicons and their identifiers
 #' @param overlaps (character) Specifies which metadata column of \code{aln}
 #' indicates which events are overlapping expected cut site.
+#' @param strict (boolean) Allows to relax consensus rules. When FALSE will
+#' allow Indels that are not confirmed by the other strand (other strand is
+#' complementary to the amplicon).
 #' @return (bolean vector) Where TRUE means that given event represents
 #' consensus out of forward and reverse reads.
 #' @export
@@ -35,7 +38,8 @@
 #'   system.file("test_data", "test_cfg.csv", package = "amplican"))
 #' all(aln$consensus == amplicanConsensus(aln, cfgT))
 #'
-amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps") {
+amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
+                              strict = TRUE) {
 
   cols <- c("seqnames", "read_id", "start", "end")
   cols_all <- c("strand", "score", "counts", "width", "num", "originally",
@@ -85,21 +89,26 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps") {
   aln_fwd <- aln_fwd[-oScore_fwd]
   aln_rve <- aln_rve[-oScore_rve]
 
-  # find events that overlap EOP from other strand and set them to true
-  data.table::setcolorder(eop_fwd, cols_all)
-  data.table::setcolorder(eop_rve, cols_all)
-  data.table::setkeyv(eop_fwd, cols)
-  data.table::setkeyv(eop_rve, cols)
-  oMatch <- data.table::foverlaps(aln_fwd, eop_rve,
-                                  type = "any", which = TRUE,
-                                  mult = "all", nomatch = 0)
-  consensus[aln_fwd$num[unique(oMatch$xid)]] <- TRUE
-  data.table::setkeyv(aln_rve, cols)
-  oMatch <- data.table::foverlaps(aln_rve, eop_fwd,
-                                  type = "any", which = TRUE,
-                                  mult = "all", nomatch = 0)
-  consensus[aln_rve$num[unique(oMatch$xid)]] <- TRUE
-
+  if (strict) {
+    # find events that overlap EOP from other strand and set them to true
+    data.table::setcolorder(eop_fwd, cols_all)
+    data.table::setcolorder(eop_rve, cols_all)
+    data.table::setkeyv(eop_fwd, cols)
+    data.table::setkeyv(eop_rve, cols)
+    oMatch <- data.table::foverlaps(aln_fwd, eop_rve,
+                                    type = "any", which = TRUE,
+                                    mult = "all", nomatch = 0)
+    consensus[aln_fwd$num[unique(oMatch$xid)]] <- TRUE
+    data.table::setkeyv(aln_rve, cols)
+    oMatch <- data.table::foverlaps(aln_rve, eop_fwd,
+                                    type = "any", which = TRUE,
+                                    mult = "all", nomatch = 0)
+    consensus[aln_rve$num[unique(oMatch$xid)]] <- TRUE
+  } else { # not strict
+    # all events that are left, don't overlap each other
+    consensus[aln_fwd$num] <- TRUE
+    consensus[aln_rve$num] <- TRUE
+  }
   return(consensus)
 }
 

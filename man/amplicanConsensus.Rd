@@ -4,7 +4,7 @@
 \alias{amplicanConsensus}
 \title{Extract consensus out of forward and reverse events.}
 \usage{
-amplicanConsensus(aln, cfgT, overlaps = "overlaps")
+amplicanConsensus(aln, cfgT, overlaps = "overlaps", strict = TRUE)
 }
 \arguments{
 \item{aln}{(data.frame) Contains relevant events in GRanges style.}
@@ -14,6 +14,10 @@ positions of primers in the amplicons and their identifiers}
 
 \item{overlaps}{(character) Specifies which metadata column of \code{aln}
 indicates which events are overlapping expected cut site.}
+
+\item{strict}{(boolean) Allows to relax consensus rules. When FALSE will
+allow Indels that are not confirmed by the other strand (other strand is
+complementary to the amplicon).}
 }
 \value{
 (bolean vector) Where TRUE means that given event represents
