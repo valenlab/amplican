@@ -95,7 +95,8 @@ First step of our analysis is to filter out reads that are not complying with ou
  * bad alphabet - by default we accept only reads with A,C,T,G bases  
 
 ```{r, echo=FALSE}
-barcodeFilters <- system.file("extdata", "results", "barcode_reads_filters.csv", package = "amplican")
+barcodeFilters <- system.file("extdata", "results", "barcode_reads_filters.csv", 
+                              package = "amplican")
 barcodeFilters <- read.csv(barcodeFilters)
 knitr::kable(head(barcodeFilters))
 ```
@@ -107,9 +108,12 @@ This table is also summarized in one of the reports. As you can see for our exam
 `config_summary.csv` contains extended version of the config file. It should provide you additional look at raw numbers which we use for various plots in reports. Take a look at example extension:
 
 ```{r, echo=FALSE}
-config_summary <- system.file("extdata", "results", "config_summary.csv", package = "amplican")
+config_summary <- system.file("extdata", "results", "config_summary.csv", 
+                              package = "amplican")
 config_summary <- read.csv(config_summary)
-config_summary <- config_summary[,c("ID", "Barcode", "Reads", "Reads_noPD", "Reads_Indel", "Reads_In", "Reads_Del", "Reads_Frameshifted")]
+config_summary <- config_summary[, c("ID", "Barcode", "Reads", "Reads_noPD",
+                                     "Reads_Indel", "Reads_In", "Reads_Del",
+                                     "Reads_Frameshifted")]
 knitr::kable(head(config_summary))
 ```
 
@@ -129,7 +133,8 @@ this file has no purpose.
 
 ```{r, echo=TRUE}
 # path to example RunParameters.txt
-run_params <- system.file("extdata", "results", "RunParameters.txt", package = "amplican")
+run_params <- system.file("extdata", "results", "RunParameters.txt", 
+                          package = "amplican")
 # show contents of the file
 readLines(run_params) 
 ```
@@ -149,11 +154,13 @@ Take a look at the alignment events file which contains all the insertions, dele
 First file "raw_events.csv" contains all events directly extracted from aligned reads.
 After filtering PRIMER DIMER reads, removing events overlapping primers (alignment artifacts)
 and shifting events so that they are relative to the expected cut sites "events_filtered_shifted.csv" is saved. After normalization through `amplicanNormalize`
-"events_filtered_shifted_normalized.csv" is save, probably it is the file you should use
+"events_filtered_shifted_normalized.csv" is saved, probably it is the file you should use
 for further analysis.
 
 ```{r, echo=FALSE}
-alignments <- system.file("extdata", "results", "alignments", "events_filtered_shifted_normalized.csv", package = "amplican")
+alignments <- system.file("extdata", "results", "alignments", 
+                          "events_filtered_shifted_normalized.csv", 
+                          package = "amplican")
 alignments <- read.csv(alignments)
 knitr::kable(head(alignments))
 ```
@@ -163,9 +170,10 @@ from multiple experiments.
 Human readable format looks like this:
 
 ```{r, echo=TRUE}
-aln <- readRDS(
-  system.file("extdata", "results", "alignments", "AlignmentsExperimentSet.rds", 
-              package = "amplican"))
+aln <- system.file("extdata", "results", "alignments", 
+                   "AlignmentsExperimentSet.rds", 
+                   package = "amplican")
+aln <- readRDS(aln)
 amplican::lookupAlignment(aln, ID = "ID_1") # will print most frequent alignment for ID_1
 ```
 

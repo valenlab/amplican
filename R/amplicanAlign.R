@@ -25,12 +25,12 @@
 amplicanAlign <- function(
   config,
   fastq_folder,
-  total_processors = 1,
+  use_parallel = FALSE,
   average_quality = 30,
   min_quality = 20,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
     match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
-  gap_opening = 50,
+  gap_opening = 25,
   gap_extension = 0,
   fastqfiles = 0.5,
   primer_mismatch = 2) {
@@ -55,14 +55,14 @@ amplicanAlign <- function(
            file.path(fastq_folder, cfgT$Reverse_Reads_File))
 
   if (sum(cfgT$Reverse_Reads_File == "") > 0 & fastqfiles != 1) {
-    stop(paste0("Reverse_Reads_File has empty rows. ",
-                "Change fastqfiles parameter to 1, ",
-                "to operate only on forward reads."))
+    stop("Reverse_Reads_File has empty rows. ",
+         "Change fastqfiles parameter to 1, ",
+         "to operate only on forward reads.")
   }
   if (sum(cfgT$Forward_Reads_File == "" & fastqfiles != 2) > 0) {
-    stop(paste0("Forward_Reads_File has empty rows. ",
-                "Change fastqfiles parameter to 2, ",
-                "to operate only on reverse reads."))
+    stop("Forward_Reads_File has empty rows. ",
+         "Change fastqfiles parameter to 2, ",
+         "to operate only on reverse reads.")
   }
   checkConfigFile(cfgT, fastq_folder)
   cfgT$Reverse_PrimerRC <- revComp(cfgT$Reverse_Primer)
@@ -76,30 +76,19 @@ amplicanAlign <- function(
   uBarcode <- unique(cfgT$Barcode)
   cfgT$Reads <- 0
 
-  if (total_processors > 1) {
-    p <- BiocParallel::MulticoreParam(workers = total_processors)
-    BiocParallel::register(p)
-    configSplit <- split(cfgT, f = cfgT$Barcode)
-    finalAES <- BiocParallel::bplapply(configSplit, FUN = makeAlignment,
-                                       average_quality,
-                                       min_quality,
-                                       scoring_matrix,
-                                       gap_opening,
-                                       gap_extension,
-                                       fastqfiles,
-                                       primer_mismatch, BPPARAM=p)
+  p <- if (!use_parallel) {
+    BiocParallel::SerialParam()
   } else {
-    finalAES <- vector("list", length(uBarcode))
-    for (j in seq_along(uBarcode)) {
-      finalAES[[j]] <- makeAlignment(cfgT[cfgT$Barcode == uBarcode[j], ],
+    BiocParallel::bpparam()
+  }
+  configSplit <- split(cfgT, f = cfgT$Barcode)
+  finalAES <- BiocParallel::bplapply(configSplit, FUN = makeAlignment,
                                      average_quality,
                                      min_quality,
                                      scoring_matrix,
                                      gap_opening,
                                      gap_extension,
                                      fastqfiles,
-                                     primer_mismatch)
-    }
-  }
-  BiocGenerics::Reduce(c, finalAES)
+                                     primer_mismatch, BPPARAM = p)
+  Reduce(c, finalAES)
 }

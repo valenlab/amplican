@@ -39,8 +39,8 @@
 #' @param knit_reports (boolean) whether function should "knit" all
 #' reports automatically for you (it is time consuming, be patient), when false
 #' reports will be prepared, but not knitted
-#' @param total_processors (numeric) Set this to the number of processors you
-#' want to use. Default is 1.
+#' @param use_parallel (boolean) Set to TRUE, if you have registered
+#' multicore back-end with \code{\link[BiocParallel]{register}}.
 #' @param average_quality (numeric) The FASTQ file have a quality for each
 #' nucleotide, depending on sequencing technology there exist many formats.
 #' This package uses \code{\link[ShortRead]{readFastq}} to parse the reads.
@@ -132,10 +132,10 @@
 # write_alignments_format = "txt"
 # average_quality = 30
 # min_quality = 0
-# total_processors = 1
+# use_parallel = FALSE
 # scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
 #   match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA")
-# gap_opening = 50
+# gap_opening = 25
 # gap_extension = 0
 # fastqfiles = 0.5
 # PRIMER_DIMER = 30
@@ -146,10 +146,10 @@
 amplicanPipeline <- function(
   config, fastq_folder, results_folder, knit_reports = TRUE,
   write_alignments_format = "txt", average_quality = 30,
-  min_quality = 0, total_processors = 1,
+  min_quality = 0, use_parallel = FALSE,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
     match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
-  gap_opening = 50, gap_extension = 0, fastqfiles = 0.5,
+  gap_opening = 25, gap_extension = 0, fastqfiles = 0.5,
   primer_mismatch = 2, PRIMER_DIMER = 30, cut_buffer = 5,
   strict_consensus = TRUE, normalize = c("guideRNA", "Group")) {
 
@@ -158,7 +158,7 @@ amplicanPipeline <- function(
 
   aln <- amplicanAlign(config = config,
                        fastq_folder = fastq_folder,
-                       total_processors = total_processors,
+                       use_parallel = use_parallel,
                        average_quality = average_quality,
                        scoring_matrix = scoring_matrix,
                        gap_opening = gap_opening,
@@ -189,7 +189,6 @@ amplicanPipeline <- function(
   }
   logFileConn <- file(logFileName, open = "at")
   writeLines(c(paste("Config file:        ", config),
-               paste("Processors used:    ", total_processors),
                paste("Average Quality:    ", average_quality),
                paste("Minimum Quality:    ", min_quality),
                paste("Write Alignments:   ", toString(write_alignments_format)),
@@ -214,7 +213,7 @@ amplicanPipeline <- function(
                      file.path(results_folder, "barcode_reads_filters.csv"))
   message("Translating alignments into events...")
   cfgT <- experimentData(aln)
-  aln <- extractEvents(aln, total_processors = total_processors)
+  aln <- extractEvents(aln, use_parallel = use_parallel)
   message("Saving complete events - unfiltered...")
   data.table::fwrite(aln, file.path(resultsFolder, "raw_events.csv"))
   data.table::setDT(aln)

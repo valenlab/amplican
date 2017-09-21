@@ -5,8 +5,8 @@
 #'
 checkFileWriteAccess <- function(filePath) {
   if (file.access(filePath[1], mode = 2) != 0) {
-    stop(paste0("No write access to the path or it does not exists: ",
-                filePath))
+    stop("No write access to the path or it does not exists: ",
+         filePath)
   }
   invisible(TRUE)
 }

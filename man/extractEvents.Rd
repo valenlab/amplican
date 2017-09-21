@@ -4,12 +4,13 @@
 \alias{extractEvents}
 \title{Extract AlignmentsExperimentSet events into data.frame.}
 \usage{
-extractEvents(object, total_processors = 1)
+extractEvents(object, use_parallel = FALSE)
 }
 \arguments{
 \item{object}{(AlignmentsExperimentSet)}
 
-\item{total_processors}{(numeric) Number of cores to use, defaults to 1.}
+\item{use_parallel}{(boolean) Set to TRUE, if you have registered
+multicore back-end with \code{\link[BiocParallel]{register}}.}
 }
 \value{
 (data.frame) Compatible with \code{\link[GenomicRanges]{GRanges}}

@@ -63,7 +63,7 @@ makeAlignment <- function(cfgT,
                           primer_mismatch) {
 
   barcode <- cfgT$Barcode[1]
-  message(paste0("Aligning reads for ", barcode))
+  message("Aligning reads for ", barcode)
 
   fwdA <- vector("list", length(cfgT$ID))
   names(fwdA) <- cfgT$ID

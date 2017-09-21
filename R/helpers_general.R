@@ -323,7 +323,7 @@ amplicanMap <- function(aln, cfgT) {
   }
 
   if (no_upper) {
-    warning(paste0("Events for amplicons without UPPER case are filtered."))
+    warning("Events for amplicons without UPPER case are filtered.")
   }
 
   return(aln)

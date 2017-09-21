@@ -152,7 +152,7 @@ if (!is.na(config$Forward_Reads_File) && !is.na(config$Reverse_Reads_File) &&
   
   cat("# Top unassigned reads  \n\n***  \n\n")
   for (b in unique(unassigned_reads$Barcode)) {
-    cat(paste0("## ", b, "  \n\n"))
+    cat("## ", b, "  \n\n", sep = "")
     b_unassiged <- unassigned_reads[unassigned_reads$Barcode == b, ]
     b_unassiged <- b_unassiged[order(b_unassiged$BarcodeFrequency, decreasing = TRUE), ]
     if (dim(b_unassiged)[1] == 0) {
@@ -165,9 +165,9 @@ if (!is.na(config$Forward_Reads_File) && !is.na(config$Reverse_Reads_File) &&
                                     Counts = b_unassiged[1:topN, 'Total'],
                                     Frequency = b_unassiged[1:topN, 'BarcodeFrequency'])))
       cat("\n")
-      cat(paste("<PRE>", paste(amplican_print_reads(b_unassiged[1:topN, 'Forward'],
-                                                    b_unassiged[1:topN, 'Reverse']),
-                               collapse = "\n"), "</PRE>"))
+      cat("<PRE>", paste(amplican_print_reads(b_unassiged[1:topN, 'Forward'],
+                                              b_unassiged[1:topN, 'Reverse']),
+                         collapse = "\n"), "</PRE>")
       cat("\n\n")
     }
   }

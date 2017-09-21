@@ -26,7 +26,7 @@
 #'
 findEOP <- function(aln, cfgT) {
   mapID <- match(aln$seqnames, cfgT$ID)
-  if (any(aln$start < 0 | aln$end < 0)) {
+  if (any(aln$start < 0 | aln$end < 0)) { # if events are relative
     for (i in seq_along(cfgT$ID)) {
       amplicon <- get_amplicon(cfgT, cfgT$ID[i])
       zero_point <- upperGroups(amplicon)
@@ -37,7 +37,9 @@ findEOP <- function(aln, cfgT) {
         GenomicRanges::start(zero_point)[1]
     }
   }
-  (aln$start < cfgT$fwdPrPosEnd[mapID]) | (aln$end > cfgT$rvePrPos[mapID])
+  (aln$start < cfgT$fwdPrPosEnd[mapID]) |
+    (aln$end > cfgT$rvePrPos[mapID] & aln$type != "insertion") |
+    (aln$start > cfgT$rvePrPos[mapID] & aln$type == "insertion")
 }
 
 

@@ -1,10 +1,9 @@
 Config file:         full/path/to/config/file/that/has/been/used.csv
-Processors used:     1
 Average Quality:     30
 Minimum Quality:     0
 Write Alignments:    txt
 Fastq files Mode:    0.5
-Gap Opening:         50
+Gap Opening:         25
 Gap Extension:       0
 Consensus:           TRUE
 Normalize:           guideRNA, Group

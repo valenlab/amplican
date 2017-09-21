@@ -78,7 +78,7 @@ AlignmentsExperimentSet(...)
 \S4method{lookupAlignment}{AlignmentsExperimentSet}(x, ID, read_id = 1)
 
 \S4method{extractEvents}{AlignmentsExperimentSet}(object,
-  total_processors = 1)
+  use_parallel = FALSE)
 }
 \arguments{
 \item{...}{pass any number of AlignmentsExperimentSet objects, make sure
@@ -104,9 +104,9 @@ standard output.}
 \item{read_id}{(numeric) Read Identifier. Reads are sorted by frequency.
 Defaults to 1, most abundant read.}
 
-\item{total_processors}{(numeric) When using \code{extractEvents} you can
-specify how many processors to use as this is very slow function (despite
-vectorization).}
+\item{use_parallel}{(boolean) When using \code{extractEvents} you can
+use multicore back-end through \code{\link[BiocParallel]{register}} as this
+is very slow function (despite vectorization).}
 }
 \value{
 depending on the function used
@@ -168,7 +168,7 @@ new("AlignmentsExperimentSet",
                                  whatever = c(50, 100)),
      barcodeData = data.frame(Barcode = "B1", statistic1 = 100))
 # Coercion
-extractEvents(AlignmentsExperimentSet(), total_processors = 2)
+extractEvents(AlignmentsExperimentSet())
 GenomicRanges::GRanges(extractEvents(AlignmentsExperimentSet()))
 
 }

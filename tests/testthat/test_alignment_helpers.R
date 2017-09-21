@@ -153,7 +153,6 @@ test_that("getEventInfo returns correct GRanges", {
 
   # multiple reads at the same time
   # first pair returns no alignments
-  # last one is shifted by 12
   events <- Biostrings::pairwiseAlignment(
     Biostrings::DNAStringSet(c("AGTG", "ACTAGT", "ACTAAGT", "ACTAAAGT",
                                "AGGGTAAAGTCCATGGCCCCAATTTGTGTGTAG",

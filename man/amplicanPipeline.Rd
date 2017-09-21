@@ -6,9 +6,9 @@
 \usage{
 amplicanPipeline(config, fastq_folder, results_folder, knit_reports = TRUE,
   write_alignments_format = "txt", average_quality = 30, min_quality = 0,
-  total_processors = 1,
+  use_parallel = FALSE,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5,
-  mismatch = -4, baseOnly = TRUE, type = "DNA"), gap_opening = 50,
+  mismatch = -4, baseOnly = TRUE, type = "DNA"), gap_opening = 25,
   gap_extension = 0, fastqfiles = 0.5, primer_mismatch = 2,
   PRIMER_DIMER = 30, cut_buffer = 5, strict_consensus = TRUE,
   normalize = c("guideRNA", "Group"))
@@ -65,8 +65,8 @@ the minimum quality for ALL nucleotides in given read. If one of nucleotides
 has quality BELLOW \code{min_quality}, then the sequence is filtered.
 Default is 20.}
 
-\item{total_processors}{(numeric) Set this to the number of processors you
-want to use. Default is 1.}
+\item{use_parallel}{(boolean) Set to TRUE, if you have registered
+multicore back-end with \code{\link[BiocParallel]{register}}.}
 
 \item{scoring_matrix}{(matrix) Default is 'NUC44'. Pass desired matrix using
 \code{\link[Biostrings]{nucleotideSubstitutionMatrix}}.}

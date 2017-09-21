@@ -7,10 +7,10 @@ checkTarget <- function(configTable) {
   targetPositions <- stringr::str_detect(tolower(configTable$Amplicon),
                                          tolower(configTable$guideRNA))
   if (any(!targetPositions)) {
-    message(paste0(
+    message(
       "Warning: guideRNA has not been found in the amplicon for line: ",
       toString(which(!targetPositions) + 1)
-    ))
+    )
   }
 
   return(targetPositions)
@@ -38,17 +38,15 @@ checkPrimers <- function(configTable, fastqfiles) {
   rP <- if (fastqfiles != 1) which(is.na(configTable$rvePrPos)) else NULL
 
   if (length(fP) > 0 | length(rP) > 0) {
-    stop(paste0(
-        "Error: One of primers was not found in the amplicon.",
-        if (length(fP) > 0)
-          paste0(" Couldn't locate forward primer in amplicon for row: ",
-                 toString(fP + 1))
-        else "",
-        if (length(rP) > 0)
-          paste0(" Couldn't locate reverse primer in amplicon for row: ",
-                 toString(rP + 1))
-        else ""
-      )
+    stop("One of primers was not found in the amplicon.",
+         if (length(fP) > 0)
+           c(" Couldn't locate forward primer in amplicon for row: ",
+             toString(fP + 1))
+         else "",
+         if (length(rP) > 0)
+           c(" Couldn't locate reverse primer in amplicon for row: ",
+             toString(rP + 1))
+         else ""
     )
   }
 
@@ -75,37 +73,37 @@ checkConfigFile <- function(configTable, fastq_folder) {
 
   rp_num <- grepl("\\d", configTable$Forward_Primer)
   if (any(rp_num)) {
-    stop(paste0("Config file has bad rows: ",
-                toString(which(rp_num) + 1),
-                " due to reverse primers containing numeric values."))
+    stop("Config file has bad rows: ",
+         toString(which(rp_num) + 1),
+         " due to reverse primers containing numeric values.")
   }
 
   fp_num <- grepl("\\d", configTable$Reverse_Primer)
   if (any(fp_num)) {
-    stop(paste0("Config file has bad rows: ",
-                toString(which(fp_num) + 1),
-                " due to forward primers containing numeric values."))
+    stop("Config file has bad rows: ",
+         toString(which(fp_num) + 1),
+         " due to forward primers containing numeric values.")
   }
 
   goodRows <- stats::complete.cases(configTable)
   if (sum(goodRows) != totalRows) {
-    stop(paste0("Config file has bad rows: ",
-                toString(which(goodRows == FALSE) + 1),
-                " due to NA/NULL values"))
+    stop("Config file has bad rows: ",
+         toString(which(goodRows == FALSE) + 1),
+         " due to NA/NULL values")
   }
 
   if (length(unique(configTable$ID)) != totalRows) {
-    stop(paste0("Config file has duplicates IDs in rows: ",
-                toString(which(duplicated(configTable[, "ID"])) + 1)))
+    stop("Config file has duplicates IDs in rows: ",
+         toString(which(duplicated(configTable[, "ID"])) + 1))
   }
 
   barcode_primers_duple <- duplicated(configTable[, c("Barcode",
                                                       "Forward_Primer",
                                                       "Reverse_Primer")])
   if (sum(barcode_primers_duple) != 0) {
-    stop(paste0("Config file has non unique combinations of barcode, forward ",
-                "primer and reverse primer. Duplicated rows: ",
-                toString(which(barcode_primers_duple) + 1)))
+    stop("Config file has non unique combinations of barcode, forward ",
+         "primer and reverse primer. Duplicated rows: ",
+         toString(which(barcode_primers_duple) + 1))
   }
 
   barcode_files_duple <- duplicated(configTable$Barcode)
@@ -113,10 +111,10 @@ checkConfigFile <- function(configTable, fastq_folder) {
     configTable[c("Forward_Reads_File", "Reverse_Reads_File")])
   fail_barcodes <- which(barcode_files_duple != forward_reverse_files_duple) + 1
   if (length(fail_barcodes) > 0) {
-    stop(paste0("Each of these rows are malfunctioned in the config file: ",
-                toString(fail_barcodes),
-                " For each barcode there can be only one set of paths ",
-                "for forward and reverse files."))
+    stop("Each of these rows are malfunctioned in the config file: ",
+          toString(fail_barcodes),
+          " For each barcode there can be only one set of paths ",
+          "for forward and reverse files.")
   }
 
   uniqueFilePaths <- unique(
@@ -124,9 +122,9 @@ checkConfigFile <- function(configTable, fastq_folder) {
       configTable$Reverse_Reads_File[configTable$Reverse_Reads_File != ""]))
   access <- file.access(uniqueFilePaths, mode = 4) == -1
   if (sum(access) > 0) {
-    stop(paste0("We either don't have read access or paths are incorrect. ",
-                "Check specified paths in config for these files:\n",
-                toString(uniqueFilePaths[access])))
+    stop("We either don't have read access or paths are incorrect. ",
+         "Check specified paths in config for these files:\n",
+         toString(uniqueFilePaths[access]))
   }
   invisible(TRUE)
 }

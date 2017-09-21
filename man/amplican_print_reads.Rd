@@ -27,8 +27,8 @@ unassigned <- data.table::setDF(data.table::fread(unassigned_file))
 unassigned <- unassigned[order(unassigned$BarcodeFrequency,
                                decreasing = TRUE), ]
 # print alignment of most frequent unassigned reads
-cat(paste(amplican_print_reads(unassigned[1, 'Forward'],
-                               unassigned[1, 'Reverse']),
-          collapse = "\\n"))
+cat(amplican_print_reads(unassigned[1, 'Forward'],
+                         unassigned[1, 'Reverse']),
+          sep = "\\n")
 
 }

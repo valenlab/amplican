@@ -4,10 +4,10 @@
 \alias{amplicanAlign}
 \title{Align reads to amplicons.}
 \usage{
-amplicanAlign(config, fastq_folder, total_processors = 1,
+amplicanAlign(config, fastq_folder, use_parallel = FALSE,
   average_quality = 30, min_quality = 20,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5,
-  mismatch = -4, baseOnly = TRUE, type = "DNA"), gap_opening = 50,
+  mismatch = -4, baseOnly = TRUE, type = "DNA"), gap_opening = 25,
   gap_extension = 0, fastqfiles = 0.5, primer_mismatch = 2)
 }
 \arguments{
@@ -19,8 +19,8 @@ have to follow the example config specification.}
 \item{fastq_folder}{(string) Path to FASTQ files. If not specified,
 FASTQ files should be in the same directory as config file.}
 
-\item{total_processors}{(numeric) Set this to the number of processors you
-want to use. Default is 1.}
+\item{use_parallel}{(boolean) Set to TRUE, if you have registered
+multicore back-end with \code{\link[BiocParallel]{register}}.}
 
 \item{average_quality}{(numeric) The FASTQ file have a quality for each
 nucleotide, depending on sequencing technology there exist many formats.

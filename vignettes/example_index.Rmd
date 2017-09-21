@@ -23,7 +23,7 @@ if (params$links != "") {
   cat("***\n")
   cat("# Other Reports\n")
   cat("***\n")
-  cat(paste0(params$links))
+  cat(params$links, sep = "")
 }
 ```
 

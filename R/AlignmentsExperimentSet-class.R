@@ -14,9 +14,9 @@ methods::setClassUnion("data.frameOrNULL", members = c("data.frame", "NULL"))
 #' names of the experiments eg. \code{x$name} or \code{x[i]}, resulting in
 #' AlignmentsExperimentSet object that has only one experiment. During this
 #' subsetting, values of unassignedData and barcodeData are dropped.
-#' @param total_processors (numeric) When using \code{extractEvents} you can
-#' specify how many processors to use as this is very slow function (despite
-#' vectorization).
+#' @param use_parallel (boolean) When using \code{extractEvents} you can
+#' use multicore back-end through \code{\link[BiocParallel]{register}} as this
+#' is very slow function (despite vectorization).
 #' @param ... pass any number of AlignmentsExperimentSet objects, make sure
 #' experiment IDs can be unique after merging
 #' @inheritParams writeAlignments
@@ -78,92 +78,92 @@ listClasses <- function(lst) {
 setValidity("AlignmentsExperimentSet", function(object) {
   err <- character()
 
-  if (!is.null(object@readCounts) &&
-      any(!listClasses(object@readCounts) %in%
+  if (!is.null(readCounts(object)) &&
+      any(!listClasses(readCounts(object)) %in%
           c("integer", "numeric", "NULL"))) {
     err <- c(err, paste("'readCounts' has to have all elements",
                         "of class 'integer' or 'numeric'"))
   }
 
-  if (!is.null(object@readCounts) &&
-      any(sapply(object@readCounts, function(x) any(x == 0)))) {
+  if (!is.null(readCounts(object)) &&
+      any(sapply(readCounts(object), function(x) any(x == 0)))) {
     err <- c(err, paste("'readCounts' has to have all elements",
                         "higher than 0."))
   }
 
-  if (!is.null(object@fwdReads) &&
-      any(!listClasses(object@fwdReads) %in%
+  if (!is.null(fwdReads(object)) &&
+      any(!listClasses(fwdReads(object)) %in%
           c("PairwiseAlignmentsSingleSubject", "NULL"))) {
     err <- c(err, paste("'fwdReads' has to have all elements",
                         "of class PairwiseAlignmentsSingleSubject"))
   }
 
-  if (!is.null(object@rveReads) &&
-      any(!listClasses(object@rveReads) %in%
+  if (!is.null(rveReads(object)) &&
+      any(!listClasses(rveReads(object)) %in%
           c("PairwiseAlignmentsSingleSubject", "NULL"))) {
     err <- c(err, paste("'rveReads' has to have all elements",
                         "of class PairwiseAlignmentsSingleSubject"))
   }
 
-  if (!is.null(object@fwdReads) && !is.null(object@rveReads) &&
-      length(object@fwdReads) != length(object@rveReads)) {
+  if (!is.null(fwdReads(object)) && !is.null(rveReads(object)) &&
+      length(fwdReads(object)) != length(rveReads(object))) {
     err <- c(err, paste("'fwdReads' and 'rveReads' should have",
                         "the same number of experiments (same length)."))
   }
 
-  if (!is.null(object@readCounts) && !is.null(object@experimentData) &&
-      length(object@readCounts) != dim(object@experimentData)[1]) {
+  if (!is.null(readCounts(object)) && !is.null(experimentData(object)) &&
+      length(readCounts(object)) != dim(experimentData(object))[1]) {
     err <- c(err, paste("Number of rows in 'experimentData' should be same",
                         "as length of 'readCounts'."))
   }
 
-  if (!is.null(object@rveReads) &&
-      length(object@readCounts) != length(object@rveReads)) {
+  if (!is.null(rveReads(object)) &&
+      length(readCounts(object)) != length(rveReads(object))) {
     err <- c(err, paste("Length of 'readCounts' should be same",
                         "as length of 'rveReads'."))
   }
 
-  if (!is.null(object@fwdReads) &&
-      length(object@readCounts) != length(object@fwdReads)) {
+  if (!is.null(fwdReads(object)) &&
+      length(readCounts(object)) != length(fwdReads(object))) {
     err <- c(err, paste("Length of 'readCounts' should be same",
                         "as length of 'fwdReads'."))
   }
 
-  if (!is.null(object@experimentData) && is.null(object@experimentData$ID)) {
+  if (!is.null(experimentData(object)) && is.null(experimentData(object)$ID)) {
     err <- c(err, paste("There should be ID column in 'experimentData'."))
   }
 
-  if (!is.null(object@experimentData) &&
-      is.null(object@experimentData$Barcode)) {
+  if (!is.null(experimentData(object)) &&
+      is.null(experimentData(object)$Barcode)) {
     err <- c(err, paste("There should be Barcode column in 'experimentData'."))
   }
 
-  if (!is.null(object@unassignedData) &&
-      is.null(object@unassignedData$Barcode)) {
+  if (!is.null(unassignedData(object)) &&
+      is.null(unassignedData(object)$Barcode)) {
     err <- c(err, paste("There should be Barcode column in 'unassignedData'."))
   }
 
-  if (!is.null(object@barcodeData) &&
-      is.null(object@barcodeData$Barcode)) {
+  if (!is.null(barcodeData(object)) &&
+      is.null(barcodeData(object)$Barcode)) {
     err <- c(err, paste("There should be Barcode column in 'barcodeData'."))
   }
 
-  if (!all(c(object@barcodeData$Barcode, object@unassignedData$Barcode) %in%
-           c(object@experimentData$Barcode, NULL))) {
+  if (!all(c(barcodeData(object)$Barcode, unassignedData(object)$Barcode) %in%
+           c(experimentData(object)$Barcode, NULL))) {
     err <- c(err, paste("There are unknown Barcodes without any experiments.",
                         "Check your 'experimentData' in relation to",
                         "'unassigedData' and 'barcodeData'."))
   }
 
-  if (length(unique(object@experimentData$ID)) !=
-      length(object@experimentData$ID)) {
+  if (length(unique(experimentData(object)$ID)) !=
+      length(experimentData(object)$ID)) {
     err <- c(err, paste("All experiment names should be unique."))
   }
 
-  if ((!is.null(object@fwdReads) &&
-       !all(names(object@fwdReads) == object@experimentData$ID)) ||
-      (!is.null(object@rveReads) &&
-       !all(names(object@rveReads) == object@experimentData$ID))) {
+  if ((!is.null(fwdReads(object)) &&
+       !all(names(fwdReads(object)) == experimentData(object)$ID)) ||
+      (!is.null(rveReads(object)) &&
+       !all(names(rveReads(object)) == experimentData(object)$ID))) {
     err <- c(err, paste("Names of 'fwdReads' should be same ",
                         "as names of 'rveReads', ''readCounts' ",
                         "and 'experimentData' ID column."))
@@ -184,7 +184,7 @@ AlignmentsExperimentSet <- function(...) {
 #' @aliases length,AlignmentsExperimentSet-method
 #' @rdname AlignmentsExperimentSet-class
 setMethod("length", "AlignmentsExperimentSet", function(x) {
-  if (!is.null(x@experimentData)) dim(x@experimentData)[1] else 0
+  if (!is.null(experimentData(x))) dim(experimentData(x))[1] else 0
 })
 
 
@@ -485,7 +485,7 @@ setMethod("assignedCount", "AlignmentsExperimentSet", function(x) {
 #' @aliases names,AlignmentsExperimentSet-method
 #' @rdname AlignmentsExperimentSet-class
 setMethod("names", "AlignmentsExperimentSet", function(x) {
-  as.character(x@experimentData$ID)
+  as.character(experimentData(x)$ID)
 })
 
 
@@ -494,9 +494,9 @@ setMethod("names", "AlignmentsExperimentSet", function(x) {
 setMethod("c", "AlignmentsExperimentSet", function(x, ...) {
   args <- if (missing(x)) list(...) else (list(x, ...))
   methods::new("AlignmentsExperimentSet",
-               fwdReads = Reduce(c, lapply(args, fwdReads)),
-               rveReads = Reduce(c, lapply(args, rveReads)),
-               readCounts = Reduce(c, lapply(args, readCounts)),
+               fwdReads = do.call(c, lapply(args, fwdReads)),
+               rveReads = do.call(c, lapply(args, rveReads)),
+               readCounts = do.call(c, lapply(args, readCounts)),
                unassignedData = Reduce(rbind, lapply(args, unassignedData)),
                experimentData = Reduce(rbind, lapply(args, experimentData)),
                barcodeData = Reduce(rbind, lapply(args, barcodeData)))
@@ -718,7 +718,8 @@ getEventInfoObj <- function(object) {
 #' were from reverse reads.
 #' @name extractEvents
 #' @param object (AlignmentsExperimentSet)
-#' @param total_processors (numeric) Number of cores to use, defaults to 1.
+#' @param use_parallel (boolean) Set to TRUE, if you have registered
+#' multicore back-end with \code{\link[BiocParallel]{register}}.
 #' @return (data.frame) Compatible with \code{\link[GenomicRanges]{GRanges}}
 #' style.
 #' @export
@@ -728,7 +729,7 @@ getEventInfoObj <- function(object) {
 #' aln <- readRDS(file_path)
 #' extractEvents(aln)
 #'
-setGeneric("extractEvents", function(object, total_processors = 1){
+setGeneric("extractEvents", function(object, use_parallel = FALSE){
   standardGeneric("extractEvents")
 })
 #' @section Coercion based on events:
@@ -739,22 +740,21 @@ setGeneric("extractEvents", function(object, total_processors = 1){
 #' @rdname AlignmentsExperimentSet-class
 #' @examples
 #' # Coercion
-#' extractEvents(AlignmentsExperimentSet(), total_processors = 2)
+#' extractEvents(AlignmentsExperimentSet())
 #' GenomicRanges::GRanges(extractEvents(AlignmentsExperimentSet()))
 #'
 setMethod("extractEvents", "AlignmentsExperimentSet", function(
-  object, total_processors = 1) {
+  object, use_parallel = FALSE) {
 
   if (length(readCounts(object)) == 0) {
     return(BiocGenerics::as.data.frame(GenomicRanges::GRanges()))
   }
-  finalGR <- if (total_processors == 1) {
-      lapply(object, getEventInfoObj)
+  p <- if (!use_parallel) {
+    BiocParallel::SerialParam()
   } else {
-    p <- BiocParallel::MulticoreParam(workers = total_processors)
-    BiocParallel::register(p)
-    BiocParallel::bplapply(object, FUN = getEventInfoObj, BPPARAM=p)
+    BiocParallel::bpparam()
   }
+  finalGR <- BiocParallel::bplapply(object, FUN = getEventInfoObj, BPPARAM = p)
   finalGR <- unlist(GenomicRanges::GRangesList(finalGR), use.names = FALSE)
   flipRanges(GenomicRanges::as.data.frame(finalGR, row.names = NULL),
              experimentData(object))
@@ -762,19 +762,18 @@ setMethod("extractEvents", "AlignmentsExperimentSet", function(
 
 
 setMethod("show", "AlignmentsExperimentSet", function(object){
-  cat(paste("\nAlignmentsExperimentSet object with", length(object),
-            "experiments.\n"))
+  cat("\nAlignmentsExperimentSet object with", length(object), "experiments.\n")
   if (length(object) > 0) {
-    cat(paste0("Showing only first experiment with ID: ",
-               names(object)[1], "\n\n"))
+    cat("Showing only first experiment with ID: ",
+        names(object)[1], "\n\n", sep = "")
     cat("Slot fwdReads:\n")
     print(fwdReads(object)[[1]])
     cat("\nSlot rveReads:\n")
     print(rveReads(object)[[1]])
     cat("\nSlot readCounts:\n")
-    print(readCounts(object)[[1]])
+    str(readCounts(object)[[1]])
     cat("\nSlot experimentData:\n")
-    print(experimentData(object)[1, ])
+    str(experimentData(object)[1, ])
   }
 })
 
