@@ -21,3 +21,4 @@ file_path <- system.file("extdata", "results", "alignments",
 aln <- readRDS(file_path)
 rveReads(aln)
 }
+\keyword{internal}

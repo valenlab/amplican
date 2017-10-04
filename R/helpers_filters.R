@@ -1,9 +1,59 @@
+#' Find Off-targets and Fragmented alignments from reads.
+#'
+#' Will try to detect off-targets and low quality alignments (outliers). It
+#' performs hierarchical clustering for parameterized Gaussian mixture models
+#' using \code{\link[mclust]{Mclust}}, then calcualtes medians of predicted
+#' clusters. Based on medians selects cluster with the lowest score. Then
+#' threshold is returned as the most sensitive cutoff for that cluster, minimum
+#' score from closest higher score cluster. When there is less than 1000 scores
+#' in \code{x} or clustering will return only one cluster minimum score is
+#' returned.
+#' @param x (numeric) Input alignment scores of all reads. Should work on
+#' scores from single experiment.
+#' @return (numeric) Threshold value for suggested cutoff on the scores of the
+#' alignments. Values below this threshold are potential off-targets or low
+#' quality alignments.
+#' @export
+#' @family filters
+#' @seealso \code{\link{findPD}} \code{\link{findEOP}}
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "raw_events.csv", package = "amplican")
+#' aln <- data.table::fread(file_path)
+#' thresholdScores(aln$score[aln$seqnames == "ID_1"])
+#'
+thresholdScores <- function(x) {
+  if (length(x) < 1000) return(min(x))
+  m <- mclust::Mclust(x)
+  if (m$G > 1) { # more than one cluster
+    # filter out scores from the most left cluster based on median
+    med <- rep(0, m$G)
+    for (i in seq_len(m$G)) {
+      med[i] <- stats::median(x[m$classification == i])
+    }
+    min(x[m$classification == order(med)[2]])
+  } else {
+    min(x)
+  }
+}
+
+# thresholdScores <- function(x) { simplified version
+#   if (length(x) < 1000) return(min(x))
+#   x <- sort(x, decreasing = TRUE)
+#   # calc max step for upper half of the distribution
+#   upper_half <- x[x >= (max(x) - diff(range(x))/2)]
+#   max_step <- max(abs(diff(upper_half)))
+#
+#   x[which(abs(diff(x)) > max_step)[1]]
+# }
+
+
 #' Find Events Overlapping Primers.
 #'
 #' Very often alignments return deletions that are not real deletions, but
 #' rather artifact of incomplete reads eg.: \cr
 #' \preformatted{
-#' ACTGAAAAA------- <- this "insertion" should be filtered
+#' ACTGAAAAA------- <- this "deletion" should be filtered
 #' ACTG----ACTGACTG
 #' }
 #' @param aln (data.frame) Should contain events from alignments in GRanges
@@ -14,7 +64,7 @@
 #' primers
 #' @export
 #' @family filters
-#' @seealso \code{\link{findPD}}
+#' @seealso \code{\link{findPD}} \code{\link{thresholdScores}}
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
 #'                          "raw_events.csv", package = "amplican")
@@ -57,7 +107,7 @@ findEOP <- function(aln, cfgT) {
 #' @return (logical) Where TRUE indicates event classified as PRIMER DIMER
 #' @export
 #' @family filters
-#' @seealso \code{\link{findEOP}}
+#' @seealso \code{\link{findEOP}} \code{\link{thresholdScores}}
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
 #'                          "raw_events.csv", package = "amplican")
@@ -79,6 +129,7 @@ findPD <- function(aln, cfgT, PRIMER_DIMER = 30) {
 
 #' Filters out sequences which have bad base quality readings.
 #'
+#' @keywords internal
 #' @param reads (ShortRead object) Loaded reads from fastq.
 #' @param min (numeric) This is the minimum quality that we accept for
 #' every nucleotide. For example, if we have a sequence with nucleotides which
@@ -97,6 +148,7 @@ goodBaseQuality <- function(reads, min = 20) {
 
 #' This filters out sequences which have bad average quality readings.
 #'
+#' @keywords internal
 #' @param reads (ShortRead object) Loaded reads from fastq.
 #' @param avg (numeric) This is what the average score of the quality of
 #' sequence should be. For example, if we have a sequence with nucleotides which
@@ -116,6 +168,7 @@ goodAvgQuality <- function(reads, avg = 30) {
 
 #' This filters out sequences which have nonstandard nucleotides.
 #'
+#' @keywords internal
 #' @param reads (ShortRead object) Loaded reads from fastq.
 #' @return (boolean) Logical vector with the valid rows as TRUE.
 #'

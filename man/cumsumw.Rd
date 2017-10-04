@@ -15,3 +15,4 @@ cumsumw(x)
 \description{
 Cumulative sum to calculate shift
 }
+\keyword{internal}

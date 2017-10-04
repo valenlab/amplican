@@ -1,4 +1,5 @@
-#' Filter Events Overlapping Primers and PRIMER DIMERS.
+#' Filter Events Overlapping Primers, PRIMER DIMERS and Low Alignment Score
+#' Events.
 #'
 #' Very often alignments return deletions that are not real deletions, but
 #' rather artifact of incomplete reads eg.: \cr
@@ -7,7 +8,9 @@
 #' ACTG----ACTGACTG
 #' }
 #' We call them Events Overlapping Primers and filter them together
-#' with reads that are potentially PRIMER DIMERS.
+#' with reads that are potentially PRIMER DIMERS. This filter will also remove
+#' all events coming from reads with low alignment score - potential
+#' Off-targets.
 #' @param aln (data.frame) Should contain events from alignments in GRanges
 #' style with columns eg. seqnames, width, start, end.
 #' @param cfgT (data.frame) Needs columns Forward_Primer, ReversePrimer and
@@ -32,6 +35,11 @@
 #' amplicanFilter(aln, cfgT, 30)
 #'
 amplicanFilter <- function(aln, cfgT, PRIMER_DIMER) {
+  seqnames <- NULL
+
+  eOP <- findEOP(aln, cfgT)
+  aln <- aln[!eOP, ]
+
   PD <- findPD(aln, cfgT, PRIMER_DIMER = PRIMER_DIMER)
 
   # PRIMER DIMER reads with unique ID and read_id
@@ -44,7 +52,15 @@ amplicanFilter <- function(aln, cfgT, PRIMER_DIMER) {
   PD <- PD[aln$read_id[PD] == read_ids]
   aln <- aln[-PD,]
 
-  # filter events overlapping primers
-  eOP <- findEOP(aln, cfgT)
-  aln[!eOP, ]
+  # alignment score filter
+  for (i in seq_len(dim(cfgT)[1])) {
+    aln_id <- aln[seqnames == cfgT$ID[i], ]
+    threshS <- thresholdScores(aln_id$score)
+    onlyBR <- aln_id[aln_id$score < threshS, ]
+    onlyBR <- unique(onlyBR, by = "read_id")
+    aln <- aln[!(aln$seqnames == cfgT$ID[i] &
+                   aln$read_id %in% onlyBR$read_id), ]
+  }
+
+  aln
 }

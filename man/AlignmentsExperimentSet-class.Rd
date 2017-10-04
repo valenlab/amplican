@@ -172,3 +172,4 @@ extractEvents(AlignmentsExperimentSet())
 GenomicRanges::GRanges(extractEvents(AlignmentsExperimentSet()))
 
 }
+\keyword{internal}

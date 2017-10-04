@@ -17,3 +17,4 @@ get_amplicon(config, id)
 \description{
 amplicon sequence, reverse complemented when needed
 }
+\keyword{internal}

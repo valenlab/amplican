@@ -15,3 +15,4 @@ checkTarget(configTable)
 \description{
 Checks if the guideRNA is in the amplicon.
 }
+\keyword{internal}

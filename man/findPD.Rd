@@ -35,7 +35,8 @@ findPD(aln, cfgT)
 
 }
 \seealso{
-\code{\link{findEOP}}
+\code{\link{findEOP}} \code{\link{thresholdScores}}
 
-Other filters: \code{\link{findEOP}}
+Other filters: \code{\link{findEOP}},
+  \code{\link{thresholdScores}}
 }

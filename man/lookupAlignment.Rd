@@ -29,3 +29,4 @@ aln <- readRDS(file_path)
 lookupAlignment(aln, "ID_1")
 
 }
+\keyword{internal}

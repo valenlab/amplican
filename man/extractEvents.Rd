@@ -29,3 +29,4 @@ aln <- readRDS(file_path)
 extractEvents(aln)
 
 }
+\keyword{internal}

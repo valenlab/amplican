@@ -17,3 +17,4 @@ get_left_primer(config, id)
 \description{
 left primer sequence
 }
+\keyword{internal}

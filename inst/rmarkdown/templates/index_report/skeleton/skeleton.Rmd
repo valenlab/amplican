@@ -88,26 +88,30 @@ waffle(read_a_per, legend_pos = 'bottom',
        title = "Succesfull assignment of unique reads", 
        rows = 10, colors = c('#E69F00', '#000000'))
 
-# PRIMER DIMER reads
+# Filtered reads
 configDF <- data.frame(data.table::fread(params$config_summary))
 height <- amplican::plot_height(length(unique(configDF$Barcode)))
 
-PD_reads <- c(sum(configDF$Reads_noPD), sum(configDF$PRIMER_DIMER))
-PD_reads_per <- round(PD_reads*100/sum(configDF$Reads))
-PD_reads_per[is.na(PD_reads_per)] <- 0
-names(PD_reads_per) <- c(paste0('Good Reads\n', PD_reads[1], ' (', PD_reads_per[1], '%)'), 
-                         paste0('PRIMER DIMER Reads\n', PD_reads[2], ' (', PD_reads_per[2], '%)'))
-waffle(PD_reads_per, legend_pos = 'bottom', 
-       title = "\n\nReads marked as PRIMER DIMERS", 
-       rows = 10, colors = c('#E69F00', '#000000'))
+F_reads <- c(sum(configDF$Reads_Filtered), sum(configDF$PRIMER_DIMER),
+              sum(configDF$Low_Score))
+F_reads_per <- round(F_reads*100/sum(configDF$Reads))
+F_reads_per[is.na(F_reads_per)] <- 0
+names(F_reads_per) <- c(paste0('Good Reads\n', F_reads[1], ' (', F_reads_per[1], '%)'), 
+                        paste0('PRIMER DIMERs\n', F_reads[2], ' (', 
+                               F_reads_per[2], '%)'),
+                        paste0('Low Score\n', F_reads[3], ' (', 
+                               F_reads_per[3], '%)'))
+waffle(F_reads_per, legend_pos = 'bottom', 
+       title = "\n\nFiltered Reads", 
+       rows = 10, colors = c('#E69F00', '#000000', '#A9A9A9'))
 ```
 
 ## Indels
 
 ```{r echo = F}
-total_reads <- sum(configDF$Reads_noPD)
-total_reads_ctr <- sum(configDF$Reads_noPD[configDF$Control])
-total_reads_tmt <- sum(configDF$Reads_noPD[!configDF$Control])
+total_reads <- sum(configDF$Reads_Filtered)
+total_reads_ctr <- sum(configDF$Reads_Filtered[configDF$Control])
+total_reads_tmt <- sum(configDF$Reads_Filtered[!configDF$Control])
 reads_indel <- c(sum(configDF$Reads_Indel[!configDF$Control]), # Treatment
                total_reads_tmt - sum(configDF$Reads_Indel[!configDF$Control]),
                sum(configDF$Reads_Indel[configDF$Control]), # Control

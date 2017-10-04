@@ -48,6 +48,7 @@ locate_pr_start <- function(reads, primer, m = 2) {
 #'
 #' Aligning reads to the amplicons for each ID in this barcode, constructing
 #' amplicanAlignment. Assume that all IDs here belong to the same barcode.
+#' @keywords internal
 #' @param cfgT config file as data table
 #' @inheritParams amplicanAlign
 #' @include helpers_general.R helpers_filters.R AlignmentsExperimentSet-class.R
@@ -168,7 +169,8 @@ makeAlignment <- function(cfgT,
             Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[, "Forward"]),
                                start = IDunqT$fwdPrInReadPos),
             Biostrings::subseq(amplicon,
-                               start = cfgT$fwdPrPos[i]),
+                               start = cfgT$fwdPrPos[i],
+                               end = cfgT$rvePrPosEnd[i]),
             type = "overlap",
             substitutionMatrix =  scoring_matrix,
             gapOpening = gap_opening,
@@ -181,7 +183,7 @@ makeAlignment <- function(cfgT,
             Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[, "Reverse"]),
                                start = IDunqT$rvePrInReadPos)),
           Biostrings::subseq(amplicon,
-                             start = 1,
+                             start = cfgT$fwdPrPos[i],
                              end = cfgT$rvePrPosEnd[i]),
           type = "overlap",
           substitutionMatrix =  scoring_matrix,

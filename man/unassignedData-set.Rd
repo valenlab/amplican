@@ -24,3 +24,4 @@ file_path <- system.file("extdata", "results", "alignments",
 aln <- readRDS(file_path)
 unassignedData(aln) <- unassignedData(aln) #replace with the same values
 }
+\keyword{internal}

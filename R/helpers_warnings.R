@@ -1,5 +1,6 @@
 #' Checks if the guideRNA is in the amplicon.
 #'
+#' @keywords internal
 #' @param configTable (data.frame) data frame of config file
 #' @return (boolean vector) Prints warning when some guides can't be found.
 #'
@@ -19,6 +20,7 @@ checkTarget <- function(configTable) {
 #' Checks if the forward and reverse primer are in the amplicon
 #' and where they are located.
 #'
+#' @keywords internal
 #' @param configTable (data.frame) A data frame of config file.
 #' @param fastqfiles (numeric) Which primers are important.
 #' @return configTable (data.frame) A data frame of config file with additional
@@ -62,6 +64,7 @@ checkPrimers <- function(configTable, fastqfiles) {
 #'   Every combination of barcode, forward primer and reverse primer is unique.
 #'   Each barcode has unique forward reads file and reverse read files.
 #'   Checks that the read files exist with read access.
+#' @keywords internal
 #' @param configTable (data.frame) Config file.
 #' @param fastq_folder (string) Path to fastq folder.
 #' @return (boolean) TRUE, If anything goes wrong stops and prints error.

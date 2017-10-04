@@ -20,3 +20,4 @@ fields for start locations of the primers
 Checks if the forward and reverse primer are in the amplicon
 and where they are located.
 }
+\keyword{internal}

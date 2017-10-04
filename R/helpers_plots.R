@@ -249,7 +249,7 @@ metaplot_mismatches <- function(alnmt, config, group, selection) {
   freqAgr <- alnmt[, list(counts = sum(counts)),
                    by = c("replacement", "start", "strand")]
   freqAgr$frequency <-
-    freqAgr$counts/sum(config$Reads_noPD[config[[group]] %in% selection])
+    freqAgr$counts/sum(config$Reads_Filtered[config[[group]] %in% selection])
 
   freqAgrPlus <- freqAgr[freqAgr$strand == "+", ]
   freqAgrMinus <- freqAgr[freqAgr$strand == "-", ]
@@ -319,7 +319,7 @@ metaplot_deletions <- function(alnmt, config, group,
                              overlaps = sum(get(over)) > 0),
                       by = c("strand", "start", "end")]
   archRanges$frequency <-
-    archRanges$counts/sum(config$Reads_noPD[config[[group]] %in% selection])
+    archRanges$counts/sum(config$Reads_Filtered[config[[group]] %in% selection])
 
   arch_plot_fr <- ggplot_deletions(archRanges[archRanges$strand == "+", ])
   arch_plot_fr <- amplican_style(arch_plot_fr) +
@@ -377,7 +377,7 @@ metaplot_insertions <- function(alnmt, config, group, selection) {
                            by = c("strand", "start", "end")]
   idRangesReduced$frequency <-
     idRangesReduced$counts/sum(
-      config$Reads_noPD[config[[group]] %in% selection])
+      config$Reads_Filtered[config[[group]] %in% selection])
 
   idRangesFr <- idRangesReduced[idRangesReduced$strand == "+", ]
   triangleFr <- triangulate_ranges(idRangesFr)
@@ -398,6 +398,7 @@ metaplot_insertions <- function(alnmt, config, group, selection) {
 
 #' Plots amplicon sequence using ggplot2.
 #'
+#' @keywords internal
 #' @param amplicon (character) Sequence of the amplicon to plot.
 #' @param from (number) Minimum on x axis
 #' @param to (number) Maximum on x axis
@@ -495,7 +496,7 @@ plot_mismatches <- function(alignments,
   frequency <- NULL
   freqAgr <- idRanges[, list(counts = sum(counts)),
                       by = c("replacement", "start", "strand")]
-  freqAgr$frequency <- freqAgr$counts/sum(config$Reads_noPD[config$ID %in% id])
+  freqAgr$frequency <- freqAgr$counts/sum(config$Reads_Filtered[config$ID %in% id])
   freqAgrPlus <- freqAgr[freqAgr$strand == "+", ]
   freqAgrMinus <- freqAgr[freqAgr$strand == "-", ]
 
@@ -583,7 +584,7 @@ plot_deletions <- function(alignments,
                                   overlaps = sum(get(over)) > 0),
                            by = c("strand", "start", "end")]
   archRanges$frequency <-
-    archRanges$counts/sum(config$Reads_noPD[config$ID %in% id])
+    archRanges$counts/sum(config$Reads_Filtered[config$ID %in% id])
 
   arch_plot_fr <- ggplot_deletions(archRanges[archRanges$strand == "+", ]) +
     ggplot2::ylim(0, max(archRanges$frequency, na.rm = TRUE))
@@ -647,7 +648,7 @@ plot_insertions <- function(alignments,
   idRangesReduced <- idRanges[, list(counts = sum(counts)),
                               by = c("strand", "start", "end")]
   idRangesReduced$frequency <-
-    idRangesReduced$counts/sum(config$Reads_noPD[config$ID %in% id])
+    idRangesReduced$counts/sum(config$Reads_Filtered[config$ID %in% id])
 
   idRangesFr <- idRangesReduced[idRangesReduced$strand == "+", ]
   triangleFr <- triangulate_ranges(idRangesFr)
@@ -737,7 +738,7 @@ plot_cuts <- function(alignments,
   archRanges <- archRanges[, list(counts = sum(counts)),
                            by = c("strand", "start", "end", "seqnames")]
   archRanges$frequency <- archRanges$counts /
-    config$Reads_noPD[match(archRanges$seqnames, config$ID)]
+    config$Reads_Filtered[match(archRanges$seqnames, config$ID)]
   box <- upperGroups(amplicon)
   from <- if (length(box) >= 1) -IRanges::start(box[1]) + 1 else 1
   to <- if (length(box) >= 1) ampl_len - IRanges::start(box[1]) else ampl_len
@@ -914,6 +915,47 @@ cRampF <- function(x) {
   greenF[x %% 3 == 0] <- "#FFFFFF"
   greenF
 }
+merge_3_grobs <- function(cgb, vgb, tgb) {
+  egb <- ggplot2::ggplot() +
+    ggplot2::geom_point(ggplot2::aes(1,1), colour="white") +
+    ggplot2::theme(plot.background = ggplot2::element_blank(),
+                   panel.grid.major = ggplot2::element_blank(),
+                   panel.grid.minor = ggplot2::element_blank(),
+                   panel.border = ggplot2::element_blank(),
+                   panel.background = ggplot2::element_blank(),
+                   axis.title.x = ggplot2::element_blank(),
+                   axis.title.y = ggplot2::element_blank(),
+                   axis.text.x = ggplot2::element_blank(),
+                   axis.text.y = ggplot2::element_blank(),
+                   axis.ticks = ggplot2::element_blank())
+  egb <- ggplot2::ggplotGrob(egb)
+
+  maxWidth <- grid::unit.pmax(vgb$widths, cgb$widths)
+  vgb$widths <- as.list(maxWidth)
+  cgb$widths <- as.list(maxWidth)
+  tgb$heights <- grid::unit(rep(1/(nrow(tgb)), nrow(tgb)), "npc")
+
+  bot <- gtable::gtable_add_cols(vgb, sum(tgb$widths))
+  bot <- gtable::gtable_add_grob(bot, grobs = tgb,
+                                 t = 6, l = ncol(bot), b = 6, r = ncol(bot))
+  top <- gtable::gtable_add_cols(cgb, sum(tgb$widths))
+  top <- gtable::gtable_add_grob(top, grobs = egb,
+                                 t = 6, l = ncol(top), b = 6, r = ncol(top))
+  fin <- gridExtra::grid.arrange(
+    top, bot,
+    heights = grid::unit.c(grid::unit(8, "char"),
+                           grid::unit(1, "npc") - grid::unit(8, "char")),
+    nrow = 2)
+  fin
+}
+merge_2_grobs <- function(vgb, tgb) {
+  tgb$heights <- grid::unit(rep(1/(nrow(tgb)), nrow(tgb)), "npc")
+  bot <- gtable::gtable_add_cols(vgb, sum(tgb$widths))
+  bot <- gtable::gtable_add_grob(bot, grobs = tgb,
+                                 t = 6, l = ncol(bot), b = 6, r = ncol(bot))
+  grid::grid.draw(bot)
+  bot
+}
 
 
 #' Plots most frequent variants using ggplot2 and ggbio.
@@ -953,6 +995,8 @@ cRampF <- function(x) {
 #' @param top (numeric) Specify number of most frequent reads to plot. By
 #' default it is 10. Check \code{\link{plot_heterogeneity}} to see how many
 #' reads will be enough to give good overview of your variants.
+#' @param annot ("codon" or NA) What to display for annotation top plot.
+#' When NA will not display anything.
 #' @return (variant plot) ggplot2 object of variants plot
 #' @export
 #' @family specialized plots
@@ -971,7 +1015,8 @@ cRampF <- function(x) {
 #'               config, c('ID_1','ID_3'))
 #'
 plot_variants <- function(alignments, config, id,
-                          cut_buffer = 5, top = 10) {
+                          cut_buffer = 5, top = 10,
+                          annot = "codon") {
   seqnames <- read_id <- replacement <- NULL
 
   archRanges <- alignments[alignments$seqnames %in% id, ]
@@ -1020,7 +1065,7 @@ plot_variants <- function(alignments, config, id,
                                  c("seqnames", "read_id", "counts")]
   archRanges <- archRanges[, list(counts = sum(counts)), by = cols]
   archRanges$frequency <-
-    archRanges$counts/sum(config$Reads_noPD[config$ID %in% id])
+    archRanges$counts/sum(config$Reads_Filtered[config$ID %in% id])
 
   # restrict ranges
   max_event <- max(as.numeric(gsub("start_", "", cols[grepl("start_", cols)])))
@@ -1044,7 +1089,7 @@ plot_variants <- function(alignments, config, id,
   archRanges <- archRanges[order(-archRanges$frequency), ]
   ampl_freq <- 1 - sum(archRanges$frequency)
   ampl_count <-
-    sum(config$Reads_noPD[config$ID %in% id]) - sum(archRanges$counts)
+    sum(config$Reads_Filtered[config$ID %in% id]) - sum(archRanges$counts)
 
   if (dim(archRanges)[1] < top) top <- dim(archRanges)[1]
   yaxis <- seq_len(top + 2) # + amplicon reference + empty (column header)
@@ -1121,39 +1166,43 @@ plot_variants <- function(alignments, config, id,
     vplot <- vplot + ggplot2::geom_point(data = data.frame(insertion_melt),
                                          ggplot2::aes(x = x, y = y), shape = 25,
                                          size = 4,
-                                         fill = "black") }
-
-  codon_melt <- rbind(aa_frame(amplicon, TRUE, 1, 0, 1),
-                      aa_frame(amplicon, TRUE, 2, 1, 2),
-                      aa_frame(amplicon, TRUE, 3, 2, 3),
-                      aa_frame(amplicon, FALSE, 1, 3, 4),
-                      aa_frame(amplicon, FALSE, 2, 4, 5),
-                      aa_frame(amplicon, FALSE, 3, 5, 6))
-  fnames <- c("1st, 5' <- 3'", "2nd, 5' <- 3'", "3rd, 5' <- 3'",
-              "1st, 3' -> 5'", "2nd, 3' -> 5'", "3rd, 3' -> 5'")
-  cplot <- ggplot2::ggplot(codon_melt,
-                           ggplot2::aes((xmin + xmax) / 2,
-                                        (ymin + ymax) / 2)) +
-    ggplot2::geom_rect(ggplot2::aes(xmin = xmin, xmax = xmax,
-                                    ymin = ymin, ymax = ymax,
-                                    fill = codon), colour = "#FFFFFF") +
-    ggplot2::geom_text(ggplot2::aes(label = codon)) +
-    ggplot2::scale_y_continuous(breaks = 0:5 + 0.5,
-                                labels = fnames) +
-    ggplot2::scale_fill_manual(values = codon_colors) +
-    ggplot2::theme_bw() +
-    ggplot2::theme(legend.position = "none",
-                   axis.title.x = ggplot2::element_blank(),
-                   axis.text.x = ggplot2::element_blank(),
-                   axis.ticks.x = ggplot2::element_blank(),
-                   plot.background = ggplot2::element_blank(),
-                   panel.grid.major = ggplot2::element_blank(),
-                   panel.grid.minor = ggplot2::element_blank(),
-                   panel.border = ggplot2::element_blank(),
-                   panel.background = ggplot2::element_blank(),
-                   axis.ticks.y = ggplot2::element_blank(),
-                   plot.margin = grid::unit(c(0, 0, -2, 0), "char")) +
-    ggplot2::labs(y = "Frame")
+                                         fill = "black")
+  }
+  if (!is.na(annot) & annot == "codon") {
+    codon_melt <- rbind(aa_frame(amplicon, TRUE, 1, 0, 1),
+                        aa_frame(amplicon, TRUE, 2, 1, 2),
+                        aa_frame(amplicon, TRUE, 3, 2, 3),
+                        aa_frame(amplicon, FALSE, 1, 3, 4),
+                        aa_frame(amplicon, FALSE, 2, 4, 5),
+                        aa_frame(amplicon, FALSE, 3, 5, 6))
+    fnames <- c("1st, 5' <- 3'", "2nd, 5' <- 3'", "3rd, 5' <- 3'",
+                "1st, 3' -> 5'", "2nd, 3' -> 5'", "3rd, 3' -> 5'")
+    cplot <- ggplot2::ggplot(codon_melt,
+                             ggplot2::aes((xmin + xmax) / 2,
+                                          (ymin + ymax) / 2)) +
+      ggplot2::geom_rect(ggplot2::aes(xmin = xmin, xmax = xmax,
+                                      ymin = ymin, ymax = ymax,
+                                      fill = codon), colour = "#FFFFFF") +
+      ggplot2::geom_text(ggplot2::aes(label = codon)) +
+      ggplot2::scale_y_continuous(breaks = 0:5 + 0.5,
+                                  labels = fnames) +
+      ggplot2::scale_fill_manual(values = codon_colors) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(legend.position = "none",
+                     axis.title.x = ggplot2::element_blank(),
+                     axis.text.x = ggplot2::element_blank(),
+                     axis.ticks.x = ggplot2::element_blank(),
+                     plot.background = ggplot2::element_blank(),
+                     panel.grid.major = ggplot2::element_blank(),
+                     panel.grid.minor = ggplot2::element_blank(),
+                     panel.border = ggplot2::element_blank(),
+                     panel.background = ggplot2::element_blank(),
+                     axis.ticks.y = ggplot2::element_blank(),
+                     plot.margin = grid::unit(
+                       c(0, 0, -2, 0), "char")) +
+      ggplot2::labs(y = "Frame")
+    cgb <- ggplot2::ggplotGrob(cplot)
+  }
 
   vtable <- archRanges[, c("frequency", "counts", "width")]
   vtable <- rbind(
@@ -1167,12 +1216,7 @@ plot_variants <- function(alignments, config, id,
         fill = c(cRamp(vtable$Freq), cRamp(vtable$Count),
                  cRampF(vtable[["F"]])),
         col = NA))), rows = NULL)
-  # tgb <- gtable::gtable_add_grob(tgb,
-  #                      grobs = grid::rectGrob(gp = grid::gpar(fill = NA)),
-  #                      t = 2, b = nrow(tgb), l = 1, r = ncol(tgb))
-  # tgb <- gtable::gtable_add_grob(tgb,
-  #                      grobs = grid::rectGrob(gp = grid::gpar(fill = NA)),
-  #                      t = 1, l = 1, r = ncol(tgb))
+
   separators <- replicate(ncol(tgb) - 1,
                           grid::segmentsGrob(x1 = grid::unit(0, "npc"),
                                              gp=grid::gpar(lty = 2)),
@@ -1185,37 +1229,7 @@ plot_variants <- function(alignments, config, id,
                           simplify=FALSE)
   tgb <- gtable::gtable_add_grob(tgb, grobs = separators,
                                  t = 1:(nrow(tgb) - 1), l = 1, r = 3)
-  cgb <- ggplot2::ggplotGrob(cplot)
   vgb <- ggplot2::ggplotGrob(vplot)
-  egb <- ggplot2::ggplot() +
-    ggplot2::geom_point(ggplot2::aes(1,1), colour="white") +
-    ggplot2::theme(plot.background = ggplot2::element_blank(),
-                   panel.grid.major = ggplot2::element_blank(),
-                   panel.grid.minor = ggplot2::element_blank(),
-                   panel.border = ggplot2::element_blank(),
-                   panel.background = ggplot2::element_blank(),
-                   axis.title.x = ggplot2::element_blank(),
-                   axis.title.y = ggplot2::element_blank(),
-                   axis.text.x = ggplot2::element_blank(),
-                   axis.text.y = ggplot2::element_blank(),
-                   axis.ticks = ggplot2::element_blank())
-  egb <- ggplot2::ggplotGrob(egb)
 
-  maxWidth <- grid::unit.pmax(vgb$widths, cgb$widths)
-  vgb$widths <- as.list(maxWidth)
-  cgb$widths <- as.list(maxWidth)
-  tgb$heights <- grid::unit(rep(1/(nrow(tgb)), nrow(tgb)), "npc")
-
-  bot <- gtable::gtable_add_cols(vgb, sum(tgb$widths))
-  bot <- gtable::gtable_add_grob(bot, grobs = tgb,
-                                 t = 6, l = ncol(bot), b = 6, r = ncol(bot))
-  top <- gtable::gtable_add_cols(cgb, sum(tgb$widths))
-  top <- gtable::gtable_add_grob(top, grobs = egb,
-                                 t = 6, l = ncol(top), b = 6, r = ncol(top))
-  fin <- gridExtra::grid.arrange(
-    top, bot,
-    heights = grid::unit.c(grid::unit(8, "char"),
-                           grid::unit(1, "npc") - grid::unit(8, "char")),
-    nrow = 2)
-  fin
+  if (is.na(annot)) merge_2_grobs(vgb, tgb) else merge_3_grobs(cgb, vgb, tgb)
 }

@@ -53,3 +53,4 @@ amplicanAlignment object for this barcode experiments
 Aligning reads to the amplicons for each ID in this barcode, constructing
 amplicanAlignment. Assume that all IDs here belong to the same barcode.
 }
+\keyword{internal}

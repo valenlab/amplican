@@ -33,8 +33,11 @@ amplican_print_reads <- function(forward, reverse) {
 }
 
 
+#' Get figure height in inches for number of elements on y axis.
+#'
 #' Helper function to calculate figure height
-#' based on number of elements to plot.
+#' based on number of elements to plot for automating sizes of figures in
+#' knited reports.
 #'
 #' @param x (numeric) number of elements to fit onto height axis
 #' @return (numeric) In inches

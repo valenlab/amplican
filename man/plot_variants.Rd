@@ -4,7 +4,8 @@
 \alias{plot_variants}
 \title{Plots most frequent variants using ggplot2 and ggbio.}
 \usage{
-plot_variants(alignments, config, id, cut_buffer = 5, top = 10)
+plot_variants(alignments, config, id, cut_buffer = 5, top = 10,
+  annot = "codon")
 }
 \arguments{
 \item{alignments}{(data.frame) Loaded alignment information from
@@ -22,6 +23,9 @@ used in the analysis.}
 \item{top}{(numeric) Specify number of most frequent reads to plot. By
 default it is 10. Check \code{\link{plot_heterogeneity}} to see how many
 reads will be enough to give good overview of your variants.}
+
+\item{annot}{("codon" or NA) What to display for annotation top plot.
+When NA will not display anything.}
 }
 \value{
 (variant plot) ggplot2 object of variants plot

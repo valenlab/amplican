@@ -3,6 +3,7 @@ seq2 <- Vectorize(seq.default, vectorize.args = c('from', 'to'))
 
 #' Reverse and complement given string or list of strings
 #'
+#' @keywords internal
 #' @param x (string or vector of strings)
 #' @return (string or vector of strings) reverse complemented input
 #'
@@ -15,6 +16,7 @@ revComp <- function(x) {
 
 #' Get codons for given string - translate
 #'
+#' @keywords internal
 #' @param x (string)
 #' @return (string) codons
 #'
@@ -29,6 +31,7 @@ decode <- function(x) {
 
 #' amplicon sequence, reverse complemented when needed
 #'
+#' @keywords internal
 #' @param config (data.frame) config table
 #' @param id (vector) a vector of id's
 #' @return (character) amplicon sequence, reverse complemented if Direction 1
@@ -53,6 +56,7 @@ get_amplicon <- function(config, id) {
 
 #' left primer sequence
 #'
+#' @keywords internal
 #' @param config (data.frame) config table
 #' @param id (vector) a vector of id's
 #' @return (character) left primer sequence
@@ -68,6 +72,7 @@ get_left_primer <- function(config, id) {
 
 #' right primer sequence
 #'
+#' @keywords internal
 #' @param config (data.frame) config table
 #' @param id (vector) a vector of id's
 #' @return (character) right primer sequence
@@ -83,6 +88,7 @@ get_right_primer <- function(config, id) {
 
 #' Helper to construct GRanges with additional metadata columns.
 #'
+#' @keywords internal
 #' @param x (IRanges) names(x) indicating read_id
 #' @param ID (string)
 #' @param type (string)
@@ -101,41 +107,22 @@ defGR <- function(x,
                   replacement = "") {
 
   if (length(x) == 0) return(GenomicRanges::GRanges())
-  finalGR <- GenomicRanges::GRanges(
+  GenomicRanges::GRanges(
     ranges = x,
-    strand = S4Vectors::Rle(rep(strand_info, length(x))),
-    seqnames = S4Vectors::Rle(rep(ID, length(x))))
-
-  finalGR$originally = as.character(originally)
-  finalGR$replacement = as.character(replacement)
-  finalGR$type = type
-  finalGR$read_id = names(x)
-  finalGR$score = score
-
-  return(finalGR)
-}
-
-
-#' Make insertions and deletions relative to the full subject sequence
-#'
-#' @param x (IRangesList)
-#' @param ampl_shift (numeric vector)
-#' @param subject (vector of strings) as.character(subject(align))
-#' @param strand_info (string) + or -
-#' @return (IRangesList) shifted
-#'
-shift_to_subj <- function(x, ampl_shift, subject, strand_info) {
-  if (strand_info == "+") {
-    IRanges::shift(x, ampl_shift - 1)
-  } else {
-    subj_bas <- stringr::str_count(subject, "[ATCG]")
-    IRanges::shift(x, ampl_shift - subj_bas)
-  }
+    strand = strand_info,
+    seqnames = ID,
+    originally = as.character(originally),
+    replacement = as.character(replacement),
+    type = type,
+    read_id = names(x),
+    score = score
+  )
 }
 
 
 #' Cumulative sum to calculate shift
 #'
+#' @keywords internal
 #' @param x (IRanges)
 #' @return (numeric vector)
 #'
@@ -146,6 +133,7 @@ cumsumw <- function(x) {
 
 #' This function takes alignments and gives back the events coordinates.
 #'
+#' @keywords internal
 #' @param align (PairwiseAlignmentsSingleSubject)
 #' @param ID (string)
 #' @param ampl_shift (numeric vector) Shift events additionally by this value.
@@ -154,23 +142,25 @@ cumsumw <- function(x) {
 #' @param strand_info (string) Either '+', '-' or default '*'
 #' @return (GRanges) Object with meta-data for insertion, deletion, mismatch
 #'
-getEventInfo <- function(align, ID, ampl_shift, ampl_len, strand_info = "+") {
+getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
   if (length(align) == 0) return(GenomicRanges::GRanges())
   if (any(ampl_shift < 1)) stop("Amplicon shift can't be less than 1.")
   scores <- Biostrings::score(align)
-  sizes <- nchar(align)
+
+  ampl_len <- width(unaligned(subject(align)))
+  ampl_end <- end(subject(align))
+  ampl_start <- start(subject(align))
+
   if (strand_info == "+") {
-    s_err <- sizes + ampl_shift - 1 >= ampl_len
-    sizes <- if (all(s_err)) IRanges::IRanges() else
-      IRanges::IRanges(start = sizes[!s_err] + ampl_shift,
-                       end = ampl_len)
-    names(sizes) <- which(!s_err)
+    s_err <- ampl_end >= ampl_len
+    start <- ampl_end[!s_err] + ampl_shift
+    end <- if (all(s_err)) integer() else ampl_len + ampl_shift - 1
   } else {
-    s_err <- sizes + abs(ampl_shift - ampl_len) >= ampl_len
-    sizes <- if (all(s_err)) IRanges::IRanges() else
-      IRanges::IRanges(start = 1, end = ampl_shift - sizes[!s_err])
-    names(sizes) <- which(!s_err)
+    s_err <- ampl_start == 1
+    start <- if (all(s_err)) integer() else 1L
+    end <- ampl_start[!s_err] + ampl_shift - 2
   }
+  sizes <- IRanges::IRanges(start = start, end = end, names = which(!s_err))
 
   del <- Biostrings::deletion(align)
   ins <- Biostrings::insertion(align)
@@ -185,26 +175,25 @@ getEventInfo <- function(align, ID, ampl_shift, ampl_len, strand_info = "+") {
 
   del <- IRanges::shift(del, IRanges::IntegerList(lapply(del, cumsumw)))
   # make deletions to be relative to the subject
-  del <- mapply(function(x, y){
-    if (length(y) > 0) { # shift when insertions are before deletions
-      for (i in seq_along(x)) {
-        ins_before <- BiocGenerics::start(x)[i] > BiocGenerics::start(y)
-        if (any(ins_before)) {
-          x[i] <- IRanges::shift(x[i], -1 *
-                                   sum(BiocGenerics::width(y[ins_before])))
-        }
-      }
-    }
-    x
-  }, del, ins)
+  shift_del <- S4Vectors::mendoapply(function(x, y, w) {
+    vapply(
+      x,
+      function(x_i, y, w) sum(w[x_i > y]),
+      integer(1),
+      y, w
+    )
+  },
+  BiocGenerics::start(del), BiocGenerics::start(ins), BiocGenerics::width(ins))
+  del <- IRanges::shift(del, -1 * shift_del)
   names(del) <- seq_along(del)
 
   subj <- as.character(subject(align))
-  ins <- shift_to_subj(ins, ampl_shift, subj, strand_info)
-  del <- shift_to_subj(IRanges::IRangesList(del), ampl_shift, subj, strand_info)
+  ins <- IRanges::shift(ins, ampl_shift + ampl_start - 2L)
+  del <- IRanges::shift(del, ampl_shift + ampl_start - 2L)
 
   mism <- lapply(mm, function(x) IRanges::IRanges(x$SubjectPosition, width = 1))
   names(mism) <- seq_along(mism)
+  mism <- IRanges::shift(IRanges::IRangesList(mism), ampl_shift - 1L)
 
   c(defGR(unlist(IRanges::IRangesList(ins)), ID,
           rep(scores, times = sapply(ins, length)),
@@ -214,7 +203,7 @@ getEventInfo <- function(align, ID, ampl_shift, ampl_len, strand_info = "+") {
           strand_info),
     # artificial deletions indicating end of reads
     defGR(sizes, ID, scores[!s_err], strand_info),
-    defGR(unlist(IRanges::IRangesList(mism)), ID,
+    defGR(unlist(mism), ID,
           rep(scores, times = sapply(mism, length)),
           strand_info,
           "mismatch",
@@ -232,6 +221,7 @@ getEventInfo <- function(align, ID, ampl_shift, ampl_len, strand_info = "+") {
 #'    asdkfaAGASDGAsjaeuradAFDSfasfjaeiorAuaoeurasjfasdhfashTTSfajeiasjsf
 #'
 #' Has 4 groups of uppercases of length 7, 4, 1 and 3.
+#' @keywords internal
 #' @param candidate (string) A string with the nucleotide sequence.
 #' @return (Ranges) A Ranges object with uppercases groups for given candidate
 #' string
@@ -246,6 +236,7 @@ upperGroups <- function(candidate) {
 
 #' Reverse complement events that have amplicons with direction 1.
 #'
+#' @keywords internal
 #' @param idR (data.frame) Loaded events.
 #' @param cfgT (data.frame) Loaded configuration file.
 #' @return (data.frame) Returns input idR, but events for amplicons with
@@ -260,22 +251,31 @@ flipRanges <- function(idR, cfgT) {
   if (any(to_flip)) {
     ampl_lengths <- nchar(as.character(cfgT[is_dir, "Amplicon"]))
     ampl_ids <- as.character(cfgT[is_dir, "ID"])
-
     ids_mapping <- match(idR[to_flip, "seqnames"], ampl_ids)
     ampl_lengths <- ampl_lengths[ids_mapping]
 
     idR[to_flip, "originally"] <- revComp(idR[to_flip, "originally"])
     idR[to_flip, "replacement"] <- revComp(idR[to_flip, "replacement"])
 
-    old_starts <- idR[to_flip, "start"]
-    idR[to_flip, "start"] <- ampl_lengths - idR[to_flip, "end"] + 1
-    idR[to_flip, "end"] <- ampl_lengths - old_starts + 1
-
     strand <- idR[to_flip, "strand"]
-    strand_minus <-strand == "-"
+    strand_minus <- strand == "-"
     strand[strand == "+"] <- "-"
     strand[strand_minus] <- "+"
     idR[to_flip, "strand"] <- strand
+
+    # mm + del end -> start & start -> end
+    # ins start -> start & end -> end
+    ins <- idR$type == "insertion"
+
+    old_starts <- idR[to_flip & !ins, "start"]
+    idR[to_flip & !ins, "start"] <-
+      ampl_lengths[!ins[to_flip]] - idR[to_flip & !ins, "end"] + 1
+    idR[to_flip & !ins, "end"] <- ampl_lengths[!ins[to_flip]] - old_starts + 1
+
+    idR[to_flip & ins, "start"] <-
+      ampl_lengths[ins[to_flip]] - idR[to_flip & ins, "start"] + 1
+    idR[to_flip & ins, "end"] <-
+      idR[to_flip & ins, "width"] + idR[to_flip & ins, "start"] - 1
   }
   return(idR)
 }

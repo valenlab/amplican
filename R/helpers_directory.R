@@ -1,5 +1,6 @@
 #' Checks if the given directory exist and can be written to.
 #'
+#' @keywords internal
 #' @param filePath (string) A string the path to the file.
 #' @return (invisible) TRUE, Stop if no access.
 #'

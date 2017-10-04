@@ -17,3 +17,4 @@ get_right_primer(config, id)
 \description{
 right primer sequence
 }
+\keyword{internal}

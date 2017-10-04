@@ -5,12 +5,9 @@
 \alias{amplican}
 \alias{amplican-package}
 \alias{amplican-package}
-\title{amplican: automated analysis of CRISPR experiments
-amplican: automated analysis of CRISPR experiments}
+\title{Automated analysis of CRISPR experiments.}
 \description{
 Main goals:
-}
-\details{
 \enumerate{
 \item Flexible pipeline for analysis of the CRISPR Mi-Seq or Hi-Seq data.
 \item Compatible with GRanges and data.table style.
@@ -20,7 +17,8 @@ and open for manipulation.
 \item Provide specialized plots for deletions, insertions, mismatches,
 variants, heterogeneity of the reads.
 }
-
+}
+\details{
 To learn more about amplican, start with the vignettes:
 \code{browseVignettes(package = "amplican")}
 }

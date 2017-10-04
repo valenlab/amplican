@@ -23,3 +23,4 @@ For example:
 
 Has 4 groups of uppercases of length 7, 4, 1 and 3.
 }
+\keyword{internal}

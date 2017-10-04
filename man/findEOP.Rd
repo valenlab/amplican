@@ -21,7 +21,7 @@ primers
 Very often alignments return deletions that are not real deletions, but
 rather artifact of incomplete reads eg.: \cr
 \preformatted{
-ACTGAAAAA------- <- this "insertion" should be filtered
+ACTGAAAAA------- <- this "deletion" should be filtered
 ACTG----ACTGACTG
 }
 }
@@ -36,7 +36,8 @@ findEOP(aln, cfgT)
 
 }
 \seealso{
-\code{\link{findPD}}
+\code{\link{findPD}} \code{\link{thresholdScores}}
 
-Other filters: \code{\link{findPD}}
+Other filters: \code{\link{findPD}},
+  \code{\link{thresholdScores}}
 }

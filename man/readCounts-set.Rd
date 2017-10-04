@@ -24,3 +24,4 @@ file_path <- system.file("extdata", "results", "alignments",
 aln <- readRDS(file_path)
 readCounts(aln) <- readCounts(aln) # replace with the same values
 }
+\keyword{internal}

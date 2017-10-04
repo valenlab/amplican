@@ -15,3 +15,4 @@ checkFileWriteAccess(filePath)
 \description{
 Checks if the given directory exist and can be written to.
 }
+\keyword{internal}

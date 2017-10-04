@@ -192,6 +192,7 @@ setMethod("length", "AlignmentsExperimentSet", function(x) {
 #'
 #' Get alignments for forward reads.
 #' @name fwdReads
+#' @keywords internal
 #' @param x (AlignmentsExperimentSet)
 #' @return (listOrNULL) list with objects of PairwiseAlignmentsSingleSubject
 #' @export
@@ -210,6 +211,7 @@ setMethod("fwdReads", "AlignmentsExperimentSet", function(x) x@fwdReads)
 #'
 #' Set alignments for forward reads.
 #' @name fwdReads<-
+#' @keywords internal
 #' @param x (AlignmentsExperimentSet)
 #' @param value (list) Named (experiment IDs) list with elements of
 #' @return (AlignmentsExperimentSet)
@@ -232,6 +234,7 @@ setMethod("fwdReads<-", "AlignmentsExperimentSet", function(x, value) {
 #'
 #' Get alignments for reverse reads.
 #' @name rveReads
+#' @keywords internal
 #' @param x (AlignmentsExperimentSet)
 #' @return (listOrNULL) list with objects of PairwiseAlignmentsSingleSubject
 #' @export
@@ -250,6 +253,7 @@ setMethod("rveReads", "AlignmentsExperimentSet", function(x) x@rveReads)
 #'
 #' Set alignments for forward reads.
 #' @name rveReads<-
+#' @keywords internal
 #' @param x (AlignmentsExperimentSet)
 #' @param value (list) Named (experiment IDs) list with elements of
 #' @return (AlignmentsExperimentSet)
@@ -272,6 +276,7 @@ setMethod("rveReads<-", "AlignmentsExperimentSet", function(x, value) {
 #'
 #' Get unassigned reads and their characteristics.
 #' @name unassignedData
+#' @keywords internal
 #' @param x (AlignmentsExperimentSet)
 #' @return (data.frameOrNULL)
 #' @export
@@ -292,6 +297,7 @@ setMethod("unassignedData", "AlignmentsExperimentSet", function(x) {
 #'
 #' Set alignments for forward reads.
 #' @name unassignedData<-
+#' @keywords internal
 #' @param x (AlignmentsExperimentSet)
 #' @param value (list) Named (experiment IDs) list with elements of
 #' @return (AlignmentsExperimentSet)
@@ -316,6 +322,7 @@ setMethod("unassignedData<-", "AlignmentsExperimentSet", function(x, value) {
 #'
 #' Set alignments for forward reads.
 #' @name readCounts
+#' @keywords internal
 #' @param x (AlignmentsExperimentSet)
 #' @return (listOrNULL)
 #' @export
@@ -336,6 +343,7 @@ setMethod("readCounts", "AlignmentsExperimentSet", function(x) {
 #'
 #' Set alignments for forward reads.
 #' @name readCounts<-
+#' @keywords internal
 #' @param x (AlignmentsExperimentSet)
 #' @param value (list) Named (experiment IDs) list with elements of
 #' @return (AlignmentsExperimentSet)
@@ -360,6 +368,7 @@ setMethod("readCounts<-", "AlignmentsExperimentSet", function(x, value) {
 #'
 #' Get experiment data.frame with information on the experiment level.
 #' @name experimentData
+#' @keywords internal
 #' @param x (AlignmentsExperimentSet)
 #' @return (data.frameOrNULL)
 #' @export
@@ -380,6 +389,7 @@ setMethod("experimentData", "AlignmentsExperimentSet", function(x) {
 #'
 #' Set experiment data.frame with information on the experiment level.
 #' @name experimentData<-
+#' @keywords internal
 #' @param x (AlignmentsExperimentSet)
 #' @param value (data.frame)
 #' @return (AlignmentsExperimentSet)
@@ -403,6 +413,7 @@ setMethod("experimentData<-", "AlignmentsExperimentSet", function(x, value) {
 #'
 #' Get barcode data.frame with information on the barcode level.
 #' @name barcodeData
+#' @keywords internal
 #' @param x (AlignmentsExperimentSet)
 #' @return (data.tableOrNULL)
 #' @export
@@ -423,6 +434,7 @@ setMethod("barcodeData", "AlignmentsExperimentSet", function(x) {
 #'
 #' Set barcode data.frame with information on the barcode level.
 #' @name barcodeData<-
+#' @keywords internal
 #' @param x (AlignmentsExperimentSet)
 #' @param value (data.frame)
 #' @return (AlignmentsExperimentSet)
@@ -445,6 +457,7 @@ setMethod("barcodeData<-", "AlignmentsExperimentSet", function(x, value) {
 #' Get count of unassigned reads.
 #'
 #' @name unassignedCount
+#' @keywords internal
 #' @param x (AlignmentsExperimentSet)
 #' @return (numeric)
 #' @export
@@ -455,6 +468,7 @@ setMethod("barcodeData<-", "AlignmentsExperimentSet", function(x, value) {
 #' unassignedCount(aln)
 setGeneric("unassignedCount", function(x) standardGeneric("unassignedCount"))
 #' @rdname AlignmentsExperimentSet-class
+#' @keywords internal
 #' @aliases unassignedCount,AlignmentsExperimentSet-method
 setMethod("unassignedCount", "AlignmentsExperimentSet", function(x) {
   if (!is.null(unassignedData(x))) dim(unassignedData(x))[1] else 0
@@ -464,6 +478,7 @@ setMethod("unassignedCount", "AlignmentsExperimentSet", function(x) {
 #' Get count of assigned reads.
 #'
 #' @name assignedCount
+#' @keywords internal
 #' @param x (AlignmentsExperimentSet)
 #' @return (numeric)
 #' @export
@@ -475,6 +490,7 @@ setMethod("unassignedCount", "AlignmentsExperimentSet", function(x) {
 #'
 setGeneric("assignedCount", function(x) standardGeneric("assignedCount"))
 #' @rdname AlignmentsExperimentSet-class
+#' @keywords internal
 #' @aliases assignedCount,AlignmentsExperimentSet-method
 setMethod("assignedCount", "AlignmentsExperimentSet", function(x) {
   if (length(readCounts(x)) == 0) return(0)
@@ -543,6 +559,7 @@ setMethod("$", "AlignmentsExperimentSet", function(x, name) {
 #'
 #' Saves alignments into txt or fasta file.
 #' @name writeAlignments
+#' @keywords internal
 #' @param x (AlignmentsExperimentSet)
 #' @param file (connection or string) Destination file. When empty, defaults to
 #' standard output.
@@ -640,6 +657,7 @@ setMethod("writeAlignments", "AlignmentsExperimentSet", function(
 #'
 #' Prints alignments in blast-like style for human examination.
 #' @name lookupAlignment
+#' @keywords internal
 #' @param x (AlignmentsExperimentSet)
 #' @param ID (string) Experiment Identifier
 #' @param read_id (numeric) Read Identifier. Reads are sorted by frequency.
@@ -694,19 +712,11 @@ setMethod("lookupAlignment", "AlignmentsExperimentSet", function(
 getEventInfoObj <- function(object) {
   if (length(object) != 1) stop("Only length 1 objects.")
   ID <- names(object)[1]
-  cfg <- experimentData(object)[experimentData(object)$ID == ID]
+  cfg <- experimentData(object)
+  cfg <- cfg[cfg$ID == ID]
   fwdPrPos <- if (is.null(cfg$fwdPrPos)) 1 else cfg$fwdPrPos
-  rvePrPosEnd <- if (is.null(cfg$rvePrPosEnd)) {
-    nchar(cfg$Amplicon)
-  } else {
-    cfg$rvePrPosEnd
-  }
-  tempGR <- c(
-    getEventInfo(fwdReads(object)[[ID]], ID, fwdPrPos,
-                 nchar(cfg$Amplicon), "+"),
-    getEventInfo(rveReads(object)[[ID]], ID, rvePrPosEnd,
-                 nchar(cfg$Amplicon), "-")
-  )
+  tempGR <- c(getEventInfo(fwdReads(object)[[ID]], ID, fwdPrPos, "+"),
+              getEventInfo(rveReads(object)[[ID]], ID, fwdPrPos, "-"))
   tempGR$counts <- readCounts(object)[[ID]][as.integer(tempGR$read_id)]
   tempGR
 }
@@ -717,6 +727,7 @@ getEventInfoObj <- function(object) {
 #' relative towards forward strand. "-" in strand column indicates which events
 #' were from reverse reads.
 #' @name extractEvents
+#' @keywords internal
 #' @param object (AlignmentsExperimentSet)
 #' @param use_parallel (boolean) Set to TRUE, if you have registered
 #' multicore back-end with \code{\link[BiocParallel]{register}}.
@@ -771,9 +782,9 @@ setMethod("show", "AlignmentsExperimentSet", function(object){
     cat("\nSlot rveReads:\n")
     print(rveReads(object)[[1]])
     cat("\nSlot readCounts:\n")
-    str(readCounts(object)[[1]])
+    utils::str(readCounts(object)[[1]])
     cat("\nSlot experimentData:\n")
-    str(experimentData(object)[1, ])
+    utils::str(experimentData(object)[1, ])
   }
 })
 

@@ -19,3 +19,4 @@ plot_amplicon(amplicon, from, to)
 \description{
 Plots amplicon sequence using ggplot2.
 }
+\keyword{internal}

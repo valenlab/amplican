@@ -21,3 +21,4 @@ not pass. The average is set to 0 by default.}
 \description{
 This filters out sequences which have bad average quality readings.
 }
+\keyword{internal}

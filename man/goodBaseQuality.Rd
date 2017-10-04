@@ -20,3 +20,4 @@ will be a bad sequence. The minimum is set to 0 by default.}
 \description{
 Filters out sequences which have bad base quality readings.
 }
+\keyword{internal}

@@ -28,7 +28,7 @@ map of amplican.
 
 Below you will find the `amplicanConsensus` rules. That allow you to understand how ampliCan treats unambiguous forward and reverse reads. Green color indicates events that will be accepted. When forward and reverse reads agree, their events are in the same place and span the same length, we will take forward read event as representative. In case when events from forward and reverse read don't agree we select event from strand with higher alignment score. In situation where one of the reads is not spanning event in question we consider this event as real (as we don't have other information). If both strands cover event in question, but one strand has no indel, `amplicanConsensus` will change behavior according to the `strict` parameter. 
 
-![Consensus rules of ampliCan.](figures/amplican_consensus_rules.png){width=400px}
+![Consensus rules of ampliCan.](figures/amplican_consensus_rules.png)
 
 # Configuration file
 
@@ -111,7 +111,7 @@ This table is also summarized in one of the reports. As you can see for our exam
 config_summary <- system.file("extdata", "results", "config_summary.csv", 
                               package = "amplican")
 config_summary <- read.csv(config_summary)
-config_summary <- config_summary[, c("ID", "Barcode", "Reads", "Reads_noPD",
+config_summary <- config_summary[, c("ID", "Barcode", "Reads", "Reads_Filtered",
                                      "Reads_Indel", "Reads_In", "Reads_Del",
                                      "Reads_Frameshifted")]
 knitr::kable(head(config_summary))
@@ -123,7 +123,7 @@ During `amplicanPipeline` these columns are added to the config file:
  - **Frameshifted** - number of reads that have frameshift (insertions and deletions)  
  - **PRIMER_DIMER** - number of reads that were classified as PRIMER DIMERs  
  - **Reads** - number of reads assigned to this unique ID  
- - **Reads_noPD** - number of reads assigned to this unique ID with excusion of PRIMER DIMERs 
+ - **Reads_Filtered** - number of reads assigned to this unique ID with excusion of PRIMER DIMERs and Low Alignment Score reads 
 
 ## RunParameters.txt
 

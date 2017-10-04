@@ -23,3 +23,4 @@ file_path <- system.file("extdata", "results", "alignments",
 aln <- readRDS(file_path)
 barcodeData(aln) <- barcodeData(aln) #replace with the same values as before
 }
+\keyword{internal}

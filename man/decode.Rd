@@ -15,3 +15,4 @@ decode(x)
 \description{
 Get codons for given string - translate
 }
+\keyword{internal}

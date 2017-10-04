@@ -2,8 +2,7 @@
 % Please edit documentation in R/helpers_rmd.R
 \name{plot_height}
 \alias{plot_height}
-\title{Helper function to calculate figure height
-based on number of elements to plot.}
+\title{Get figure height in inches for number of elements on y axis.}
 \usage{
 plot_height(x)
 }
@@ -15,7 +14,8 @@ plot_height(x)
 }
 \description{
 Helper function to calculate figure height
-based on number of elements to plot.
+based on number of elements to plot for automating sizes of figures in
+knited reports.
 }
 \examples{
 plot_height(20)

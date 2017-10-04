@@ -24,7 +24,9 @@ data.table::setDF(alignments)
 config <- data.frame(data.table::fread(params$config_summary))
 config$AmpliconUpper <- toupper(config$Amplicon)
 uniqueAmlicons <- unique(config$AmpliconUpper)
-labels <- sapply(uniqueAmlicons, function(x) {toString(config$ID[config$AmpliconUpper == x])})
+labels <- sapply(uniqueAmlicons, function(x) {
+  toString(config$ID[config$AmpliconUpper == x])
+})
 height <- amplican::plot_height(length(uniqueAmlicons))
 ```
 
@@ -35,7 +37,7 @@ height <- amplican::plot_height(length(uniqueAmlicons))
 ***
 
 **Read distribution plot** - plot shows number of reads assigned during read grouping  
-**PRIMER DIMER filter** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS  
+**Filtered Reads** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS or filtered based on low alignment score  
 **Cutting rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have cut  
 **Frameshift** - plot shows what percentage of reads that have frameshift  
 **Frameshift overlapping** - shows what percentage of reads have frameshift counting only deletions and insertions that overlap expected cut site (should be more accurate when controls are not available)  
@@ -72,8 +74,9 @@ config$group <- match(config$AmpliconUpper, ampliconDF$Amplicon)
 ## Read distribution  
 
 ```{r plot_total_reads, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
-ampliconTable <- aggregate(cbind(Reads, PRIMER_DIMER, 
-                                 Reads_Indel, Reads_Frameshifted) ~ group, data = config, sum)
+ampliconTable <- aggregate(cbind(Reads, Reads_Filtered, PRIMER_DIMER, Low_Score,
+                                 Reads_Indel, Reads_Frameshifted) ~ group, 
+                           data = config, sum)
 
 ggplot(data = ampliconTable, aes(x = as.factor(group), y = log10(Reads + 1)), order = group) +
   geom_bar(stat = 'identity') +
@@ -86,66 +89,70 @@ ggplot(data = ampliconTable, aes(x = as.factor(group), y = log10(Reads + 1)), or
   geom_text(aes(x = as.factor(group), y = log10(Reads + 1), label = Reads), hjust = -1)
 ```
 
-## PRIMER DIMER filter  
+## Filtered Reads  
 
-```{r plot_PD_per, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+```{r plot_F_per, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
 
-ampliconTable$PD_percentage <- ampliconTable$PRIMER_DIMER * 100/ampliconTable$Reads
-ampliconTable$PD_percentage[is.nan(ampliconTable$PD_percentage)] <- 0 
+ampliconTable$F_percentage <- 
+  (ampliconTable$PRIMER_DIMER + ampliconTable$Low_Score) * 100/ampliconTable$Reads
+ampliconTable$F_percentage[is.nan(ampliconTable$PD_percentage)] <- 0 
 
-ggplot(data = ampliconTable, aes(x = as.factor(group), y = PD_percentage, order = group)) +
+ggplot(data = ampliconTable, aes(x = as.factor(group), y = F_percentage, order = group)) +
   geom_bar(stat='identity') +
-  ylab('Percentage of reads marked as PRIMER DIMERS')  +
+  ylab('Percentage of filtered reads')  +
   xlab('Amplicon Group') +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14, face = 'bold')) +
   ylim(0, 100) +
   coord_flip() +
-  geom_text(aes(x = as.factor(group), y = PD_percentage, label = PRIMER_DIMER), hjust = -1)
+  geom_text(aes(x = as.factor(group), y = F_percentage, 
+                label = PRIMER_DIMER), hjust = -1)
 ```  
 
 ## Indel rates  
 
 ```{r plot_indel_rate, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
-ampliconTable$Reads_noPD <- ampliconTable$Reads - ampliconTable$PRIMER_DIMER
-ampliconTable$indel_percentage <- ampliconTable$Reads_Indel * 100/ampliconTable$Reads_noPD
+ampliconTable$indel_percentage <- 
+  ampliconTable$Reads_Indel * 100/ampliconTable$Reads_Filtered
 ampliconTable$indel_percentage[is.nan(ampliconTable$indel_percentage)] <- 0  
 
-ggplot(data = ampliconTable, aes(x = as.factor(group), y = indel_percentage, order = group)) +
+ggplot(data = ampliconTable, aes(x = as.factor(group), 
+                                 y = indel_percentage, order = group)) +
   geom_bar(stat = 'identity') +
-  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have indel')  +
+  ylab('Percentage of reads (not filtered) that have indel')  +
   xlab('Amplicon Group') +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14, face = 'bold')) +
   ylim(0,100) +
   coord_flip() +
-  geom_text(aes(x = as.factor(group), y = indel_percentage, label = Reads_Indel), hjust = -1)
+  geom_text(aes(x = as.factor(group), y = indel_percentage, 
+                label = Reads_Indel), hjust = -1)
 ```  
 
 ## Frameshift  
 
 ```{r plot_frameshift_per, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
-ampliconTable$frameshift_percentage <- ampliconTable$Reads_Frameshifted * 100/ampliconTable$Reads_noPD
+ampliconTable$frameshift_percentage <- 
+  ampliconTable$Reads_Frameshifted * 100/ampliconTable$Reads_Filtered
 ampliconTable$frameshift_percentage[is.nan(ampliconTable$frameshift_percentage)] <- 0 
 
-ggplot(data = ampliconTable, aes(x = as.factor(group), y = frameshift_percentage, order = group)) +
+ggplot(data = ampliconTable, aes(x = as.factor(group), 
+                                 y = frameshift_percentage, order = group)) +
   geom_bar(position = 'stack', stat = 'identity') +
-  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift')  +
+  ylab('Percentage of reads (not filtered) that have frameshift')  +
   xlab('Amplicon Group') +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14,face = 'bold')) +
   ylim(0, 100) +
   coord_flip() +
-  geom_text(aes(x = as.factor(group), y = frameshift_percentage, label = Reads_Frameshifted), hjust = -1)
+  geom_text(aes(x = as.factor(group), y = frameshift_percentage, 
+                label = Reads_Frameshifted), hjust = -1)
 ```  
 
 ## Heterogeneity of reads  
 
 ```{r plot read heterogeneity, echo=FALSE, fig.height=height + 1, fig.width=14, message=F, warning=FALSE}
 plot_heterogeneity(alignments, config, level = 'group')
-# fix frequency to be relative to amplicon - not ID
-alignments$group <- config$group[match(alignments$seqnames, config$ID)]
-alignments$frequency <- alignments$count / ampliconTable$Reads[alignments$group]
 ``` 
 
 ***

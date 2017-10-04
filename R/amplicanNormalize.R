@@ -29,7 +29,7 @@
 #' aln <- data.frame(seqnames = 1:5, start = 1, end = 2, width = 2,
 #'                   counts = 101:105)
 #' cfgT <- data.frame(ID = 1:5, guideRNA = rep("ACTG", 5),
-#'                    Reads_noPD = c(2, 2, 3, 3, 4),
+#'                    Reads_Filtered = c(2, 2, 3, 3, 4),
 #'                    Group = c("A", "A", "B", "B", "B"),
 #'                    Control = c(TRUE, FALSE, TRUE, FALSE, FALSE))
 #' # all events are same as in the control group, therefore are filtered out
@@ -44,7 +44,7 @@ amplicanNormalize <- function(aln, cfgT,
                               skip = c("counts", "score", "seqnames",
                                        "read_id", "strand"),
                               min_freq = 0.01){
-  Reads_noPD <- frequency <- NULL
+  Reads_Filtered <- frequency <- NULL
   if (!any(cfgT$Control)) {
     warning("Column 'Control' has no TRUE/1 values. Nothing to normalize.")
     return(aln)
@@ -63,13 +63,13 @@ amplicanNormalize <- function(aln, cfgT,
   data.table::setkeyv(aln, cols)
 
   data.table::setDT(cfgT)
-  cfgT_total_reads <- cfgT[, list(Reads_noPD = sum(Reads_noPD)),
+  cfgT_total_reads <- cfgT[, list(Reads_Filtered = sum(Reads_Filtered)),
                           by = c(add, "Control")]
   cfgT_total_reads <- cfgT_total_reads[cfgT_total_reads$Control, ]
 
   aln_ctr_freq <- aln_ctr[, list(counts = sum(counts)), by = cols]
   aln_ctr_freq <-  merge(aln_ctr_freq, cfgT_total_reads, all = TRUE, by = add)
-  aln_ctr_freq$frequency <- aln_ctr_freq$counts/aln_ctr_freq$Reads_noPD
+  aln_ctr_freq$frequency <- aln_ctr_freq$counts/aln_ctr_freq$Reads_Filtered
   aln_ctr_freq <- aln_ctr_freq[frequency > min_freq, ]
 
   # dplyr used as data.table has issues handling too big dt

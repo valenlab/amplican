@@ -33,7 +33,7 @@ height <- plot_height(length(unique(config$Group)))
 ***
 
 **Read distribution plot** - plot shows number of reads assigned during read grouping  
-**PRIMER DIMER filter** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS  
+**Filtered Reads** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS or filtered based on low alignment score  
 **Cutting rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have cut  
 **Frameshift** - plot shows what percentage of reads that have frameshift  
 **Frameshift overlapping** - shows what percentage of reads have frameshift counting only deletions and insertions that overlap expected cut site (should be more accurate when controls are not available)  
@@ -59,16 +59,17 @@ ggplot(data = config, aes(x = as.factor(Group), y = log10(Reads + 1), order = Gr
   coord_flip()
 ```
 
-## PRIMER DIMER filter  
+## Filtered reads  
 
-```{r plot_PD_per, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
-config$PD_percentage <- config$PRIMER_DIMER * 100/config$Reads
-config$PD_percentage[is.nan(config$PD_percentage)] <- 0
+```{r plot_F_per, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
+config$F_percentage <- (config$PRIMER_DIMER + config$Low_Score) * 100/config$Reads
+config$F_percentage[is.nan(config$F_percentage)] <- 0
 
-ggplot(data = config, aes(x = as.factor(Group), y = PD_percentage, order = Group, fill = Group)) +
+ggplot(data = config, aes(x = as.factor(Group), y = F_percentage, 
+                          order = Group, fill = Group)) +
   geom_boxplot() +
   xlab('Group') + 
-  ylab('Percentage of reads marked as PRIMER DIMERS')  +
+  ylab('Percentage of filtered reads')  +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14, face = 'bold'),
         legend.position = 'none') +
@@ -79,14 +80,13 @@ ggplot(data = config, aes(x = as.factor(Group), y = PD_percentage, order = Group
 ## Indel rates  
 
 ```{r plot indel percentage, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
-config$Reads_noPD <- config$Reads - config$PRIMER_DIMER
-config$indel_percentage <- config$Reads_Indel * 100/config$Reads_noPD
+config$indel_percentage <- config$Reads_Indel * 100/config$Reads_Filtered
 config$indel_percentage[is.nan(config$indel_percentage)] <- 0  
 
 ggplot(data = config, aes(x = as.factor(Group), y = indel_percentage, order = Group, fill = Group)) +
   geom_boxplot() +
   xlab('Group') + 
-  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have indel')  +
+  ylab('Percentage of reads (not filtered) that have indel')  +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14, face = 'bold'),
         legend.position = 'None') +
@@ -97,13 +97,13 @@ ggplot(data = config, aes(x = as.factor(Group), y = indel_percentage, order = Gr
 ## Frameshift  
 
 ```{r plot_frameshift_per, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
-config$frameshift_percentage <- config$Reads_Frameshifted * 100/config$Reads_noPD
+config$frameshift_percentage <- config$Reads_Frameshifted * 100/config$Reads_Filtered
 config$frameshift_percentage[is.nan(config$frameshift_percentage)] <- 0  
 
 ggplot(data = config, aes(x = as.factor(Group), y = frameshift_percentage, order = Group, fill = Group)) +
   geom_boxplot() +
   xlab('Group') + 
-  ylab('Percentage of reads (not marked as PRIMER DIMERS) that have frameshift')  +
+  ylab('Percentage of reads (not filtered) that have frameshift')  +
   theme(axis.text = element_text(size=12),
         axis.title = element_text(size=14,face = 'bold'),
         legend.position = 'None') +

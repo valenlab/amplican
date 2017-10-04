@@ -36,7 +36,7 @@ test_that("getEventInfo returns correct GRanges", {
                                type = "deletion",
                                read_id = "1")
   names(gr1) <- "1"
-  test_gr1 <- getEventInfo(events, "test", 1, 7)
+  test_gr1 <- getEventInfo(events, "test", 1)
   test_gr1$score <- NULL
   expect_identical(test_gr1, gr1)
 
@@ -52,7 +52,7 @@ test_that("getEventInfo returns correct GRanges", {
                                type = "mismatch",
                                read_id = "1")
   names(gr2) <- "1"
-  test_gr2 <- getEventInfo(events, "test", 1, 7)
+  test_gr2 <- getEventInfo(events, "test", 1)
   test_gr2$score <- NULL
   expect_identical(test_gr2, gr2)
 
@@ -68,7 +68,7 @@ test_that("getEventInfo returns correct GRanges", {
                                type = c("insertion", "mismatch"),
                                read_id = "1")
   names(gr3) <- c("1", "1")
-  test_gr3 <- getEventInfo(events, "test", 1, 7)
+  test_gr3 <- getEventInfo(events, "test", 1)
   test_gr3$score <- NULL
   expect_identical(test_gr3, gr3)
 
@@ -88,13 +88,13 @@ test_that("getEventInfo returns correct GRanges", {
              rep("mismatch", 3)),
     read_id = "1")
   names(gr4) <- rep("1", 7)
-  test_gr4 <- getEventInfo(events, "test", 1, 31)
+  test_gr4 <- getEventInfo(events, "test", 1)
   test_gr4$score <- NULL
   expect_identical(test_gr4, gr4)
 
-  # minus strand with shift
+  # minus strand
   GenomicRanges::strand(gr4) <- "-"
-  test_gr4 <- getEventInfo(events, "test", 31, 31, strand_info = "-")
+  test_gr4 <- getEventInfo(events, "test", 1, strand_info = "-")
   test_gr4$score <- NULL
   expect_identical(test_gr4, gr4)
 
@@ -115,7 +115,7 @@ test_that("getEventInfo returns correct GRanges", {
              rep("mismatch", 3)),
     read_id = "1")
   names(gr5) <- rep("1", 7)
-  test_gr5 <- getEventInfo(events, "test", 12, 42)
+  test_gr5 <- getEventInfo(events, "test", 1)
   test_gr5$score <- NULL
   expect_identical(test_gr5, gr5)
 
@@ -131,7 +131,7 @@ test_that("getEventInfo returns correct GRanges", {
                                type = c("insertion", "insertion"),
                                read_id = "1")
   names(gr6) <- c("1", "1")
-  test_gr6 <- getEventInfo(events, "test", 1, 9)
+  test_gr6 <- getEventInfo(events, "test", 1)
   test_gr6$score <- NULL
   expect_identical(test_gr6, gr6)
 
@@ -147,7 +147,7 @@ test_that("getEventInfo returns correct GRanges", {
                                type = c("deletion", "mismatch"),
                                read_id = "1")
   names(gr7) <- c("1", "1")
-  test_gr7 <- getEventInfo(events, "test", 1, 19)
+  test_gr7 <- getEventInfo(events, "test", 1)
   test_gr7$score <- NULL
   expect_identical(test_gr7, gr7)
 
@@ -160,25 +160,56 @@ test_that("getEventInfo returns correct GRanges", {
     Biostrings::DNAString("CCCCCCCCCCCAGTGAAGTCAAACATGGAATTAGTGTGTTAA"),
     type = "global")
   read_ids <- c("5", "6", "6", "3", "5", "5", "5", "6", "6", "1", "2", "3",
-                "4", "6", "2", "3",
+                "4", "2", "3",
                 "3", "4", "4", "5","5", "5", "5", "5", "5", "6", "6", "6")
   gr8 <- GenomicRanges::GRanges(
     seqnames = "test",
-    ranges = IRanges::IRanges(c(29, 5, 18, 4, 4, 21, 40, 10, 29, 5, 7, 20, 9, 38,
-                                31, 1, 3, 13,
+    ranges = IRanges::IRanges(c(29, 16, 29, 4, 4, 21, 40, 21, 40, 16, 36, 20,
+                                20, 31, 1, 3, 13,
                                 15, 1, 2, 3, 15, 33, 42, 14, 33, 42),
-                              c(32, 7, 20, 15, 12, 23, 40, 12, 29, 42, 42, 42,
-                                42, 42, 31, 1, 3,
+                              c(32, 18, 31, 15, 12, 23, 40, 23, 40, 42, 42, 42,
+                                42, 31, 1, 3,
                                 13, 15, 1, 2, 3, 15, 33, 42, 14, 33, 42)),
-    strand = rep("+", 28),
-    originally = c(rep("", 14), "T", "C", "C", "G", "G", "C",
+    strand = rep("+", 27),
+    originally = c(rep("", 13), "T", "C", "C", "G", "G", "C",
                    "C", "C", "G", "A", "A", "T", "A", "A"),
-    replacement = c("CCCC", "TAA", "CCC", rep("", 11), "C", "A", "T", "C", "A",
+    replacement = c("CCCC", "TAA", "CCC", rep("", 10), "C", "A", "T", "C", "A",
                     "A", "G", "G", "A", "T", "G", "G", "T", "G"),
-    type = c(rep("insertion", 3), rep("deletion", 11), rep("mismatch", 14)),
+    type = c(rep("insertion", 3), rep("deletion", 10), rep("mismatch", 14)),
     read_id = read_ids)
   names(gr8) <- read_ids
-  test_gr8 <- getEventInfo(events, "test", 1, 42)
+  test_gr8 <- getEventInfo(events, "test", 1)
   test_gr8$score <- NULL
   expect_identical(test_gr8, gr8)
+
+  # minus strand
+  strand(gr8) <- "-"
+  ranges(gr8)[10:13] <- IRanges::IRanges(c(1, 1, 1, 1), c(11, 29, 11, 11))
+  gr8$read_id[12:13] <- c("4", "6")
+  names(gr8)[12:13] <- c("4", "6")
+  test_gr8 <- getEventInfo(events, "test", 1, "-")
+  test_gr8$score <- NULL
+  expect_identical(test_gr8, gr8)
+
+  # test shift     #10                       35     42
+  s1 <- "ACTAGT"   #AC--------------------TAGT
+  ampl <- "CCCCCCCCCCCAGTGAAGTCAAACATGGAATTAGTGTGTTAA"
+  fwdPrPos <- stringr::str_locate(ampl, "CCAGT")[1, 1]
+  events <- Biostrings::pairwiseAlignment(
+    Biostrings::DNAString(s1),
+    Biostrings::subseq(ampl, start = fwdPrPos),
+    type = "global")
+  gr9 <- GenomicRanges::GRanges(
+    seqnames = "test",
+    ranges = IRanges::IRanges(c(12, 36, 10),
+                              c(31, 42, 10)),
+    strand = rep("+", 3),
+    originally = c("", "", "C"),
+    replacement = c("", "", "A"),
+    type = c(rep("deletion", 2), "mismatch"),
+    read_id = rep("1", 3))
+  names(gr9) <- rep("1", 3)
+  test_gr9 <- getEventInfo(events, "test", fwdPrPos)
+  test_gr9$score <- NULL
+  expect_identical(test_gr9, gr9)
 })

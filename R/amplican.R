@@ -1,8 +1,6 @@
-#' amplican: automated analysis of CRISPR experiments
-#' amplican: automated analysis of CRISPR experiments
+#' Automated analysis of CRISPR experiments.
 #'
 #' Main goals:
-#'
 #' \enumerate{
 #' \item Flexible pipeline for analysis of the CRISPR Mi-Seq or Hi-Seq data.
 #' \item Compatible with GRanges and data.table style.
@@ -18,6 +16,7 @@
 #'
 #' @docType package
 #' @name amplican
+#'
 #' @import ggthemes waffle knitr methods BiocGenerics Biostrings data.table
 "_PACKAGE"
 
@@ -238,10 +237,22 @@ amplicanPipeline <- function(
   summaryPD <- onlyPD[, list(counts  = sum(counts)), by = c("seqnames")]
   cfgT$PRIMER_DIMER <- 0
   cfgT$PRIMER_DIMER[match(summaryPD$seqnames, cfgT$ID)] <- summaryPD$counts
-  cfgT$Reads_noPD <- cfgT$Reads - cfgT$PRIMER_DIMER
 
   # apply filter - remove all events that come from PD infected reads
   aln <- aln[!onlyPD, on = list(seqnames, read_id)]
+
+  # alignment score filter
+  cfgT$Low_Score <- 0
+  for (i in seq_len(dim(cfgT)[1])) {
+    aln_id <- aln[seqnames == cfgT$ID[i], ]
+    threshS <- thresholdScores(aln_id$score)
+    onlyBR <- aln_id[aln_id$score < threshS, ]
+    onlyBR <- unique(onlyBR, by = "read_id")
+    cfgT[i, "Low_Score"] <- sum(onlyBR$counts)
+    aln <- aln[!(aln$seqnames == cfgT$ID[i] &
+                   aln$read_id %in% onlyBR$read_id), ]
+  }
+  cfgT$Reads_Filtered <- cfgT$Reads - cfgT$PRIMER_DIMER - cfgT$Low_Score
 
   # shift to relative (most left UPPER case is position 0)
   message("Shifting events as relative...")
@@ -266,8 +277,8 @@ amplicanPipeline <- function(
     cfgT[, c("ID", "Barcode", "Forward_Reads_File", "Reverse_Reads_File",
              "Group", "guideRNA", "Found_Guide", "Control", "Forward_Primer",
              "Reverse_Primer", "Direction", "Amplicon", "fwdPrPosEnd",
-             "rvePrPos", "Reads", "PRIMER_DIMER",
-             "Reads_noPD", "Reads_Del", "Reads_In", "Reads_Indel",
+             "rvePrPos", "Reads", "PRIMER_DIMER", "Low_Score",
+             "Reads_Filtered", "Reads_Del", "Reads_In", "Reads_Indel",
              "Reads_Frameshifted")],
     file.path(results_folder, "config_summary.csv"))
 

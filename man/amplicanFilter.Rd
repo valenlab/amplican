@@ -2,7 +2,8 @@
 % Please edit documentation in R/amplicanFilter.R
 \name{amplicanFilter}
 \alias{amplicanFilter}
-\title{Filter Events Overlapping Primers and PRIMER DIMERS.}
+\title{Filter Events Overlapping Primers, PRIMER DIMERS and Low Alignment Score
+Events.}
 \usage{
 amplicanFilter(aln, cfgT, PRIMER_DIMER)
 }
@@ -30,7 +31,9 @@ ACTGAAAAA------- <- this "deletion" should be filtered
 ACTG----ACTGACTG
 }
 We call them Events Overlapping Primers and filter them together
-with reads that are potentially PRIMER DIMERS.
+with reads that are potentially PRIMER DIMERS. This filter will also remove
+all events coming from reads with low alignment score - potential
+Off-targets.
 }
 \examples{
 file_path <- system.file("extdata", "results", "alignments",

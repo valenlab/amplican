@@ -45,7 +45,7 @@ are returned back.
 aln <- data.frame(seqnames = 1:5, start = 1, end = 2, width = 2,
                   counts = 101:105)
 cfgT <- data.frame(ID = 1:5, guideRNA = rep("ACTG", 5),
-                   Reads_noPD = c(2, 2, 3, 3, 4),
+                   Reads_Filtered = c(2, 2, 3, 3, 4),
                    Group = c("A", "A", "B", "B", "B"),
                    Control = c(TRUE, FALSE, TRUE, FALSE, FALSE))
 # all events are same as in the control group, therefore are filtered out

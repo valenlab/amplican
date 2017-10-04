@@ -22,3 +22,4 @@ aln <- readRDS(file_path)
 writeAlignments(aln, file.path(tempdir(), "aln.txt"))
 
 }
+\keyword{internal}
