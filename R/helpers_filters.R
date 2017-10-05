@@ -1,13 +1,10 @@
 #' Find Off-targets and Fragmented alignments from reads.
 #'
 #' Will try to detect off-targets and low quality alignments (outliers). It
-#' performs hierarchical clustering for parameterized Gaussian mixture models
-#' using \code{\link[mclust]{Mclust}}, then calcualtes medians of predicted
-#' clusters. Based on medians selects cluster with the lowest score. Then
-#' threshold is returned as the most sensitive cutoff for that cluster, minimum
-#' score from closest higher score cluster. When there is less than 1000 scores
-#' in \code{x} or clustering will return only one cluster minimum score is
-#' returned.
+#' checks for continuity of scores and has no asumptions about underlying
+#' distributions. When there is gap in scores that is bigger
+#' than expected, will return threshold. When there is less than 1000
+#' scores in \code{x} minimum score is returned.
 #' @param x (numeric) Input alignment scores of all reads. Should work on
 #' scores from single experiment.
 #' @return (numeric) Threshold value for suggested cutoff on the scores of the
@@ -24,28 +21,13 @@
 #'
 thresholdScores <- function(x) {
   if (length(x) < 1000) return(min(x))
-  m <- mclust::Mclust(x)
-  if (m$G > 1) { # more than one cluster
-    # filter out scores from the most left cluster based on median
-    med <- rep(0, m$G)
-    for (i in seq_len(m$G)) {
-      med[i] <- stats::median(x[m$classification == i])
-    }
-    min(x[m$classification == order(med)[2]])
-  } else {
-    min(x)
-  }
-}
+  x <- sort(x, decreasing = TRUE)
+  # calc max step for upper half of the distribution
+  upper_half <- x[x >= (max(x) - diff(range(x))/2)]
+  max_step <- max(abs(diff(upper_half)))
 
-# thresholdScores <- function(x) { simplified version
-#   if (length(x) < 1000) return(min(x))
-#   x <- sort(x, decreasing = TRUE)
-#   # calc max step for upper half of the distribution
-#   upper_half <- x[x >= (max(x) - diff(range(x))/2)]
-#   max_step <- max(abs(diff(upper_half)))
-#
-#   x[which(abs(diff(x)) > max_step)[1]]
-# }
+  x[which(abs(diff(x)) > max_step)[1]]
+}
 
 
 #' Find Events Overlapping Primers.
