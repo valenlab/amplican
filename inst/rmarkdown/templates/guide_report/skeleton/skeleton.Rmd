@@ -1,6 +1,6 @@
 ---
-title: Report breakdown by guideRNA
-author: amplican
+title: 'Report breakdown by guideRNA'
+author: 'ampliCan'
 date: '`r format(Sys.time(), "%d %B %Y")`'
 output:
   html_document:

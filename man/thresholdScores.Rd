@@ -17,10 +17,13 @@ quality alignments.
 }
 \description{
 Will try to detect off-targets and low quality alignments (outliers). It
-checks for continuity of scores and has no asumptions about underlying
-distributions. When there is gap in scores that is bigger
-than expected, will return threshold. When there is less than 1000
-scores in \code{x} minimum score is returned.
+performs hierarchical clustering for parameterized Gaussian mixture models
+using \code{\link[mclust]{Mclust}}, then calcualtes medians of predicted
+clusters. Based on medians selects cluster with the lowest score. Then
+threshold is returned as the most sensitive cutoff for that cluster, minimum
+score from closest higher score cluster. When there is less than 1000 scores
+in \code{x} or clustering will return only one cluster minimum score is
+returned.
 }
 \examples{
 file_path <- system.file("extdata", "results", "alignments",

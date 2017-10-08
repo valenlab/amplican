@@ -1,6 +1,6 @@
 ---
-title: Summary Read Report
-author: amplican
+title: 'Summary Read Report'
+author: 'ampliCan'
 date: '`r format(Sys.time(), "%d %B %Y")`'
 output:
   html_document:
@@ -119,12 +119,12 @@ reads_indel <- c(sum(configDF$Reads_Indel[!configDF$Control]), # Treatment
 reads_indel_per <- round(reads_indel*100/total_reads)
 reads_indel_per[is.na(reads_indel_per)] <- 0
 names(reads_indel_per) <- c(
-  paste0('DSB in Treatment\n', reads_indel[1], ' (', reads_indel_per[1], '%)'),
-  paste0('No DSB in Treatment\n', reads_indel[2], ' (', reads_indel_per[2], '%)'),
-  paste0('DSB in Control\n', reads_indel[3], ' (', reads_indel_per[3], '%)'), 
-  paste0('No DSB in Control\n', reads_indel[4], ' (', reads_indel_per[4], '%)'))
+  paste0('Indels in Treatment\n', reads_indel[1], ' (', reads_indel_per[1], '%)'),
+  paste0('No Indels in Treatment\n', reads_indel[2], ' (', reads_indel_per[2], '%)'),
+  paste0('Indels in Control\n', reads_indel[3], ' (', reads_indel_per[3], '%)'), 
+  paste0('No Indels in Control\n', reads_indel[4], ' (', reads_indel_per[4], '%)'))
 waffle(reads_indel_per, legend_pos = 'bottom', 
-       title = "Reads with mutation", 
+       title = "Reads with indels", 
        rows = 10, colors = c('#E69F00', '#000000', '#A9A9A9', '#F0E442'))
 
 frameshift <- c(sum(configDF$Reads_Frameshifted[!configDF$Control]), # Treatment

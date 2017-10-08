@@ -17,7 +17,7 @@
 #' @docType package
 #' @name amplican
 #'
-#' @import ggthemes waffle knitr methods BiocGenerics Biostrings data.table
+#' @import ggthemes waffle knitr methods BiocGenerics Biostrings data.table mclust
 "_PACKAGE"
 
 
@@ -245,6 +245,8 @@ amplicanPipeline <- function(
   cfgT$Low_Score <- 0
   for (i in seq_len(dim(cfgT)[1])) {
     aln_id <- aln[seqnames == cfgT$ID[i], ]
+    aln_id <- aln_id[, list(score = max(score), counts = max(counts)),
+                     by = "read_id"]
     threshS <- thresholdScores(aln_id$score)
     onlyBR <- aln_id[aln_id$score < threshS, ]
     onlyBR <- unique(onlyBR, by = "read_id")
