@@ -1,18 +1,15 @@
 #' Find Off-targets and Fragmented alignments from reads.
 #'
 #' Will try to detect off-targets and low quality alignments (outliers). It
-#' performs hierarchical clustering for parameterized Gaussian mixture models
-#' using \code{\link[mclust]{Mclust}}, then calcualtes medians of predicted
-#' clusters. Based on medians selects cluster with the lowest score. Then
-#' threshold is returned as the most sensitive cutoff for that cluster, minimum
-#' score from closest higher score cluster. When there is less than 1000 scores
-#' in \code{x} or clustering will return only one cluster minimum score is
-#' returned.
-#' @param x (numeric) Input alignment scores of all reads. Should work on
-#' scores from single experiment.
-#' @return (numeric) Threshold value for suggested cutoff on the scores of the
-#' alignments. Values below this threshold are potential off-targets or low
-#' quality alignments.
+#' checks for continuity of normalized number of events and has no
+#' assumptions about underlying distributions. When there is gap in events that
+#' is bigger than expected, will return threshold. When there is less than 1000
+#' scores in \code{x} maximum event number is returned - filter nothing.
+#' @param x (numeric) Normalized by length (and strand) number of events in each
+#' read. Should work on reads from single experiment.
+#' @return (numeric) Threshold value for suggested cutoff on the number of
+#' normalized events of the alignments. Values above this threshold are
+#' potential off-targets or low quality alignments.
 #' @export
 #' @family filters
 #' @seealso \code{\link{findPD}} \code{\link{findEOP}}
@@ -20,21 +17,21 @@
 #' file_path <- system.file("extdata", "results", "alignments",
 #'                          "raw_events.csv", package = "amplican")
 #' aln <- data.table::fread(file_path)
-#' thresholdScores(aln$score[aln$seqnames == "ID_1"])
+#' aln <- aln_id <- aln[seqnames == "ID_1"] # for first experiment
+#' # get number of events normalized by strand and read length
+#' aln_id <- aln_id[, list(events = (.N/length(unique(strand)))/max(end),
+#'                         counts = max(counts)), by = "read_id"]
+#' threshold <- thresholdNEvents(aln_id$events)
+#' # use threshold to filter...
 #'
-thresholdScores <- function(x) {
-  if (length(x) < 1000) return(min(x))
-  m <- mclust::Mclust(x, c(1, 2, 3))
-  if (m$G >= 2 & abs(abs(m$BIC[1, 1]) - abs(m$BIC[m$G, 1])) > length(x)) {
-    # filter out scores from the most left cluster based on median
-    med <- rep(0, m$G)
-    for (i in seq_len(m$G)) {
-      med[i] <- stats::median(x[m$classification == i])
-    }
-    min(x[m$classification == order(med)[2]])
-  } else {
-    min(x)
-  }
+thresholdNEvents <- function(x) {
+  if (length(x) < 1000) return(max(x))
+  x <- sort(x)
+  # calc max step for left half of the distribution
+  left_half <- x[x <= (min(x) + diff(range(x))/2)]
+  max_step <- max(abs(diff(left_half))) * 1.3
+  thresh <- x[which(abs(diff(x)) > max_step)[1]]
+  if (is.na(thresh)) max(x) else thresh
 }
 
 
@@ -54,7 +51,7 @@ thresholdScores <- function(x) {
 #' primers
 #' @export
 #' @family filters
-#' @seealso \code{\link{findPD}} \code{\link{thresholdScores}}
+#' @seealso \code{\link{findPD}} \code{\link{thresholdNEvents}}
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
 #'                          "raw_events.csv", package = "amplican")
@@ -97,7 +94,7 @@ findEOP <- function(aln, cfgT) {
 #' @return (logical) Where TRUE indicates event classified as PRIMER DIMER
 #' @export
 #' @family filters
-#' @seealso \code{\link{findEOP}} \code{\link{thresholdScores}}
+#' @seealso \code{\link{findEOP}} \code{\link{thresholdNEvents}}
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
 #'                          "raw_events.csv", package = "amplican")

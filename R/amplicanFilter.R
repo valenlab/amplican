@@ -52,11 +52,13 @@ amplicanFilter <- function(aln, cfgT, PRIMER_DIMER) {
   PD <- PD[aln$read_id[PD] == read_ids]
   aln <- aln[-PD,]
 
-  # alignment score filter
+  # alignment events filter
   for (i in seq_len(dim(cfgT)[1])) {
     aln_id <- aln[seqnames == cfgT$ID[i], ]
-    threshS <- thresholdScores(aln_id$score)
-    onlyBR <- aln_id[aln_id$score < threshS, ]
+    aln_id <- aln_id[, list(events = (.N/length(unique(strand)))/max(end),
+                            counts = max(counts)), by = "read_id"]
+    threshS <- thresholdNEvents(aln_id$events)
+    onlyBR <- aln_id[aln_id$events > threshS, ]
     onlyBR <- unique(onlyBR, by = "read_id")
     aln <- aln[!(aln$seqnames == cfgT$ID[i] &
                    aln$read_id %in% onlyBR$read_id), ]

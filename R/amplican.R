@@ -17,7 +17,7 @@
 #' @docType package
 #' @name amplican
 #'
-#' @import ggthemes waffle knitr methods BiocGenerics Biostrings data.table mclust
+#' @import ggthemes waffle knitr methods BiocGenerics Biostrings data.table
 "_PACKAGE"
 
 
@@ -241,14 +241,14 @@ amplicanPipeline <- function(
   # apply filter - remove all events that come from PD infected reads
   aln <- aln[!onlyPD, on = list(seqnames, read_id)]
 
-  # alignment score filter
+  # alignment event filter
   cfgT$Low_Score <- 0
   for (i in seq_len(dim(cfgT)[1])) {
     aln_id <- aln[seqnames == cfgT$ID[i], ]
-    aln_id <- aln_id[, list(score = max(score), counts = max(counts)),
-                     by = "read_id"]
-    threshS <- thresholdScores(aln_id$score)
-    onlyBR <- aln_id[aln_id$score < threshS, ]
+    aln_id <- aln_id[, list(events = (.N/length(unique(strand)))/max(end),
+                            counts = max(counts)), by = "read_id"]
+    threshS <- thresholdNEvents(aln_id$events)
+    onlyBR <- aln_id[aln_id$events > threshS, ]
     onlyBR <- unique(onlyBR, by = "read_id")
     cfgT[i, "Low_Score"] <- sum(onlyBR$counts)
     aln <- aln[!(aln$seqnames == cfgT$ID[i] &
