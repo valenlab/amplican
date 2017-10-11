@@ -10,7 +10,7 @@ amplicanPipeline(config, fastq_folder, results_folder, knit_reports = TRUE,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5,
   mismatch = -4, baseOnly = TRUE, type = "DNA"), gap_opening = 25,
   gap_extension = 0, fastqfiles = 0.5, primer_mismatch = 2,
-  PRIMER_DIMER = 30, cut_buffer = 5, strict_consensus = TRUE,
+  PRIMER_DIMER = 30, cut_buffer = 5, promiscuous_consensus = FALSE,
   normalize = c("guideRNA", "Group"))
 }
 \arguments{
@@ -101,10 +101,9 @@ alignment will introduce gap of size bigger than: \cr
 \item{cut_buffer}{The number of bases by which extend expected cut sites
 (specified as UPPER case letters in the amplicon) in 5' and 3' directions.}
 
-\item{strict_consensus}{(boolean) Whether rules of
-\code{\link{amplicanConsensus}} should be \code{strict}. When strict, we
-don't allow indels that have no confirmation on the other strand (with the
-exception of premature strand end).}
+\item{promiscuous_consensus}{(boolean) Whether rules of
+\code{\link{amplicanConsensus}} should be \code{promiscuous}. When
+promiscuous, we allow indels that have no confirmation on the other strand.}
 
 \item{normalize}{(character vector) If column 'Control' in config table
 has all FALSE/0 values then normalization is skipped. Otherwise,

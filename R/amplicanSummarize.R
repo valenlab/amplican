@@ -23,9 +23,8 @@
 #' positions of primers in the amplicons and their identifiers
 #' @param overlaps (character) Specifies which metadata column of \code{aln}
 #' indicates which events are overlapping expected cut site.
-#' @param strict (boolean) Allows to relax consensus rules. When FALSE will
-#' allow Indels that are not confirmed by the other strand (other strand is
-#' complementary to the amplicon).
+#' @param promiscuous (boolean) Allows to relax consensus rules. When TRUE will
+#' allow Indels that are not confirmed by the other strand (when both are used).
 #' @return (bolean vector) Where TRUE means that given event represents
 #' consensus out of forward and reverse reads.
 #' @export
@@ -39,7 +38,7 @@
 #' all(aln$consensus == amplicanConsensus(aln, cfgT))
 #'
 amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
-                              strict = TRUE) {
+                              promiscuous = FALSE) {
 
   cols <- c("seqnames", "read_id", "start", "end")
   cols_all <- c("strand", "score", "counts", "width", "num", "originally",
@@ -89,7 +88,7 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
   aln_fwd <- aln_fwd[-oScore_fwd]
   aln_rve <- aln_rve[-oScore_rve]
 
-  if (strict) {
+  if (!promiscuous) {
     # find events that overlap EOP from other strand and set them to true
     data.table::setcolorder(eop_fwd, cols_all)
     data.table::setcolorder(eop_rve, cols_all)
