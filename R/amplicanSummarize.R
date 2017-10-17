@@ -122,6 +122,8 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
 #' @param cfgT (data.frame) Contains amplicon sequences.
 #' @param cut_buffer (numeric) Number of bases that should expand 5' and 3' of
 #' the specified expected cut sites.
+#' @param relative (boolean) Sets whether events are relative to the position of
+#' the target site.
 #' @return (bolean vector) Where TRUE means that given event overlaps cut site.
 #' @export
 #' @include helpers_general.R
@@ -133,7 +135,7 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
 #'   system.file("test_data", "test_cfg.csv", package = "amplican"))
 #' all(aln$overlaps == amplicanOverlap(aln, cfgT))
 #'
-amplicanOverlap <- function(aln, cfgT, cut_buffer = 5) {
+amplicanOverlap <- function(aln, cfgT, cut_buffer = 5, relative = FALSE) {
   cutSites <- lapply(cfgT$ID, function(x) {
     upperGroups(get_amplicon(cfgT, x)) + cut_buffer})
   cutSitesCheck <- sapply(cutSites, length) == 0
@@ -145,7 +147,7 @@ amplicanOverlap <- function(aln, cfgT, cut_buffer = 5) {
                        width = cfgT$ampl_len[cutSitesCheck]),
       1))
   }
-  if (any(aln$start <= 0 | aln$end <= 0)) {
+  if (relative) {
     cutSites <- lapply(cutSites, function(x) {
       IRanges::shift(x, -1 * IRanges::start(x)[1])
     })

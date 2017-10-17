@@ -35,8 +35,7 @@ findPD(aln, cfgT)
 
 }
 \seealso{
-\code{\link{findEOP}} \code{\link{thresholdNEvents}}
+\code{\link{findEOP}} \code{\link{findLQR}}
 
-Other filters: \code{\link{findEOP}},
-  \code{\link{thresholdNEvents}}
+Other filters: \code{\link{findEOP}}, \code{\link{findLQR}}
 }

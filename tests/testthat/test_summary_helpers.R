@@ -23,7 +23,8 @@ aln <- amplicanMap(aln, cfgT)
 aln <- as.data.frame(aln)
 
 test_that("amplicanOverlap works as intended when relative", {
-  expect_true(all(amplicanOverlap(aln, cfgT, cut_buffer = 0) == aln$overlaps))
+  expect_true(all(amplicanOverlap(aln, cfgT, cut_buffer = 0,
+                                  relative = TRUE) == aln$overlaps))
 })
 
 test_that("amplicanConsensus works as intended when relative", {

@@ -11,7 +11,7 @@ fastq_folder <- system.file("extdata", package = "amplican")
 results_folder <- tempdir()
 # results_folder <- system.file("extdata", "results", package = "amplican")
 # vignettes_path <- system.file('vignettes', package = 'amplican')
-#
+
 # devtools::unload()
 library(amplican)
 

@@ -22,6 +22,8 @@
 #' aln <- amplicanAlign(config, fastq_folder)
 #' aln
 #'
+# TODO: improvement, detecting mismatches and shifting indels if they
+# happen to be on the left?
 amplicanAlign <- function(
   config,
   fastq_folder,

@@ -55,10 +55,7 @@ amplicanFilter <- function(aln, cfgT, PRIMER_DIMER) {
   # alignment events filter
   for (i in seq_len(dim(cfgT)[1])) {
     aln_id <- aln[seqnames == cfgT$ID[i], ]
-    aln_id <- aln_id[, list(events = (.N/length(unique(strand)))/max(end),
-                            counts = max(counts)), by = "read_id"]
-    threshS <- thresholdNEvents(aln_id$events)
-    onlyBR <- aln_id[aln_id$events > threshS, ]
+    onlyBR <- aln_id[findLQR(aln_id), ]
     onlyBR <- unique(onlyBR, by = "read_id")
     aln <- aln[!(aln$seqnames == cfgT$ID[i] &
                    aln$read_id %in% onlyBR$read_id), ]

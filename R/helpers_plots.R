@@ -368,7 +368,7 @@ metaplot_deletions <- function(alnmt, config, group,
 metaplot_insertions <- function(alnmt, config, group, selection) {
   frequency <- NULL
   alnmt <- alnmt[alnmt$type == "insertion",]
-  alnmt[,group] <- config[,group][match(alnmt$seqnames, config$ID)]
+  alnmt[,group] <- config[[group]][match(alnmt$seqnames, config$ID)]
   alnmt <- group_to_selection(alnmt, config, group, selection)
 
   if (dim(alnmt)[1] == 0) return("No insertions to plot.")
@@ -400,13 +400,14 @@ metaplot_insertions <- function(alnmt, config, group, selection) {
 #'
 #' @keywords internal
 #' @param amplicon (character) Sequence of the amplicon to plot.
-#' @param from (number) Minimum on x axis
-#' @param to (number) Maximum on x axis
+#' @param from (number) Minimum on x axis - start of the amplicon
+#' @param to (number) Maximum on x axis - not necessarily end of the amplicon
 #' @return (amplicon plot) ggplot2 object of amplicon plot
 #'
 plot_amplicon <- function(amplicon, from, to) {
 
-  ampl_df <- data.frame(position = seq(from, to),
+  ampl_df <- data.frame(position = seq(from, by = 1,
+                                       length.out = nchar(amplicon)),
                         nucleotide = strsplit(amplicon, "")[[1]],
                         upper = strsplit(toupper(amplicon), "")[[1]],
                         counts = 1)
@@ -639,11 +640,10 @@ plot_insertions <- function(alignments,
 
   idRanges <- alignments[alignments$seqnames %in% id &
                            alignments$type == "insertion", ]
+  if (dim(idRanges)[1] == 0) return("No insertions to plot.")
 
   amplicon <- get_amplicon(config, id)
   ampl_len <- nchar(amplicon)
-
-  if (dim(idRanges)[1] == 0) return("No insertions to plot.")
   data.table::setDT(idRanges)
   idRangesReduced <- idRanges[, list(counts = sum(counts)),
                               by = c("strand", "start", "end")]
@@ -1020,8 +1020,8 @@ plot_variants <- function(alignments, config, id,
   seqnames <- read_id <- replacement <- NULL
 
   archRanges <- alignments[alignments$seqnames %in% id, ]
-  archRanges$strand <- "*"
   if (dim(archRanges)[1] == 0) return("No variants to plot.")
+  archRanges$strand <- "*"
 
   amplicon <- get_amplicon(config, id)
   box <- upperGroups(amplicon)[1]

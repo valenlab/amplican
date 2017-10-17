@@ -5,7 +5,7 @@ Write Alignments:    txt
 Fastq files Mode:    0
 Gap Opening:         25
 Gap Extension:       0
-Consensus:           TRUE
+Consensus:           FALSE
 Normalize:           guideRNA, Group
 PRIMER DIMER buffer: 30
 Cut buffer: 5

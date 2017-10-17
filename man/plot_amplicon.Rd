@@ -9,9 +9,9 @@ plot_amplicon(amplicon, from, to)
 \arguments{
 \item{amplicon}{(character) Sequence of the amplicon to plot.}
 
-\item{from}{(number) Minimum on x axis}
+\item{from}{(number) Minimum on x axis - start of the amplicon}
 
-\item{to}{(number) Maximum on x axis}
+\item{to}{(number) Maximum on x axis - not necessarily end of the amplicon}
 }
 \value{
 (amplicon plot) ggplot2 object of amplicon plot

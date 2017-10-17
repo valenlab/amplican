@@ -244,10 +244,8 @@ amplicanPipeline <- function(
   cfgT$Low_Score <- 0
   for (i in seq_len(dim(cfgT)[1])) {
     aln_id <- aln[seqnames == cfgT$ID[i], ]
-    aln_id <- aln_id[, list(events = (.N/length(unique(strand)))/max(end),
-                            counts = max(counts)), by = "read_id"]
-    threshS <- thresholdNEvents(aln_id$events)
-    onlyBR <- aln_id[aln_id$events > threshS, ]
+    if (dim(aln_id)[1] == 0) next()
+    onlyBR <- aln_id[findLQR(aln_id), ]
     onlyBR <- unique(onlyBR, by = "read_id")
     cfgT[i, "Low_Score"] <- sum(onlyBR$counts)
     aln <- aln[!(aln$seqnames == cfgT$ID[i] &

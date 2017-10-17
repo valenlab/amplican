@@ -174,16 +174,10 @@ getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
   names(ins) <- seq_along(ins)
 
   del <- IRanges::shift(del, IRanges::IntegerList(lapply(del, cumsumw)))
-  # make deletions to be relative to the subject
   shift_del <- S4Vectors::mendoapply(function(x, y, w) {
-    vapply(
-      x,
-      function(x_i, y, w) sum(w[x_i > y]),
-      integer(1),
-      y, w
-    )
+    vapply(x, function(x_i, y, w) sum(w[x_i > y]), integer(1), y, w)
   },
-  BiocGenerics::start(del), BiocGenerics::start(ins), BiocGenerics::width(ins))
+  BiocGenerics::start(del), BiocGenerics::end(ins), BiocGenerics::width(ins))
   del <- IRanges::shift(del, -1 * shift_del)
   names(del) <- seq_along(del)
 

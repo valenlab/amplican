@@ -4,7 +4,7 @@
 \alias{amplicanOverlap}
 \title{Check which events overlap expected cut sites.}
 \usage{
-amplicanOverlap(aln, cfgT, cut_buffer = 5)
+amplicanOverlap(aln, cfgT, cut_buffer = 5, relative = FALSE)
 }
 \arguments{
 \item{aln}{(data.frame) Contains relevant events in GRanges style.}
@@ -13,6 +13,9 @@ amplicanOverlap(aln, cfgT, cut_buffer = 5)
 
 \item{cut_buffer}{(numeric) Number of bases that should expand 5' and 3' of
 the specified expected cut sites.}
+
+\item{relative}{(boolean) Sets whether events are relative to the position of
+the target site.}
 }
 \value{
 (bolean vector) Where TRUE means that given event overlaps cut site.

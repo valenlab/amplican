@@ -1,14 +1,16 @@
+range01 <- function(x){(x-min(x))/(max(x)-min(x))}
+
 #' Find Off-targets and Fragmented alignments from reads.
 #'
 #' Will try to detect off-targets and low quality alignments (outliers). It
-#' checks for continuity of normalized number of events and has no
-#' assumptions about underlying distributions. When there is gap in events that
-#' is bigger than expected, will return threshold. When there is less than 1000
-#' scores in \code{x} maximum event number is returned - filter nothing.
-#' @param x (numeric) Normalized by length (and strand) number of events in each
-#' read. Should work on reads from single experiment.
-#' @return (numeric) Threshold value for suggested cutoff on the number of
-#' normalized events of the alignments. Values above this threshold are
+#' tries k-means clustering on normalized number of events per read and read
+#' alignment score. If there are 3 clusters (decided based on silhouette
+#' criterion) cluster with high event count and low alignment score will be
+#' marked for filtering. When there is less than 1000
+#' scores in \code{aln} it will filter nothing.
+#' @param aln (data.frame) Should contain events from alignments in GRanges
+#' style with columns eg. seqnames, width, start, end, score.
+#' @return (logical vector) where TRUE indicates events that are
 #' potential off-targets or low quality alignments.
 #' @export
 #' @family filters
@@ -17,21 +19,32 @@
 #' file_path <- system.file("extdata", "results", "alignments",
 #'                          "raw_events.csv", package = "amplican")
 #' aln <- data.table::fread(file_path)
-#' aln <- aln_id <- aln[seqnames == "ID_1"] # for first experiment
-#' # get number of events normalized by strand and read length
-#' aln_id <- aln_id[, list(events = (.N/length(unique(strand)))/max(end),
-#'                         counts = max(counts)), by = "read_id"]
-#' threshold <- thresholdNEvents(aln_id$events)
-#' # use threshold to filter...
+#' aln <- aln[seqnames == "ID_1"] # for first experiment
+#' findLQR(aln)
 #'
-thresholdNEvents <- function(x) {
-  if (length(x) < 1000) return(max(x))
-  x <- sort(x)
-  # calc max step for left half of the distribution
-  left_half <- x[x <= (min(x) + diff(range(x))/2)]
-  max_step <- max(abs(diff(left_half))) * 1.3
-  thresh <- x[which(abs(diff(x)) > max_step)[1]]
-  if (is.na(thresh)) max(x) else thresh
+findLQR <- function(aln) {
+  data.table::setDT(aln)
+  if (dim(aln)[1] < 1000) return(logical(dim(aln)[1]))
+  events <- NULL
+
+  aln_n <- aln[, list(events = .N/max(end), score = max(score)),
+               by = c("read_id", "strand", "seqnames")]
+  aln_n <- aln_n[, list(events = events/length(unique(strand)),
+                        score = score/length(unique(strand))),
+                 by = c("read_id", "seqnames")]
+  x <- cbind(range01(aln_n$score), range01(aln_n$events))
+
+  k2 <- stats::kmeans(x, 2, iter.max = 1000, nstart = 1000)
+  k2s <- clusterCrit::intCriteria(x, k2$cluster, "silhouette")$silhouette
+  k3 <- stats::kmeans(x, 3, iter.max = 1000, nstart = 1000)
+  k3s <- clusterCrit::intCriteria(x, k3$cluster, "silhouette")$silhouette
+  if (k2s >= k3s) return(logical(dim(aln)[1])) else {
+    # find top left center and filter it
+    centers <- apply(k3$centers, 1,
+                     function(x) sqrt((x[1] - 1) ^ 2 + x[2] ^ 2))
+    bs <- aln_n[k3$cluster == which.max(centers)]
+    return(aln$seqnames %in% bs$seqnames & aln$read_id %in% bs$read_id)
+  }
 }
 
 
@@ -51,7 +64,7 @@ thresholdNEvents <- function(x) {
 #' primers
 #' @export
 #' @family filters
-#' @seealso \code{\link{findPD}} \code{\link{thresholdNEvents}}
+#' @seealso \code{\link{findPD}} \code{\link{findLQR}}
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
 #'                          "raw_events.csv", package = "amplican")
@@ -94,7 +107,7 @@ findEOP <- function(aln, cfgT) {
 #' @return (logical) Where TRUE indicates event classified as PRIMER DIMER
 #' @export
 #' @family filters
-#' @seealso \code{\link{findEOP}} \code{\link{thresholdNEvents}}
+#' @seealso \code{\link{findEOP}} \code{\link{findLQR}}
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
 #'                          "raw_events.csv", package = "amplican")
