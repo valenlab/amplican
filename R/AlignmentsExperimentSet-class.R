@@ -760,6 +760,7 @@ setMethod("extractEvents", "AlignmentsExperimentSet", function(
   if (length(readCounts(object)) == 0) {
     return(BiocGenerics::as.data.frame(GenomicRanges::GRanges()))
   }
+
   p <- if (!use_parallel) {
     BiocParallel::SerialParam()
   } else {

@@ -38,7 +38,7 @@
 #' all(aln$consensus == amplicanConsensus(aln, cfgT))
 #'
 amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
-                              promiscuous = FALSE) {
+                              promiscuous = TRUE) {
 
   cols <- c("seqnames", "read_id", "start", "end")
   cols_all <- c("strand", "score", "counts", "width", "num", "originally",
@@ -46,6 +46,7 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
   data.table::setDT(aln)
 
   aln <- aln[, which(colnames(aln) %in% cols_all), with = FALSE]
+  if (dim(aln)[1] == 0) return(logical(0))
   consensus <- rep(FALSE, nrow(aln))
   aln$num <- seq_len(nrow(aln))
 
@@ -136,6 +137,7 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
 #' all(aln$overlaps == amplicanOverlap(aln, cfgT))
 #'
 amplicanOverlap <- function(aln, cfgT, cut_buffer = 5, relative = FALSE) {
+  if (dim(aln)[1] == 0) return(logical(0))
   cutSites <- lapply(cfgT$ID, function(x) {
     upperGroups(get_amplicon(cfgT, x)) + cut_buffer})
   cutSitesCheck <- sapply(cutSites, length) == 0

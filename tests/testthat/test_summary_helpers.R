@@ -16,7 +16,8 @@ test_that("amplicanOverlap works as intended when not relative", {
 })
 
 test_that("amplicanConsensus works as intended when not relative", {
-  expect_true(all(amplicanConsensus(aln, cfgT) == aln$consensus))
+  expect_true(all(amplicanConsensus(aln, cfgT,
+                                    promiscuous = FALSE) == aln$consensus))
 })
 
 aln <- amplicanMap(aln, cfgT)
@@ -28,5 +29,6 @@ test_that("amplicanOverlap works as intended when relative", {
 })
 
 test_that("amplicanConsensus works as intended when relative", {
-  expect_true(all(amplicanConsensus(aln, cfgT) == aln$consensus))
+  expect_true(all(amplicanConsensus(aln, cfgT,
+                                    promiscuous = FALSE) == aln$consensus))
 })

@@ -4,7 +4,7 @@
 \alias{amplicanConsensus}
 \title{Extract consensus out of forward and reverse events.}
 \usage{
-amplicanConsensus(aln, cfgT, overlaps = "overlaps", promiscuous = FALSE)
+amplicanConsensus(aln, cfgT, overlaps = "overlaps", promiscuous = TRUE)
 }
 \arguments{
 \item{aln}{(data.frame) Contains relevant events in GRanges style.}

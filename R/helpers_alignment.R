@@ -33,7 +33,7 @@ comb_along <- function(seq, m = 2, letters = c("A", "C", "T", "G")) {
 }
 
 
-locate_pr_start <- function(reads, primer, m = 2) {
+locate_pr_start <- function(reads, primer, m = 0) {
   primer <- comb_along(primer, m)
   primer <- sapply(primer, function(pr) {
     stringr::str_locate(reads, pr)[, 1]

@@ -35,7 +35,7 @@ amplicanAlign <- function(
   gap_opening = 25,
   gap_extension = 0,
   fastqfiles = 0.5,
-  primer_mismatch = 2) {
+  primer_mismatch = 0) {
 
   message("Checking configuration file...")
   cfgT <- data.frame(data.table::fread(config))
@@ -83,6 +83,7 @@ amplicanAlign <- function(
   } else {
     BiocParallel::bpparam()
   }
+  message("Making alignments...")
   configSplit <- split(cfgT, f = cfgT$Barcode)
   finalAES <- BiocParallel::bplapply(configSplit, FUN = makeAlignment,
                                      average_quality,

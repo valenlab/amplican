@@ -5,8 +5,8 @@
 \title{Remove events that can be found in Controls.}
 \usage{
 amplicanNormalize(aln, cfgT, add = c("guideRNA", "Group"),
-  skip = c("counts", "score", "seqnames", "read_id", "strand"),
-  min_freq = 0.01)
+  skip = c("counts", "score", "seqnames", "read_id", "strand", "overlaps",
+  "consensus"), min_freq = 0.01)
 }
 \arguments{
 \item{aln}{(data.frame) Contains events from alignments.}
@@ -18,8 +18,7 @@ in event table for normalization matching. Defaults to c("guideRNA", "Group")
 , which means that only those events created by the same guideRNA in the same
 Group will be removed if found in Control.}
 
-\item{skip}{(character vector) Specifies which column of aln to skip,
-defaults to c('counts', 'score').}
+\item{skip}{(character vector) Specifies which columns of aln to skip.}
 
 \item{min_freq}{(numeric) All events from control group below this frequency
 will be not included in filtering. Use this to filter out background noise
@@ -38,8 +37,8 @@ their frequencies are calculated in respect to number of total reads in that
 groups. In next step events from the control are filtered according to
 \code{min_freq}, all events below are treated as sequencing errors and
 rejected. Finally, all events that can be found in treatment group that find
-their exact match in control group are removed. All events from control group
-are returned back.
+their exact match (by non skipped columns) in control group are removed.
+All events from control group are returned back.
 }
 \examples{
 aln <- data.frame(seqnames = 1:5, start = 1, end = 2, width = 2,

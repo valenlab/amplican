@@ -138,7 +138,7 @@
 # fastqfiles = 0.5
 # PRIMER_DIMER = 30
 # cut_buffer = 5
-# primer_mismatch = 2
+# primer_mismatch = 0
 # promiscuous_consensus = TRUE
 # normalize = c("guideRNA", "Group")
 amplicanPipeline <- function(
@@ -148,8 +148,8 @@ amplicanPipeline <- function(
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
     match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
   gap_opening = 25, gap_extension = 0, fastqfiles = 0.5,
-  primer_mismatch = 2, PRIMER_DIMER = 30, cut_buffer = 5,
-  promiscuous_consensus = FALSE, normalize = c("guideRNA", "Group")) {
+  primer_mismatch = 0, PRIMER_DIMER = 30, cut_buffer = 5,
+  promiscuous_consensus = TRUE, normalize = c("guideRNA", "Group")) {
 
   message("Checking write access...")
   checkFileWriteAccess(results_folder)
@@ -216,6 +216,10 @@ amplicanPipeline <- function(
   data.table::fwrite(aln, file.path(resultsFolder, "raw_events.csv"))
   data.table::setDT(aln)
   seqnames <- read_id <- counts <- NULL
+
+  if (dim(aln)[1] == 0) stop("There are no events.",
+                             "Check whether you have correct
+                        primers in the config file.")
 
   aln$overlaps <- amplicanOverlap(aln, cfgT, cut_buffer = cut_buffer)
   aln$consensus <- if (fastqfiles <= 0.5) {

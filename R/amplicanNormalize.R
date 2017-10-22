@@ -7,16 +7,15 @@
 #' groups. In next step events from the control are filtered according to
 #' \code{min_freq}, all events below are treated as sequencing errors and
 #' rejected. Finally, all events that can be found in treatment group that find
-#' their exact match in control group are removed. All events from control group
-#' are returned back.
+#' their exact match (by non skipped columns) in control group are removed.
+#' All events from control group are returned back.
 #' @param aln (data.frame) Contains events from alignments.
 #' @param cfgT (data.frame) Config table with information about experiments.
 #' @param add (character vector) Columns from cfgT that should be included
 #' in event table for normalization matching. Defaults to c("guideRNA", "Group")
 #' , which means that only those events created by the same guideRNA in the same
 #' Group will be removed if found in Control.
-#' @param skip (character vector) Specifies which column of aln to skip,
-#' defaults to c('counts', 'score').
+#' @param skip (character vector) Specifies which columns of aln to skip.
 #' @param min_freq (numeric) All events from control group below this frequency
 #' will be not included in filtering. Use this to filter out background noise
 #' and sequencing errors.
@@ -42,7 +41,8 @@
 amplicanNormalize <- function(aln, cfgT,
                               add = c("guideRNA", "Group"),
                               skip = c("counts", "score", "seqnames",
-                                       "read_id", "strand"),
+                                       "read_id", "strand",
+                                       "overlaps", "consensus"),
                               min_freq = 0.01){
   Reads_Filtered <- frequency <- NULL
   if (!any(cfgT$Control)) {

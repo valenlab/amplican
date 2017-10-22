@@ -8,7 +8,7 @@ amplicanAlign(config, fastq_folder, use_parallel = FALSE,
   average_quality = 30, min_quality = 20,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5,
   mismatch = -4, baseOnly = TRUE, type = "DNA"), gap_opening = 25,
-  gap_extension = 0, fastqfiles = 0.5, primer_mismatch = 2)
+  gap_extension = 0, fastqfiles = 0.5, primer_mismatch = 0)
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:

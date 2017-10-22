@@ -9,8 +9,8 @@ amplicanPipeline(config, fastq_folder, results_folder, knit_reports = TRUE,
   use_parallel = FALSE,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5,
   mismatch = -4, baseOnly = TRUE, type = "DNA"), gap_opening = 25,
-  gap_extension = 0, fastqfiles = 0.5, primer_mismatch = 2,
-  PRIMER_DIMER = 30, cut_buffer = 5, promiscuous_consensus = FALSE,
+  gap_extension = 0, fastqfiles = 0.5, primer_mismatch = 0,
+  PRIMER_DIMER = 30, cut_buffer = 5, promiscuous_consensus = TRUE,
   normalize = c("guideRNA", "Group"))
 }
 \arguments{
