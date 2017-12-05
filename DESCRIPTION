@@ -1,12 +1,12 @@
 Package: amplican
 Type: Package
-Title: Automated analysis of CRISPR experiments.
+Title: Automated analysis of CRISPR experiments
 Description: `amplican` performs alignment of the amplicon reads, normalizes 
     gathered data, calculates multiple statistics (e.g. cut rates, frameshifts) 
     and presents results in form of  aggregated reports. Data and statistics can 
     be broken down by experiments, barcodes, user defined groups, guides and 
     amplicons allowing for quick identification of potential problems.
-Version: 1.1.0
+Version: 1.1.1
 Authors@R: c(
     person("Kornel", "Labun", email = "kornel.labun@gmail.com", role = "aut"),
     person("Eivind", "Valen", email = "eivind.valen@gmail.com", role = c("cph", "cre"))

@@ -109,16 +109,16 @@ checkConfigFile <- function(configTable, fastq_folder) {
          toString(which(barcode_primers_duple) + 1))
   }
 
-  barcode_files_duple <- duplicated(configTable$Barcode)
-  forward_reverse_files_duple <- duplicated(
-    configTable[c("Forward_Reads_File", "Reverse_Reads_File")])
-  fail_barcodes <- which(barcode_files_duple != forward_reverse_files_duple) + 1
-  if (length(fail_barcodes) > 0) {
-    stop("Each of these rows are malfunctioned in the config file: ",
-          toString(fail_barcodes),
-          " For each barcode there can be only one set of paths ",
-          "for forward and reverse files.")
-  }
+  # barcode_files_duple <- duplicated(configTable$Barcode)
+  # forward_reverse_files_duple <- duplicated(
+  #   configTable[c("Forward_Reads_File", "Reverse_Reads_File")])
+  # fail_barcodes <- which(barcode_files_duple != forward_reverse_files_duple) + 1
+  # if (length(fail_barcodes) > 0) {
+  #   stop("Each of these rows are malfunctioned in the config file: ",
+  #         toString(fail_barcodes),
+  #         " For each barcode there can be only one set of paths ",
+  #         "for forward and reverse files.")
+  # }
 
   uniqueFilePaths <- unique(
     c(configTable$Forward_Reads_File[configTable$Forward_Reads_File != ""],

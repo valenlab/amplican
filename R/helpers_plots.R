@@ -915,6 +915,25 @@ cRampF <- function(x) {
   greenF[x %% 3 == 0] <- "#FFFFFF"
   greenF
 }
+merge_4_grobs <- function(cgb, vgb, tgb, sgb) {
+  maxWidth <- grid::unit.pmax(vgb$widths, cgb$widths)
+  vgb$widths <- as.list(maxWidth)
+  cgb$widths <- as.list(maxWidth)
+  tgb$heights <- grid::unit(rep(1/(nrow(tgb)), nrow(tgb)), "npc")
+
+  bot <- gtable::gtable_add_cols(vgb, sum(tgb$widths))
+  bot <- gtable::gtable_add_grob(bot, grobs = tgb,
+                                 t = 6, l = ncol(bot), b = 6, r = ncol(bot))
+  top <- gtable::gtable_add_cols(cgb, sum(tgb$widths))
+  top <- gtable::gtable_add_grob(top, grobs = sgb,
+                                 t = 6, l = ncol(top), b = 6, r = ncol(top))
+  fin <- gridExtra::grid.arrange(
+    top, bot,
+    heights = grid::unit.c(grid::unit(8, "char"),
+                           grid::unit(1, "npc") - grid::unit(8, "char")),
+    nrow = 2)
+  fin
+}
 merge_3_grobs <- function(cgb, vgb, tgb) {
   egb <- ggplot2::ggplot() +
     ggplot2::geom_point(ggplot2::aes(1,1), colour="white") +
@@ -995,8 +1014,19 @@ merge_2_grobs <- function(vgb, tgb) {
 #' @param top (numeric) Specify number of most frequent reads to plot. By
 #' default it is 10. Check \code{\link{plot_heterogeneity}} to see how many
 #' reads will be enough to give good overview of your variants.
-#' @param annot ("codon" or NA) What to display for annotation top plot.
-#' When NA will not display anything.
+#' @param annot ("codon" or NA) What to display for
+#' annotation top plot. When NA will not display anything, also not display
+#' total summary.
+#' @param summary_plot (boolean) Whether small summary plot in the upper right
+#' corner should be displayed. Top bar summarizes total reads with
+#' frameshift (F), reads with InDels without Frameshift (InDel) and reads
+#' without InDels (Match). Bottom bar summarizes percentage and how InDels are
+#' distributed towards Insertions (Ins),
+#' Deletions (Del) and Mixed Insertions/Deletions (InDel).
+#' \preformatted{
+#' annot            on    | off
+#  summary_plot  on | off | off
+#' }
 #' @return (variant plot) ggplot2 object of variants plot
 #' @export
 #' @family specialized plots
@@ -1016,7 +1046,7 @@ merge_2_grobs <- function(vgb, tgb) {
 #'
 plot_variants <- function(alignments, config, id,
                           cut_buffer = 5, top = 10,
-                          annot = "codon") {
+                          annot = "codon", summary_plot = TRUE) {
   seqnames <- read_id <- replacement <- NULL
 
   archRanges <- alignments[alignments$seqnames %in% id, ]
@@ -1169,14 +1199,14 @@ plot_variants <- function(alignments, config, id,
                                          fill = "black")
   }
   if (!is.na(annot) & annot == "codon") {
-    codon_melt <- rbind(aa_frame(amplicon, TRUE, 1, 0, 1),
-                        aa_frame(amplicon, TRUE, 2, 1, 2),
-                        aa_frame(amplicon, TRUE, 3, 2, 3),
-                        aa_frame(amplicon, FALSE, 1, 3, 4),
-                        aa_frame(amplicon, FALSE, 2, 4, 5),
-                        aa_frame(amplicon, FALSE, 3, 5, 6))
-    fnames <- c("1st, 5' <- 3'", "2nd, 5' <- 3'", "3rd, 5' <- 3'",
-                "1st, 3' -> 5'", "2nd, 3' -> 5'", "3rd, 3' -> 5'")
+    codon_melt <- rbind(aa_frame(amplicon, TRUE, 1, 5, 6),
+                        aa_frame(amplicon, TRUE, 2, 4, 5),
+                        aa_frame(amplicon, TRUE, 3, 3, 4),
+                        aa_frame(amplicon, FALSE, 1, 2, 3),
+                        aa_frame(amplicon, FALSE, 2, 1, 2),
+                        aa_frame(amplicon, FALSE, 3, 0, 1))
+    fnames <- rev(c("1st, 5' -> 3'", "2nd, 5' -> 3'", "3rd, 5' -> 3'",
+                    "1st, 3' <- 5'", "2nd, 3' <- 5'", "3rd, 3' <- 5'"))
     cplot <- ggplot2::ggplot(codon_melt,
                              ggplot2::aes((xmin + xmax) / 2,
                                           (ymin + ymax) / 2)) +
@@ -1231,5 +1261,57 @@ plot_variants <- function(alignments, config, id,
                                  t = 1:(nrow(tgb) - 1), l = 1, r = 3)
   vgb <- ggplot2::ggplotGrob(vplot)
 
-  if (is.na(annot)) merge_2_grobs(vgb, tgb) else merge_3_grobs(cgb, vgb, tgb)
+  if (!is.na(annot) & annot == "codon" & summary_plot) {
+    bnames <- c("InDel", "Match", "F")
+    cfgS <- config[config$ID %in% id,
+                   c("Reads_Filtered", "Reads_Del", "Reads_In",
+                     "Reads_Indel", "Reads_Frameshifted")]
+    cfgS <- colSums(cfgS)
+    uT <- c(cfgS[4] - cfgS[5], cfgS[1] - cfgS[4], cfgS[5])/cfgS[1]
+    uTo <- c(3, 1, 2)
+    uB <- c(cfgS[2:3], cfgS[4] - sum(cfgS[2:3]))/cfgS[4]
+    cfgS <- data.frame(
+      x = round(c(uT * 100)),
+      group = factor(bnames,
+                     levels = bnames[uTo],
+                     ordered = TRUE))
+    scols <- c("#7FCDCD", "#898E8C", "#79C753")
+    names(scols) <- cfgS$group
+
+    hjust_x <- c(-0.5, -0.5, -0.5)
+    hjust_x[uT > 0.8] <- 1.5
+    group <- NULL #Check
+    splot <- ggplot2::ggplot(cfgS,
+                             ggplot2::aes(x = group, y = x, fill = group)) +
+      ggplot2::geom_bar(stat='identity') +
+      ggplot2::geom_text(ggplot2::aes(label = x), hjust = hjust_x,
+                         size = 8*5/15) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(legend.position = "none",
+                     plot.background = ggplot2::element_blank(),
+                     panel.grid.major = ggplot2::element_blank(),
+                     panel.grid.minor = ggplot2::element_blank(),
+                     panel.border = ggplot2::element_blank(),
+                     panel.background = ggplot2::element_blank(),
+                     axis.ticks.y = ggplot2::element_blank(),
+                     axis.title.y = ggplot2::element_blank(),
+                     axis.text = ggplot2::element_text(size = 8),
+                     axis.title = ggplot2::element_text(size = 8),
+                     text = ggplot2::element_text(size = 8),
+                     plot.margin = grid::unit(
+                       c(1, 1, 2, 1), "char")) +
+      ggplot2::scale_y_continuous(position = "right", name = "[ % ]", limits = c(0, 100)) +
+      ggplot2::scale_fill_manual(values = scols) +
+      ggplot2::coord_flip()
+
+    sgb <- ggplot2::ggplotGrob(splot)
+  }
+
+  if (is.na(annot)) {
+    merge_2_grobs(vgb, tgb)
+  } else if (summary_plot) {
+    merge_4_grobs(cgb, vgb, tgb, sgb)
+  } else {
+    merge_3_grobs(cgb, vgb, tgb)
+  }
 }
