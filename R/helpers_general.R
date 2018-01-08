@@ -131,81 +131,6 @@ cumsumw <- function(x) {
 }
 
 
-#' This function takes alignments and gives back the events coordinates.
-#'
-#' @keywords internal
-#' @param align (PairwiseAlignmentsSingleSubject)
-#' @param ID (string)
-#' @param ampl_shift (numeric vector) Shift events additionally by this value.
-#' PairwiseAlignmentsSingleSubject returns truncated alignments.
-#' @param ampl_len (numeric) Length of the amplicon (subject)
-#' @param strand_info (string) Either '+', '-' or default '*'
-#' @return (GRanges) Object with meta-data for insertion, deletion, mismatch
-#'
-getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
-  if (length(align) == 0) return(GenomicRanges::GRanges())
-  if (any(ampl_shift < 1)) stop("Amplicon shift can't be less than 1.")
-  scores <- Biostrings::score(align)
-
-  ampl_len <- width(unaligned(subject(align)))
-  ampl_end <- end(subject(align))
-  ampl_start <- start(subject(align))
-
-  if (strand_info == "+") {
-    s_err <- ampl_end >= ampl_len
-    start <- ampl_end[!s_err] + ampl_shift
-    end <- if (all(s_err)) integer() else ampl_len + ampl_shift - 1
-  } else {
-    s_err <- ampl_start == 1
-    start <- if (all(s_err)) integer() else 1L
-    end <- ampl_start[!s_err] + ampl_shift - 2
-  }
-  sizes <- IRanges::IRanges(start = start, end = end, names = which(!s_err))
-
-  del <- Biostrings::deletion(align)
-  ins <- Biostrings::insertion(align)
-  mm <- lapply(align, function(x) Biostrings::mismatchSummary(x)$subject)
-
-  ins_sft <- IRanges::shift(ins, IRanges::IntegerList(lapply(ins, cumsumw)))
-  ins_seq <- substr(rep(Biostrings::pattern(align),
-                        times = sapply(ins_sft, length)),
-                    start = unlist(BiocGenerics::start(ins_sft)),
-                    stop = unlist(BiocGenerics::end(ins_sft)))
-  names(ins) <- seq_along(ins)
-
-  del <- IRanges::shift(del, IRanges::IntegerList(lapply(del, cumsumw)))
-  shift_del <- S4Vectors::mendoapply(function(x, y, w) {
-    vapply(x, function(x_i, y, w) sum(w[x_i > y]), integer(1), y, w)
-  },
-  BiocGenerics::start(del), BiocGenerics::end(ins), BiocGenerics::width(ins))
-  del <- IRanges::shift(del, -1 * shift_del)
-  names(del) <- seq_along(del)
-
-  subj <- as.character(subject(align))
-  ins <- IRanges::shift(ins, ampl_shift + ampl_start - 2L)
-  del <- IRanges::shift(del, ampl_shift + ampl_start - 2L)
-
-  mism <- lapply(mm, function(x) IRanges::IRanges(x$SubjectPosition, width = 1))
-  names(mism) <- seq_along(mism)
-  mism <- IRanges::shift(IRanges::IRangesList(mism), ampl_shift - 1L)
-
-  c(defGR(unlist(IRanges::IRangesList(ins)), ID,
-          rep(scores, times = sapply(ins, length)),
-          strand_info, "insertion", "", ins_seq),
-    defGR(unlist(IRanges::IRangesList(del)), ID,
-          rep(scores, times = sapply(del, length)),
-          strand_info),
-    # artificial deletions indicating end of reads
-    defGR(sizes, ID, scores[!s_err], strand_info),
-    defGR(unlist(mism), ID,
-          rep(scores, times = sapply(mism, length)),
-          strand_info,
-          "mismatch",
-          unlist(lapply(mm, function(x) as.character(x$Subject))),
-          unlist(lapply(mm, function(x) as.character(x$Pattern)))))
-}
-
-
 #' Detect uppercases as ranges object.
 #'
 #' For a given string, detect how many groups of uppercases is inside, where
@@ -321,4 +246,300 @@ amplicanMap <- function(aln, cfgT) {
   }
 
   return(aln)
+}
+
+
+#' Transform aligned strings into GRanges representation of events.
+#'
+#' Transforms aligned strings into GRanges representation with
+#' events of deletions, insertions and mismatches. Subject should come from
+#' one amplicon sequence, after alignment to many sequences (patterns).
+#'
+#' @param pattern (character) Aligned pattern.
+#' @param subject (character) Aligned subject.
+#' @param scores (integer) Alignment scores of the pattern and subject.
+#' @param ID (character) Will be used as seqnames of output GRanges.
+#' @param ampl_shift (numeric) Possible shift of the amplicons.
+#' @param ampl_start (numeric) Real amplicon starts.
+#' Biostrings::pairwiseAlignment clips alignments, therefore to output
+#' GRanges relative to the amplicon sequence (subject) ranges have to be
+#' shifted.
+#' @param strand_info (character) Strands to assign.
+#' @return (GRanges) Same as events.
+#' @export
+#'
+getEvents <- function(pattern, subject, scores, ID = "NA", ampl_shift = 1L,
+                      ampl_start = 1L, strand_info = "+") {
+  pattern <- DNAStringSet(pattern)
+  subject <- DNAStringSet(subject)
+  read_id <- seq_along(pattern)
+  comparison <- compareStrings(pattern, subject)
+  comparison <- IRanges::RleList(strsplit(comparison, split = ""))
+  mm <- IRanges::IRangesList(comparison == "?")
+  del <- IRanges::IRangesList(comparison[comparison != "+"] == "-")
+  ins <- IRanges::IRangesList(comparison == "+")
+  ins_rep <- unlist(extractAt(pattern, ins), use.names = FALSE)
+  mm_rep <- unlist(extractAt(pattern, mm), use.names = FALSE)
+  mm_lw <- width(mm_rep) > 1
+  mm_rep <- c(as.character(mm_rep[!mm_lw]),
+              unlist(strsplit(as.character(mm_rep[mm_lw]), split = "")))
+  mm_org <- unlist(extractAt(subject, mm), use.names = FALSE)
+  mm_org <- c(as.character(mm_org[!mm_lw]),
+              unlist(strsplit(as.character(mm_org[mm_lw]), split = "")))
+  ins <- IRanges::shift(ins, IRanges::IntegerList(
+    lapply(ins, function(x) -1L * cumsumw(x))))
+  mm <- IRanges::IRangesList(comparison[comparison != "+"] == "?")
+  mm <- IRanges::shift(mm, ampl_shift + ampl_start - 2L)
+  names(mm) <- read_id
+  mm <- unlist(mm, use.names = TRUE)
+  mm_l <- mm[IRanges::width(mm) > 1]
+  mm <- mm[IRanges::width(mm) == 1]
+  mm_ln <- names(mm_l)
+  mm_l <- IRanges::tile(mm_l, width = 1L)
+  names(mm_l) <- mm_ln
+  mm_l <- unlist(mm_l, use.names = TRUE)
+  mm <- c(mm, mm_l)
+  ins <- IRanges::shift(ins, ampl_shift + ampl_start - 2L)
+  names(ins) <- read_id
+  del <- IRanges::shift(del, ampl_shift + ampl_start - 2L)
+  names(del) <- read_id
+
+  c(defGR(unlist(ins, use.names = TRUE), ID,
+          rep(scores, times = lengths(ins)),
+          strand_info, "insertion", "",
+          as.character(ins_rep)),
+    defGR(unlist(del, use.names = TRUE), ID,
+          rep(scores, times = sapply(del, length)),
+          strand_info),
+    defGR(mm, ID, scores[as.integer(names(mm))],
+          strand_info, "mismatch", as.character(mm_org),
+          as.character(mm_rep)))
+}
+
+
+#' This function takes alignments and gives back the events coordinates.
+#'
+#' @keywords internal
+#' @param align (PairwiseAlignmentsSingleSubject)
+#' @param ID (string)
+#' @param ampl_shift (numeric vector) Shift events additionally by this value.
+#' PairwiseAlignmentsSingleSubject returns truncated alignments.
+#' @param ampl_len (numeric) Length of the amplicon (subject)
+#' @param strand_info (string) Either '+', '-' or default '*'
+#' @return (GRanges) Object with meta-data for insertion, deletion, mismatch
+#'
+getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
+  if (length(align) == 0) return(GenomicRanges::GRanges())
+  if (any(ampl_shift < 1)) stop("Amplicon shift can't be less than 1.")
+  scores <- score(align)
+  subj <- subject(align)
+  pat <- pattern(align)
+
+  ampl_len <- width(unaligned(subj))
+  ampl_end <- end(subj)
+  ampl_start <- start(subj)
+
+  if (strand_info == "+") {
+    s_err <- ampl_end >= ampl_len
+    start <- ampl_end[!s_err] + ampl_shift
+    end <- if (all(s_err)) integer() else ampl_len + ampl_shift - 1
+  } else {
+    s_err <- ampl_start == 1
+    start <- if (all(s_err)) integer() else 1L
+    end <- ampl_start[!s_err] + ampl_shift - 2
+  }
+  sizes <- IRanges::IRanges(start = start, end = end, names = which(!s_err))
+  ranges <- getEvents(
+    pat, subj, scores = scores, ID = ID, ampl_shift = ampl_shift,
+    ampl_start = ampl_start, strand_info = strand_info)
+
+  # artificial deletions indicating end of reads
+  c(ranges, defGR(sizes, ID, scores[!s_err], strand_info))
+}
+
+
+#' Transform extended CIGAR strings into GRanges.
+#'
+#' Transform extended CIGAR strings into GRanges representation with
+#' events of deletions, insertions and mismatches. Use with caution as function
+#' is being tested.
+#'
+#' @param cigars (character) Extended CIGARS., , query_seq, ref, read_id, mapq, seqnames, strands
+#' @param aln_pos_start (integer) Pos of CIGARS.
+#' @param query_seq (character) Aligned query sequences.
+#' @param ref (character) Reference sequences used for alignment.
+#' @param read_id (numeric) Read id for assignment for each of the CIGARS.
+#' @param mapq (numeric) Maping scores.
+#' @param seqnames (character) Names of the sequences, potentially ids of
+#' the reference sequences.
+#' @param counts (integer) Vector of cigar counts, if data collapsed.
+#' @param strands (character) Strands to assign.
+#' @return (GRanges) Same as events.
+#' @export
+#'
+cigarsToEvents <- function(cigars, aln_pos_start, query_seq, ref, read_id, mapq,
+                           seqnames, strands, counts) {
+
+  if (!requireNamespace("GenomicAlignments", quietly = TRUE)) {
+    stop("Install GenomicAlignments before calling this function.")
+  }
+
+  ids <- seq_along(cigars)
+  # INS
+  ins <- GenomicAlignments::cigarRangesAlongQuerySpace(cigars, ops = "I")
+  repl <- Biostrings::extractAt(DNAStringSet(query_seq), ins)
+  ins <- GenomicAlignments::cigarRangesAlongPairwiseSpace(cigars, ops = "I")
+  csum <- lapply(ins, function(x) -1L * cumsumw(x))
+  csum <- IRanges::IntegerList(csum)
+
+  names(ins) <- ids
+  names(csum) <- ids
+  csum <- unlist(csum, use.names = TRUE)
+  ins <- unlist(ins, use.names = TRUE) # empty ranges are droped out
+  csum <- csum[names(csum) %in% names(ins)]
+  ins <- IRanges::shift(ins, csum) # shift by cumsum of ins
+
+  iids <- as.integer(names(ins))
+  ins <- if (length(ins) > 0) {
+    GenomicRanges::GRanges(
+      seqnames = seqnames[iids],
+      ranges = ins,
+      strand = strands[iids],
+      originally = "",
+      replacement = as.character(unlist(repl, use.names = FALSE)),
+      type = "insertion",
+      read_id = read_id[iids],
+      score = mapq[iids],
+      counts = counts[iids])
+  } else {
+    GenomicRanges::GRanges()
+  }
+  # DEL
+  del <- GenomicAlignments::cigarRangesAlongReferenceSpace(
+    cigars, ops = c("D", "N"), pos = aln_pos_start)
+  origin <- Biostrings::extractAt(DNAStringSet(ref), del)
+  names(del) <- ids
+  del <- unlist(del, use.names = TRUE)
+  iids <- as.integer(names(del))
+
+  del <- if (length(del) > 0) {
+    GenomicRanges::GRanges(
+      seqnames = seqnames[iids],
+      ranges = del,
+      strand = strands[iids],
+      originally = as.character(unlist(origin, use.names = FALSE)),
+      replacement = "",
+      type = "deletion",
+      read_id = read_id[iids],
+      score = mapq[iids],
+      counts = counts[iids])
+  } else {
+    GenomicRanges::GRanges()
+  }
+
+  # MISMATCH - X #TODO MD tags contain mm too if X not present in CIGARS
+  mm <- GenomicAlignments::cigarRangesAlongQuerySpace(cigars, ops = "X")
+  repl <- Biostrings::extractAt(DNAStringSet(query_seq), mm)
+  repl <- unlist(repl, use.names = FALSE)
+  repl_l <- unlist(strsplit(as.character(repl[width(repl) > 1]), ""))
+  repl <- as.character(repl[width(repl) == 1])
+  mm <- GenomicAlignments::cigarRangesAlongReferenceSpace(cigars, ops = "X")
+  names(mm) <- ids
+  mm <- unlist(mm, use.names = TRUE)
+  mm_l <- mm[width(mm) > 1]
+  mm <- mm[width(mm) == 1]
+  mm_ln <- names(mm_l)
+  mm_l <- IRanges::tile(mm_l, width = 1L)
+  names(mm_l) <- mm_ln
+  mm_l <- unlist(mm_l, use.names = TRUE)
+  iids <- as.integer(c(names(mm), names(mm_l)))
+
+  mm <- if (length(mm) > 0) {
+    GenomicRanges::GRanges(
+      seqnames = seqnames[iids],
+      ranges = c(mm, mm_l),
+      strand = strands[iids],
+      originally = "",
+      replacement = c(repl, repl_l),
+      type = "mismatch",
+      read_id = read_id[iids],
+      score = mapq[iids],
+      counts = counts[iids])
+  } else {
+    GenomicRanges::GRanges()
+  }
+  seqnames <- unique(as.character(seqnames))
+  GenomeInfoDb::seqlevels(mm) <- seqnames
+  GenomeInfoDb::seqlevels(del) <- seqnames
+  GenomeInfoDb::seqlevels(ins) <- seqnames
+  c(mm, del, ins)
+}
+
+
+#' Read "pair" format of EMBOSS needle into GRanges as events.
+#'
+#' Parse EMBOSS needle (or needleall) "pair" format into GRanges representation
+#' with events of deletions, insertions and mismatches. Make sure that each file
+#' corresponds to single subject (single amplicon). Assumes that bottom sequence
+#' "-bsequence" corresponds to the "subject" and full sequence alignment is
+#' returned.
+#'
+#' @param file (character) File path.
+#' @param ID (character) ID of the experiment, will be used as seqnames of the
+#' reutner ranges.
+#' @param strand_info (character) Strand to assign.
+#' @return (GRanges) Same as events.
+#' @export
+#'
+pairToEvents <- function(file, ID = "NA", strand_info = "+") {
+  file <- readLines(file)
+
+  # header
+  header <- grep("########################################", file)[2]
+  file_header <- file[seq_len(header)]
+  file <- file[-seq_len(header)]
+  if (file_header[2] != "# Program: needleall" |
+      file_header[grep("-aformat3", file_header)] != "#    -aformat3 pair") {
+    stop("This function can only parse needleall 'pair' format.")
+  }
+  gapopen <- as.numeric(gsub("#    -gapopen ", "",
+                             file_header[grep("-gapopen ", file_header)]))
+  gapext <- as.numeric(gsub("#    -gapextend ", "",
+                            file_header[grep("-gapextend ", file_header)]))
+  seq1 <- gsub("# 1: ", "", file[grep("# 1: ", file)])
+  seq2 <- gsub("# 2: ", "", file[grep("# 2: ", file)])
+  score <- as.numeric(gsub("# Score: ", "", file[grep("# Score: ", file)]))
+
+  # split into list of reads
+  pos <- grep("#=======================================", file)
+  starts <- pos[c(FALSE, TRUE)] + 1
+  ends <- pos[c(TRUE, FALSE)] - 1
+  ends <- ends[-1]
+  ends <- c(ends, length(file))
+
+  headers_pos <- seq2(starts - 1, ends - 1, by = 2)
+  split_v <- vector(mode = "character", length = length(file))
+  uniq_ids <- seq_len(length(headers_pos))
+  split_v[unlist(headers_pos, use.names = FALSE)] <-
+    rep(uniq_ids, times = lengths(headers_pos))
+  alns <- split(file, factor(split_v, levels = uniq_ids))
+
+  # for every sequence parse
+  seq1_s <- substr(seq1, 1, 13)
+  seq2_s <- substr(seq2, 1, 13)
+  alns <- unlist(mapply(function(aln, s1, s2) {
+    query <- paste0(gsub(paste0(" |[0-9]|", s1), "",
+                         aln[grep(s1, aln)]), collapse = "")
+    subj <- paste0(gsub(paste0(" |[0-9]|", s2), "",
+                        aln[grep(s2, aln)]), collapse = "")
+    c(query, subj)
+  }, alns, seq1_s, seq2_s, SIMPLIFY = FALSE, USE.NAMES = FALSE),
+  use.names = FALSE)
+
+  # parsing into GRanges
+  events <- getEvents(
+    alns[c(TRUE, FALSE)], alns[c(FALSE, TRUE)], scores = score,
+    ID = ID, ampl_shift = 1, ampl_start = 1, strand_info = strand_info)
+  events$counts <- 1 # assume reads are not collapsed into unique
+  events
 }

@@ -3,3 +3,5 @@ TODO
     o add test dataset with normalization examples
     o add arcs plot on top of the variant plot
     o figure out biostrings multiple seq alignment
+    o figure out loading SAM file from normal CIGARS not only extended
+    o support SAM files chimeric alignments

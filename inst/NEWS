@@ -1,7 +1,12 @@
-amplican 1.0.0
+amplican 1.1.2
 -----------------------
 
-NEW FEATURES
+    o ampliCan supports now other aligners with SAM format eg. bwa mem
+    (cigarsToEvents) and pair format eg. EMBOSS needleall (pairToEvents)
+    o HDR quantification
+
+amplican 1.0.0
+-----------------------
 
     o ampliCan first release
 

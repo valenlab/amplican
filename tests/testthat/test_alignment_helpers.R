@@ -180,7 +180,7 @@ test_that("getEventInfo returns correct GRanges", {
   names(gr8) <- read_ids
   test_gr8 <- getEventInfo(events, "test", 1)
   test_gr8$score <- NULL
-  expect_identical(test_gr8, gr8)
+  expect_identical(sort(test_gr8), sort(gr8))
 
   # minus strand
   strand(gr8) <- "-"
@@ -189,7 +189,7 @@ test_that("getEventInfo returns correct GRanges", {
   names(gr8)[12:13] <- c("4", "6")
   test_gr8 <- getEventInfo(events, "test", 1, "-")
   test_gr8$score <- NULL
-  expect_identical(test_gr8, gr8)
+  expect_identical(sort(test_gr8), sort(gr8))
 
   # test shift     #10                       35     42
   s1 <- "ACTAGT"   #AC--------------------TAGT
@@ -211,5 +211,5 @@ test_that("getEventInfo returns correct GRanges", {
   names(gr9) <- rep("1", 3)
   test_gr9 <- getEventInfo(events, "test", fwdPrPos)
   test_gr9$score <- NULL
-  expect_identical(test_gr9, gr9)
+  expect_identical(sort(test_gr9), sort(gr9))
 })

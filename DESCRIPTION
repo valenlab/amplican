@@ -6,7 +6,7 @@ Description: `amplican` performs alignment of the amplicon reads, normalizes
     and presents results in form of  aggregated reports. Data and statistics can 
     be broken down by experiments, barcodes, user defined groups, guides and 
     amplicons allowing for quick identification of potential problems.
-Version: 1.1.1
+Version: 1.1.2
 Authors@R: c(
     person("Kornel", "Labun", email = "kornel.labun@gmail.com", role = "aut"),
     person("Eivind", "Valen", email = "eivind.valen@gmail.com", role = c("cph", "cre"))
@@ -47,7 +47,8 @@ Imports:
 RoxygenNote: 6.0.1
 Suggests:
     testthat,
-    BiocStyle
+    BiocStyle,
+    GenomicAlignments
 Collate: 
     'helpers_general.R'
     'AlignmentsExperimentSet-class.R'
