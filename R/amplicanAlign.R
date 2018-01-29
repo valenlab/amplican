@@ -101,6 +101,8 @@ amplicanAlign <- function(
   initialize(finalAES,
              fwdReads = fwdReads(finalAES)[id_order],
              rveReads = rveReads(finalAES)[id_order],
+             fwdReadsType = fwdReadsType(finalAES)[id_order],
+             rveReadsType = rveReadsType(finalAES)[id_order],
              readCounts = readCounts(finalAES)[id_order],
              experimentData = cfgT[id_order, ])
 }

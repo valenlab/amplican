@@ -822,10 +822,12 @@ getEventInfoObj <- function(object) {
               getEventInfo(rveReads(object)[[ID]], ID, fwdPrPos, "-"))
   tempGR$counts <- readCounts(object)[[ID]][as.integer(tempGR$read_id)]
   tempGR$readType <- FALSE
-  tempGR$readType[tempGR$strand == "+"] <- fwdReadsType(object)[[ID]][
-    as.integer(tempGR$read_id)[tempGR$strand == "+"]]
-  tempGR$readType[tempGR$strand == "-"] <- rveReadsType(object)[[ID]][
-    as.integer(tempGR$read_id)[tempGR$strand == "-"]]
+  tempGR$readType[as.vector(strand(tempGR) == "+")] <-
+    fwdReadsType(object)[[ID]][as.integer(tempGR$read_id)[
+      as.vector(strand(tempGR) == "+")]]
+  tempGR$readType[as.vector(strand(tempGR) == "-")] <-
+    rveReadsType(object)[[ID]][as.integer(tempGR$read_id)[
+      as.vector(strand(tempGR) == "-")]]
   tempGR
 }
 #' Extract AlignmentsExperimentSet events into data.frame.
@@ -890,6 +892,10 @@ setMethod("show", "AlignmentsExperimentSet", function(object){
     print(fwdReads(object)[[1]])
     cat("\nSlot rveReads:\n")
     print(rveReads(object)[[1]])
+    cat("\nSlot fwdReadsType:\n")
+    print(table(fwdReadsType(object)[[1]]))
+    cat("\nSlot rveReadsType:\n")
+    print(table(rveReadsType(object)[[1]]))
     cat("\nSlot readCounts:\n")
     utils::str(readCounts(object)[[1]])
     cat("\nSlot experimentData:\n")

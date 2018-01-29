@@ -36,11 +36,10 @@ amplicanMap(events, config)
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanConsensus}},
-  \code{\link{amplicanFilter}}, \code{\link{amplicanHDR}},
+  \code{\link{amplicanFilter}},
   \code{\link{amplicanNormalize}},
   \code{\link{amplicanOverlap}},
   \code{\link{amplicanPipeline}},
   \code{\link{amplicanReport}},
-  \code{\link{amplicanSummarizeHDR}},
   \code{\link{amplicanSummarize}}
 }

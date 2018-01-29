@@ -287,7 +287,7 @@ amplicanPipeline <- function(
              "Reverse_Primer", "Direction", "Amplicon", "Donor", "fwdPrPosEnd",
              "rvePrPos", "Reads", "PRIMER_DIMER", "Low_Score",
              "Reads_Filtered", "Reads_Del", "Reads_In", "Reads_Indel",
-             "Reads_Frameshifted")],
+             "Reads_Frameshifted", "HDR")],
     file.path(results_folder, "config_summary.csv"))
 
   # reports

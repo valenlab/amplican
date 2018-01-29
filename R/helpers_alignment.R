@@ -185,7 +185,7 @@ makeAlignment <- function(cfgT,
               substitutionMatrix =  scoring_matrix,
               gapOpening = gap_opening,
               gapExtension = gap_extension)
-          fwdAType[[cfgT$ID[i]]] <- score(donorA) > score(fwdA[[cfgT$ID[i]]])
+          fwdAType[[cfgT$ID[i]]] <- score(donorA) >= score(fwdA[[cfgT$ID[i]]])
         }
       }
 
@@ -212,7 +212,7 @@ makeAlignment <- function(cfgT,
             substitutionMatrix =  scoring_matrix,
             gapOpening = gap_opening,
             gapExtension = gap_extension)
-          rveAType[[cfgT$ID[i]]] <- score(donorA) > score(rveA[[cfgT$ID[i]]])
+          rveAType[[cfgT$ID[i]]] <- score(donorA) >= score(rveA[[cfgT$ID[i]]])
         }
       }
       countsA[[cfgT$ID[i]]] <- IDunqT$Total

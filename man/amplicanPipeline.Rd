@@ -139,11 +139,9 @@ amplicanPipeline(config, fastq_folder, results_folder, knit_reports = FALSE)
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanConsensus}},
-  \code{\link{amplicanFilter}}, \code{\link{amplicanHDR}},
-  \code{\link{amplicanMap}},
+  \code{\link{amplicanFilter}}, \code{\link{amplicanMap}},
   \code{\link{amplicanNormalize}},
   \code{\link{amplicanOverlap}},
   \code{\link{amplicanReport}},
-  \code{\link{amplicanSummarizeHDR}},
   \code{\link{amplicanSummarize}}
 }
