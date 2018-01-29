@@ -22,8 +22,6 @@
 #' aln <- amplicanAlign(config, fastq_folder)
 #' aln
 #'
-# TODO: improvement, detecting mismatches and shifting indels if they
-# happen to be on the left?
 amplicanAlign <- function(
   config,
   fastq_folder,
@@ -43,8 +41,9 @@ amplicanAlign <- function(
   colnames(cfgT) <- c("ID", "Barcode", "Forward_Reads_File",
                       "Reverse_Reads_File", "Group", "Control", "guideRNA",
                       "Forward_Primer", "Reverse_Primer", "Direction",
-                      "Amplicon",
-                      if (dim(cfgT)[2] > 11) colnames(cfgT)[12:dim(cfgT)[2]])
+                      "Amplicon", "Donor",
+                      if (dim(cfgT)[2] > 12) colnames(cfgT)[13:dim(cfgT)[2]])
+  ids <- cfgT$ID
   cfgT$Control <- as.logical(cfgT$Control)
   cfgT$Direction <- as.logical(cfgT$Direction)
   cfgT$Forward_Reads_File <-
@@ -84,6 +83,7 @@ amplicanAlign <- function(
     BiocParallel::bpparam()
   }
   message("Making alignments...")
+  config_order <- cfgT$ID
   configSplit <- split(cfgT, f = cfgT$Barcode)
   finalAES <- BiocParallel::bplapply(configSplit, FUN = makeAlignment,
                                      average_quality,
@@ -93,5 +93,14 @@ amplicanAlign <- function(
                                      gap_extension,
                                      fastqfiles,
                                      primer_mismatch, BPPARAM = p)
-  Reduce(c, finalAES)
+  finalAES <- Reduce(c, finalAES)
+
+  # sort like at the entry point
+  cfgT <- experimentData(finalAES)
+  id_order <- match(ids, cfgT$ID)
+  initialize(finalAES,
+             fwdReads = fwdReads(finalAES)[id_order],
+             rveReads = rveReads(finalAES)[id_order],
+             readCounts = readCounts(finalAES)[id_order],
+             experimentData = cfgT[id_order, ])
 }

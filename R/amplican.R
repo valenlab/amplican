@@ -96,6 +96,8 @@
 #' detection. For a given read it will be recognized as PRIMER DIMER when
 #' alignment will introduce gap of size bigger than: \cr
 #' \code{length of amplicon - (lengths of PRIMERS + PRIMER_DIMER value)}
+#' @param event_filter (logical) Whether detection of offtarget reads,
+#' should be enabled.
 #' @param cut_buffer The number of bases by which extend expected cut sites
 #' (specified as UPPER case letters in the amplicon) in 5' and 3' directions.
 #' @param promiscuous_consensus (boolean) Whether rules of
@@ -148,7 +150,7 @@ amplicanPipeline <- function(
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
     match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
   gap_opening = 25, gap_extension = 0, fastqfiles = 0.5,
-  primer_mismatch = 0, PRIMER_DIMER = 30, cut_buffer = 5,
+  primer_mismatch = 0, PRIMER_DIMER = 30, event_filter = TRUE, cut_buffer = 5,
   promiscuous_consensus = TRUE, normalize = c("guideRNA", "Group")) {
 
   message("Checking write access...")
@@ -211,6 +213,7 @@ amplicanPipeline <- function(
                      file.path(results_folder, "barcode_reads_filters.csv"))
   message("Translating alignments into events...")
   cfgT <- experimentData(aln)
+
   aln <- extractEvents(aln, use_parallel = use_parallel)
   message("Saving complete events - unfiltered...")
   data.table::fwrite(aln, file.path(resultsFolder, "raw_events.csv"))
@@ -246,14 +249,16 @@ amplicanPipeline <- function(
 
   # alignment event filter
   cfgT$Low_Score <- 0
-  for (i in seq_len(dim(cfgT)[1])) {
-    aln_id <- aln[seqnames == cfgT$ID[i], ]
-    if (dim(aln_id)[1] == 0) next()
-    onlyBR <- aln_id[findLQR(aln_id), ]
-    onlyBR <- unique(onlyBR, by = "read_id")
-    cfgT[i, "Low_Score"] <- sum(onlyBR$counts)
-    aln <- aln[!(aln$seqnames == cfgT$ID[i] &
-                   aln$read_id %in% onlyBR$read_id), ]
+  if (event_filter) {
+    for (i in seq_len(dim(cfgT)[1])) {
+      aln_id <- aln[seqnames == cfgT$ID[i], ]
+      if (dim(aln_id)[1] == 0 | cfgT$Donor[i] != "") next()
+      onlyBR <- aln_id[findLQR(aln_id), ]
+      onlyBR <- unique(onlyBR, by = "read_id")
+      cfgT[i, "Low_Score"] <- sum(onlyBR$counts)
+      aln <- aln[!(aln$seqnames == cfgT$ID[i] &
+                     aln$read_id %in% onlyBR$read_id), ]
+    }
   }
   cfgT$Reads_Filtered <- cfgT$Reads - cfgT$PRIMER_DIMER - cfgT$Low_Score
 
@@ -279,7 +284,7 @@ amplicanPipeline <- function(
   data.table::fwrite(
     cfgT[, c("ID", "Barcode", "Forward_Reads_File", "Reverse_Reads_File",
              "Group", "guideRNA", "Found_Guide", "Control", "Forward_Primer",
-             "Reverse_Primer", "Direction", "Amplicon", "fwdPrPosEnd",
+             "Reverse_Primer", "Direction", "Amplicon", "Donor", "fwdPrPosEnd",
              "rvePrPos", "Reads", "PRIMER_DIMER", "Low_Score",
              "Reads_Filtered", "Reads_Del", "Reads_In", "Reads_Indel",
              "Reads_Frameshifted")],

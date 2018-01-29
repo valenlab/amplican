@@ -58,9 +58,10 @@ amplicanNormalize(aln, cfgT)
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanConsensus}},
-  \code{\link{amplicanFilter}}, \code{\link{amplicanMap}},
-  \code{\link{amplicanOverlap}},
+  \code{\link{amplicanFilter}}, \code{\link{amplicanHDR}},
+  \code{\link{amplicanMap}}, \code{\link{amplicanOverlap}},
   \code{\link{amplicanPipeline}},
   \code{\link{amplicanReport}},
+  \code{\link{amplicanSummarizeHDR}},
   \code{\link{amplicanSummarize}}
 }

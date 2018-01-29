@@ -68,8 +68,7 @@ makeAlignment <- function(cfgT,
 
   fwdA <- vector("list", length(cfgT$ID))
   names(fwdA) <- cfgT$ID
-  rveA <- fwdA # pre-allocate alignment lists
-  countsA <- fwdA
+  rveA <- countsA <- fwdAType <- rveAType <- fwdA # pre-allocate alignment lists
 
   # Read Reads for this Barcode
   fwdT <- if (fastqfiles == 2) NULL else ShortRead::readFastq(
@@ -124,6 +123,7 @@ makeAlignment <- function(cfgT,
     fwdPrimer <- toupper(cfgT$Forward_Primer[i])
     rvePrimer <- toupper(cfgT$Reverse_Primer[i])
     amplicon <- toupper(cfgT$Amplicon[i])
+    donor <- toupper(cfgT$Donor[i])
 
     # Search for the forward, reverse and targets
     unqT$fwdPrInReadPos <- locate_pr_start(
@@ -175,6 +175,18 @@ makeAlignment <- function(cfgT,
             substitutionMatrix =  scoring_matrix,
             gapOpening = gap_opening,
             gapExtension = gap_extension)
+        if (donor != "") {
+          donorA <-
+            Biostrings::pairwiseAlignment(
+              Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[, "Forward"]),
+                                 start = IDunqT$fwdPrInReadPos),
+              Biostrings::DNAString(donor),
+              type = "overlap",
+              substitutionMatrix =  scoring_matrix,
+              gapOpening = gap_opening,
+              gapExtension = gap_extension)
+          fwdAType[[cfgT$ID[i]]] <- score(donorA) > score(fwdA[[cfgT$ID[i]]])
+        }
       }
 
       if (fastqfiles != 1) {
@@ -189,6 +201,19 @@ makeAlignment <- function(cfgT,
           substitutionMatrix =  scoring_matrix,
           gapOpening = gap_opening,
           gapExtension = gap_extension)
+
+        if (donor != "") {
+          donorA <- Biostrings::pairwiseAlignment(
+            Biostrings::reverseComplement(
+              Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[, "Reverse"]),
+                                 start = IDunqT$rvePrInReadPos)),
+            Biostrings::DNAString(donor),
+            type = "overlap",
+            substitutionMatrix =  scoring_matrix,
+            gapOpening = gap_opening,
+            gapExtension = gap_extension)
+          rveAType[[cfgT$ID[i]]] <- score(donorA) > score(rveA[[cfgT$ID[i]]])
+        }
       }
       countsA[[cfgT$ID[i]]] <- IDunqT$Total
     }
@@ -209,6 +234,8 @@ makeAlignment <- function(cfgT,
   methods::new("AlignmentsExperimentSet",
                fwdReads = fwdA,
                rveReads = rveA,
+               fwdReadsType = fwdAType,
+               rveReadsType = rveAType,
                readCounts = countsA,
                unassignedData = unassignedTable,
                experimentData = cfgT,

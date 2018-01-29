@@ -10,8 +10,8 @@ amplicanPipeline(config, fastq_folder, results_folder, knit_reports = TRUE,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5,
   mismatch = -4, baseOnly = TRUE, type = "DNA"), gap_opening = 25,
   gap_extension = 0, fastqfiles = 0.5, primer_mismatch = 0,
-  PRIMER_DIMER = 30, cut_buffer = 5, promiscuous_consensus = TRUE,
-  normalize = c("guideRNA", "Group"))
+  PRIMER_DIMER = 30, event_filter = TRUE, cut_buffer = 5,
+  promiscuous_consensus = TRUE, normalize = c("guideRNA", "Group"))
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
@@ -98,6 +98,9 @@ detection. For a given read it will be recognized as PRIMER DIMER when
 alignment will introduce gap of size bigger than: \cr
 \code{length of amplicon - (lengths of PRIMERS + PRIMER_DIMER value)}}
 
+\item{event_filter}{(logical) Whether detection of offtarget reads,
+should be enabled.}
+
 \item{cut_buffer}{The number of bases by which extend expected cut sites
 (specified as UPPER case letters in the amplicon) in 5' and 3' directions.}
 
@@ -136,9 +139,11 @@ amplicanPipeline(config, fastq_folder, results_folder, knit_reports = FALSE)
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanConsensus}},
-  \code{\link{amplicanFilter}}, \code{\link{amplicanMap}},
+  \code{\link{amplicanFilter}}, \code{\link{amplicanHDR}},
+  \code{\link{amplicanMap}},
   \code{\link{amplicanNormalize}},
   \code{\link{amplicanOverlap}},
   \code{\link{amplicanReport}},
+  \code{\link{amplicanSummarizeHDR}},
   \code{\link{amplicanSummarize}}
 }

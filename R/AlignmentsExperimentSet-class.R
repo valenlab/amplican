@@ -26,6 +26,9 @@ methods::setClassUnion("data.frameOrNULL", members = c("data.frame", "NULL"))
 #' @slot fwdReads,rveReads (list) Named list where each element is of class
 #' \code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}}. Names correspond
 #' to the experiment ID. Contains alignments of reads against amplicons.
+#' @slot fwdReadsType,rveReadsType (list) Named list where each element is of
+#' logical vector, so far TRUE corresponds to HDR events. Names correspond
+#' to the experiment ID. Contains type of read - HDR/NHEJ.
 #' @slot readCounts (list) Named list where each element is numeric vector that
 #' describes how many reads are compressed into unique representation
 #' before alignment in \code{fwdReads} and/or \code{rveReads}.
@@ -49,6 +52,8 @@ methods::setClassUnion("data.frameOrNULL", members = c("data.frame", "NULL"))
 #' new("AlignmentsExperimentSet",
 #'      fwdReads = list(ID_1 = exampleAlignments, ID_2 = exampleAlignments),
 #'      rveReads = list(ID_1 = exampleAlignments, ID_2 = exampleAlignments),
+#'      fwdReadsType = list(ID_1 = c(FALSE, FALSE), ID_2 = c(FALSE, FALSE)),
+#'      rveReadsType = list(ID_1 = c(FALSE, FALSE), ID_2 = c(FALSE, FALSE)),
 #'      readCounts = list(ID_1 = c(2, 20), ID_2 = c(30, 100)),
 #'      unassignedData = NULL,
 #'      experimentData = data.frame(ID = c("ID_1", "ID_2"),
@@ -58,12 +63,16 @@ methods::setClassUnion("data.frameOrNULL", members = c("data.frame", "NULL"))
 setClass("AlignmentsExperimentSet",
          representation(fwdReads = "listOrNULL",
                         rveReads = "listOrNULL",
+                        fwdReadsType = "listOrNULL",
+                        rveReadsType = "listOrNULL",
                         readCounts = "listOrNULL",
                         unassignedData = "data.frameOrNULL",
                         experimentData = "data.frameOrNULL",
                         barcodeData = "data.frameOrNULL"),
          prototype(fwdReads = NULL,
                    rveReads = NULL,
+                   fwdReadsType = NULL,
+                   rveReadsType = NULL,
                    readCounts = NULL,
                    unassignedData = NULL,
                    experimentData = NULL,
@@ -269,6 +278,94 @@ setGeneric("rveReads<-", function(x, value) standardGeneric("rveReads<-"))
 #' @aliases rveReads<-,AlignmentsExperimentSet-method
 setMethod("rveReads<-", "AlignmentsExperimentSet", function(x, value) {
   initialize(x, rveReads = value)
+})
+
+
+#' Type of forward reads.
+#'
+#' Get type of forward reads.
+#' @name fwdReadsType
+#' @keywords internal
+#' @param x (AlignmentsExperimentSet)
+#' @return (listOrNULL) list with objects of PairwiseAlignmentsSingleSubject
+#' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' fwdReadsType(aln)
+setGeneric("fwdReadsType", function(x) standardGeneric("fwdReadsType"))
+#' @aliases fwdReadsType,AlignmentsExperimentSet-method
+#' @rdname AlignmentsExperimentSet-class
+setMethod("fwdReadsType", "AlignmentsExperimentSet", function(x) x@fwdReadsType)
+
+
+#' Read type for forward reads.
+#'
+#' Set read type for forward reads.
+#' @name fwdReadsType<-
+#' @keywords internal
+#' @param x (AlignmentsExperimentSet)
+#' @param value (list) Named (experiment IDs) list with elements of
+#' @return (AlignmentsExperimentSet)
+#' \code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}} class.
+#' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' fwdReadsType(aln) <- fwdReadsType(aln) # replace with the same values
+setGeneric("fwdReadsType<-", function(x, value) {
+  standardGeneric("fwdReadsType<-")
+})
+#' @aliases fwdReadsType<-,AlignmentsExperimentSet-method
+#' @rdname AlignmentsExperimentSet-class
+setMethod("fwdReadsType<-", "AlignmentsExperimentSet", function(x, value) {
+  initialize(x, fwdReadsType = value)
+})
+
+
+#' Type of reverse reads.
+#'
+#' Get type of reverse reads.
+#' @name rveReadsType
+#' @keywords internal
+#' @param x (AlignmentsExperimentSet)
+#' @return (listOrNULL) list with objects of PairwiseAlignmentsSingleSubject
+#' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' rveReadsType(aln)
+setGeneric("rveReadsType", function(x) standardGeneric("rveReadsType"))
+#' @aliases rveReadsType,AlignmentsExperimentSet-method
+#' @rdname AlignmentsExperimentSet-class
+setMethod("rveReadsType", "AlignmentsExperimentSet", function(x) x@rveReadsType)
+
+
+#' Read type for reverse reads.
+#'
+#' Set read type for reverse reads.
+#' @name rveReadsType<-
+#' @keywords internal
+#' @param x (AlignmentsExperimentSet)
+#' @param value (list) Named (experiment IDs) list with elements of
+#' @return (AlignmentsExperimentSet)
+#' \code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}} class.
+#' @export
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#' aln <- readRDS(file_path)
+#' rveReadsType(aln) <- rveReadsType(aln) # replace with the same values
+setGeneric("rveReadsType<-", function(x, value) {
+  standardGeneric("rveReadsType<-")
+})
+#' @aliases rveReadsType<-,AlignmentsExperimentSet-method
+#' @rdname AlignmentsExperimentSet-class
+setMethod("rveReadsType<-", "AlignmentsExperimentSet", function(x, value) {
+  initialize(x, rveReadsType = value)
 })
 
 
@@ -509,9 +606,11 @@ setMethod("names", "AlignmentsExperimentSet", function(x) {
 #' @aliases c,AlignmentsExperimentSet-method
 setMethod("c", "AlignmentsExperimentSet", function(x, ...) {
   args <- if (missing(x)) list(...) else (list(x, ...))
-  methods::new("AlignmentsExperimentSet",
+  aln <- methods::new("AlignmentsExperimentSet",
                fwdReads = do.call(c, lapply(args, fwdReads)),
                rveReads = do.call(c, lapply(args, rveReads)),
+               fwdReadsType = do.call(c, lapply(args, fwdReadsType)),
+               rveReadsType = do.call(c, lapply(args, rveReadsType)),
                readCounts = do.call(c, lapply(args, readCounts)),
                unassignedData = Reduce(rbind, lapply(args, unassignedData)),
                experimentData = Reduce(rbind, lapply(args, experimentData)),
@@ -526,6 +625,8 @@ init <- function(x, i) {
   initialize(x,
              fwdReads = fwdReads(x)[i],
              rveReads = rveReads(x)[i],
+             fwdReadsType = fwdReadsType(x)[i],
+             rveReadsType = rveReadsType(x)[i],
              readCounts = readCounts(x)[i],
              experimentData = experimentData(x)[i, ],
              barcodeData = NULL,
@@ -627,7 +728,8 @@ setMethod("writeAlignments", "AlignmentsExperimentSet", function(
           rbind(paste(">Forward read ID:", ID,
                       "read_id:",
                       format(seq_len(length(fwdReads(x)[[ID]]))),
-                      "Count:", format(counts)),
+                      "Count:", format(counts),
+                      "Type:", format(fwdReadsType(x)[[ID]])),
                 as.character(Biostrings::pattern(fwdReads(x)[[ID]])),
                 paste(">Forward amplicon ID:", ID,
                       "read_id:",
@@ -638,7 +740,8 @@ setMethod("writeAlignments", "AlignmentsExperimentSet", function(
           rbind(paste(">Reverse read ID:", ID,
                       "read_id:",
                       format(seq_len(length(rveReads(x)[[ID]]))),
-                      "Count:", format(counts)),
+                      "Count:", format(counts),
+                      "Type:", format(rveReadsType(x)[[ID]])),
                 as.character(Biostrings::pattern(rveReads(x)[[ID]])),
                 paste(">Reverse amplicon ID:", ID,
                       "read_id:",
@@ -718,6 +821,11 @@ getEventInfoObj <- function(object) {
   tempGR <- c(getEventInfo(fwdReads(object)[[ID]], ID, fwdPrPos, "+"),
               getEventInfo(rveReads(object)[[ID]], ID, fwdPrPos, "-"))
   tempGR$counts <- readCounts(object)[[ID]][as.integer(tempGR$read_id)]
+  tempGR$readType <- FALSE
+  tempGR$readType[tempGR$strand == "+"] <- fwdReadsType(object)[[ID]][
+    as.integer(tempGR$read_id)[tempGR$strand == "+"]]
+  tempGR$readType[tempGR$strand == "-"] <- rveReadsType(object)[[ID]][
+    as.integer(tempGR$read_id)[tempGR$strand == "-"]]
   tempGR
 }
 #' Extract AlignmentsExperimentSet events into data.frame.

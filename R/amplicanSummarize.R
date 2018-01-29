@@ -166,6 +166,157 @@ amplicanOverlap <- function(aln, cfgT, cut_buffer = 5, relative = FALSE) {
 }
 
 
+#' Realign reads to the donor template, report those read ids that have better
+#' score against the donor template and are perfect alignments in regions of the
+#' donor template differences toward amplicon sequence.
+#'
+#' @param reads (PairwiseAlignmentsSingleSubject)
+#' @param donor (character)
+#' @param hdr_events (IRanges) events from alignment amplican to donor without
+#' shifting and flipping
+#' @param scoring_matrix Use the same as in amplicanPipeline.
+#' @param gapOpening (numeric)
+#' @param gapExtension (numeric)
+#' @param type (character) Same as in pairwiseAlignment.
+#' @return (numeric) Read ids from reads that are HDR.
+#'
+hdr_read_ids <- function(reads, donor, hdr_events, scoring_matrix,
+                         gapOpening = 25, gapExtension = 0, type = "overlap") {
+  alignD <- Biostrings::pairwiseAlignment(
+    DNAStringSet(gsub("-", "", pattern(reads))),
+    DNAStringSet(toupper(donor)),
+    substitutionMatrix = scoring_matrix,
+    type = type, gapOpening = gapOpening, gapExtension = gapExtension)
+  better_scores <- score(alignD) > score(reads)
+  if (sum(better_scores) == 0) return(c())
+  # comparison <- compareStrings(pattern(alignD[better_scores]),
+  #                              subject(alignD[better_scores]))
+  # comparison <- IRanges::RleList(strsplit(comparison, split = ""))
+  # comparison <- IRanges::IRangesList(comparison %in% c("?", "+", "-"))
+  # comparison <- IRanges::shift(
+  #   comparison, start(subject(alignD[better_scores])) - 1)
+  #
+  # pure_hdr <- !as.logical(sum(IRanges::overlapsAny(
+  #   comparison,
+  #   IRanges::IRangesList(rep(list(hdr_events), length(comparison))),
+  #   type = "any")))
+
+  seq_len(length(reads))[better_scores]#[pure_hdr]
+}
+
+#' Find events that are correct HDR reads.
+#'
+#' Before using this function make sure events are filtered to represent
+#' consensus with \code{amplicanConsensus}, if you use both forward and
+#' reverse reads. If you want to calculate metrics over expected cut site,
+#' filter events using \code{amplicanOverlap}.
+#'
+#' Takes donor sequences, aligns them against amplicons to determine expected
+#' HDR events. Next searches for those events in aln data.frame and returns
+#' T/F vector corresponding to every input event.
+#'
+#' @param aln (data.frame) Contains events from the alignments. Events have to
+#' be filtered, shifted and normalized already.
+#' @param aeSet (AlignmentExperimentSet) Contains whole alignments. Load with
+#' readRDS().
+#' @param cfgT (data.frame) Config file with the experiments details.
+#' @param donors (character vector) Vector of donor templates, where sequences
+#' correspond to the experiments from the cfgt$ID column.
+#' @param scoring_matrix Use the same as in amplicanPipeline.
+#' @param gapOpening (numeric)
+#' @param gapExtension (numeric)
+#' @param type (character) Same as in pairwiseAlignment.
+#' @return (data.frame) As cfgT, but with extra columns.
+#' @export
+#' @family analysis steps
+#' @include helpers_general.R
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "events_filtered_shifted_normalized.csv",
+#'                          package = "amplican")
+#' aln <- data.table::fread(file_path)
+#' aeSet <- readRDS(system.file("extdata", "results", "alignments",
+#'                              "AlignmentsExperimentSet.rds",
+#'                              package = "amplican"))
+#' cfgT <- data.table::fread(
+#'   system.file("extdata", "results", "config_summary.csv",
+#'               package = "amplican"))
+#' !all(amplicanHDR(aln, aeSet, cfgT, cfgT$Amplicon))
+#' # HDR will be zero as donors are exact amplicons and there is no events that
+#' # comply
+#'
+#cfgT <- this_r
+#donors <- donor$donor
+amplicanHDR <- function(
+  aln, aeSet, cfgT, donors,
+  scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
+    match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
+  gapOpening = 25, gapExtension = 0, type = "overlap") {
+
+  colnames(cfgT) <- c("ID", "Barcode", "Forward_Reads_File",
+                      "Reverse_Reads_File", "Group", "guideRNA", "Found_Guide",
+                      "Control", "Forward_Primer", "Reverse_Primer", "Direction",
+                      "Amplicon", "Donor",
+                      if (dim(cfgT)[2] > 13) colnames(cfgT)[14:dim(cfgT)[2]])
+  seqnames <- read_id <- counts <- start <- end <- score <- NULL
+
+  align <- Biostrings::pairwiseAlignment(
+    DNAStringSet(toupper(donors)),
+    DNAStringSet(toupper(cfgT$Amplicon)),
+    substitutionMatrix = scoring_matrix,
+    type = "overlap", gapOpening = 25, gapExtension = 0)
+  pat <- pattern(align)
+  subj <-  subject(align)
+  scores <- score(align)
+
+  hdr <- c()
+  for (i in seq_len(nrow(cfgT))) {
+    # extract events we want to find to quantify read as fully HDR
+    this_id <- amplican::getEvents(pat[i], subj[i], scores = scores[i],
+                                   ID = cfgT$ID[i], strand_info = "+",
+                                   ampl_start = start(subj)[i])
+    names(this_id) <- NULL
+    hdr <- c(hdr, this_id)
+  }
+  hdr <- unlist(GenomicRanges::GRangesList(hdr), use.names = FALSE)
+  names(hdr) <- NULL
+  hdr <- as.data.frame(hdr)
+  data.table::setDF(cfgT)
+  hdr_nf <- flipRanges(hdr, cfgT)
+  hdr_nf <- data.frame(amplicanMap(hdr_nf, cfgT), stringsAsFactors = FALSE)
+  data.table::setDT(hdr_nf)
+
+  # align to the donor
+  HDR <- rep(FALSE, nrow(aln))
+
+  for (i in seq_len(nrow(cfgT))) {
+
+    whichI <- which(names(aeSet) == cfgT$ID[i])
+    this_hdr <- hdr[hdr$seqnames == cfgT$ID[i], ]
+    this_hdr <- IRanges::IRanges(this_hdr$start, this_hdr$end)
+
+    hdr_ids_fwd <- hdr_read_ids(
+      fwdReads(aeSet[whichI])[[1]], donors[i], this_hdr,
+      scoring_matrix = scoring_matrix,
+      gapOpening = gapOpening,
+      gapExtension = gapExtension,
+      type = type)
+    HDR[aln$seqnames == cfgT$ID[i] &
+          aln$read_id %in% hdr_ids_fwd & aln$strand == "-"] <- TRUE
+
+    hdr_ids_rve <- hdr_read_ids(
+      rveReads(aeSet[whichI])[[1]], donors[i], this_hdr,
+      scoring_matrix = scoring_matrix,
+      gapOpening = gapOpening,
+      gapExtension = gapExtension,
+      type = type)
+    HDR[aln$seqnames == cfgT$ID[i] &
+          aln$read_id %in% hdr_ids_rve & aln$strand == "-"] <- TRUE
+  }
+  HDR
+}
+
+
 #' Summarize how many reads have frameshift and how many reads have deletions.
 #'
 #' Before using this function make sure events are filtered to represent
@@ -235,6 +386,55 @@ amplicanSummarize <- function(aln, cfgT) {
   widthT_final <- aln_noD[, list(counts = sum(counts)), by = seqnames]
   map <- match(widthT_final$seqnames, cfgT$ID)
   cfgT$Reads_In[map] <- widthT_final$counts
+
+  cfgT
+}
+
+
+#' Summarize how many reads comes from HDR.
+#'
+#' Before using this function make sure events are filtered to represent
+#' consensus with \code{amplicanConsensus}, if you use both forward and
+#' reverse reads. If you want to calculate metrics over expected cut site,
+#' filter events using \code{amplicanOverlap}.
+#'
+#' Adds columns to cfgT:
+#' \itemize{
+#' \item{HDR}{ Count of reads with HDR events}
+#' }
+#' @param aln (data.frame) Contains events from the alignments.
+#' @param cfgT (data.frame) Config file with the experiments details.
+#' @param HDR (character) Name of the column from aln that contains HDR
+#' information.
+#' @return (data.frame) As cfgT, but with extra columns.
+#' @export
+#' @family analysis steps
+#' @include helpers_general.R
+#' @examples
+#' file_path <- system.file("extdata", "results", "alignments",
+#'                          "events_filtered_shifted_normalized.csv",
+#'                          package = "amplican")
+#' aln <- data.table::fread(file_path)
+#' aeSet <- readRDS(system.file("extdata", "results", "alignments",
+#'                              "AlignmentsExperimentSet.rds",
+#'                              package = "amplican"))
+#' cfgT <- data.table::fread(
+#'   system.file("extdata", "results", "config_summary.csv",
+#'               package = "amplican"))
+#' # check which events come from HDR, in the example amplicons are donor
+#' # templates so we expect no events
+#' aln$HDR <- amplicanHDR(aln, aeSet, cfgT, cfgT$Amplicon)
+#' # finally calculate HDR counts per experiment
+#' amplicanSummarizeHDR(aln, cfgT)
+#'
+amplicanSummarizeHDR <- function(aln, cfgT, HDR = "HDR") {
+
+  seqnames <- read_id <- counts <- NULL
+  cfgT$HDR <- 0
+  aln_noD <- unique(aln[aln$`HDR`, ], by = c("seqnames", "read_id"))
+  widthT_final <- aln_noD[, list(counts = sum(counts)), by = seqnames]
+  map <- match(widthT_final$seqnames, cfgT$ID)
+  cfgT$HDR[map] <- widthT_final$counts
 
   cfgT
 }

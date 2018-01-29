@@ -9,6 +9,10 @@
 \alias{fwdReads<-,AlignmentsExperimentSet-method}
 \alias{rveReads,AlignmentsExperimentSet-method}
 \alias{rveReads<-,AlignmentsExperimentSet-method}
+\alias{fwdReadsType,AlignmentsExperimentSet-method}
+\alias{fwdReadsType<-,AlignmentsExperimentSet-method}
+\alias{rveReadsType,AlignmentsExperimentSet-method}
+\alias{rveReadsType<-,AlignmentsExperimentSet-method}
 \alias{unassignedData,AlignmentsExperimentSet-method}
 \alias{unassignedData<-,AlignmentsExperimentSet-method}
 \alias{readCounts,AlignmentsExperimentSet-method}
@@ -40,6 +44,14 @@ AlignmentsExperimentSet(...)
 \S4method{rveReads}{AlignmentsExperimentSet}(x)
 
 \S4method{rveReads}{AlignmentsExperimentSet}(x) <- value
+
+\S4method{fwdReadsType}{AlignmentsExperimentSet}(x)
+
+\S4method{fwdReadsType}{AlignmentsExperimentSet}(x) <- value
+
+\S4method{rveReadsType}{AlignmentsExperimentSet}(x)
+
+\S4method{rveReadsType}{AlignmentsExperimentSet}(x) <- value
 
 \S4method{unassignedData}{AlignmentsExperimentSet}(x)
 
@@ -122,6 +134,10 @@ many experiments. Allows to examine alignments in great detail.
 \code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}}. Names correspond
 to the experiment ID. Contains alignments of reads against amplicons.}
 
+\item{\code{fwdReadsType,rveReadsType}}{(list) Named list where each element is of
+logical vector, so far TRUE corresponds to HDR events. Names correspond
+to the experiment ID. Contains type of read - HDR/NHEJ.}
+
 \item{\code{readCounts}}{(list) Named list where each element is numeric vector that
 describes how many reads are compressed into unique representation
 before alignment in \code{fwdReads} and/or \code{rveReads}.}
@@ -161,6 +177,8 @@ exampleAlignments <- Biostrings::pairwiseAlignment(
 new("AlignmentsExperimentSet",
      fwdReads = list(ID_1 = exampleAlignments, ID_2 = exampleAlignments),
      rveReads = list(ID_1 = exampleAlignments, ID_2 = exampleAlignments),
+     fwdReadsType = list(ID_1 = c(FALSE, FALSE), ID_2 = c(FALSE, FALSE)),
+     rveReadsType = list(ID_1 = c(FALSE, FALSE), ID_2 = c(FALSE, FALSE)),
      readCounts = list(ID_1 = c(2, 20), ID_2 = c(30, 100)),
      unassignedData = NULL,
      experimentData = data.frame(ID = c("ID_1", "ID_2"),
