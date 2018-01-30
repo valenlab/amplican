@@ -92,6 +92,12 @@
 #' during primer matching of the reads, that groups reads by experiments.
 #' When \code{primer_mismatch = 0} no mismatches are allowed, which can increase
 #' number of unasssigned read.
+#' @param donor_mismatch (numeric) How many events of length 1 (mismatches,
+#' deletions and insertions of length 1) are allowed when aligning toward the
+#' donor template. This parameter is only used when donor template is specified.
+#' The higher the parameter the less strict will be algorithm accepting read as
+#' HDR. Set to 0 if only perfect alignments to the donor template marked as HDR,
+#' unadvised due to error rate of the sequencers.
 #' @param PRIMER_DIMER (numeric) Value specifying buffer for PRIMER DIMER
 #' detection. For a given read it will be recognized as PRIMER DIMER when
 #' alignment will introduce gap of size bigger than: \cr
@@ -143,6 +149,7 @@
 # primer_mismatch = 0
 # promiscuous_consensus = TRUE
 # normalize = c("guideRNA", "Group")
+# donor_mismatch = 3
 amplicanPipeline <- function(
   config, fastq_folder, results_folder, knit_reports = TRUE,
   write_alignments_format = "txt", average_quality = 30,
@@ -150,7 +157,8 @@ amplicanPipeline <- function(
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
     match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
   gap_opening = 25, gap_extension = 0, fastqfiles = 0.5,
-  primer_mismatch = 0, PRIMER_DIMER = 30, event_filter = TRUE, cut_buffer = 5,
+  primer_mismatch = 0, donor_mismatch = 3, PRIMER_DIMER = 30,
+  event_filter = TRUE, cut_buffer = 5,
   promiscuous_consensus = TRUE, normalize = c("guideRNA", "Group")) {
 
   message("Checking write access...")
@@ -165,7 +173,8 @@ amplicanPipeline <- function(
                        gap_extension = gap_extension,
                        min_quality = min_quality,
                        fastqfiles = fastqfiles,
-                       primer_mismatch = primer_mismatch)
+                       primer_mismatch = primer_mismatch,
+                       donor_mismatch = donor_mismatch)
   message("Saving alignments...")
 
   resultsFolder <- file.path(results_folder, "alignments")

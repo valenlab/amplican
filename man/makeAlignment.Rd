@@ -5,7 +5,7 @@
 \title{Make alignments helper.}
 \usage{
 makeAlignment(cfgT, average_quality, min_quality, scoring_matrix, gap_opening,
-  gap_extension, fastqfiles, primer_mismatch)
+  gap_extension, fastqfiles, primer_mismatch, donor_mismatch)
 }
 \arguments{
 \item{cfgT}{config file as data table}
@@ -45,6 +45,13 @@ the reverse file. Possible options:
 during primer matching of the reads, that groups reads by experiments.
 When \code{primer_mismatch = 0} no mismatches are allowed, which can increase
 number of unasssigned read.}
+
+\item{donor_mismatch}{(numeric) How many events of length 1 (mismatches,
+deletions and insertions of length 1) are allowed when aligning toward the
+donor template. This parameter is only used when donor template is specified.
+The higher the parameter the less strict will be algorithm accepting read as
+HDR. Set to 0 if only perfect alignments to the donor template marked as HDR,
+unadvised due to error rate of the sequencers.}
 }
 \value{
 amplicanAlignment object for this barcode experiments

@@ -41,7 +41,72 @@ locate_pr_start <- function(reads, primer, m = 0) {
   reads <- matrixStats::rowMaxs(primer, na.rm = TRUE)
   reads[!is.finite(reads)] <- NA
   reads
- }
+}
+
+
+is_hdr <- function(reads, scores, amplicon, donor, type = "overlap",
+                   scoring_matrix, gapOpening = 25, gapExtension = 0,
+                   donor_mismatch = 3) {
+
+  align <- Biostrings::pairwiseAlignment(
+    DNAStringSet(toupper(donor)), DNAStringSet(toupper(amplicon)),
+    substitutionMatrix = scoring_matrix, type = type,
+    gapOpening = gapOpening, gapExtension = gapExtension)
+  pat <- pattern(align)
+  subj <-  subject(align)
+  # extract events we want to find to quantify read as fully HDR
+  hdr_events <- amplican::getEvents(pat, subj, scores = score(align),
+                                 ID = "HDR", strand_info = "+",
+                                 ampl_start = start(subj))
+  names(hdr_events) <- NULL
+  hdr_events <- IRanges::ranges(hdr_events)
+
+  # now align reads to donor
+  alignD <- Biostrings::pairwiseAlignment(reads,
+    DNAStringSet(toupper(donor)),
+    type = type, substitutionMatrix = scoring_matrix,
+    gapOpening = gapOpening, gapExtension = gapExtension)
+  better_scores <- score(alignD) >= scores
+  is_hdr <- rep(FALSE, length(reads))
+  if (sum(better_scores) == 0) return(is_hdr)
+  comparison <- compareStrings(pattern(alignD[better_scores]),
+                               subject(alignD[better_scores]))
+  comparison <- IRanges::RleList(strsplit(comparison, split = ""))
+
+  mm <- IRanges::IRangesList(comparison == "?") # need to tile
+  reads_ids <- seq_along(comparison)
+  names(mm) <- reads_ids
+  mm <- unlist(mm, use.names = TRUE)
+  mm_l <- mm[IRanges::width(mm) > 1]
+  mm <- mm[IRanges::width(mm) == 1]
+  mm_ln <- names(mm_l)
+  mm_l <- IRanges::tile(mm_l, width = 1L)
+  names(mm_l) <- mm_ln
+  mm_l <- unlist(mm_l, use.names = TRUE)
+  mm <- c(mm, mm_l)
+
+  comparison <- IRanges::IRangesList(comparison %in% c("+", "-"))
+  names(comparison) <- seq_along(comparison)
+  comparison <- unlist(comparison, use.names = TRUE)
+  comparison <- c(comparison, mm)
+
+  shft <- start(subject(alignD[better_scores]))[as.numeric(names(comparison))]
+  comparison <- IRanges::shift(comparison,  shft - 1)
+  overlaps_hdr <- IRanges::overlapsAny(comparison, hdr_events, type = "any")
+
+  # tolerate some noise level
+  # no events + events not overlapping hdr + allow n events of length 1 in those
+  # overlapping
+  overlaps_e <- comparison[overlaps_hdr]
+  overlaps_e <- IRanges::IRangesList(split(overlaps_e, names(overlaps_e)))
+  ok_hdr <- c(
+    reads_ids[!reads_ids %in% as.integer(names(comparison))],
+    as.integer(names(comparison[!overlaps_hdr])),
+    as.integer(names(sum(IRanges::width(overlaps_e) == 1) <= donor_mismatch)))
+
+  is_hdr[better_scores][ok_hdr] <- TRUE
+  is_hdr
+}
 
 
 #' Make alignments helper.
@@ -61,7 +126,8 @@ makeAlignment <- function(cfgT,
                           gap_opening,
                           gap_extension,
                           fastqfiles,
-                          primer_mismatch) {
+                          primer_mismatch,
+                          donor_mismatch) {
 
   barcode <- cfgT$Barcode[1]
   message("Aligning reads for ", barcode)
@@ -164,55 +230,45 @@ makeAlignment <- function(cfgT,
       # when calling events into GRanges shift_ampl is used to adapt for
       # subtractions happening here
       if (fastqfiles != 2) {
+        rF <- Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[, "Forward"]),
+                                 start = IDunqT$fwdPrInReadPos)
         fwdA[[cfgT$ID[i]]] <-
           Biostrings::pairwiseAlignment(
-            Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[, "Forward"]),
-                               start = IDunqT$fwdPrInReadPos),
+            rF,
             Biostrings::subseq(amplicon,
                                start = cfgT$fwdPrPos[i],
                                end = cfgT$rvePrPosEnd[i]),
-            type = "overlap",
-            substitutionMatrix =  scoring_matrix,
-            gapOpening = gap_opening,
-            gapExtension = gap_extension)
+            type = "overlap", substitutionMatrix =  scoring_matrix,
+            gapOpening = gap_opening, gapExtension = gap_extension)
         if (donor != "") {
-          donorA <-
-            Biostrings::pairwiseAlignment(
-              Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[, "Forward"]),
-                                 start = IDunqT$fwdPrInReadPos),
-              Biostrings::DNAString(donor),
-              type = "overlap",
-              substitutionMatrix =  scoring_matrix,
-              gapOpening = gap_opening,
-              gapExtension = gap_extension)
-          fwdAType[[cfgT$ID[i]]] <- score(donorA) >= score(fwdA[[cfgT$ID[i]]])
+          fwdAType[[cfgT$ID[i]]] <- is_hdr(
+            rF, score(fwdA[[cfgT$ID[i]]]),
+            amplicon, donor,
+            type = "overlap", scoring_matrix =  scoring_matrix,
+            gapOpening = gap_opening, gapExtension = gap_extension,
+            donor_mismatch = donor_mismatch)
         }
       }
 
       if (fastqfiles != 1) {
+        rR <- Biostrings::reverseComplement(
+          Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[, "Reverse"]),
+                             start = IDunqT$rvePrInReadPos))
         rveA[[cfgT$ID[i]]] <- Biostrings::pairwiseAlignment(
-          Biostrings::reverseComplement(
-            Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[, "Reverse"]),
-                               start = IDunqT$rvePrInReadPos)),
+          rR,
           Biostrings::subseq(amplicon,
                              start = cfgT$fwdPrPos[i],
                              end = cfgT$rvePrPosEnd[i]),
-          type = "overlap",
-          substitutionMatrix =  scoring_matrix,
-          gapOpening = gap_opening,
-          gapExtension = gap_extension)
+          type = "overlap", substitutionMatrix =  scoring_matrix,
+          gapOpening = gap_opening, gapExtension = gap_extension)
 
         if (donor != "") {
-          donorA <- Biostrings::pairwiseAlignment(
-            Biostrings::reverseComplement(
-              Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[, "Reverse"]),
-                                 start = IDunqT$rvePrInReadPos)),
-            Biostrings::DNAString(donor),
-            type = "overlap",
-            substitutionMatrix =  scoring_matrix,
-            gapOpening = gap_opening,
-            gapExtension = gap_extension)
-          rveAType[[cfgT$ID[i]]] <- score(donorA) >= score(rveA[[cfgT$ID[i]]])
+          rveAType[[cfgT$ID[i]]] <- is_hdr(
+            rR, score(rveA[[cfgT$ID[i]]]),
+            amplicon, donor,
+            type = "overlap", scoring_matrix =  scoring_matrix,
+            gapOpening = gap_opening, gapExtension = gap_extension,
+            donor_mismatch = donor_mismatch)
         }
       }
       countsA[[cfgT$ID[i]]] <- IDunqT$Total

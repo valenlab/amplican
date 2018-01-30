@@ -822,12 +822,20 @@ getEventInfoObj <- function(object) {
               getEventInfo(rveReads(object)[[ID]], ID, fwdPrPos, "-"))
   tempGR$counts <- readCounts(object)[[ID]][as.integer(tempGR$read_id)]
   tempGR$readType <- FALSE
-  tempGR$readType[as.vector(strand(tempGR) == "+")] <-
-    fwdReadsType(object)[[ID]][as.integer(tempGR$read_id)[
-      as.vector(strand(tempGR) == "+")]]
-  tempGR$readType[as.vector(strand(tempGR) == "-")] <-
-    rveReadsType(object)[[ID]][as.integer(tempGR$read_id)[
-      as.vector(strand(tempGR) == "-")]]
+
+  plus_strand <- as.vector(strand(tempGR) == "+")
+  fwd_ids <- as.integer(tempGR$read_id)[plus_strand]
+  fRT <- fwdReadsType(object)[[ID]]
+  if (!is.null(fRT) & sum(plus_strand) > 0 & length(fwd_ids) > 0) {
+    tempGR$readType[plus_strand] <- fRT[fwd_ids]
+  }
+
+  minus_strand <- as.vector(strand(tempGR) == "-")
+  rve_ids <- as.integer(tempGR$read_id)[minus_strand]
+  rRT <- rveReadsType(object)[[ID]]
+  if (!is.null(rRT) & sum(minus_strand) > 0 & length(rve_ids) > 0) {
+    tempGR$readType[minus_strand] <- rRT[rve_ids]
+  }
   tempGR
 }
 #' Extract AlignmentsExperimentSet events into data.frame.

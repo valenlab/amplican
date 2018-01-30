@@ -6,3 +6,4 @@ TODO
     o figure out loading SAM file from normal CIGARS not only extended
     o support SAM files chimeric alignments
     o improvement, detecting mismatches and shifting indels if they happen to be on the left
+    o adjust event filter for HDR reads, so that even in HDR experiments we can detect off-targets

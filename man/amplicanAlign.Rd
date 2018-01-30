@@ -8,7 +8,8 @@ amplicanAlign(config, fastq_folder, use_parallel = FALSE,
   average_quality = 30, min_quality = 20,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5,
   mismatch = -4, baseOnly = TRUE, type = "DNA"), gap_opening = 25,
-  gap_extension = 0, fastqfiles = 0.5, primer_mismatch = 0)
+  gap_extension = 0, fastqfiles = 0.5, primer_mismatch = 0,
+  donor_mismatch = 3)
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
@@ -57,6 +58,13 @@ the reverse file. Possible options:
 during primer matching of the reads, that groups reads by experiments.
 When \code{primer_mismatch = 0} no mismatches are allowed, which can increase
 number of unasssigned read.}
+
+\item{donor_mismatch}{(numeric) How many events of length 1 (mismatches,
+deletions and insertions of length 1) are allowed when aligning toward the
+donor template. This parameter is only used when donor template is specified.
+The higher the parameter the less strict will be algorithm accepting read as
+HDR. Set to 0 if only perfect alignments to the donor template marked as HDR,
+unadvised due to error rate of the sequencers.}
 }
 \value{
 (AlignmentsExperimentSet) Check \code{\link{AlignmentsExperimentSet}}

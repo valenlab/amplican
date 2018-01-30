@@ -57,6 +57,7 @@ performed experiment, on later stage it is possible to generate report with brea
  - **Forward_Primer**, **Reverse_Primer** - make sure these primers are correct for each of your IDs, **Forward_Primer** should be found in the amplicon as is, on the left side of the guide, **Reverse_Primer** reverse complement should be found on the amplicon on the right side of the guide  
  - **Direction** - here "0" means guide does not requires to be reverse complemented to be matched to the amplicon, "1" means it should be reverse complemented, this field is also used when plotting deletions, mismatches and insertions  
  - **Amplicon** - insert amplicon sequence as lower case letters, by putting UPPER CASE letters you can specify expected cut site, you should specify at least one cut site, here for example we specify in uppercase letter PAM sequence of the corresponding guideRNA  
+ - **Donor** - insert donor template if you have designed HDR experiments, otherwise leave empty, but keep the column. `amplican` will estimate HDR efficiency based on the events from aligning donor and amplicon sequences, donor and reads and reads and amplicon.  
 
 If you have only forward primers leave column **Reverse_Primer** empty, leave empty also the **Reverse_Reads** column. You can still use amplican like normal.  
 
