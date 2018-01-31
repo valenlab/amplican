@@ -821,7 +821,7 @@ getEventInfoObj <- function(object) {
   tempGR <- c(getEventInfo(fwdReads(object)[[ID]], ID, fwdPrPos, "+"),
               getEventInfo(rveReads(object)[[ID]], ID, fwdPrPos, "-"))
   tempGR$counts <- readCounts(object)[[ID]][as.integer(tempGR$read_id)]
-  tempGR$readType <- FALSE
+  if (length(tempGR) > 0) tempGR$readType <- FALSE
 
   plus_strand <- as.vector(strand(tempGR) == "+")
   fwd_ids <- as.integer(tempGR$read_id)[plus_strand]
