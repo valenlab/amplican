@@ -354,7 +354,12 @@ getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
     ampl_start = ampl_start, strand_info = strand_info)
 
   # artificial deletions indicating end of reads
-  c(ranges, defGR(sizes, ID, scores[!s_err], strand_info))
+  scores <- scores[!s_err]
+  if (!S4Vectors::isEmpty(sizes)) {
+    ranges <- c(
+      ranges, defGR(sizes[ampl_len > 0], ID, scores[ampl_len > 0], strand_info))
+  }
+  return(ranges)
 }
 
 

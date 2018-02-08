@@ -38,7 +38,11 @@ locate_pr_start <- function(reads, primer, m = 0) {
   primer <- sapply(primer, function(pr) {
     stringr::str_locate(reads, pr)[, 1]
   }, simplify = TRUE, USE.NAMES = FALSE)
-  reads <- matrixStats::rowMaxs(primer, na.rm = TRUE)
+  reads <- if (!is.null(dim(primer))) {
+    matrixStats::rowMaxs(primer, na.rm = TRUE)
+  } else {
+    suppressWarnings(max(primer, na.rm = TRUE))
+  }
   reads[!is.finite(reads)] <- NA
   reads
 }
@@ -174,6 +178,20 @@ makeAlignment <- function(cfgT,
     if (fastqfiles == 1) "" else as.character(ShortRead::sread(rveT)))
   colnames(unqT) <- c("Forward", "Reverse")
   unqT$Total <- paste0(unqT$Forward, unqT$Reverse)
+  if (dim(unqT)[1] == 0) {
+    barcodeTable$unique_reads <- 0
+    barcodeTable$unassigned_reads <- 0
+    barcodeTable$assigned_reads <- 0
+    return(methods::new("AlignmentsExperimentSet",
+                        fwdReads = fwdA,
+                        rveReads = rveA,
+                        fwdReadsType = fwdAType,
+                        rveReadsType = rveAType,
+                        readCounts = countsA,
+                        unassignedData = NULL,
+                        experimentData = cfgT,
+                        barcodeData = barcodeTable))
+  }
   unqT <- stats::aggregate(Total ~ Forward + Reverse, unqT, length)
   unqT$BarcodeFrequency <- unqT$Total / sum(unqT$Total)
   unqT <- unqT[order(unqT$Forward, unqT$Reverse), ]

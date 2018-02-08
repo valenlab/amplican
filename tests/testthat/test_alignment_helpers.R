@@ -22,7 +22,7 @@ test_that("getEventInfo returns correct GRanges", {
   events <- Biostrings::pairwiseAlignment(Biostrings::DNAString("ACTG"),
                                           Biostrings::DNAString("ACTG"),
                                           type = "global")
-  expect_identical(getEventInfo(events, "test", 1, 4), GenomicRanges::GRanges())
+  expect_identical(getEventInfo(events, "test", 1), GenomicRanges::GRanges())
 
   # simple deletion
   events <- Biostrings::pairwiseAlignment(Biostrings::DNAString("ACTAGT"),
