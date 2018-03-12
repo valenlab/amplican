@@ -43,11 +43,13 @@ Consensus out of the forward + reverse reads is required for
 \code{amplicanOverlap}.
 }
 \examples{
+\dontrun{
 file_path <- system.file("test_data", "test_aln.csv", package = "amplican")
 aln <- data.table::fread(file_path)
 cfgT <- data.table::fread(
   system.file("test_data", "test_cfg.csv", package = "amplican"))
 all(aln$consensus == amplicanConsensus(aln, cfgT))
+}
 
 }
 \seealso{

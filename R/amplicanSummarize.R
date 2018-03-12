@@ -31,11 +31,13 @@
 #' @include helpers_general.R
 #' @family analysis steps
 #' @examples
-#' # file_path <- system.file("test_data", "test_aln.csv", package = "amplican")
-#' # aln <- data.table::fread(file_path)
-#' # cfgT <- data.table::fread(
-#' #   system.file("test_data", "test_cfg.csv", package = "amplican"))
-#' # all(aln$consensus == amplicanConsensus(aln, cfgT))
+#' \dontrun{
+#' file_path <- system.file("test_data", "test_aln.csv", package = "amplican")
+#' aln <- data.table::fread(file_path)
+#' cfgT <- data.table::fread(
+#'   system.file("test_data", "test_cfg.csv", package = "amplican"))
+#' all(aln$consensus == amplicanConsensus(aln, cfgT))
+#' }
 #'
 amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
                               promiscuous = TRUE) {
