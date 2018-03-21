@@ -1,3 +1,20 @@
+getHits <- function(aln_fwd, aln_rve) {
+  if (nrow(aln_fwd) == 0 | nrow(aln_rve) == 0) return(S4Vectors::Hits())
+  suppressWarnings(IRanges::findOverlaps(
+    GenomicRanges::GRanges(
+      seqnames = paste0(aln_fwd$seqnames, "_", aln_fwd$read_id),
+      ranges = IRanges::IRanges(start = aln_fwd$start,
+                                end = aln_fwd$end),
+      strand = "*"),
+    GenomicRanges::GRanges(
+      seqnames = paste0(aln_rve$seqnames, "_", aln_rve$read_id),
+      IRanges::IRanges(start = aln_rve$start,
+                       end = aln_rve$end),
+      strand = "*"),
+    type = "any", select = "all"))
+}
+
+
 #' Extract consensus out of forward and reverse events.
 #'
 #' When forward and reverse reads are in agreement on the events (eg. deletion)
@@ -31,13 +48,11 @@
 #' @include helpers_general.R
 #' @family analysis steps
 #' @examples
-#' \dontrun{
 #' file_path <- system.file("test_data", "test_aln.csv", package = "amplican")
 #' aln <- data.table::fread(file_path)
 #' cfgT <- data.table::fread(
 #'   system.file("test_data", "test_cfg.csv", package = "amplican"))
 #' all(aln$consensus == amplicanConsensus(aln, cfgT))
-#' }
 #'
 amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
                               promiscuous = TRUE) {
@@ -75,16 +90,12 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
   aln_rve <- aln_rve[!r_both & aln_rve$`overlaps`]
   # The last two columns should be the interval columns
   # find events that are overlapping each other
-  data.table::setcolorder(aln_fwd, cols_all)
-  data.table::setcolorder(aln_rve, cols_all)
-  data.table::setkeyv(aln_fwd, cols)
-  data.table::setkeyv(aln_rve, cols)
-  oMatch <- data.table::foverlaps(aln_fwd, aln_rve,
-                                  type = "any", which = TRUE,
-                                  mult = "all", nomatch = 0)
-  oScore <- aln_fwd$score[oMatch$xid] >= aln_rve$score[oMatch$yid]
-  oScore_fwd <- unique(oMatch$xid[oScore])
-  oScore_rve <- unique(oMatch$yid[!oScore])
+  oMatch <- getHits(aln_fwd, aln_rve)
+  fi <- S4Vectors::from(oMatch)
+  ri <- S4Vectors::to(oMatch)
+  oScore <- aln_fwd$score[fi] >= aln_rve$score[ri]
+  oScore_fwd <- unique(fi[oScore])
+  oScore_rve <- unique(ri[!oScore])
   consensus[aln_fwd$num[oScore_fwd]] <- TRUE
   consensus[aln_rve$num[oScore_rve]] <- TRUE
   # filter scored events from further calculation
@@ -93,19 +104,10 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
 
   if (!promiscuous) {
     # find events that overlap EOP from other strand and set them to true
-    data.table::setcolorder(eop_fwd, cols_all)
-    data.table::setcolorder(eop_rve, cols_all)
-    data.table::setkeyv(eop_fwd, cols)
-    data.table::setkeyv(eop_rve, cols)
-    oMatch <- data.table::foverlaps(aln_fwd, eop_rve,
-                                    type = "any", which = TRUE,
-                                    mult = "all", nomatch = 0)
-    consensus[aln_fwd$num[unique(oMatch$xid)]] <- TRUE
-    data.table::setkeyv(aln_rve, cols)
-    oMatch <- data.table::foverlaps(aln_rve, eop_fwd,
-                                    type = "any", which = TRUE,
-                                    mult = "all", nomatch = 0)
-    consensus[aln_rve$num[unique(oMatch$xid)]] <- TRUE
+    oMatch <- getHits(aln_fwd, eop_rve)
+    consensus[aln_fwd$num[unique(S4Vectors::from(oMatch))]] <- TRUE
+    oMatch <- getHits(aln_rve, eop_fwd)
+    consensus[aln_rve$num[unique(S4Vectors::from(oMatch))]] <- TRUE
   } else { # not strict
     # all events that are left, don't overlap each other
     consensus[aln_fwd$num] <- TRUE
