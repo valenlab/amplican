@@ -22,7 +22,7 @@ has quality BELLOW \code{min_quality}, then the sequence is filtered.
 Default is 20.}
 
 \item{scoring_matrix}{(matrix) Default is 'NUC44'. Pass desired matrix using
-\code{\link[Biostrings]{nucleotideSubstitutionMatrix}}.}
+\code{\link{nucleotideSubstitutionMatrix}}.}
 
 \item{gap_opening}{(numeric) The opening gap score.}
 

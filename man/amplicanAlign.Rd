@@ -21,7 +21,7 @@ have to follow the example config specification.}
 FASTQ files should be in the same directory as config file.}
 
 \item{use_parallel}{(boolean) Set to TRUE, if you have registered
-multicore back-end with \code{\link[BiocParallel]{register}}.}
+multicore back-end.}
 
 \item{average_quality}{(numeric) The FASTQ file have a quality for each
 nucleotide, depending on sequencing technology there exist many formats.
@@ -35,7 +35,7 @@ has quality BELLOW \code{min_quality}, then the sequence is filtered.
 Default is 20.}
 
 \item{scoring_matrix}{(matrix) Default is 'NUC44'. Pass desired matrix using
-\code{\link[Biostrings]{nucleotideSubstitutionMatrix}}.}
+\code{\link{nucleotideSubstitutionMatrix}}.}
 
 \item{gap_opening}{(numeric) The opening gap score.}
 

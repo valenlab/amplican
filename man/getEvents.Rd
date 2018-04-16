@@ -19,14 +19,14 @@ getEvents(pattern, subject, scores, ID = "NA", ampl_shift = 1L,
 \item{ampl_shift}{(numeric) Possible shift of the amplicons.}
 
 \item{ampl_start}{(numeric) Real amplicon starts.
-Biostrings::pairwiseAlignment clips alignments, therefore to output
+\code{\link{pairwiseAlignment}} clips alignments, therefore to output
 GRanges relative to the amplicon sequence (subject) ranges have to be
 shifted.}
 
 \item{strand_info}{(character) Strands to assign.}
 }
 \value{
-(GRanges) Same as events.
+(\code{\link{GRanges}}) Same as events.
 }
 \description{
 Transforms aligned strings into GRanges representation with

@@ -7,8 +7,8 @@
 findPD(aln, cfgT, PRIMER_DIMER = 30)
 }
 \arguments{
-\item{aln}{(data.frame) Should contain events from alignments in GRanges
-style with columns eg. seqnames, width, start, end.}
+\item{aln}{(data.frame) Should contain events from alignments in
+\code{\link{GRanges}} style with columns eg. seqnames, width, start, end.}
 
 \item{cfgT}{(data.frame) Needs columns Forward_Primer, ReversePrimer and
 Amplicon.}

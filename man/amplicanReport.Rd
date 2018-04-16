@@ -55,6 +55,7 @@ amplicanReport(results_folder, report_files = file.path(results_folder,
                                                           "amplicon_report",
                                                           "index")),
                knit_reports = FALSE)
+
 }
 \seealso{
 Other analysis steps: \code{\link{amplicanAlign}},

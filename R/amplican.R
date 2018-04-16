@@ -39,7 +39,7 @@
 #' reports automatically for you (it is time consuming, be patient), when false
 #' reports will be prepared, but not knitted
 #' @param use_parallel (boolean) Set to TRUE, if you have registered
-#' multicore back-end with \code{\link[BiocParallel]{register}}.
+#' multicore back-end.
 #' @param average_quality (numeric) The FASTQ file have a quality for each
 #' nucleotide, depending on sequencing technology there exist many formats.
 #' This package uses \code{\link[ShortRead]{readFastq}} to parse the reads.
@@ -73,7 +73,7 @@
 #' above formats, pass a vector to get alignments in multiple formats.}
 #' }
 #' @param scoring_matrix (matrix) Default is 'NUC44'. Pass desired matrix using
-#' \code{\link[Biostrings]{nucleotideSubstitutionMatrix}}.
+#' \code{\link{nucleotideSubstitutionMatrix}}.
 #' @param gap_opening (numeric) The opening gap score.
 #' @param gap_extension (numeric) The gap extension score.
 #' @param fastqfiles (numeric) Normally you want to use both FASTQ files. But in

@@ -8,7 +8,7 @@ cigarsToEvents(cigars, aln_pos_start, query_seq, ref, read_id, mapq, seqnames,
   strands, counts)
 }
 \arguments{
-\item{cigars}{(character) Extended CIGARS., , query_seq, ref, read_id, mapq, seqnames, strands}
+\item{cigars}{(character) Extended CIGARS.}
 
 \item{aln_pos_start}{(integer) Pos of CIGARS.}
 
@@ -28,10 +28,9 @@ the reference sequences.}
 \item{counts}{(integer) Vector of cigar counts, if data collapsed.}
 }
 \value{
-(GRanges) Same as events.
+(\code{\link{GRanges}}) Same as events.
 }
 \description{
-Transform extended CIGAR strings into GRanges representation with
-events of deletions, insertions and mismatches. Use with caution as function
-is being tested.
+Transform extended CIGAR strings into \code{\link{GRanges}} representation
+with events of deletions, insertions and mismatches.
 }

@@ -24,7 +24,7 @@ methods::setClassUnion("data.frameOrNULL", members = c("data.frame", "NULL"))
 #' @return depending on the function used
 #'
 #' @slot fwdReads,rveReads (list) Named list where each element is of class
-#' \code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}}. Names correspond
+#' \code{\link{PairwiseAlignmentsSingleSubject}}. Names correspond
 #' to the experiment ID. Contains alignments of reads against amplicons.
 #' @slot fwdReadsType,rveReadsType (list) Named list where each element is of
 #' logical vector, so far TRUE corresponds to HDR events. Names correspond
@@ -224,7 +224,7 @@ setMethod("fwdReads", "AlignmentsExperimentSet", function(x) x@fwdReads)
 #' @param x (AlignmentsExperimentSet)
 #' @param value (list) Named (experiment IDs) list with elements of
 #' @return (AlignmentsExperimentSet)
-#' \code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}} class.
+#' \code{\link{PairwiseAlignmentsSingleSubject}} class.
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
@@ -266,7 +266,7 @@ setMethod("rveReads", "AlignmentsExperimentSet", function(x) x@rveReads)
 #' @param x (AlignmentsExperimentSet)
 #' @param value (list) Named (experiment IDs) list with elements of
 #' @return (AlignmentsExperimentSet)
-#' \code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}} class.
+#' \code{\link{PairwiseAlignmentsSingleSubject}} class.
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
@@ -308,7 +308,7 @@ setMethod("fwdReadsType", "AlignmentsExperimentSet", function(x) x@fwdReadsType)
 #' @param x (AlignmentsExperimentSet)
 #' @param value (list) Named (experiment IDs) list with elements of
 #' @return (AlignmentsExperimentSet)
-#' \code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}} class.
+#' \code{\link{PairwiseAlignmentsSingleSubject}} class.
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
@@ -352,7 +352,7 @@ setMethod("rveReadsType", "AlignmentsExperimentSet", function(x) x@rveReadsType)
 #' @param x (AlignmentsExperimentSet)
 #' @param value (list) Named (experiment IDs) list with elements of
 #' @return (AlignmentsExperimentSet)
-#' \code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}} class.
+#' \code{\link{PairwiseAlignmentsSingleSubject}} class.
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
@@ -398,7 +398,7 @@ setMethod("unassignedData", "AlignmentsExperimentSet", function(x) {
 #' @param x (AlignmentsExperimentSet)
 #' @param value (list) Named (experiment IDs) list with elements of
 #' @return (AlignmentsExperimentSet)
-#' \code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}} class.
+#' \code{\link{PairwiseAlignmentsSingleSubject}} class.
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
@@ -444,7 +444,7 @@ setMethod("readCounts", "AlignmentsExperimentSet", function(x) {
 #' @param x (AlignmentsExperimentSet)
 #' @param value (list) Named (experiment IDs) list with elements of
 #' @return (AlignmentsExperimentSet)
-#' \code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}} class.
+#' \code{\link{PairwiseAlignmentsSingleSubject}} class.
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
@@ -849,7 +849,7 @@ getEventInfoObj <- function(object) {
 #' @param object (AlignmentsExperimentSet)
 #' @param use_parallel (boolean) Set to TRUE, if you have registered
 #' multicore back-end with \code{\link[BiocParallel]{register}}.
-#' @return (data.frame) Compatible with \code{\link[GenomicRanges]{GRanges}}
+#' @return (data.frame) Compatible with \code{\link{GRanges}}
 #' style.
 #' @export
 #' @examples
@@ -863,7 +863,7 @@ setGeneric("extractEvents", function(object, use_parallel = FALSE){
 })
 #' @section Coercion based on events:
 #' Coerce to \code{data.frame} compatible with
-#' \code{\link[GenomicRanges]{GRanges}} .: \cr
+#' \code{\link{GRanges}} .: \cr
 #' as.data.frame(x)
 #' @aliases extractEvents,AlignmentsExperimentSet-method
 #' @rdname AlignmentsExperimentSet-class

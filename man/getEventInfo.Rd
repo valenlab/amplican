@@ -7,7 +7,7 @@
 getEventInfo(align, ID, ampl_shift, strand_info = "+")
 }
 \arguments{
-\item{align}{(PairwiseAlignmentsSingleSubject)}
+\item{align}{(\code{\link{PairwiseAlignmentsSingleSubject}})}
 
 \item{ID}{(string)}
 
@@ -19,7 +19,8 @@ PairwiseAlignmentsSingleSubject returns truncated alignments.}
 \item{ampl_len}{(numeric) Length of the amplicon (subject)}
 }
 \value{
-(GRanges) Object with meta-data for insertion, deletion, mismatch
+(\code{\link{GRanges}}) Object with meta-data for insertion,
+deletion, mismatch
 }
 \description{
 This function takes alignments and gives back the events coordinates.

@@ -7,7 +7,7 @@
 cumsumw(x)
 }
 \arguments{
-\item{x}{(IRanges)}
+\item{x}{(\code{\link{IRanges}})}
 }
 \value{
 (numeric vector)

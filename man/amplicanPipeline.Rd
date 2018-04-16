@@ -67,10 +67,10 @@ has quality BELLOW \code{min_quality}, then the sequence is filtered.
 Default is 20.}
 
 \item{use_parallel}{(boolean) Set to TRUE, if you have registered
-multicore back-end with \code{\link[BiocParallel]{register}}.}
+multicore back-end.}
 
 \item{scoring_matrix}{(matrix) Default is 'NUC44'. Pass desired matrix using
-\code{\link[Biostrings]{nucleotideSubstitutionMatrix}}.}
+\code{\link{nucleotideSubstitutionMatrix}}.}
 
 \item{gap_opening}{(numeric) The opening gap score.}
 

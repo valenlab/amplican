@@ -15,7 +15,7 @@ reutner ranges.}
 \item{strand_info}{(character) Strand to assign.}
 }
 \value{
-(GRanges) Same as events.
+(\code{\link{GRanges}}) Same as events.
 }
 \description{
 Parse EMBOSS needle (or needleall) "pair" format into GRanges representation

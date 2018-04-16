@@ -13,7 +13,7 @@ rveReads(x) <- value
 }
 \value{
 (AlignmentsExperimentSet)
-\code{\link[Biostrings]{PairwiseAlignmentsSingleSubject}} class.
+\code{\link{PairwiseAlignmentsSingleSubject}} class.
 }
 \description{
 Set alignments for forward reads.

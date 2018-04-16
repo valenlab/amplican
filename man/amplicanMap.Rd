@@ -13,11 +13,13 @@ amplicanMap(aln, cfgT)
 \item{cfgT}{(data.frame) config table}
 }
 \value{
-(GRanges) Same as events, but the coordinates are relative to the
+(\code{\link{GRanges}}) Same as events, but the coordinates are
+relative to the expected cut sites.
 }
 \description{
-Translate coordinates of GRanges events so that they can be relative to the
-amplicon. As point zero we assume first left sided UPPER case letter in the
+Translate coordinates of \code{\link{GRanges}} events so that they can be
+relative to the amplicon. As point zero we assume first left sided UPPER case
+letter in the
 amplicon. Be weary that events for amplicons without expected cut sites are
 filtered. Don't use this function, if you don't have expected cut sites
 specified and don't use any of the metaplots.

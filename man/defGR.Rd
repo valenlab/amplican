@@ -8,7 +8,7 @@ defGR(x, ID, score, strand_info = "+", type = "deletion", originally = "",
   replacement = "")
 }
 \arguments{
-\item{x}{(IRanges) names(x) indicating read_id}
+\item{x}{(\code{\link{IRanges}}) names(x) indicating read_id}
 
 \item{ID}{(string)}
 
@@ -23,7 +23,7 @@ defGR(x, ID, score, strand_info = "+", type = "deletion", originally = "",
 \item{replacement}{(string) Base pairs on the read.}
 }
 \value{
-(GRanges) Object with meta-data
+(\code{\link{GRanges}}) Object with meta-data
 }
 \description{
 Helper to construct GRanges with additional metadata columns.

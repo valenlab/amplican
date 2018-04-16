@@ -13,7 +13,7 @@ extractEvents(object, use_parallel = FALSE)
 multicore back-end with \code{\link[BiocParallel]{register}}.}
 }
 \value{
-(data.frame) Compatible with \code{\link[GenomicRanges]{GRanges}}
+(data.frame) Compatible with \code{\link{GRanges}}
 style.
 }
 \description{

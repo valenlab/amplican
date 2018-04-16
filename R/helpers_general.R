@@ -89,14 +89,14 @@ get_right_primer <- function(config, id) {
 #' Helper to construct GRanges with additional metadata columns.
 #'
 #' @keywords internal
-#' @param x (IRanges) names(x) indicating read_id
+#' @param x (\code{\link{IRanges}}) names(x) indicating read_id
 #' @param ID (string)
 #' @param type (string)
 #' @param score (numeric) scores from the alignments
 #' @param strand_info (string) Either '+', '-'
 #' @param originally (string) Base pairs on the amplicon.
 #' @param replacement (string) Base pairs on the read.
-#' @return (GRanges) Object with meta-data
+#' @return (\code{\link{GRanges}}) Object with meta-data
 #'
 defGR <- function(x,
                   ID,
@@ -123,7 +123,7 @@ defGR <- function(x,
 #' Cumulative sum to calculate shift
 #'
 #' @keywords internal
-#' @param x (IRanges)
+#' @param x (\code{\link{IRanges}})
 #' @return (numeric vector)
 #'
 cumsumw <- function(x) {
@@ -142,8 +142,8 @@ cumsumw <- function(x) {
 #' Has 4 groups of uppercases of length 7, 4, 1 and 3.
 #' @keywords internal
 #' @param candidate (string) A string with the nucleotide sequence.
-#' @return (Ranges) A Ranges object with uppercases groups for given candidate
-#' string
+#' @return (\code{\link{Ranges}}) A Ranges object with uppercases groups for
+#' given candidate string
 #'
 upperGroups <- function(candidate) {
   return(IRanges::reduce(IRanges::IRanges(
@@ -203,15 +203,17 @@ flipRanges <- function(idR, cfgT) {
 #' Map events to their respective relative coordinates specified with
 #' UPPER case.
 #'
-#' Translate coordinates of GRanges events so that they can be relative to the
-#' amplicon. As point zero we assume first left sided UPPER case letter in the
+#' Translate coordinates of \code{\link{GRanges}} events so that they can be
+#' relative to the amplicon. As point zero we assume first left sided UPPER case
+#' letter in the
 #' amplicon. Be weary that events for amplicons without expected cut sites are
 #' filtered. Don't use this function, if you don't have expected cut sites
 #' specified and don't use any of the metaplots.
 #'
 #' @param aln (data.frame) List of events to map to the relative coordinates.
 #' @param cfgT (data.frame) config table
-#' @return (GRanges) Same as events, but the coordinates are relative to the
+#' @return (\code{\link{GRanges}}) Same as events, but the coordinates are
+#' relative to the expected cut sites.
 #' @export
 #' @family analysis steps
 #' @examples
@@ -261,11 +263,11 @@ amplicanMap <- function(aln, cfgT) {
 #' @param ID (character) Will be used as seqnames of output GRanges.
 #' @param ampl_shift (numeric) Possible shift of the amplicons.
 #' @param ampl_start (numeric) Real amplicon starts.
-#' Biostrings::pairwiseAlignment clips alignments, therefore to output
+#' \code{\link{pairwiseAlignment}} clips alignments, therefore to output
 #' GRanges relative to the amplicon sequence (subject) ranges have to be
 #' shifted.
 #' @param strand_info (character) Strands to assign.
-#' @return (GRanges) Same as events.
+#' @return (\code{\link{GRanges}}) Same as events.
 #' @export
 #'
 getEvents <- function(pattern, subject, scores, ID = "NA", ampl_shift = 1L,
@@ -320,13 +322,14 @@ getEvents <- function(pattern, subject, scores, ID = "NA", ampl_shift = 1L,
 #' This function takes alignments and gives back the events coordinates.
 #'
 #' @keywords internal
-#' @param align (PairwiseAlignmentsSingleSubject)
+#' @param align (\code{\link{PairwiseAlignmentsSingleSubject}})
 #' @param ID (string)
 #' @param ampl_shift (numeric vector) Shift events additionally by this value.
 #' PairwiseAlignmentsSingleSubject returns truncated alignments.
 #' @param ampl_len (numeric) Length of the amplicon (subject)
 #' @param strand_info (string) Either '+', '-' or default '*'
-#' @return (GRanges) Object with meta-data for insertion, deletion, mismatch
+#' @return (\code{\link{GRanges}}) Object with meta-data for insertion,
+#' deletion, mismatch
 #'
 getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
   if (length(align) == 0) return(GenomicRanges::GRanges())
@@ -365,11 +368,10 @@ getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
 
 #' Transform extended CIGAR strings into GRanges.
 #'
-#' Transform extended CIGAR strings into GRanges representation with
-#' events of deletions, insertions and mismatches. Use with caution as function
-#' is being tested.
+#' Transform extended CIGAR strings into \code{\link{GRanges}} representation
+#' with events of deletions, insertions and mismatches.
 #'
-#' @param cigars (character) Extended CIGARS., , query_seq, ref, read_id, mapq, seqnames, strands
+#' @param cigars (character) Extended CIGARS.
 #' @param aln_pos_start (integer) Pos of CIGARS.
 #' @param query_seq (character) Aligned query sequences.
 #' @param ref (character) Reference sequences used for alignment.
@@ -379,7 +381,7 @@ getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
 #' the reference sequences.
 #' @param counts (integer) Vector of cigar counts, if data collapsed.
 #' @param strands (character) Strands to assign.
-#' @return (GRanges) Same as events.
+#' @return (\code{\link{GRanges}}) Same as events.
 #' @export
 #'
 cigarsToEvents <- function(cigars, aln_pos_start, query_seq, ref, read_id, mapq,
@@ -493,7 +495,7 @@ cigarsToEvents <- function(cigars, aln_pos_start, query_seq, ref, read_id, mapq,
 #' @param ID (character) ID of the experiment, will be used as seqnames of the
 #' reutner ranges.
 #' @param strand_info (character) Strand to assign.
-#' @return (GRanges) Same as events.
+#' @return (\code{\link{GRanges}}) Same as events.
 #' @export
 #'
 pairToEvents <- function(file, ID = "NA", strand_info = "+") {

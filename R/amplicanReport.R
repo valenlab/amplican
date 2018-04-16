@@ -37,6 +37,7 @@
 #'                                                           "amplicon_report",
 #'                                                           "index")),
 #'                knit_reports = FALSE)
+#'
 amplicanReport <- function(results_folder,
                            levels = c("id",
                                       "barcode",
