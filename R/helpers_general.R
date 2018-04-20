@@ -142,7 +142,7 @@ cumsumw <- function(x) {
 #' Has 4 groups of uppercases of length 7, 4, 1 and 3.
 #' @keywords internal
 #' @param candidate (string) A string with the nucleotide sequence.
-#' @return (\code{\link{Ranges}}) A Ranges object with uppercases groups for
+#' @return (\code{\link{IRanges}}) A IRanges object with uppercases groups for
 #' given candidate string
 #'
 upperGroups <- function(candidate) {
