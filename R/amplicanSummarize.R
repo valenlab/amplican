@@ -95,12 +95,14 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
   ri <- S4Vectors::to(oMatch)
   oScore <- aln_fwd$score[fi] >= aln_rve$score[ri]
   oScore_fwd <- unique(fi[oScore])
+  oScore_rve_not <- unique(ri[oScore])
   oScore_rve <- unique(ri[!oScore])
+  oScore_fwd_not <- unique(fi[!oScore])
   consensus[aln_fwd$num[oScore_fwd]] <- TRUE
   consensus[aln_rve$num[oScore_rve]] <- TRUE
   # filter scored events from further calculation
-  aln_fwd <- aln_fwd[-oScore_fwd]
-  aln_rve <- aln_rve[-oScore_rve]
+  aln_fwd <- aln_fwd[-c(oScore_fwd, oScore_fwd_not)]
+  aln_rve <- aln_rve[-c(oScore_rve, oScore_rve_not)]
 
   if (!promiscuous) {
     # find events that overlap EOP from other strand and set them to true
