@@ -6,7 +6,7 @@ Description: `amplican` performs alignment of the amplicon reads, normalizes
     and presents results in form of  aggregated reports. Data and statistics can 
     be broken down by experiments, barcodes, user defined groups, guides and 
     amplicons allowing for quick identification of potential problems.
-Version: 1.1.10
+Version: 1.1.11
 Authors@R: c(
     person("Kornel", "Labun", email = "kornel.labun@gmail.com", role = "aut"),
     person("Eivind", "Valen", email = "eivind.valen@gmail.com", role = c("cph", "cre"))
@@ -33,7 +33,7 @@ Imports:
     gtable (>= 0.2.0),
     gridExtra (>= 2.2.1),
     ggplot2 (>= 2.2.0),
-    ggbio (>= 1.24.1),
+    ggforce (>= 0.1.2),
     ggthemes (>= 3.4.0),
     waffle (>= 0.7.0),
     stringr (>= 1.2.0),

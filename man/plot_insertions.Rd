@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_plots.R
 \name{plot_insertions}
 \alias{plot_insertions}
-\title{Plots insertions using ggplot2 and ggbio.}
+\title{Plots insertions using ggplot2.}
 \usage{
 plot_insertions(alignments, config, id, cut_buffer = 5, xlab_spacing = 4)
 }
@@ -22,7 +22,7 @@ used in the analysis.}
 \item{xlab_spacing}{(numeric) Spacing of the x axis labels. Default is 4.}
 }
 \value{
-(insertions plot) ggplot2 object of insertions plot
+(insertions plot) gtable object of insertions plot
 }
 \description{
 This function plots insertions in relation to the amplicon. Top plot is for
@@ -38,7 +38,7 @@ alignments_file <- system.file("extdata", "results", "alignments",
                                "events_filtered_shifted_normalized.csv",
                                package = "amplican")
 alignments <- read.csv(alignments_file)
-plot_insertions(alignments[alignments$consensus, ], config, c('ID_1','ID_3'))
+p <- plot_insertions(alignments, config, c('ID_1','ID_3'))
 
 }
 \seealso{

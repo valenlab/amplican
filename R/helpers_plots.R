@@ -1,6 +1,10 @@
 #' @include helpers_general.R
 NULL
 
+# scaling for the bezier archs, euation to calculate height relative to y
+# simplifies to y = 4/3 * h
+sh <- 1.33
+
 # orange #E15D44
 # red #BC243C
 # blue #98B4D4
@@ -53,9 +57,10 @@ amplican_style <- function(p) {
 }
 
 
-amplican_xlim <- function(p, xlabels, box, primers) {
+amplican_xlim <- function(p, xlabels, box, primers, limits) {
   p +
-    ggplot2::scale_x_continuous(labels = xlabels, breaks = xlabels) +
+    ggplot2::scale_x_continuous(labels = xlabels, breaks = xlabels,
+                                limits = limits) +
     ggplot2::geom_vline(xintercept = c(IRanges::start(box), IRanges::end(box)),
                         linetype = "longdash",
                         colour = "black") +
@@ -79,27 +84,33 @@ ggplot_mismatches <- function(xData) {
 
 
 ggplot_deletions <- function(xData) {
-  frequency <- overlaps <- NULL
+  frequency <- overlaps <- x <- y <- group <- NULL
+  xr <- nrow(xData)
+  xData <- data.frame(x = c(xData$start, xData$start, xData$end, xData$end),
+                      y = c(rep(0, xr), xData$frequency*sh,
+                            xData$frequency*sh, rep(0, xr)),
+                      group = rep(seq_len(xr), 4),
+                      overlaps = rep(xData$overlaps, 4),
+                      frequency = rep(xData$frequency, 4))
   ggplot2::ggplot() +
-    ggbio::geom_arch(data = xData,
-                     ggplot2::aes(alpha = frequency,
-                                  colour = overlaps,
-                                  size = frequency,
-                                  height = frequency,
-                                  x = start,
-                                  xend = end)) +
-    ggplot2::scale_colour_manual(values = is_cut_colors)
+    ggforce::geom_bezier(ggplot2::aes(x = x, y = y, group = group,
+                                      alpha = frequency,
+                                      colour = overlaps,
+                                      size = frequency),
+                         data = xData) +
+    ggplot2::scale_colour_manual(values = is_cut_colors) +
+    ggplot2::xlab("Relative Nucleotide Position")
 }
 
 
 ggplot_insertions <- function(xData) {
-  position <- frequency <- group <- NULL
+  position <- frequency <- group <- frequencyReal <- NULL
   ggplot2::ggplot() +
     ggplot2::geom_polygon(data = xData,
                           ggplot2::aes(x = position,
                                        y = frequency,
                                        group = group,
-                                       alpha = frequency,
+                                       alpha = frequencyReal,
                                        size = frequency),
                           fill = "#FF0000")
 }
@@ -107,12 +118,13 @@ ggplot_insertions <- function(xData) {
 
 triangulate_ranges <- function(xRanges) {
   if (dim(xRanges)[1] != 0) {
-    idRangesFrequency = rep(xRanges$frequency, each = 3)
-    idRangesFrequency[c(TRUE, FALSE, FALSE)] <- 0
-    data.frame(frequency = idRangesFrequency,
-               position = as.vector(rbind(xRanges$start,
-                                          xRanges$start,
-                                          xRanges$end)) - 0.5, # ins start 108
+    ifR <- ifr <- rep(xRanges$frequency, each = 3)
+    ifr[c(TRUE, FALSE, FALSE)] <- 0
+    data.frame(frequency = ifr,
+               frequencyReal = ifR,
+               position = as.vector(rbind(xRanges$start - 0.5,
+                                          xRanges$start - 0.5,
+                                          xRanges$end + 0.5)), # ins start 108
                group = rep(1:dim(xRanges)[1], each = 3))       # means it's ins
   } else {                                                     # between 107/108
     data.frame(frequency = c(), position = c(), group = c())
@@ -139,26 +151,36 @@ mock_mm_df <- function(ampl_max, ampl_min = 0) {
 }
 
 
+scale_freq <- function(p, freq) {
+  p +
+    ggplot2::scale_alpha(limits = c(
+      0, max(freq, na.rm = TRUE))) +
+    ggplot2::scale_size(limits = c(
+      0, max(freq, na.rm = TRUE))) +
+    ggplot2::coord_cartesian(
+      ylim = c(0, max(freq, na.rm = TRUE)))
+}
+
+
 return_metaplot <- function(freqAgr, plot_fr, plot_re) {
   if (any(freqAgr$strand == "+") & any(freqAgr$strand == "-")) {
-    return(ggbio::tracks(plot_fr +
-                           ggplot2::scale_alpha(limits = c(
-                             0, max(freqAgr$frequency, na.rm = TRUE))) +
-                           ggplot2::scale_size(limits = c(
-                             0, max(freqAgr$frequency, na.rm = TRUE))),
-                         plot_re +
-                           ggplot2::scale_y_reverse(limits = c(
-                             max(freqAgr$frequency, na.rm = TRUE), 0)) +
-                           ggplot2::scale_alpha(limits = c(
-                             0, max(freqAgr$frequency, na.rm = TRUE))) +
-                           ggplot2::scale_size(limits = c(
-                             0, max(freqAgr$frequency, na.rm = TRUE))),
-                         heights = c(0.5, 0.5),
-                         padding = -1))
+    return(gridExtra::grid.arrange(
+      scale_freq(plot_fr, freqAgr$frequency) +
+        ggplot2::theme(axis.title.x = ggplot2::element_blank(),
+                       axis.text.x = ggplot2::element_blank(),
+                       axis.ticks.x = ggplot2::element_blank()),
+      scale_freq(plot_re, freqAgr$frequency) +
+        ggplot2::scale_y_reverse() +
+        ggplot2::xlab("Relative Nucleotide Position"),
+      ncol = 1,
+      heights = c(0.5, 0.5),
+      padding = -1))
   } else if (all(freqAgr$strand == "+")) {
-    return(plot_fr)
+    return(plot_fr +
+             ggplot2::xlab("Relative Nucleotide Position"))
   } else {
-    return(plot_re)
+    return(plot_re + + ggplot2::scale_y_reverse() +
+             ggplot2::xlab("Relative Nucleotide Position"))
   }
 }
 
@@ -172,37 +194,45 @@ annotate_with_amplicon <- function(p, amplicon, from, to) {
       x = seq(from, to),
       label = amplicon,
       y = 0,
-      colour = amplicon_colors[match(toupper(amplicon),
-                                     names(amplicon_colors))])
+      colour = amplicon_colors[
+        match(toupper(amplicon), names(amplicon_colors))])
 }
-
 
 return_plot <- function(freqAgr, amplicon, from, to, plot_fr, plot_re) {
   if (any(freqAgr$strand == "+") & any(freqAgr$strand == "-")) {
-    return(ggbio::tracks(plot_fr +
-                           ggplot2::scale_alpha(limits = c(
-                             0, max(freqAgr$frequency, na.rm = TRUE))) +
-                           ggplot2::scale_size(limits = c(
-                             0, max(freqAgr$frequency, na.rm = TRUE))),
-                         plot_amplicon(amplicon, from, to),
-                         plot_re +
-                           ggplot2::scale_alpha(limits = c(
-                             0, max(freqAgr$frequency, na.rm = TRUE))) +
-                           ggplot2::scale_size(limits = c(
-                             0, max(freqAgr$frequency, na.rm = TRUE))),
-                         heights = c(0.5, 0.06, 0.5),
-                         padding = -1,
-                         xlim = from:to,
-                         xlab = "Relative Nucleotide Position"))
+    plot_fr <- scale_freq(plot_fr, freqAgr$frequency) +
+      ggplot2::theme(axis.title.x = ggplot2::element_blank(),
+                     axis.text.x = ggplot2::element_blank(),
+                     axis.ticks.x = ggplot2::element_blank())
+    plot_re <- scale_freq(plot_re, freqAgr$frequency) +
+      ggplot2::scale_y_reverse() +
+      ggplot2::xlab("Relative Nucleotide Position")
+    amplicon <- plot_amplicon(amplicon, from, to)
+    plot_fr <- ggplot2::ggplotGrob(plot_fr)
+    amplicon <- ggplot2::ggplotGrob(amplicon)
+    plot_re <- ggplot2::ggplotGrob(plot_re)
+    g <- gridExtra::gtable_rbind(plot_fr, amplicon, plot_re)
+    len_t <- length(plot_fr$heights)
+    len_a <- length(amplicon$heights)
+    g$heights[c(len_t, len_t + len_a, len_t + len_a + 1)] <-
+      grid::unit(0, "cm")
+    g$heights[len_t + which(as.character(amplicon$heights) == "1null")] <-
+      grid::unit(1.5, "char")
+
+    grid::grid.newpage()
+    grid::grid.draw(g)
+    return(g)
   } else if (all(freqAgr$strand == "+")) {
-    return(annotate_with_amplicon(plot_fr, amplicon, from, to))
+    return(annotate_with_amplicon(
+      plot_fr, amplicon, from, to))
   } else {
-    return(annotate_with_amplicon(plot_re, amplicon, from, to))
+    return(annotate_with_amplicon(
+      plot_re + ggplot2::scale_y_reverse(), amplicon, from, to))
   }
 }
 
 
-#' MetaPlots mismatches using ggplot2 and ggbio.
+#' MetaPlots mismatches using ggplot2.
 #'
 #' Plots mismatches in relation to the amplicons for given
 #' \code{selection} vector that groups values by given config \code{group}.
@@ -234,7 +264,7 @@ return_plot <- function(freqAgr, amplicon, from, to, plot_fr, plot_re) {
 #'                                "events_filtered_shifted_normalized.csv",
 #'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
-#' metaplot_mismatches(alignments[alignments$consensus & alignments$overlaps, ],
+#' metaplot_mismatches(alignments,
 #'                     config, "Group", "Betty")
 #'
 metaplot_mismatches <- function(alnmt, config, group, selection) {
@@ -260,19 +290,17 @@ metaplot_mismatches <- function(alnmt, config, group, selection) {
   freqAgrPlus <- rbind(freqAgrPlus, mock)
   freqAgrMinus <- rbind(freqAgrMinus, mock)
 
-  mut_fr <- ggplot_mismatches(freqAgrPlus) +
-    ggplot2::ylim(0, max(freqAgr$frequency, na.rm = TRUE))
+  mut_fr <- ggplot_mismatches(freqAgrPlus)
   mut_fr <- amplican_style(mut_fr)
 
   mut_re <- ggplot_mismatches(freqAgrMinus)
   mut_re <- amplican_style(mut_re)
 
-  return_metaplot(freqAgr, mut_fr, mut_re) +
-    ggplot2::xlab("Relative Nucleotide Position")
+  return_metaplot(freqAgr, mut_fr, mut_re)
 }
 
 
-#' MetaPlots deletions using ggplot2 and ggbio.
+#' MetaPlots deletions using ggplot2.
 #'
 #' This function plots deletions in relation to the amplicons for given
 #' \code{selection} vector that groups values by given config \code{group}.
@@ -322,18 +350,16 @@ metaplot_deletions <- function(alnmt, config, group,
     archRanges$counts/sum(config$Reads_Filtered[config[[group]] %in% selection])
 
   arch_plot_fr <- ggplot_deletions(archRanges[archRanges$strand == "+", ])
-  arch_plot_fr <- amplican_style(arch_plot_fr) +
-    ggplot2::ylim(0, max(archRanges$frequency, na.rm = TRUE))
+  arch_plot_fr <- amplican_style(arch_plot_fr)
 
   arch_plot_re <- ggplot_deletions(archRanges[archRanges$strand == "-", ])
   arch_plot_re <- amplican_style(arch_plot_re)
 
-  return_metaplot(archRanges, arch_plot_fr, arch_plot_re) +
-    ggplot2::xlab("Relative Nucleotide Position")
+  return_metaplot(archRanges, arch_plot_fr, arch_plot_re)
 }
 
 
-#' MetaPlots insertions using ggplot2 and ggbio.
+#' MetaPlots insertions using ggplot2.
 #'
 #' This function plots insertions in relation to the amplicons for given
 #' \code{selection} vector that groups values by given config \code{group}.
@@ -384,15 +410,13 @@ metaplot_insertions <- function(alnmt, config, group, selection) {
   idRangesRe <- idRangesReduced[idRangesReduced$strand == "-", ]
   triangleRe <- triangulate_ranges(idRangesRe)
 
-  ins_fr <- ggplot_insertions(triangleFr) +
-    ggplot2::ylim(0, max(idRangesReduced$frequency, na.rm = TRUE))
+  ins_fr <- ggplot_insertions(triangleFr)
   ins_fr <- amplican_style(ins_fr)
 
   ins_re <- ggplot_insertions(triangleRe)
   ins_re <- amplican_style(ins_re)
 
-  return_metaplot(idRangesReduced, ins_fr, ins_re) +
-    ggplot2::xlab("Relative Nucleotide Position")
+  return_metaplot(idRangesReduced, ins_fr, ins_re)
 }
 
 
@@ -420,7 +444,7 @@ plot_amplicon <- function(amplicon, from, to) {
                                     y = counts)) +
     ggplot2::geom_text(size = I(4)) +
     ggplot2::ylim(0.7, 1.1) +
-    ggbio::xlim(from, to) +
+    ggplot2::xlim(from, to) + # check me
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "none",
                    legend.spacing = grid::unit(0, "cm"),
@@ -434,7 +458,7 @@ plot_amplicon <- function(amplicon, from, to) {
 }
 
 
-#' Plots mismatches using ggplot2 and ggbio.
+#' Plots mismatches using ggplot2.
 #'
 #' Plots mismatches in relation to the amplicon, assumes
 #' your reads are relative to the respective amplicon sequences predicted cut
@@ -452,7 +476,7 @@ plot_amplicon <- function(amplicon, from, to) {
 #' @param cut_buffer (numeric) Default is 5, you should specify the same as
 #' used in the analysis.
 #' @param xlab_spacing (numeric) Spacing of the x axis labels. Default is 4.
-#' @return (mismatches plot) ggplot2 object of mismatches plot
+#' @return (mismatches plot) gtable object of mismatches plot
 #' @export
 #' @family specialized plots
 #' @examples
@@ -464,8 +488,7 @@ plot_amplicon <- function(amplicon, from, to) {
 #'                                "events_filtered_shifted_normalized.csv",
 #'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
-#' plot_mismatches(alignments[alignments$consensus, ], config,
-#'                 c('ID_1', 'ID_3'))
+#' p <- plot_mismatches(alignments, config, c('ID_1', 'ID_3'))
 #'
 plot_mismatches <- function(alignments,
                             config,
@@ -506,23 +529,19 @@ plot_mismatches <- function(alignments,
   freqAgrPlus <- rbind(freqAgrPlus, mock)
   freqAgrMinus <- rbind(freqAgrMinus, mock)
 
-  mut_fr <- ggplot_mismatches(freqAgrPlus) +
-    ggplot2::ylim(0, max(freqAgr$frequency, na.rm = TRUE))
-  mut_fr <- amplican_xlim(mut_fr, xlabels, box, pr$primers)
+  mut_fr <- ggplot_mismatches(freqAgrPlus)
+  mut_fr <- amplican_xlim(mut_fr, xlabels, box, pr$primers, c(from, to))
   mut_fr <- amplican_style(mut_fr)
 
   mut_re <- ggplot_mismatches(freqAgrMinus)
-  mut_re <- amplican_xlim(mut_re, xlabels, box, pr$primers)
-  mut_re <- amplican_style(mut_re) +
-    ggplot2::scale_y_reverse(
-      limits = c(max(freqAgr$frequency, na.rm = TRUE), 0))
+  mut_re <- amplican_xlim(mut_re, xlabels, box, pr$primers, c(from, to))
+  mut_re <- amplican_style(mut_re)
 
-  return_plot(freqAgr, amplicon, from, to, mut_fr, mut_re) +
-    ggplot2::xlab("Relative Nucleotide Position")
+  return_plot(freqAgr, amplicon, from, to, mut_fr, mut_re)
 }
 
 
-#' Plots deletions using ggplot2 and ggbio.
+#' Plots deletions using ggplot2.
 #'
 #' This function plots deletions in relation to the amplicon, assumes events
 #' are relative to the expected cut site.
@@ -540,7 +559,7 @@ plot_mismatches <- function(alignments,
 #' @param xlab_spacing (numeric) Spacing of the x axis labels. Default is 4.
 #' @param over (string) Specify which columns contains overlaps with
 #' expected cut sites generated by \code{\link{amplicanOverlap}}
-#' @return (deletions plot) ggplot2 object of deletions plot
+#' @return (deletions plot) gtable object of deletions plot
 #' @export
 #' @family specialized plots
 #' @examples
@@ -552,7 +571,8 @@ plot_mismatches <- function(alignments,
 #'                                "events_filtered_shifted_normalized.csv",
 #'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
-#' plot_deletions(alignments[alignments$consensus, ], config, c('ID_1','ID_3'))
+#' p <- plot_deletions(alignments[alignments$consensus, ],
+#'                     config, c('ID_1','ID_3'))
 #'
 plot_deletions <- function(alignments,
                            config,
@@ -587,23 +607,21 @@ plot_deletions <- function(alignments,
   archRanges$frequency <-
     archRanges$counts/sum(config$Reads_Filtered[config$ID %in% id])
 
-  arch_plot_fr <- ggplot_deletions(archRanges[archRanges$strand == "+", ]) +
-    ggplot2::ylim(0, max(archRanges$frequency, na.rm = TRUE))
-  arch_plot_fr <- amplican_xlim(arch_plot_fr, xlabels, box, pr$primers)
+  arch_plot_fr <- ggplot_deletions(archRanges[archRanges$strand == "+", ])
+  arch_plot_fr <- amplican_xlim(arch_plot_fr, xlabels, box,
+                                pr$primers, c(from, to))
   arch_plot_fr <- amplican_style(arch_plot_fr)
 
   arch_plot_re <- ggplot_deletions(archRanges[archRanges$strand == "-", ])
-  arch_plot_re <- amplican_xlim(arch_plot_re, xlabels, box, pr$primers)
-  arch_plot_re <- amplican_style(arch_plot_re) +
-    ggplot2::scale_y_reverse(
-      limits = c(max(archRanges$frequency, na.rm = TRUE), 0))
+  arch_plot_re <- amplican_xlim(arch_plot_re, xlabels, box,
+                                pr$primers, c(from, to))
+  arch_plot_re <- amplican_style(arch_plot_re)
 
-  return_plot(archRanges, amplicon, from, to, arch_plot_fr, arch_plot_re) +
-    ggplot2::xlab("Relative Nucleotide Position")
+  return_plot(archRanges, amplicon, from, to, arch_plot_fr, arch_plot_re)
 }
 
 
-#' Plots insertions using ggplot2 and ggbio.
+#' Plots insertions using ggplot2.
 #'
 #' This function plots insertions in relation to the amplicon. Top plot is for
 #' the forward reads, middle one shows
@@ -618,7 +636,7 @@ plot_deletions <- function(alignments,
 #' @param cut_buffer (numeric) Default is 5, you should specify the same as
 #' used in the analysis.
 #' @param xlab_spacing (numeric) Spacing of the x axis labels. Default is 4.
-#' @return (insertions plot) ggplot2 object of insertions plot
+#' @return (insertions plot) gtable object of insertions plot
 #' @export
 #' @family specialized plots
 #' @examples
@@ -630,7 +648,7 @@ plot_deletions <- function(alignments,
 #'                                "events_filtered_shifted_normalized.csv",
 #'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
-#' plot_insertions(alignments[alignments$consensus, ], config, c('ID_1','ID_3'))
+#' p <- plot_insertions(alignments, config, c('ID_1','ID_3'))
 #'
 plot_insertions <- function(alignments,
                             config,
@@ -674,23 +692,19 @@ plot_insertions <- function(alignments,
   }
   box <- box + cut_buffer
 
-  ins_fr <- ggplot_insertions(triangleFr) +
-    ggplot2::ylim(0, max(idRangesReduced$frequency, na.rm = TRUE))
-  ins_fr <- amplican_xlim(ins_fr, xlabels, box, pr$primers)
+  ins_fr <- ggplot_insertions(triangleFr)
+  ins_fr <- amplican_xlim(ins_fr, xlabels, box, pr$primers, c(from, to))
   ins_fr <- amplican_style(ins_fr)
 
   ins_re <- ggplot_insertions(triangleRe)
-  ins_re <- amplican_xlim(ins_re, xlabels, box, pr$primers)
-  ins_re <- amplican_style(ins_re) +
-    ggplot2::scale_y_reverse(
-      limits = c(max(idRangesReduced$frequency, na.rm = TRUE), 0))
+  ins_re <- amplican_xlim(ins_re, xlabels, box, pr$primers, c(from, to))
+  ins_re <- amplican_style(ins_re)
 
-  return_plot(idRangesReduced, amplicon, from, to, ins_fr, ins_re) +
-    ggplot2::xlab("Relative Nucleotide Position")
+  return_plot(idRangesReduced, amplicon, from, to, ins_fr, ins_re)
 }
 
 
-#' Plots cuts using ggplot2 and ggbio.
+#' Plots cuts using ggplot2.
 #'
 #' This function plots cuts in relation to the amplicon with distinction for
 #' each ID.
@@ -704,7 +718,7 @@ plot_insertions <- function(alignments,
 #' @param cut_buffer (numeric) Default is 5, you should specify the same as
 #' used in the analysis.
 #' @param xlab_spacing (numeric) Spacing of the x axis labels. Default is 4.
-#' @return (cuts plot) ggplot2 object of cuts plot
+#' @return (cuts plot) gtable object of cuts plot
 #' @export
 #' @family specialized plots
 #' @examples
@@ -754,16 +768,22 @@ plot_cuts <- function(alignments,
   if (dim(archRanges)[1] == 0) return("No cuts to plot.")
 
   amplicon <- strsplit(amplicon, "")[[1]]
-  frequency <- seqnames <- NULL
+  frequency <- seqnames <- x <- y <- group <- NULL
+
+  xr <- nrow(archRanges)
+  archRanges <- data.frame(x = c(archRanges$start, archRanges$start,
+                                 archRanges$end, archRanges$end),
+                           y = c(rep(0, xr), archRanges$frequency*sh,
+                                 archRanges$frequency*sh, rep(0, xr)),
+                           group = rep(seq_len(xr), 4),
+                           seqnames = rep(archRanges$seqnames, 4),
+                           frequency = rep(archRanges$frequency, 4))
   p <- ggplot2::ggplot() +
-    ggbio::geom_arch(data = archRanges,
-                     ggplot2::aes(alpha = frequency,
-                                  size = frequency,
-                                  height = frequency,
-                                  x = start,
-                                  xend = end,
-                                  colour = seqnames)) +
-    ggbio::xlim(from, to) +
+    ggforce::geom_bezier(ggplot2::aes(x= x, y = y, group = group,
+                                      alpha = frequency,
+                                      colour = seqnames,
+                                      size = frequency),
+                         data = archRanges) +
     ggplot2::theme_bw() +
     ggplot2::guides(size = FALSE, alpha = FALSE) +
     ggplot2::theme(legend.position = c(1, 1),
@@ -772,7 +792,8 @@ plot_cuts <- function(alignments,
                   colour = "Experiments",
                   x = "Relative Nucleotide Position") +
     ggplot2::scale_x_continuous(labels = xlabels,
-                                breaks = xlabels) +
+                                breaks = xlabels,
+                                limits = c(from, to)) +
     ggplot2::geom_vline(xintercept = pr$primers,
                         linetype = "dotdash",
                         colour = "blue") +
@@ -789,7 +810,7 @@ plot_cuts <- function(alignments,
 }
 
 
-#' Plots heterogeneity of the reads using ggplot2 and ggbio.
+#' Plots heterogeneity of the reads using ggplot2.
 #'
 #' This function creates stacked barplot explaining
 #' reads heterogeneity. It groups reads
@@ -922,11 +943,14 @@ merge_4_grobs <- function(cgb, vgb, tgb, sgb) {
   tgb$heights <- grid::unit(rep(1/(nrow(tgb)), nrow(tgb)), "npc")
 
   bot <- gtable::gtable_add_cols(vgb, sum(tgb$widths))
+  panel_id <- bot$layout[bot$layout$name == "panel", c("t","b")]
   bot <- gtable::gtable_add_grob(bot, grobs = tgb,
-                                 t = 6, l = ncol(bot), b = 6, r = ncol(bot))
+                                 t = panel_id$t, l = ncol(bot),
+                                 b = panel_id$b, r = ncol(bot))
   top <- gtable::gtable_add_cols(cgb, sum(tgb$widths))
   top <- gtable::gtable_add_grob(top, grobs = sgb,
-                                 t = 6, l = ncol(top), b = 6, r = ncol(top))
+                                 t = panel_id$t, l = ncol(top),
+                                 b = panel_id$b, r = ncol(top))
   fin <- gridExtra::grid.arrange(
     top, bot,
     heights = grid::unit.c(grid::unit(8, "char"),
@@ -955,11 +979,15 @@ merge_3_grobs <- function(cgb, vgb, tgb) {
   tgb$heights <- grid::unit(rep(1/(nrow(tgb)), nrow(tgb)), "npc")
 
   bot <- gtable::gtable_add_cols(vgb, sum(tgb$widths))
-  bot <- gtable::gtable_add_grob(bot, grobs = tgb,
-                                 t = 6, l = ncol(bot), b = 6, r = ncol(bot))
+  panel_id <- bot$layout[bot$layout$name == "panel", c("t","b")]
+  bot <- gtable::gtable_add_grob(
+    bot, grobs = tgb, t = panel_id$t, l = ncol(bot),
+    b = panel_id$b, r = ncol(bot))
   top <- gtable::gtable_add_cols(cgb, sum(tgb$widths))
-  top <- gtable::gtable_add_grob(top, grobs = egb,
-                                 t = 6, l = ncol(top), b = 6, r = ncol(top))
+  top <- gtable::gtable_add_grob(
+    top, grobs = egb,
+    t = panel_id$t, l = ncol(top),
+    b = panel_id$b, r = ncol(top))
   fin <- gridExtra::grid.arrange(
     top, bot,
     heights = grid::unit.c(grid::unit(8, "char"),
@@ -970,14 +998,17 @@ merge_3_grobs <- function(cgb, vgb, tgb) {
 merge_2_grobs <- function(vgb, tgb) {
   tgb$heights <- grid::unit(rep(1/(nrow(tgb)), nrow(tgb)), "npc")
   bot <- gtable::gtable_add_cols(vgb, sum(tgb$widths))
+  panel_id <- bot$layout[bot$layout$name == "panel", c("t","b")]
   bot <- gtable::gtable_add_grob(bot, grobs = tgb,
-                                 t = 6, l = ncol(bot), b = 6, r = ncol(bot))
+                                 t = panel_id$t, l = ncol(bot), b = panel_id$b,
+                                 r = ncol(bot))
+  grid::grid.newpage()
   grid::grid.draw(bot)
   bot
 }
 
 
-#' Plots most frequent variants using ggplot2 and ggbio.
+#' Plots most frequent variants using ggplot2.
 #'
 #' This function plots variants in relation to the amplicon. Shows sequences of
 #' top mutants without aggregating on deletions, insertions and mismatches.
@@ -1027,7 +1058,7 @@ merge_2_grobs <- function(vgb, tgb) {
 #' annot            on    | off
 #  summary_plot  on | off | off
 #' }
-#' @return (variant plot) ggplot2 object of variants plot
+#' @return (variant plot) gtable object of variants plot
 #' @export
 #' @family specialized plots
 #' @note
@@ -1041,8 +1072,8 @@ merge_2_grobs <- function(vgb, tgb) {
 #'                                "events_filtered_shifted_normalized.csv",
 #'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
-#' plot_variants(alignments[alignments$consensus & alignments$overlaps, ],
-#'               config, c('ID_1','ID_3'))
+#' p <- plot_variants(alignments[alignments$consensus & alignments$overlaps, ],
+#'                    config, c('ID_1','ID_3'))
 #'
 plot_variants <- function(alignments, config, id,
                           cut_buffer = 5, top = 10,

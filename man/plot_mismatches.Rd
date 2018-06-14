@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_plots.R
 \name{plot_mismatches}
 \alias{plot_mismatches}
-\title{Plots mismatches using ggplot2 and ggbio.}
+\title{Plots mismatches using ggplot2.}
 \usage{
 plot_mismatches(alignments, config, id, cut_buffer = 5, xlab_spacing = 4)
 }
@@ -23,7 +23,7 @@ used in the analysis.}
 \item{xlab_spacing}{(numeric) Spacing of the x axis labels. Default is 4.}
 }
 \value{
-(mismatches plot) ggplot2 object of mismatches plot
+(mismatches plot) gtable object of mismatches plot
 }
 \description{
 Plots mismatches in relation to the amplicon, assumes
@@ -41,8 +41,7 @@ alignments_file <- system.file("extdata", "results", "alignments",
                                "events_filtered_shifted_normalized.csv",
                                package = "amplican")
 alignments <- read.csv(alignments_file)
-plot_mismatches(alignments[alignments$consensus, ], config,
-                c('ID_1', 'ID_3'))
+p <- plot_mismatches(alignments, config, c('ID_1', 'ID_3'))
 
 }
 \seealso{

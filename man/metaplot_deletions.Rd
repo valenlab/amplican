@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_plots.R
 \name{metaplot_deletions}
 \alias{metaplot_deletions}
-\title{MetaPlots deletions using ggplot2 and ggbio.}
+\title{MetaPlots deletions using ggplot2.}
 \usage{
 metaplot_deletions(alnmt, config, group, selection, over = "overlaps")
 }

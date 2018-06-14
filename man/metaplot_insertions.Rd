@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_plots.R
 \name{metaplot_insertions}
 \alias{metaplot_insertions}
-\title{MetaPlots insertions using ggplot2 and ggbio.}
+\title{MetaPlots insertions using ggplot2.}
 \usage{
 metaplot_insertions(alnmt, config, group, selection)
 }

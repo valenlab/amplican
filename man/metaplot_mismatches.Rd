@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_plots.R
 \name{metaplot_mismatches}
 \alias{metaplot_mismatches}
-\title{MetaPlots mismatches using ggplot2 and ggbio.}
+\title{MetaPlots mismatches using ggplot2.}
 \usage{
 metaplot_mismatches(alnmt, config, group, selection)
 }
@@ -42,7 +42,7 @@ alignments_file <- system.file("extdata", "results", "alignments",
                                "events_filtered_shifted_normalized.csv",
                                package = "amplican")
 alignments <- read.csv(alignments_file)
-metaplot_mismatches(alignments[alignments$consensus & alignments$overlaps, ],
+metaplot_mismatches(alignments,
                     config, "Group", "Betty")
 
 }

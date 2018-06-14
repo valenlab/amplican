@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_plots.R
 \name{plot_cuts}
 \alias{plot_cuts}
-\title{Plots cuts using ggplot2 and ggbio.}
+\title{Plots cuts using ggplot2.}
 \usage{
 plot_cuts(alignments, config, id, cut_buffer = 5, xlab_spacing = 4)
 }
@@ -22,7 +22,7 @@ used in the analysis.}
 \item{xlab_spacing}{(numeric) Spacing of the x axis labels. Default is 4.}
 }
 \value{
-(cuts plot) ggplot2 object of cuts plot
+(cuts plot) gtable object of cuts plot
 }
 \description{
 This function plots cuts in relation to the amplicon with distinction for

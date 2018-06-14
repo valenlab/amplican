@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_plots.R
 \name{plot_heterogeneity}
 \alias{plot_heterogeneity}
-\title{Plots heterogeneity of the reads using ggplot2 and ggbio.}
+\title{Plots heterogeneity of the reads using ggplot2.}
 \usage{
 plot_heterogeneity(alignments, config, level = "ID", colors = c("#000000",
   "#F0E442"), bins = c(0, 5, seq(10, 100, 10)))

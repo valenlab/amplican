@@ -2,7 +2,7 @@
 % Please edit documentation in R/helpers_plots.R
 \name{plot_variants}
 \alias{plot_variants}
-\title{Plots most frequent variants using ggplot2 and ggbio.}
+\title{Plots most frequent variants using ggplot2.}
 \usage{
 plot_variants(alignments, config, id, cut_buffer = 5, top = 10,
   annot = "codon", summary_plot = TRUE)
@@ -39,7 +39,7 @@ annot            on    | off
 }}
 }
 \value{
-(variant plot) ggplot2 object of variants plot
+(variant plot) gtable object of variants plot
 }
 \description{
 This function plots variants in relation to the amplicon. Shows sequences of
@@ -79,8 +79,8 @@ alignments_file <- system.file("extdata", "results", "alignments",
                                "events_filtered_shifted_normalized.csv",
                                package = "amplican")
 alignments <- read.csv(alignments_file)
-plot_variants(alignments[alignments$consensus & alignments$overlaps, ],
-              config, c('ID_1','ID_3'))
+p <- plot_variants(alignments[alignments$consensus & alignments$overlaps, ],
+                   config, c('ID_1','ID_3'))
 
 }
 \seealso{

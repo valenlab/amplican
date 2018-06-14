@@ -23,19 +23,9 @@ test_that("Amplicon plot is a plot class.",{
   expect_identical(p$layers[[1]]$geom_params$na.rm, FALSE)
 })
 
-grobs_of_3_construct <- function(pp) {
-  expect_is(pp, "PlotList")
-  expect_equal(length(pp), 3)
-
-  expect_identical(pp[[1]]$layers[[1]]$geom_params$width, NULL)
-  expect_identical(pp[[1]]$layers[[1]]$geom_params$na.rm, FALSE)
-  expect_identical(pp[[3]]$layers[[1]]$geom_params$width, NULL)
-  expect_identical(pp[[3]]$layers[[1]]$geom_params$na.rm, FALSE)
-}
-
 test_that("Mismatch plot is a construct of grobs.",{
   p <- plot_mismatches(events, config, config$ID[1])
-  grobs_of_3_construct(slot(p, "grobs"))
+  expect_true(gtable::is.gtable(p))
 })
 
 test_that("When no mismatch to plot returns message.",{
@@ -46,7 +36,7 @@ test_that("When no mismatch to plot returns message.",{
 
 test_that("Deletions plot is a construct of grobs.",{
   p <- plot_deletions(events, config, config$ID[1])
-  grobs_of_3_construct(slot(p, "grobs"))
+  expect_true(gtable::is.gtable(p))
 })
 
 test_that("When no deletions to plot returns text.",{
@@ -57,7 +47,7 @@ test_that("When no deletions to plot returns text.",{
 
 test_that("Insertions plot is a construct of grobs.",{
   p <- plot_insertions(events, config, config$ID[3])
-  grobs_of_3_construct(slot(p, "grobs"))
+  expect_true(gtable::is.gtable(p))
 })
 
 test_that("When no insertions to plot returns text.",{
@@ -68,9 +58,7 @@ test_that("When no insertions to plot returns text.",{
 
 test_that("Cuts plot is returning a plot.",{
   p <- plot_cuts(events, config, c(config$ID[1], config$ID[3]))
-  expect_is(p$layers[[1]], "ggproto")
-  expect_equal(class(p$data), "waiver")
-  expect_identical(as.character(p$layers[[1]]$mapping[["colour"]]), "seqnames")
+  expect_true(ggplot2::is.ggplot(p))
 })
 
 test_that("When no cuts to plot returns text.",{
