@@ -12,7 +12,7 @@ amplicanPipeline(config, fastq_folder, results_folder, knit_reports = TRUE,
   gap_extension = 0, fastqfiles = 0.5, primer_mismatch = 0,
   donor_mismatch = 3, PRIMER_DIMER = 30, event_filter = TRUE,
   cut_buffer = 5, promiscuous_consensus = TRUE, normalize = c("guideRNA",
-  "Group"))
+  "Group"), min_freq = 0.01)
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
@@ -123,6 +123,10 @@ found in 'Control' TRUE group will be removed in 'Control' FALSE group.
 This parameter by default uses columns 'guideRNA' and 'Group' to impose
 additional restrictions on normalized events eg. only events created by the
 same 'guideRNA' in the same 'Group' will be normalized.}
+
+\item{min_freq}{(numeric) All events below this frequency are treated as
+sequencing errors and rejected. This parameter is used during normalization
+through \code{\link{amplicanNormalize}}.}
 }
 \value{
 (invisible) results_folder path
