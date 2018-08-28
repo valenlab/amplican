@@ -14,8 +14,9 @@ Our R package’s main function performs alignment of the amplicon reads, calcul
 Package is available on Bioconductor. It is possible to install from here, but it requires installation of many dependencies and is not recomended.
 
 ```r
-source("https://bioconductor.org/biocLite.R")
-biocLite("amplican")
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install("amplican")
 ```  
 
 #### More information
