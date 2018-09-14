@@ -49,13 +49,13 @@ locate_pr_start <- function(reads, primer, m = 0) {
 
 
 is_hdr <- function(reads, scores, amplicon, donor, type = "overlap",
-                   scoring_matrix, gapOpening = 25, gapExtension = 0,
+                   scoring_matrix, gap_opening = 25, gap_extension = 0,
                    donor_mismatch = 3) {
 
   align <- Biostrings::pairwiseAlignment(
     DNAStringSet(toupper(donor)), DNAStringSet(toupper(amplicon)),
     substitutionMatrix = scoring_matrix, type = type,
-    gapOpening = gapOpening, gapExtension = gapExtension)
+    gapOpening = gap_opening, gapExtension = gap_extension)
   pat <- pattern(align)
   subj <-  subject(align)
   # extract events we want to find to quantify read as fully HDR
@@ -69,7 +69,7 @@ is_hdr <- function(reads, scores, amplicon, donor, type = "overlap",
   alignD <- Biostrings::pairwiseAlignment(reads,
     DNAStringSet(toupper(donor)),
     type = type, substitutionMatrix = scoring_matrix,
-    gapOpening = gapOpening, gapExtension = gapExtension)
+    gapOpening = gap_opening, gapExtension = gap_extension)
   better_scores <- score(alignD) >= scores
   is_hdr <- rep(FALSE, length(reads))
   if (sum(better_scores) == 0) return(is_hdr)
@@ -97,16 +97,27 @@ is_hdr <- function(reads, scores, amplicon, donor, type = "overlap",
   shft <- start(subject(alignD[better_scores]))[as.numeric(names(comparison))]
   comparison <- IRanges::shift(comparison,  shft - 1)
   overlaps_hdr <- IRanges::overlapsAny(comparison, hdr_events, type = "any")
+  all_e_not_overlap <- sapply(split(!overlaps_hdr, names(comparison)), all)
+  if (length(all_e_not_overlap) > 0) {
+    all_e_not_overlap <- as.integer(names(all_e_not_overlap)[all_e_not_overlap])
+  } else {
+    all_e_not_overlap <- NULL
+  }
 
   # tolerate some noise level
   # no events + events not overlapping hdr + allow n events of length 1 in those
   # overlapping
   overlaps_e <- comparison[overlaps_hdr]
   overlaps_e <- IRanges::IRangesList(split(overlaps_e, names(overlaps_e)))
+  overlaps_e_w1 <- sum(IRanges::width(overlaps_e) == 1)
+  overlaps_e_w1[overlaps_e_w1 > donor_mismatch] <- donor_mismatch
+  overlaps_e <- sum(IRanges::width(overlaps_e))
+  overlaps_e <- overlaps_e - overlaps_e_w1
+
   ok_hdr <- c(
     reads_ids[!reads_ids %in% as.integer(names(comparison))],
-    as.integer(names(comparison[!overlaps_hdr])),
-    as.integer(names(sum(IRanges::width(overlaps_e) == 1) <= donor_mismatch)))
+    all_e_not_overlap,
+    as.integer(names(overlaps_e[overlaps_e <= 0])))
 
   is_hdr[better_scores][ok_hdr] <- TRUE
   is_hdr
@@ -210,22 +221,24 @@ makeAlignment <- function(cfgT,
     donor <- toupper(cfgT$Donor[i])
 
     # Search for the forward, reverse and targets
-    unqT$fwdPrInReadPos <- locate_pr_start(
-      unqT$Forward, fwdPrimer, primer_mismatch)
-    unqT$forwardFound <-
-      if (fastqfiles == 2 | fwdPrimer == "") {
-        FALSE
-      } else {
-        is.finite(unqT$fwdPrInReadPos)
-      }
-    unqT$rvePrInReadPos <- locate_pr_start(
-      unqT$Reverse, rvePrimer, primer_mismatch)
-    unqT$reverseFound <-
-      if (fastqfiles == 1) {
-        FALSE
-      } else {
-        is.finite(unqT$rvePrInReadPos)
-      }
+    if (fastqfiles == 2 | fwdPrimer == "") {
+      unqT$fwdPrInReadPos <- NA
+      unqT$forwardFound <- FALSE
+    } else {
+      unqT$fwdPrInReadPos <- locate_pr_start(
+        unqT$Forward, fwdPrimer, primer_mismatch)
+      unqT$forwardFound <- is.finite(unqT$fwdPrInReadPos)
+    }
+
+    if (fastqfiles == 1 | rvePrimer == "") {
+      unqT$rvePrInReadPos <- NA
+      unqT$reverseFound <- FALSE
+    } else {
+      unqT$rvePrInReadPos <- locate_pr_start(
+        unqT$Reverse, rvePrimer, primer_mismatch)
+      unqT$reverseFound <- is.finite(unqT$rvePrInReadPos)
+    }
+
     primersFound <-
       if (fastqfiles == 0.5) {
         unqT$forwardFound | unqT$reverseFound
@@ -263,7 +276,7 @@ makeAlignment <- function(cfgT,
             rF, score(fwdA[[cfgT$ID[i]]]),
             amplicon, donor,
             type = "overlap", scoring_matrix =  scoring_matrix,
-            gapOpening = gap_opening, gapExtension = gap_extension,
+            gap_opening = gap_opening, gap_extension = gap_extension,
             donor_mismatch = donor_mismatch)
         }
       }
@@ -285,7 +298,7 @@ makeAlignment <- function(cfgT,
             rR, score(rveA[[cfgT$ID[i]]]),
             amplicon, donor,
             type = "overlap", scoring_matrix =  scoring_matrix,
-            gapOpening = gap_opening, gapExtension = gap_extension,
+            gap_opening = gap_opening, gap_extension = gap_extension,
             donor_mismatch = donor_mismatch)
         }
       }

@@ -39,3 +39,4 @@ findPD(aln, cfgT)
 
 Other filters: \code{\link{findEOP}}, \code{\link{findLQR}}
 }
+\concept{filters}

@@ -97,3 +97,4 @@ Other analysis steps: \code{\link{amplicanConsensus}},
   \code{\link{amplicanReport}},
   \code{\link{amplicanSummarize}}
 }
+\concept{analysis steps}

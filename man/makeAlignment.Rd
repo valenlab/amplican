@@ -4,8 +4,8 @@
 \alias{makeAlignment}
 \title{Make alignments helper.}
 \usage{
-makeAlignment(cfgT, average_quality, min_quality, scoring_matrix, gap_opening,
-  gap_extension, fastqfiles, primer_mismatch, donor_mismatch)
+makeAlignment(cfgT, average_quality, min_quality, scoring_matrix,
+  gap_opening, gap_extension, fastqfiles, primer_mismatch, donor_mismatch)
 }
 \arguments{
 \item{cfgT}{config file as data table}

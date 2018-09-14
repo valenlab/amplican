@@ -4,10 +4,11 @@
 \alias{amplicanReport}
 \title{Prepare reports as .Rmd files.}
 \usage{
-amplicanReport(results_folder, levels = c("id", "barcode", "group", "guide",
-  "amplicon", "summary"), report_files = c("id_report", "barcode_report",
-  "group_report", "guide_report", "amplicon_report", "index"), cut_buffer = 5,
-  xlab_spacing = 4, top = 5, knit_reports = TRUE)
+amplicanReport(results_folder, levels = c("id", "barcode", "group",
+  "guide", "amplicon", "summary"), report_files = c("id_report",
+  "barcode_report", "group_report", "guide_report", "amplicon_report",
+  "index"), cut_buffer = 5, xlab_spacing = 4, top = 5,
+  knit_reports = TRUE)
 }
 \arguments{
 \item{results_folder}{(string) Folder containing results from the
@@ -66,3 +67,4 @@ Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanPipeline}},
   \code{\link{amplicanSummarize}}
 }
+\concept{analysis steps}

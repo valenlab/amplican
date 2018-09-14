@@ -30,10 +30,8 @@ total summary.}
 
 \item{summary_plot}{(boolean) Whether small summary plot in the upper right
 corner should be displayed. Top bar summarizes total reads with
-frameshift (F), reads with InDels without Frameshift (InDel) and reads
-without InDels (Match). Bottom bar summarizes percentage and how InDels are
-distributed towards Insertions (Ins),
-Deletions (Del) and Mixed Insertions/Deletions (InDel).
+frameshift (F), reads with Edits without Frameshift (Edits) and reads
+without Edits (Match).
 \preformatted{
 annot            on    | off
 }}
@@ -92,3 +90,4 @@ Other specialized plots: \code{\link{metaplot_deletions}},
   \code{\link{plot_insertions}},
   \code{\link{plot_mismatches}}
 }
+\concept{specialized plots}

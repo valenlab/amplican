@@ -40,3 +40,4 @@ findEOP(aln, cfgT)
 
 Other filters: \code{\link{findLQR}}, \code{\link{findPD}}
 }
+\concept{filters}

@@ -4,15 +4,15 @@
 \alias{amplicanPipeline}
 \title{Wraps main package functionality into one function.}
 \usage{
-amplicanPipeline(config, fastq_folder, results_folder, knit_reports = TRUE,
-  write_alignments_format = "txt", average_quality = 30, min_quality = 0,
-  use_parallel = FALSE,
+amplicanPipeline(config, fastq_folder, results_folder,
+  knit_reports = TRUE, write_alignments_format = "txt",
+  average_quality = 30, min_quality = 0, use_parallel = FALSE,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5,
   mismatch = -4, baseOnly = TRUE, type = "DNA"), gap_opening = 25,
   gap_extension = 0, fastqfiles = 0.5, primer_mismatch = 0,
   donor_mismatch = 3, PRIMER_DIMER = 30, event_filter = TRUE,
-  cut_buffer = 5, promiscuous_consensus = TRUE, normalize = c("guideRNA",
-  "Group"), min_freq = 0.01)
+  cut_buffer = 5, promiscuous_consensus = TRUE,
+  normalize = c("guideRNA", "Group"), min_freq = 0.01)
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
@@ -157,3 +157,4 @@ Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanReport}},
   \code{\link{amplicanSummarize}}
 }
+\concept{analysis steps}

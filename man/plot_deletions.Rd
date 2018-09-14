@@ -4,8 +4,8 @@
 \alias{plot_deletions}
 \title{Plots deletions using ggplot2.}
 \usage{
-plot_deletions(alignments, config, id, cut_buffer = 5, xlab_spacing = 4,
-  over = "overlaps")
+plot_deletions(alignments, config, id, cut_buffer = 5,
+  xlab_spacing = 4, over = "overlaps")
 }
 \arguments{
 \item{alignments}{(data.frame) Loaded alignment information from
@@ -57,3 +57,4 @@ Other specialized plots: \code{\link{metaplot_deletions}},
   \code{\link{plot_mismatches}},
   \code{\link{plot_variants}}
 }
+\concept{specialized plots}

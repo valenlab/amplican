@@ -52,3 +52,4 @@ Other specialized plots: \code{\link{metaplot_deletions}},
   \code{\link{plot_mismatches}},
   \code{\link{plot_variants}}
 }
+\concept{specialized plots}

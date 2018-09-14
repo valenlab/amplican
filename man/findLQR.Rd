@@ -35,3 +35,4 @@ findLQR(aln)
 
 Other filters: \code{\link{findEOP}}, \code{\link{findPD}}
 }
+\concept{filters}

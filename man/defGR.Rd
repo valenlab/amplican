@@ -4,8 +4,8 @@
 \alias{defGR}
 \title{Helper to construct GRanges with additional metadata columns.}
 \usage{
-defGR(x, ID, score, strand_info = "+", type = "deletion", originally = "",
-  replacement = "")
+defGR(x, ID, score, strand_info = "+", type = "deletion",
+  originally = "", replacement = "")
 }
 \arguments{
 \item{x}{(\code{\link{IRanges}}) names(x) indicating read_id}

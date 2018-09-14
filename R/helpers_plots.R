@@ -1050,10 +1050,8 @@ merge_2_grobs <- function(vgb, tgb) {
 #' total summary.
 #' @param summary_plot (boolean) Whether small summary plot in the upper right
 #' corner should be displayed. Top bar summarizes total reads with
-#' frameshift (F), reads with InDels without Frameshift (InDel) and reads
-#' without InDels (Match). Bottom bar summarizes percentage and how InDels are
-#' distributed towards Insertions (Ins),
-#' Deletions (Del) and Mixed Insertions/Deletions (InDel).
+#' frameshift (F), reads with Edits without Frameshift (Edits) and reads
+#' without Edits (Match).
 #' \preformatted{
 #' annot            on    | off
 #  summary_plot  on | off | off
@@ -1293,14 +1291,12 @@ plot_variants <- function(alignments, config, id,
   vgb <- ggplot2::ggplotGrob(vplot)
 
   if (!is.na(annot) & annot == "codon" & summary_plot) {
-    bnames <- c("InDel", "Match", "F")
+    bnames <- c("Edited", "Match", "F")
     cfgS <- config[config$ID %in% id,
-                   c("Reads_Filtered", "Reads_Del", "Reads_In",
-                     "Reads_Indel", "Reads_Frameshifted")]
+                   c("Reads_Filtered", "Reads_Edited", "Reads_Frameshifted")]
     cfgS <- colSums(cfgS)
-    uT <- c(cfgS[4] - cfgS[5], cfgS[1] - cfgS[4], cfgS[5])/cfgS[1]
+    uT <- c(cfgS[2] - cfgS[3], cfgS[1] - cfgS[2], cfgS[3])/cfgS[1]
     uTo <- c(3, 1, 2)
-    uB <- c(cfgS[2:3], cfgS[4] - sum(cfgS[2:3]))/cfgS[4]
     cfgS <- data.frame(
       x = round(c(uT * 100)),
       group = factor(bnames,
@@ -1331,7 +1327,8 @@ plot_variants <- function(alignments, config, id,
                      text = ggplot2::element_text(size = 8),
                      plot.margin = grid::unit(
                        c(1, 1, 2, 1), "char")) +
-      ggplot2::scale_y_continuous(position = "right", name = "[ % ]", limits = c(0, 100)) +
+      ggplot2::scale_y_continuous(position = "right", name = "[ % ]",
+                                  limits = c(0, 100)) +
       ggplot2::scale_fill_manual(values = scols) +
       ggplot2::coord_flip()
 

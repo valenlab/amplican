@@ -4,7 +4,8 @@
 \alias{plot_insertions}
 \title{Plots insertions using ggplot2.}
 \usage{
-plot_insertions(alignments, config, id, cut_buffer = 5, xlab_spacing = 4)
+plot_insertions(alignments, config, id, cut_buffer = 5,
+  xlab_spacing = 4)
 }
 \arguments{
 \item{alignments}{(data.frame) Loaded alignment information from
@@ -50,3 +51,4 @@ Other specialized plots: \code{\link{metaplot_deletions}},
   \code{\link{plot_mismatches}},
   \code{\link{plot_variants}}
 }
+\concept{specialized plots}

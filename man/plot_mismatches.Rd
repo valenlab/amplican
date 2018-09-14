@@ -4,7 +4,8 @@
 \alias{plot_mismatches}
 \title{Plots mismatches using ggplot2.}
 \usage{
-plot_mismatches(alignments, config, id, cut_buffer = 5, xlab_spacing = 4)
+plot_mismatches(alignments, config, id, cut_buffer = 5,
+  xlab_spacing = 4)
 }
 \arguments{
 \item{alignments}{(data.frame) Loaded alignment information from
@@ -53,3 +54,4 @@ Other specialized plots: \code{\link{metaplot_deletions}},
   \code{\link{plot_insertions}},
   \code{\link{plot_variants}}
 }
+\concept{specialized plots}

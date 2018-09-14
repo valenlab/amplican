@@ -83,11 +83,29 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
   # find those events that are confirmed by both fwd and rve
   f_both <- !is.na(aln_rve[aln_fwd, which = TRUE, mult = "first"])
   r_both <- !is.na(aln_fwd[aln_rve, which = TRUE, mult = "first"])
+  consensus[aln_fwd$num[f_both]] <- TRUE
 
-  consensus[aln_fwd$num[f_both]] <- TRUE # set fwd as true
   # filter these events from further calculations & leave only overlaps
   aln_fwd <- aln_fwd[!f_both & aln_fwd$`overlaps`]
   aln_rve <- aln_rve[!r_both & aln_rve$`overlaps`]
+
+  # reads that have eop & overlaps true should take info from the other strand
+  # unless the other strand is also broken
+  b_rve <- eop_rve[eop_rve$overlaps, ]
+  b_fwd <- eop_fwd[eop_fwd$overlaps, ]
+  if (nrow(b_rve) + nrow(b_fwd) > 0) {
+    # both strands are broken
+    b_rve$seq_id <- paste0(b_rve$seqnames, "*_*", b_rve$read_id)
+    b_fwd$seq_id <- paste0(b_fwd$seqnames, "*_*", b_fwd$read_id)
+    b_rve <- b_rve[!b_rve$seq_id %in% b_fwd$seq_id, ]
+    b_fwd <- b_fwd[!b_fwd$seq_id %in% b_rve$seq_id, ]
+    # filter out events from those broken IDs
+    aln_rve_seq_id <- paste0(aln_rve$seqnames, "*_*", aln_rve$read_id)
+    aln_fwd_seq_id <- paste0(aln_fwd$seqnames, "*_*", aln_fwd$read_id)
+    aln_rve <- aln_rve[!aln_rve_seq_id %in% b_rve$seq_id, ]
+    aln_fwd <- aln_fwd[!aln_fwd_seq_id %in% b_fwd$seq_id, ]
+  }
+
   # The last two columns should be the interval columns
   # find events that are overlapping each other
   oMatch <- getHits(aln_fwd, aln_rve)
@@ -101,8 +119,12 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
   consensus[aln_fwd$num[oScore_fwd]] <- TRUE
   consensus[aln_rve$num[oScore_rve]] <- TRUE
   # filter scored events from further calculation
-  aln_fwd <- aln_fwd[-c(oScore_fwd, oScore_fwd_not)]
-  aln_rve <- aln_rve[-c(oScore_rve, oScore_rve_not)]
+  if (length(c(oScore_fwd, oScore_fwd_not)) > 0) {
+    aln_fwd <- aln_fwd[-c(oScore_fwd, oScore_fwd_not), ]
+  }
+  if (length(c(oScore_rve, oScore_rve_not)) > 0) {
+    aln_rve <- aln_rve[-c(oScore_rve, oScore_rve_not), ]
+  }
 
   if (!promiscuous) {
     # find events that overlap EOP from other strand and set them to true
@@ -203,38 +225,16 @@ amplicanOverlap <- function(aln, cfgT, cut_buffer = 5, relative = FALSE) {
 #' amplicanSummarize(aln, cfgT)
 #'
 amplicanSummarize <- function(aln, cfgT) {
-
   seqnames <- read_id <- counts <- start <- end <- score <- NULL
   data.table::setDT(aln)
+  cfgT$HDR <- cfgT$Reads_Del <- cfgT$Reads_In <-
+    cfgT$Reads_Edited <- cfgT$Reads_Frameshifted <- 0
 
-  # HDR vs NHEJ
-  cfgT$HDR <- 0
+  # HDR
   aln_noD <- unique(aln[aln$readType, ], by = c("seqnames", "read_id"))
   widthT_final <- aln_noD[, list(counts = sum(counts)), by = seqnames]
   map <- match(widthT_final$seqnames, cfgT$ID)
   cfgT$HDR[map] <- widthT_final$counts
-
-  aln <- aln[type != "mismatch"] # mismatch has width of 1
-
-  cfgT$Reads_Del <- 0
-  cfgT$Reads_In <- 0
-  cfgT$Reads_Indel <- 0
-  cfgT$Reads_Frameshifted <- 0
-
-  # Frameshift
-  aln[type == "deletion", width := width * -1L] # by reference
-  widthT <- aln[, list(width = sum(width)),
-                by = c("seqnames", "read_id", "counts")]
-  widthT <- widthT[widthT$width %% 3 != 0, ]
-  widthT_final <- widthT[, list(counts = sum(counts)), by = c("seqnames")]
-  map <- match(widthT_final$seqnames, cfgT$ID)
-  cfgT$Reads_Frameshifted[map] <- widthT_final$counts
-
-  # Reads that had deletions or insertions
-  aln_noD <- unique(aln, by = c("seqnames", "read_id"))
-  widthT_final <- aln_noD[, list(counts = sum(counts)), by = seqnames]
-  map <- match(widthT_final$seqnames, cfgT$ID)
-  cfgT$Reads_Indel[map] <- widthT_final$counts
 
   # Reads that had deletion
   alnD <- aln[aln$type == "deletion", ]
@@ -244,11 +244,27 @@ amplicanSummarize <- function(aln, cfgT) {
   cfgT$Reads_Del[map] <- widthT_final$counts
 
   # Reads that had insertion
-  aln <- aln[aln$type == "insertion", ]
-  aln_noD <- unique(aln, by = c("seqnames", "read_id"))
+  alnI <- aln[aln$type == "insertion", ]
+  aln_noD <- unique(alnI, by = c("seqnames", "read_id"))
   widthT_final <- aln_noD[, list(counts = sum(counts)), by = seqnames]
   map <- match(widthT_final$seqnames, cfgT$ID)
   cfgT$Reads_In[map] <- widthT_final$counts
 
+  # Reads that had editing: deletions or insertions (or HDR)
+  aln_E <- aln[aln$type %in% c("insertion", "deletion") | aln$readType, ]
+  aln_noD <- unique(aln_E, by = c("seqnames", "read_id"))
+  widthT_final <- aln_noD[, list(counts = sum(counts)), by = seqnames]
+  map <- match(widthT_final$seqnames, cfgT$ID)
+  cfgT$Reads_Edited[map] <- widthT_final$counts
+
+  # Frameshift
+  aln <- aln[type != "mismatch"] # mismatch has width of 1
+  aln[type == "deletion", width := width * -1L] # by reference
+  widthT <- aln[, list(width = sum(width)),
+                by = c("seqnames", "read_id", "counts")]
+  widthT <- widthT[widthT$width %% 3 != 0, ]
+  widthT_final <- widthT[, list(counts = sum(counts)), by = c("seqnames")]
+  map <- match(widthT_final$seqnames, cfgT$ID)
+  cfgT$Reads_Frameshifted[map] <- widthT_final$counts
   cfgT
 }

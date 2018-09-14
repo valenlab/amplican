@@ -32,6 +32,7 @@ findLQR <- function(aln) {
   aln_n <- aln_n[, list(events = events/length(unique(strand)),
                         score = score/length(unique(strand))),
                  by = c("read_id", "seqnames")]
+
   x <- cbind(range01(aln_n$score), range01(aln_n$events))
 
   k2 <- stats::kmeans(x, 2, iter.max = 1000, nstart = 1000)
@@ -40,6 +41,9 @@ findLQR <- function(aln) {
   k3s <- clusterCrit::intCriteria(x, k3$cluster, "silhouette")$silhouette
   if (k2s >= k3s) return(logical(dim(aln)[1])) else {
     # find top left center and filter it
+    # plot(x, col = k3$cluster)
+    # points(k3$center, col=1:2, pch=8, cex=1)
+
     centers <- apply(k3$centers, 1,
                      function(x) sqrt((x[1] - 1) ^ 2 + x[2] ^ 2))
     bs <- aln_n[k3$cluster == which.max(centers)]
@@ -76,6 +80,9 @@ findLQR <- function(aln) {
 #'
 findEOP <- function(aln, cfgT) {
   mapID <- match(aln$seqnames, cfgT$ID)
+  cfgT$fwdPrPosEnd[is.na(cfgT$fwdPrPosEnd)] <- 1
+  cfgT$rvePrPos[is.na(cfgT$rvePrPos)] <- nchar(cfgT$Amplicon[is.na(cfgT$rvePrPos)])
+
   if (any(aln$start < 0 | aln$end < 0)) { # if events are relative
     for (i in seq_along(cfgT$ID)) {
       amplicon <- get_amplicon(cfgT, cfgT$ID[i])

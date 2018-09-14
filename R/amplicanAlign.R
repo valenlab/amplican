@@ -67,6 +67,7 @@ amplicanAlign <- function(
          "to operate only on reverse reads.")
   }
   checkConfigFile(cfgT, fastq_folder)
+
   cfgT$Reverse_PrimerRC <- revComp(cfgT$Reverse_Primer)
   cfgT <- checkPrimers(cfgT, fastqfiles)
 

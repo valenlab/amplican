@@ -45,3 +45,4 @@ Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanReport}},
   \code{\link{amplicanSummarize}}
 }
+\concept{analysis steps}

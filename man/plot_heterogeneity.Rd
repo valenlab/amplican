@@ -4,8 +4,8 @@
 \alias{plot_heterogeneity}
 \title{Plots heterogeneity of the reads using ggplot2.}
 \usage{
-plot_heterogeneity(alignments, config, level = "ID", colors = c("#000000",
-  "#F0E442"), bins = c(0, 5, seq(10, 100, 10)))
+plot_heterogeneity(alignments, config, level = "ID",
+  colors = c("#000000", "#F0E442"), bins = c(0, 5, seq(10, 100, 10)))
 }
 \arguments{
 \item{alignments}{(data.frame) Loaded alignment information from
@@ -55,3 +55,4 @@ Other specialized plots: \code{\link{metaplot_deletions}},
   \code{\link{plot_mismatches}},
   \code{\link{plot_variants}}
 }
+\concept{specialized plots}

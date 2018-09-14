@@ -148,8 +148,9 @@
 # gap_extension = 0
 # fastqfiles = 0.5
 # PRIMER_DIMER = 30
+# event_filter = TRUE
 # cut_buffer = 5
-# primer_mismatch = 0
+# primer_mismatch = 1
 # promiscuous_consensus = TRUE
 # normalize = c("guideRNA", "Group")
 # donor_mismatch = 3
@@ -235,8 +236,7 @@ amplicanPipeline <- function(
   seqnames <- read_id <- counts <- NULL
 
   if (dim(aln)[1] == 0) stop("There are no events.",
-                             "Check whether you have correct
-                        primers in the config file.")
+                             "Check whether you have correct primers in the config file.")
 
   aln$overlaps <- amplicanOverlap(aln, cfgT, cut_buffer = cut_buffer)
   aln$consensus <- if (fastqfiles <= 0.5) {
@@ -300,8 +300,8 @@ amplicanPipeline <- function(
              "Group", "guideRNA", "Found_Guide", "Control", "Forward_Primer",
              "Reverse_Primer", "Direction", "Amplicon", "Donor", "fwdPrPosEnd",
              "rvePrPos", "Reads", "PRIMER_DIMER", "Low_Score",
-             "Reads_Filtered", "Reads_Del", "Reads_In", "Reads_Indel",
-             "Reads_Frameshifted", "HDR")],
+             "Reads_Filtered", "Reads_Del", "Reads_In",
+             "Reads_Edited", "Reads_Frameshifted", "HDR")],
     file.path(results_folder, "config_summary.csv"))
 
   # reports

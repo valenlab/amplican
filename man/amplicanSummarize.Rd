@@ -49,3 +49,4 @@ Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanPipeline}},
   \code{\link{amplicanReport}}
 }
+\concept{analysis steps}

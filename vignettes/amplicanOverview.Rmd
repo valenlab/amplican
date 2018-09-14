@@ -57,7 +57,7 @@ performed experiment, on later stage it is possible to generate report with brea
  - **Forward_Primer**, **Reverse_Primer** - make sure these primers are correct for each of your IDs, **Forward_Primer** should be found in the amplicon as is, on the left side of the guide, **Reverse_Primer** reverse complement should be found on the amplicon on the right side of the guide  
  - **Direction** - here "0" means guide does not requires to be reverse complemented to be matched to the amplicon, "1" means it should be reverse complemented, this field is also used when plotting deletions, mismatches and insertions  
  - **Amplicon** - insert amplicon sequence as lower case letters, by putting UPPER CASE letters you can specify expected cut site, you should specify at least one cut site, here for example we specify in uppercase letter PAM sequence of the corresponding guideRNA  
- - **Donor** - insert donor template if you have designed HDR experiments, otherwise leave empty, but keep the column. `amplican` will estimate HDR efficiency based on the events from aligning donor and amplicon sequences, donor and reads and reads and amplicon.  
+ - **Donor** - insert donor template if you have designed HDR experiments or used base editors, otherwise leave empty, but keep the column. `amplican` will estimate HDR efficiency based on the events from aligning donor and amplicon sequences, donor and reads and reads and amplicon.  
 
 If you have only forward primers leave column **Reverse_Primer** empty, leave empty also the **Reverse_Reads** column. You can still use amplican like normal.  
 
@@ -102,7 +102,7 @@ barcodeFilters <- read.csv(barcodeFilters)
 knitr::kable(head(barcodeFilters))
 ```
 
-This table is also summarized in one of the reports. As you can see for our example dataset we have two barcodes, to which correspond 20 and 16 reads. Six reads are rejected for barcode_1 due to bad alphabet and bad average quality. Each of the barcodes has unique reads, which means forward and reverse reads are compacted when they are identical. There is 8 and 7 unique reads for each barcode. One read failed with assignment for barcode_1, you can see this read in the top unassgned reads for barcode report in human readable form. Normally you will probably see only half of your reads being assigned to the barcodes. Reads are assigned when for forward read we can find forward primer and for reverse read we can find reverse primer. Primers have to be perfectly matched. Nevertheless, there is option `fastqreads = 0.5` which changes method of assigning reads to each IDs. With this option specified only one of the reads (forward or reverse) have to have primer perfectly matched. If you don't have the reverse reads or you don't want to use them you can use option `fastqreads = 1`, this option should be detectd autmatically, if you leave empty field **Reverse_Primer** in the config file.
+This table is also summarized in one of the reports. As you can see for our example dataset we have two barcodes, to which correspond 21 and 20 reads. Six reads are rejected for barcode_1 due to bad alphabet and bad average quality. Each of the barcodes has unique reads, which means forward and reverse reads are compacted when they are identical. There is 8 and 9 unique reads for each barcode. One read failed with assignment for barcode_1, you can see this read in the top unassgned reads for barcode report in human readable form. Normally you will probably see only half of your reads being assigned to the barcodes. Reads are assigned when for forward read we can find forward primer and for reverse read we can find reverse primer. Primers have to be perfectly matched. Nevertheless, there is option `fastqreads = 0.5` which changes method of assigning reads to each IDs. With this option specified only one of the reads (forward or reverse) have to have primer perfectly matched. If you don't have the reverse reads or you don't want to use them you can use option `fastqreads = 1`, this option should be detectd autmatically, if you leave empty field **Reverse_Primer** in the config file.
 
 ## config_summary.csv
 
@@ -113,14 +113,14 @@ config_summary <- system.file("extdata", "results", "config_summary.csv",
                               package = "amplican")
 config_summary <- read.csv(config_summary)
 config_summary <- config_summary[, c("ID", "Barcode", "Reads", "Reads_Filtered",
-                                     "Reads_Indel", "Reads_In", "Reads_Del",
-                                     "Reads_Frameshifted")]
+                                     "Reads_In", "Reads_Del",
+                                     "Reads_Edited", "Reads_Frameshifted")]
 knitr::kable(head(config_summary))
 ```
 
 During `amplicanPipeline` these columns are added to the config file:
 
- - **Reads_Del, Reads_In, Reads_Indel** - number of deletions, insertions or any of those two (mutations) overlapping with user specified UPPER CASE group in the amplicon (extended by the buffer), events are confirmed with the reverse strand when using paired-end reads, for more information check `amplicanConsensus`  
+ - **Reads_Del, Reads_In, Reads_Edited** - number of deletions, insertions or any of those two (mutations) overlapping with user specified UPPER CASE group in the amplicon (extended by the buffer), events are confirmed with the reverse strand when using paired-end reads, for more information check `amplicanConsensus`  
  - **Frameshifted** - number of reads that have frameshift (insertions and deletions)  
  - **PRIMER_DIMER** - number of reads that were classified as PRIMER DIMERs  
  - **Reads** - number of reads assigned to this unique ID  

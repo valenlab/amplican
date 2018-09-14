@@ -32,7 +32,7 @@ height <- plot_height(length(unique(config$ID)))
 
 **Read distribution plot** - plot shows number of reads assigned during read grouping  
 **Filtered Reads** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS or filtered based on low alignment score  
-**Cutting rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have cut  
+**Edit rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have edits  
 **Frameshift** - plot shows what percentage of reads that have frameshift  
 **Frameshift overlapping** - shows what percentage of reads have frameshift counting only deletions and insertions that overlap expected cut site (should be more accurate when controls are not available)  
 **Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads. The more yellow each row, the less heterogeneity in the reads, more black means reads don't repeat often and are unique  
@@ -89,21 +89,21 @@ ggplot(data = config_melt,
   labs(fill = "")
 ```  
 
-## Indel rates  
+## Edit rates  
 
 ```{r plot mut percentage, echo=FALSE, fig.height=height, fig.width=14, message=F, warning=FALSE}
-config$indel_percentage <- config$Reads_Indel * 100/config$Reads_Filtered
-config$indel_percentage[is.nan(config$indel_percentage)] <- 0  
+config$edit_percentage <- config$Reads_Edited * 100/config$Reads_Filtered
+config$edit_percentage[is.nan(config$edit_percentage)] <- 0  
 
-ggplot(data = config, aes(x = as.factor(ID), y = indel_percentage, order = ID)) +
+ggplot(data = config, aes(x = as.factor(ID), y = edit_percentage, order = ID)) +
   geom_bar(stat='identity') +
-  ylab('Percentage of reads (not filtered) that have indel')  +
+  ylab('Percentage of reads (not filtered) that have edits')  +
   xlab('ID') +
   theme(legend.position = 'none',
         axis.text = element_text(size = 12),
         axis.title = element_text(size = 14, face = 'bold')) +
   coord_flip() +
-  geom_text(aes(x = as.factor(ID), y = indel_percentage, label = Reads_Indel), hjust = -1)
+  geom_text(aes(x = as.factor(ID), y = edit_percentage, label = Reads_Edited), hjust = -1)
 ```  
 
 ## Frameshift  

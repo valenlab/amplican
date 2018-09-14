@@ -8,8 +8,10 @@ seq2 <- Vectorize(seq.default, vectorize.args = c('from', 'to'))
 #' @return (string or vector of strings) reverse complemented input
 #'
 revComp <- function(x) {
+  x[!is.na(x)] <- as.character(
+    Biostrings::reverseComplement(Biostrings::DNAStringSet(x[!is.na(x)])))
   return(
-    as.character(Biostrings::reverseComplement(Biostrings::DNAStringSet(x)))
+    x
   )
 }
 

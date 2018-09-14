@@ -29,12 +29,21 @@ checkTarget <- function(configTable) {
 checkPrimers <- function(configTable, fastqfiles) {
 
   # str_locate is 1 based (min is 1)
-  configTable[, c("fwdPrPos", "fwdPrPosEnd")] <-
-    stringr::str_locate(tolower(configTable$Amplicon),
-                        tolower(configTable$Forward_Primer))
-  configTable[, c("rvePrPos", "rvePrPosEnd")] <-
-    stringr::str_locate(tolower(configTable$Amplicon),
-                        tolower(configTable$Reverse_PrimerRC))
+  if (fastqfiles != 2) {
+    configTable[, c("fwdPrPos", "fwdPrPosEnd")] <-
+      stringr::str_locate(tolower(configTable$Amplicon),
+                          tolower(configTable$Forward_Primer))
+  } else {
+    configTable[, c("fwdPrPos", "fwdPrPosEnd")] <- NA
+  }
+
+  if (fastqfiles != 1) {
+    configTable[, c("rvePrPos", "rvePrPosEnd")] <-
+      stringr::str_locate(tolower(configTable$Amplicon),
+                          tolower(configTable$Reverse_PrimerRC))
+  } else {
+    configTable[, c("rvePrPos", "rvePrPosEnd")] <- NA
+  }
 
   fP <- if (fastqfiles != 2) which(is.na(configTable$fwdPrPos)) else NULL
   rP <- if (fastqfiles != 1) which(is.na(configTable$rvePrPos)) else NULL

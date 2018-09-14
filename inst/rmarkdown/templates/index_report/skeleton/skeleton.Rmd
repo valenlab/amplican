@@ -106,24 +106,24 @@ waffle(F_reads_per, legend_pos = 'bottom',
        rows = 10, colors = c('#E69F00', '#000000', '#A9A9A9'))
 ```
 
-## Indels
+## Edits
 
 ```{r echo = F}
 total_reads <- sum(configDF$Reads_Filtered)
 total_reads_ctr <- sum(configDF$Reads_Filtered[configDF$Control])
 total_reads_tmt <- sum(configDF$Reads_Filtered[!configDF$Control])
-reads_indel <- c(sum(configDF$Reads_Indel[!configDF$Control]), # Treatment
-               total_reads_tmt - sum(configDF$Reads_Indel[!configDF$Control]),
-               sum(configDF$Reads_Indel[configDF$Control]), # Control
-               total_reads_ctr - sum(configDF$Reads_Indel[configDF$Control]))
-reads_indel_per <- round(reads_indel*100/total_reads)
-reads_indel_per[is.na(reads_indel_per)] <- 0
-names(reads_indel_per) <- c(
-  paste0('Indels in Treatment\n', reads_indel[1], ' (', reads_indel_per[1], '%)'),
-  paste0('No Indels in Treatment\n', reads_indel[2], ' (', reads_indel_per[2], '%)'),
-  paste0('Indels in Control\n', reads_indel[3], ' (', reads_indel_per[3], '%)'), 
-  paste0('No Indels in Control\n', reads_indel[4], ' (', reads_indel_per[4], '%)'))
-waffle(reads_indel_per, legend_pos = 'bottom', 
+reads_edited <- c(sum(configDF$Reads_Edited[!configDF$Control]), # Treatment
+                  total_reads_tmt - sum(configDF$Reads_Edited[!configDF$Control]),
+                  sum(configDF$Reads_Edited[configDF$Control]), # Control
+                  total_reads_ctr - sum(configDF$Reads_Edited[configDF$Control]))
+reads_edited_per <- round(reads_edited*100/total_reads)
+reads_edited_per[is.na(reads_edited_per)] <- 0
+names(reads_edited_per) <- c(
+  paste0('Edits in Treatment\n', reads_edited[1], ' (', reads_edited_per[1], '%)'),
+  paste0('No Edits in Treatment\n', reads_edited[2], ' (', reads_edited_per[2], '%)'),
+  paste0('Edits in Control\n', reads_edited[3], ' (', reads_edited_per[3], '%)'), 
+  paste0('No Edits in Control\n', reads_edited[4], ' (', reads_edited_per[4], '%)'))
+waffle(reads_edited_per, legend_pos = 'bottom', 
        title = "Reads with indels", 
        rows = 10, colors = c('#E69F00', '#000000', '#A9A9A9', '#F0E442'))
 
