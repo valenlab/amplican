@@ -13,7 +13,7 @@ Authors@R: c(
   )
 URL: https://github.com/valenlab/amplican
 BugReports: https://github.com/valenlab/amplican/issues
-biocViews: Technology, Alignment, qPCR, CRISPR
+biocViews: ImmunoOncology, Technology, Alignment, qPCR, CRISPR
 License: GPL-3
 LazyData: true
 LinkingTo: Rcpp
