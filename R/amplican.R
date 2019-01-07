@@ -16,8 +16,11 @@
 #'
 #' @docType package
 #' @name amplican
+#' @useDynLib amplican
 #'
-#' @import ggthemes waffle knitr methods BiocGenerics Biostrings data.table
+#' @import Rcpp ggthemes waffle knitr methods BiocGenerics Biostrings data.table
+#' @importFrom Rcpp sourceCpp
+#'
 "_PACKAGE"
 
 

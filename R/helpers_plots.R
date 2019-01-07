@@ -93,7 +93,7 @@ ggplot_deletions <- function(xData) {
                       overlaps = rep(xData$overlaps, 4),
                       frequency = rep(xData$frequency, 4))
   ggplot2::ggplot() +
-    ggforce::geom_bezier(ggplot2::aes(x = x, y = y, group = group,
+    geom_bezier(ggplot2::aes(x = x, y = y, group = group,
                                       alpha = frequency,
                                       colour = overlaps,
                                       size = frequency),
@@ -779,7 +779,7 @@ plot_cuts <- function(alignments,
                            seqnames = rep(archRanges$seqnames, 4),
                            frequency = rep(archRanges$frequency, 4))
   p <- ggplot2::ggplot() +
-    ggforce::geom_bezier(ggplot2::aes(x= x, y = y, group = group,
+    geom_bezier(ggplot2::aes(x= x, y = y, group = group,
                                       alpha = frequency,
                                       colour = seqnames,
                                       size = frequency),

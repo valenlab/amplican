@@ -6,7 +6,7 @@ Description: `amplican` performs alignment of the amplicon reads, normalizes
     and presents results in form of  aggregated reports. Data and statistics can 
     be broken down by experiments, barcodes, user defined groups, guides and 
     amplicons allowing for quick identification of potential problems.
-Version: 1.5.0
+Version: 1.5.1
 Authors@R: c(
     person("Kornel", "Labun", email = "kornel.labun@gmail.com", role = "aut"),
     person("Eivind", "Valen", email = "eivind.valen@gmail.com", role = c("cph", "cre"))
@@ -16,6 +16,7 @@ BugReports: https://github.com/valenlab/amplican/issues
 biocViews: Technology, Alignment, qPCR, CRISPR
 License: GPL-3
 LazyData: true
+LinkingTo: Rcpp
 Depends:
     R (>= 3.4.0),
     methods,
@@ -23,6 +24,7 @@ Depends:
     Biostrings (>= 2.44.2),
     data.table (>= 1.10.4-3)
 Imports:
+    Rcpp,
     utils (>= 3.4.1),
     S4Vectors (>= 0.14.3),
     ShortRead (>= 1.34.0),
@@ -33,7 +35,6 @@ Imports:
     gtable (>= 0.2.0),
     gridExtra (>= 2.2.1),
     ggplot2 (>= 2.2.0),
-    ggforce (>= 0.1.2),
     ggthemes (>= 3.4.0),
     waffle (>= 0.7.0),
     stringr (>= 1.2.0),
@@ -44,7 +45,7 @@ Imports:
     rmarkdown (>= 1.6),
     knitr (>= 1.16),
     clusterCrit (>= 1.2.7)
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 Suggests:
     testthat,
     BiocStyle,
@@ -52,6 +53,7 @@ Suggests:
 Collate: 
     'helpers_general.R'
     'AlignmentsExperimentSet-class.R'
+    'RcppExports.R'
     'helpers_rmd.R'
     'amplicanReport.R'
     'helpers_directory.R'
@@ -63,6 +65,7 @@ Collate:
     'amplicanFilter.R'
     'amplicanNormalize.R'
     'amplicanSummarize.R'
+    'ggforce_bezier.R'
     'helpers_plots.R'
 VignetteBuilder: knitr
 Encoding: UTF-8

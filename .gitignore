@@ -1,6 +1,11 @@
+Meta
+doc
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
 inst/doc
 inst/extdata/results/reports/*.html
+src/*.o
+src/*.so
+src/*.dll
