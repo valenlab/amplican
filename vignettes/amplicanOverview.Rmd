@@ -190,6 +190,16 @@ Reports are automated for the convenience of the users. We provide 6 different r
 When you want to have more control over alignments and you need more advanced options use `amplicanAlign`. This function has many parameters which can be used to bend our pipeline to your needs. 
 Read more about `amplicanAlign` on the help page `?amplican::amplicanAlign`.
 
+## Normalization
+
+Read more about normalization in the description of the `?amplican::amplicanNormalize` or
+in FAQ. Just note that default setting of normalization threshold is 1%, if you 
+notice in your mismatch plots that general level of noise (mismatches outside 
+cut region) might be higher than that you have to adjust threshold value to higher levels 
+(min_freq input parameter). In case where you expect index hopping to occour, you 
+can use either `?amplican::amplicanPipelineIndexHopping` or rise the min_freq 
+above expected index hopping level.
+
 ## Making reports
 
 Reports are made for user convenience, they are powerful as they:

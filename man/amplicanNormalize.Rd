@@ -60,6 +60,7 @@ Other analysis steps: \code{\link{amplicanAlign}},
   \code{\link{amplicanConsensus}},
   \code{\link{amplicanFilter}}, \code{\link{amplicanMap}},
   \code{\link{amplicanOverlap}},
+  \code{\link{amplicanPipelineIndexHopping}},
   \code{\link{amplicanPipeline}},
   \code{\link{amplicanReport}},
   \code{\link{amplicanSummarize}}
