@@ -94,4 +94,4 @@ background noise level is.
 
 # What when I have not used unique dual indexing pooling combinations?
 You can adjust threshold for normalization to `min_freq = 0.03` or use function
-\code{\link{amplicanPipelineIndexHopping}}.
+`amplicanPipelineIndexHopping`.
