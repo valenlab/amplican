@@ -93,5 +93,5 @@ line of mismatches in the control should give you an idea of what the
 background noise level is.
 
 # What when I have not used unique dual indexing pooling combinations?
-You can adjust threshold for normalization to `min_freq = 0.03` or use function
-`amplicanPipelineIndexHopping`.
+You can adjust threshold for normalization to `min_freq = 0.05` or use function
+`amplicanPipelineConservative`.
