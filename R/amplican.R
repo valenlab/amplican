@@ -338,7 +338,7 @@ amplicanPipeline <- amplicanPipe(0.01)
 #' Wraps main package functionality into one function.
 #'
 #' amplicanPipelineIndexHopping is identical as amplicanPipeline except that
-#' default \code{min_freq} threshold is set to 0.05. Setting this threshold
+#' default \code{min_freq} threshold is set to 0.15. Setting this threshold
 #' higher will decrease risks of inadequate normalization in cases of potential
 #' Index Hopping, potentially decreasing precision of true editing rate calling.
 #' Index Hopping can be mitigated with use  of unique dual indexing pooling
@@ -352,4 +352,4 @@ amplicanPipeline <- amplicanPipe(0.01)
 #' @export
 #' @family analysis steps
 #'
-amplicanPipelineConservative <- amplicanPipe(0.05)
+amplicanPipelineConservative <- amplicanPipe(0.15)
