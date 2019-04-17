@@ -36,6 +36,10 @@ amplicanPipe <- function(min_freq_default) {
   promiscuous_consensus = TRUE, normalize = c("guideRNA", "Group"),
   min_freq = min_freq_default) {
 
+  config <- normalizePath(config)
+  fastq_folder <- normalizePath(fastq_folder)
+  results_folder <- normalizePath(results_folder)
+
   message("Checking write access...")
   checkFileWriteAccess(results_folder)
 
