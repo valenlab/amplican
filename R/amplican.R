@@ -22,182 +22,193 @@
 #' @importFrom Rcpp sourceCpp
 #'
 "_PACKAGE"
+.onAttach <- function(libname, pkgname) {
+  packageStartupMessage(
+    paste0("Pease consider supporting this software by citing:\n\n",
+          "Labun et al. 2019\n",
+          "Accurate analysis of genuine CRISPR editing events with ampliCan.\n",
+          "Genome Res. 2019 Mar 8\n",
+          "doi: 10.1101/gr.244293.118\n",
+          "\nWithout appreciation scientific software is usually abandoned and",
+          " eventually deprecated, but you can easily support authors by ",
+          "citations."))
+}
 
 amplicanPipe <- function(min_freq_default) {
   function(
-  config, fastq_folder, results_folder, knit_reports = TRUE,
-  write_alignments_format = "txt", average_quality = 30,
-  min_quality = 0, use_parallel = FALSE,
-  scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
-    match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
-  gap_opening = 25, gap_extension = 0, fastqfiles = 0.5,
-  primer_mismatch = 0, donor_mismatch = 3, PRIMER_DIMER = 30,
-  event_filter = TRUE, cut_buffer = 5,
-  promiscuous_consensus = TRUE, normalize = c("guideRNA", "Group"),
-  min_freq = min_freq_default) {
+    config, fastq_folder, results_folder, knit_reports = TRUE,
+    write_alignments_format = "txt", average_quality = 30,
+    min_quality = 0, use_parallel = FALSE,
+    scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
+      match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
+    gap_opening = 25, gap_extension = 0, fastqfiles = 0.5,
+    primer_mismatch = 0, donor_mismatch = 3, PRIMER_DIMER = 30,
+    event_filter = TRUE, cut_buffer = 5,
+    promiscuous_consensus = TRUE, normalize = c("guideRNA", "Group"),
+    min_freq = min_freq_default) {
 
-  config <- normalizePath(config)
-  fastq_folder <- normalizePath(fastq_folder)
-  results_folder <- normalizePath(results_folder)
+    config <- normalizePath(config)
+    fastq_folder <- normalizePath(fastq_folder)
+    results_folder <- normalizePath(results_folder)
 
-  message("Checking write access...")
-  checkFileWriteAccess(results_folder)
+    message("Checking write access...")
+    checkFileWriteAccess(results_folder)
 
-  aln <- amplicanAlign(config = config,
-                       fastq_folder = fastq_folder,
-                       use_parallel = use_parallel,
-                       average_quality = average_quality,
-                       scoring_matrix = scoring_matrix,
-                       gap_opening = gap_opening,
-                       gap_extension = gap_extension,
-                       min_quality = min_quality,
-                       fastqfiles = fastqfiles,
-                       primer_mismatch = primer_mismatch,
-                       donor_mismatch = donor_mismatch)
-  message("Saving alignments...")
+    aln <- amplicanAlign(config = config,
+                         fastq_folder = fastq_folder,
+                         use_parallel = use_parallel,
+                         average_quality = average_quality,
+                         scoring_matrix = scoring_matrix,
+                         gap_opening = gap_opening,
+                         gap_extension = gap_extension,
+                         min_quality = min_quality,
+                         fastqfiles = fastqfiles,
+                         primer_mismatch = primer_mismatch,
+                         donor_mismatch = donor_mismatch)
+    message("Saving alignments...")
 
-  resultsFolder <- file.path(results_folder, "alignments")
-  if (!dir.exists(resultsFolder)) {
-    dir.create(resultsFolder)
-  }
-
-  # save as .rds object
-  saveRDS(aln, file.path(resultsFolder, "AlignmentsExperimentSet.rds"))
-  # save as other formats
-  if (!"None" %in% write_alignments_format) {
-    for (frmt in write_alignments_format) {
-      writeAlignments(aln, file.path(resultsFolder,
-                                     paste0("alignments.", frmt)), frmt)
+    resultsFolder <- file.path(results_folder, "alignments")
+    if (!dir.exists(resultsFolder)) {
+      dir.create(resultsFolder)
     }
-  }
-  message("Saving parameters...")
-  logFileName <- file.path(results_folder, "RunParameters.txt")
-  if (file.exists(logFileName)) {
-    file.remove(logFileName)
-  }
-  logFileConn <- file(logFileName, open = "at")
-  writeLines(c(paste("Config file:        ", config),
-               paste("Average Quality:    ", average_quality),
-               paste("Minimum Quality:    ", min_quality),
-               paste("Write Alignments:   ", toString(write_alignments_format)),
-               paste("Fastq files Mode:   ", fastqfiles),
-               paste("Gap Opening:        ", gap_opening),
-               paste("Gap Extension:      ", gap_extension),
-               paste("Consensus:          ", promiscuous_consensus),
-               paste("Normalize:          ", toString(normalize)),
-               paste("PRIMER DIMER buffer:", PRIMER_DIMER),
-               paste("Cut buffer:", cut_buffer),
-               "Scoring Matrix:"), logFileConn)
-  utils::write.csv(scoring_matrix, logFileConn, quote = FALSE, row.names = TRUE)
-  close(logFileConn)
 
-  message("Saving unassigned sequences...")
-  unData <- unassignedData(aln)
-  if (!is.null(unData)) data.table::fwrite(
-    unData, file.path(resultsFolder, "unassigned_reads.csv"))
-
-  message("Saving barcode statistics...")
-  data.table::fwrite(barcodeData(aln),
-                     file.path(results_folder, "barcode_reads_filters.csv"))
-  message("Translating alignments into events...")
-  cfgT <- experimentData(aln)
-
-  aln <- extractEvents(aln, use_parallel = use_parallel)
-  message("Saving complete events - unfiltered...")
-  data.table::fwrite(aln, file.path(resultsFolder, "raw_events.csv"))
-  data.table::setDT(aln)
-  seqnames <- read_id <- counts <- NULL
-
-  if (dim(aln)[1] == 0) stop("There are no events.",
-                             "Check whether you have correct primers in the config file.")
-
-  aln$overlaps <- amplicanOverlap(aln, cfgT, cut_buffer = cut_buffer)
-  aln$consensus <- if (fastqfiles <= 0.5) {
-    amplicanConsensus(aln, cfgT, promiscuous = promiscuous_consensus)
-  } else { TRUE }
-
-  # filter events overlapping primers
-  eOP <- findEOP(aln, cfgT)
-  aln <- aln[!eOP, ]
-
-  # find PRIMER DIMERS
-  PD <- findPD(aln, cfgT, PRIMER_DIMER = PRIMER_DIMER)
-
-  # summarize how many PRIMER DIMER reads per ID
-  onlyPD <- aln[PD, ]
-  onlyPD <- unique(onlyPD, by = c("seqnames", "read_id"))
-  data.table::setDT(onlyPD)
-  summaryPD <- onlyPD[, list(counts  = sum(counts)), by = c("seqnames")]
-  cfgT$PRIMER_DIMER <- 0
-  cfgT$PRIMER_DIMER[match(summaryPD$seqnames, cfgT$ID)] <- summaryPD$counts
-
-  # apply filter - remove all events that come from PD infected reads
-  aln <- aln[!onlyPD, on = list(seqnames, read_id)]
-
-  # alignment event filter
-  cfgT$Low_Score <- 0
-  if (event_filter) {
-    for (i in seq_len(dim(cfgT)[1])) {
-      aln_id <- aln[seqnames == cfgT$ID[i], ]
-      if (dim(aln_id)[1] == 0 | cfgT$Donor[i] != "") next()
-      onlyBR <- aln_id[findLQR(aln_id), ]
-      onlyBR <- unique(onlyBR, by = "read_id")
-      cfgT[i, "Low_Score"] <- sum(onlyBR$counts)
-      aln <- aln[!(aln$seqnames == cfgT$ID[i] &
-                     aln$read_id %in% onlyBR$read_id), ]
+    # save as .rds object
+    saveRDS(aln, file.path(resultsFolder, "AlignmentsExperimentSet.rds"))
+    # save as other formats
+    if (!"None" %in% write_alignments_format) {
+      for (frmt in write_alignments_format) {
+        writeAlignments(aln, file.path(resultsFolder,
+                                       paste0("alignments.", frmt)), frmt)
+      }
     }
-  }
-  cfgT$Reads_Filtered <- cfgT$Reads - cfgT$PRIMER_DIMER - cfgT$Low_Score
+    message("Saving parameters...")
+    logFileName <- file.path(results_folder, "RunParameters.txt")
+    if (file.exists(logFileName)) {
+      file.remove(logFileName)
+    }
+    logFileConn <- file(logFileName, open = "at")
+    writeLines(c(paste("Config file:        ", config),
+                 paste("Average Quality:    ", average_quality),
+                 paste("Minimum Quality:    ", min_quality),
+                 paste("Write Alignments:   ", toString(write_alignments_format)),
+                 paste("Fastq files Mode:   ", fastqfiles),
+                 paste("Gap Opening:        ", gap_opening),
+                 paste("Gap Extension:      ", gap_extension),
+                 paste("Consensus:          ", promiscuous_consensus),
+                 paste("Normalize:          ", toString(normalize)),
+                 paste("PRIMER DIMER buffer:", PRIMER_DIMER),
+                 paste("Cut buffer:", cut_buffer),
+                 "Scoring Matrix:"), logFileConn)
+    utils::write.csv(scoring_matrix, logFileConn, quote = FALSE, row.names = TRUE)
+    close(logFileConn)
 
-  # shift to relative (most left UPPER case is position 0)
-  message("Shifting events as relative...")
-  data.table::setDF(aln)
-  aln <- data.frame(amplicanMap(aln, cfgT), stringsAsFactors = FALSE)
-  message("Saving shifted events - filtered...")
-  data.table::fwrite(aln,
-                     file.path(resultsFolder, "events_filtered_shifted.csv"))
-  # revert guides to 5'-3'
-  cfgT$guideRNA[cfgT$Direction] <- revComp(cfgT$guideRNA[cfgT$Direction])
-  # normalize
-  message("Normalizing events...")
-  aln <- amplicanNormalize(aln, cfgT, min_freq = min_freq, add = normalize)
+    message("Saving unassigned sequences...")
+    unData <- unassignedData(aln)
+    if (!is.null(unData)) data.table::fwrite(
+      unData, file.path(resultsFolder, "unassigned_reads.csv"))
 
-  message("Saving normalized events...")
-  data.table::fwrite(aln,
-                     file.path(resultsFolder,
-                               "events_filtered_shifted_normalized.csv"))
-  # summarize
-  cfgT <- amplicanSummarize(aln[aln$consensus & aln$overlaps, ], cfgT)
-  data.table::fwrite(
-    cfgT[, c("ID", "Barcode", "Forward_Reads_File", "Reverse_Reads_File",
-             "Group", "guideRNA", "Found_Guide", "Control", "Forward_Primer",
-             "Reverse_Primer", "Direction", "Amplicon", "Donor", "fwdPrPosEnd",
-             "rvePrPos", "Reads", "PRIMER_DIMER", "Low_Score",
-             "Reads_Filtered", "Reads_Del", "Reads_In",
-             "Reads_Edited", "Reads_Frameshifted", "HDR")],
-    file.path(results_folder, "config_summary.csv"))
+    message("Saving barcode statistics...")
+    data.table::fwrite(barcodeData(aln),
+                       file.path(results_folder, "barcode_reads_filters.csv"))
+    message("Translating alignments into events...")
+    cfgT <- experimentData(aln)
 
-  # reports
-  reportsFolder <- file.path(results_folder, "reports")
-  if (!dir.exists(reportsFolder)) {
-    dir.create(reportsFolder)
-  }
+    aln <- extractEvents(aln, use_parallel = use_parallel)
+    message("Saving complete events - unfiltered...")
+    data.table::fwrite(aln, file.path(resultsFolder, "raw_events.csv"))
+    data.table::setDT(aln)
+    seqnames <- read_id <- counts <- NULL
 
-  message(paste0("Making reports... \nDue to high quality ",
-                 "figures, it is time consuming. Use .Rmd templates for ",
-                 "more control."))
-  amplicanReport(results_folder,
-                 knit_reports = knit_reports,
-                 cut_buffer = cut_buffer,
-                 report_files = file.path(reportsFolder,
-                                          c("id_report",
-                                            "barcode_report",
-                                            "group_report",
-                                            "guide_report",
-                                            "amplicon_report",
-                                            "index")))
-  message("Finished.")
-  invisible(results_folder)
+    if (dim(aln)[1] == 0) stop("There are no events.",
+                               "Check whether you have correct primers in the config file.")
+
+    aln$overlaps <- amplicanOverlap(aln, cfgT, cut_buffer = cut_buffer)
+    aln$consensus <- if (fastqfiles <= 0.5) {
+      amplicanConsensus(aln, cfgT, promiscuous = promiscuous_consensus)
+    } else { TRUE }
+
+    # filter events overlapping primers
+    eOP <- findEOP(aln, cfgT)
+    aln <- aln[!eOP, ]
+
+    # find PRIMER DIMERS
+    PD <- findPD(aln, cfgT, PRIMER_DIMER = PRIMER_DIMER)
+
+    # summarize how many PRIMER DIMER reads per ID
+    onlyPD <- aln[PD, ]
+    onlyPD <- unique(onlyPD, by = c("seqnames", "read_id"))
+    data.table::setDT(onlyPD)
+    summaryPD <- onlyPD[, list(counts  = sum(counts)), by = c("seqnames")]
+    cfgT$PRIMER_DIMER <- 0
+    cfgT$PRIMER_DIMER[match(summaryPD$seqnames, cfgT$ID)] <- summaryPD$counts
+
+    # apply filter - remove all events that come from PD infected reads
+    aln <- aln[!onlyPD, on = list(seqnames, read_id)]
+
+    # alignment event filter
+    cfgT$Low_Score <- 0
+    if (event_filter) {
+      for (i in seq_len(dim(cfgT)[1])) {
+        aln_id <- aln[seqnames == cfgT$ID[i], ]
+        if (dim(aln_id)[1] == 0 | cfgT$Donor[i] != "") next()
+        onlyBR <- aln_id[findLQR(aln_id), ]
+        onlyBR <- unique(onlyBR, by = "read_id")
+        cfgT[i, "Low_Score"] <- sum(onlyBR$counts)
+        aln <- aln[!(aln$seqnames == cfgT$ID[i] &
+                       aln$read_id %in% onlyBR$read_id), ]
+      }
+    }
+    cfgT$Reads_Filtered <- cfgT$Reads - cfgT$PRIMER_DIMER - cfgT$Low_Score
+
+    # shift to relative (most left UPPER case is position 0)
+    message("Shifting events as relative...")
+    data.table::setDF(aln)
+    aln <- data.frame(amplicanMap(aln, cfgT), stringsAsFactors = FALSE)
+    message("Saving shifted events - filtered...")
+    data.table::fwrite(aln,
+                       file.path(resultsFolder, "events_filtered_shifted.csv"))
+    # revert guides to 5'-3'
+    cfgT$guideRNA[cfgT$Direction] <- revComp(cfgT$guideRNA[cfgT$Direction])
+    # normalize
+    message("Normalizing events...")
+    aln <- amplicanNormalize(aln, cfgT, min_freq = min_freq, add = normalize)
+
+    message("Saving normalized events...")
+    data.table::fwrite(aln,
+                       file.path(resultsFolder,
+                                 "events_filtered_shifted_normalized.csv"))
+    # summarize
+    cfgT <- amplicanSummarize(aln[aln$consensus & aln$overlaps, ], cfgT)
+    data.table::fwrite(
+      cfgT[, c("ID", "Barcode", "Forward_Reads_File", "Reverse_Reads_File",
+               "Group", "guideRNA", "Found_Guide", "Control", "Forward_Primer",
+               "Reverse_Primer", "Direction", "Amplicon", "Donor", "fwdPrPosEnd",
+               "rvePrPos", "Reads", "PRIMER_DIMER", "Low_Score",
+               "Reads_Filtered", "Reads_Del", "Reads_In",
+               "Reads_Edited", "Reads_Frameshifted", "HDR")],
+      file.path(results_folder, "config_summary.csv"))
+
+    # reports
+    reportsFolder <- file.path(results_folder, "reports")
+    if (!dir.exists(reportsFolder)) {
+      dir.create(reportsFolder)
+    }
+
+    message(paste0("Making reports... \nDue to high quality ",
+                   "figures, it is time consuming. Use .Rmd templates for ",
+                   "more control."))
+    amplicanReport(results_folder,
+                   knit_reports = knit_reports,
+                   cut_buffer = cut_buffer,
+                   report_files = file.path(reportsFolder,
+                                            c("id_report",
+                                              "barcode_report",
+                                              "group_report",
+                                              "guide_report",
+                                              "amplicon_report",
+                                              "index")))
+    message("Finished.")
+    invisible(results_folder)
   }
 }
 

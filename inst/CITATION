@@ -1,0 +1,18 @@
+citHeader("Please consider supporting software that you use and cite:")
+
+citEntry(entry = "Article",
+         title = "Accurate analysis of genuine CRISPR editing events with ampliCan",
+         author = personList(as.person("Kornel Labun"),
+                             as.person("Xiaoge Guo"),
+                             as.person("Alejandro Chavez"),
+                             as.person("George Church"),
+                             as.person("James A Gagnon"),
+                             as.person("Eivind Valen")),
+         journal = "Genome Res",
+         year = 2019,
+         doi = "10.1101/gr.244293.118",
+         url = "https://genome.cshlp.org/content/early/2019/03/08/gr.244293.118.abstract",
+         textVersion = paste("Labun et al. 2019",
+                             "Accurate analysis of genuine CRISPR editing events with ampliCan.",
+                             "Genome Res. 2019 Mar 8",
+                             "doi: 10.1101/gr.244293.118"))

@@ -1,3 +1,9 @@
+amplican 1.5.8
+-----------------------
+    o amplican has been published now, doi: 10.1101/gr.244293.118
+    o clearly outperforms other tools on many benchmarks
+    o please cite the paper if you ar eusing amplican
+
 amplican 1.1.3
 -----------------------
     o fixed couple bugs
