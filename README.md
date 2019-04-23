@@ -40,3 +40,11 @@ browseVignettes("amplican")
 #### Feedback
 
 Please feel free to provide feedback or desired functionality. My contact address is Kornel.Labun at uib.no.
+
+#### Benchmarks
+
+Since my publication [Labun et al. 2019, Accurate analysis of genuine CRISPR editing events with ampliCan](https://www.ncbi.nlm.nih.gov/pubmed/30850374) it seems CRISPREsso authors have updated their tool into [CRISPresso v2](https://www.nature.com/articles/s41587-019-0032-3). I have quickly rerun one of my benchmarks with their latest tool (used default settings, and installation has to work correctly as I used CRISPresso2 docker image). 
+
+![Infuence of size of the mutation on estimating true editing efficiency](vignettes/figures/indel_rate_vs_indel_size.png)  
+
+If you wish to replicate or comment on this small benchmark, contact me through email.
