@@ -218,17 +218,17 @@ return_plot <- function(freqAgr, amplicon, from, to, plot_fr, plot_re) {
       grid::unit(0, "cm")
     g$heights[len_t + which(as.character(amplicon$heights) == "1null")] <-
       grid::unit(1.5, "char")
-
-    grid::grid.newpage()
-    grid::grid.draw(g)
-    return(g)
   } else if (all(freqAgr$strand == "+")) {
-    return(annotate_with_amplicon(
-      plot_fr, amplicon, from, to))
+    g <- annotate_with_amplicon(plot_fr, amplicon, from, to)
+    g <- ggplot2::ggplotGrob(g)
   } else {
-    return(annotate_with_amplicon(
-      plot_re + ggplot2::scale_y_reverse(), amplicon, from, to))
+    g <- annotate_with_amplicon(
+      plot_re + ggplot2::scale_y_reverse(), amplicon, from, to)
+    g <- ggplot2::ggplotGrob(g)
   }
+  grid::grid.newpage()
+  grid::grid.draw(g)
+  return(g)
 }
 
 
