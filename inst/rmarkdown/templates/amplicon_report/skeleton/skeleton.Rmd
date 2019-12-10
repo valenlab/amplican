@@ -40,7 +40,6 @@ height <- amplican::plot_height(length(uniqueAmlicons))
 **Filtered Reads** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS or filtered based on low alignment score  
 **Edit rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have edits  
 **Frameshift** - plot shows what percentage of reads that have frameshift  
-**Frameshift overlapping** - shows what percentage of reads have frameshift counting only deletions and insertions that overlap expected cut site (should be more accurate when controls are not available)  
 **Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads. The more yellow each row, the less heterogeneity in the reads, more black means reads don't repeat often and are unique  
 **Deletions plot** - shows summary of deletions detected after alignments with distinction
 for forward (top plot) and reverse (bottom) reads, blue dotted lines represent primers as black
@@ -172,19 +171,19 @@ src = sapply(seq_along(uniqueAmlicons), function(i) {
     "### Deletions  \n", 
     paste('```{r del-{{i}}, echo = F, results = "asis", ',
           'fig.width=25, message=F, warning=F}', collapse = ''), 
-    paste('amplican::plot_deletions(alignments, config, {{ID}},',
+    paste('p <- amplican::plot_deletions(alignments, config, {{ID}},',
           ' params$cut_buffer, params$xlab_spacing)', collapse = ''), 
     '```\n',
     "### Insertions  \n", 
     paste('```{r ins-{{i}}, echo = F, results = "asis", ',
           'fig.width=25, message=F, warning=F}', collapse = ''), 
-    paste('amplican::plot_insertions(alignments, config, {{ID}},',
+    paste('p <- amplican::plot_insertions(alignments, config, {{ID}},',
           ' params$cut_buffer, params$xlab_spacing)', collapse = ''), 
     '```\n', 
     "### Mismatches  \n", 
     paste('```{r mis-{{i}}, echo = F, results = "asis", ',
           'fig.width=25, message=F, warning=F}', collapse = ''), 
-    paste('amplican::plot_mismatches(alignments, config, {{ID}},',
+    paste('p <- amplican::plot_mismatches(alignments, config, {{ID}},',
           ' params$cut_buffer, params$xlab_spacing)', collapse = ''), 
     '```\n', 
     "### Cuts  \n", 

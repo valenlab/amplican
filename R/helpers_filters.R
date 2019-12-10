@@ -37,8 +37,10 @@ findLQR <- function(aln) {
 
   k2 <- stats::kmeans(x, 2, iter.max = 1000, nstart = 1000)
   k2s <- clusterCrit::intCriteria(x, k2$cluster, "silhouette")$silhouette
+  if (!is.finite(k2s)) return(logical(dim(aln)[1]))
   k3 <- stats::kmeans(x, 3, iter.max = 1000, nstart = 1000)
   k3s <- clusterCrit::intCriteria(x, k3$cluster, "silhouette")$silhouette
+  if (!is.finite(k3s)) return(logical(dim(aln)[1]))
   if (k2s >= k3s) return(logical(dim(aln)[1])) else {
     # find top left center and filter it
     # plot(x, col = k3$cluster)

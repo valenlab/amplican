@@ -34,7 +34,6 @@ height <- plot_height(length(unique(config$ID)))
 **Filtered Reads** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS or filtered based on low alignment score  
 **Edit rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have edits  
 **Frameshift** - plot shows what percentage of reads that have frameshift  
-**Frameshift overlapping** - shows what percentage of reads have frameshift counting only deletions and insertions that overlap expected cut site (should be more accurate when controls are not available)  
 **Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads. The more yellow each row, the less heterogeneity in the reads, more black means reads don't repeat often and are unique  
 **Deletions plot** - shows summary of deletions detected after alignments with distinction
 for forward (top plot) and reverse (bottom) reads, blue dotted lines represent primers as black
@@ -75,7 +74,7 @@ config$PRIMER_DIMER[is.nan(config$PRIMER_DIMER)] <- 0
 config$Low_Score <- config$Low_Score * 100/config$Reads
 config$Low_Score[is.nan(config$Low_Score)] <- 0  
 
-config_melt <- data.table::melt(config, id.vars = "ID", 
+config_melt <- data.table::melt(as.data.table(config), id.vars = "ID", 
                                 measure.vars = c("PRIMER_DIMER", "Low_Score"))
 ggplot(data = config_melt, 
        aes(x = as.factor(ID), y = value, fill = variable, order = ID)) +
