@@ -78,7 +78,7 @@ config$PRIMER_DIMER[is.nan(config$PRIMER_DIMER)] <- 0
 config$Low_Score <- config$Low_Score * 100/config$Reads
 config$Low_Score[is.nan(config$Low_Score)] <- 0  
 
-config_melt <- data.table::melt(as.data.table(config), id.vars = "ID", 
+config_melt <- data.table::melt(data.table::as.data.table(config), id.vars = "ID", 
                                 measure.vars = c("PRIMER_DIMER", "Low_Score"))
 ggplot(data = config_melt, 
        aes(x = as.factor(ID), y = value, fill = variable, order = ID)) +

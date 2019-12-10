@@ -1182,7 +1182,8 @@ plot_variants <- function(alignments, config, id,
   colnames(variants) <- xaxis
   rownames(variants) <- length(yaxis):1
   variants_melt <- as.data.frame(
-    data.table::melt(data.table(variants, keep.rownames = TRUE), id.vars = "rn"))
+    data.table::melt(
+      data.table::data.table(variants, keep.rownames = TRUE), id.vars = "rn"))
   colnames(variants_melt) <- c("Var1", "Var2", "value")
   variants_melt$Var1 <- as.integer(as.character(variants_melt$Var1))
   variants_melt$Var2 <- as.integer(as.character(variants_melt$Var2))

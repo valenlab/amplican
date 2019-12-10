@@ -164,7 +164,7 @@ summaryDF_per[, c('filtered_read_count', 'bad_read_count')] <-
   round(
     summaryDF_per[, c('filtered_read_count','bad_read_count')]*100/summaryDF_per$read_count)
 summaryDF_per[is.na(summaryDF_per)] <- 0
-summaryDF_per <- as.data.table(summaryDF_per)
+summaryDF_per <- data.table::as.data.table(summaryDF_per)
 
 quality_melt <- data.table::melt(summaryDF_per, id.vars = c('Barcode'), 
                      measure.vars = c('filtered_read_count', 'bad_read_count'))
