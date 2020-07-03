@@ -171,6 +171,7 @@ return_metaplot <- function(freqAgr, plot_fr, plot_re) {
                        axis.ticks.x = ggplot2::element_blank()),
       scale_freq(plot_re, freqAgr$frequency) +
         ggplot2::scale_y_reverse() +
+        ggplot2::coord_cartesian(ylim = c(max(freqAgr$frequency, na.rm = TRUE), 0)) +
         ggplot2::xlab("Relative Nucleotide Position"),
       ncol = 1,
       heights = c(0.5, 0.5),
@@ -179,7 +180,8 @@ return_metaplot <- function(freqAgr, plot_fr, plot_re) {
     return(plot_fr +
              ggplot2::xlab("Relative Nucleotide Position"))
   } else {
-    return(plot_re + + ggplot2::scale_y_reverse() +
+    return(plot_re +
+             ggplot2::scale_y_reverse() +
              ggplot2::xlab("Relative Nucleotide Position"))
   }
 }
@@ -206,6 +208,7 @@ return_plot <- function(freqAgr, amplicon, from, to, plot_fr, plot_re) {
                      axis.ticks.x = ggplot2::element_blank())
     plot_re <- scale_freq(plot_re, freqAgr$frequency) +
       ggplot2::scale_y_reverse() +
+      ggplot2::coord_cartesian(ylim = c(max(freqAgr$frequency, na.rm = TRUE), 0)) +
       ggplot2::xlab("Relative Nucleotide Position")
     amplicon <- plot_amplicon(amplicon, from, to)
     plot_fr <- ggplot2::ggplotGrob(plot_fr)
