@@ -4,8 +4,15 @@
 \alias{plot_variants}
 \title{Plots most frequent variants using ggplot2.}
 \usage{
-plot_variants(alignments, config, id, cut_buffer = 5, top = 10,
-  annot = "codon", summary_plot = TRUE)
+plot_variants(
+  alignments,
+  config,
+  id,
+  cut_buffer = 5,
+  top = 10,
+  annot = "codon",
+  summary_plot = TRUE
+)
 }
 \arguments{
 \item{alignments}{(data.frame) Loaded alignment information from
@@ -82,12 +89,14 @@ p <- plot_variants(alignments[alignments$consensus & alignments$overlaps, ],
 
 }
 \seealso{
-Other specialized plots: \code{\link{metaplot_deletions}},
-  \code{\link{metaplot_insertions}},
-  \code{\link{metaplot_mismatches}},
-  \code{\link{plot_cuts}}, \code{\link{plot_deletions}},
-  \code{\link{plot_heterogeneity}},
-  \code{\link{plot_insertions}},
-  \code{\link{plot_mismatches}}
+Other specialized plots: 
+\code{\link{metaplot_deletions}()},
+\code{\link{metaplot_insertions}()},
+\code{\link{metaplot_mismatches}()},
+\code{\link{plot_cuts}()},
+\code{\link{plot_deletions}()},
+\code{\link{plot_heterogeneity}()},
+\code{\link{plot_insertions}()},
+\code{\link{plot_mismatches}()}
 }
 \concept{specialized plots}

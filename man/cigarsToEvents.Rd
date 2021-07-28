@@ -4,8 +4,17 @@
 \alias{cigarsToEvents}
 \title{Transform extended CIGAR strings into GRanges.}
 \usage{
-cigarsToEvents(cigars, aln_pos_start, query_seq, ref, read_id, mapq,
-  seqnames, strands, counts)
+cigarsToEvents(
+  cigars,
+  aln_pos_start,
+  query_seq,
+  ref,
+  read_id,
+  mapq,
+  seqnames,
+  strands,
+  counts
+)
 }
 \arguments{
 \item{cigars}{(character) Extended CIGARS.}

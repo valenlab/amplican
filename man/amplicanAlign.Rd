@@ -4,12 +4,20 @@
 \alias{amplicanAlign}
 \title{Align reads to amplicons.}
 \usage{
-amplicanAlign(config, fastq_folder, use_parallel = FALSE,
-  average_quality = 30, min_quality = 20,
-  scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5,
-  mismatch = -4, baseOnly = TRUE, type = "DNA"), gap_opening = 25,
-  gap_extension = 0, fastqfiles = 0.5, primer_mismatch = 0,
-  donor_mismatch = 3)
+amplicanAlign(
+  config,
+  fastq_folder,
+  use_parallel = FALSE,
+  average_quality = 30,
+  min_quality = 20,
+  scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5, mismatch = -4,
+    baseOnly = TRUE, type = "DNA"),
+  gap_opening = 25,
+  gap_extension = 0,
+  fastqfiles = 0.5,
+  primer_mismatch = 0,
+  donor_mismatch = 3
+)
 }
 \arguments{
 \item{config}{(string) The path to your configuration file. For example:
@@ -89,13 +97,15 @@ aln
 
 }
 \seealso{
-Other analysis steps: \code{\link{amplicanConsensus}},
-  \code{\link{amplicanFilter}}, \code{\link{amplicanMap}},
-  \code{\link{amplicanNormalize}},
-  \code{\link{amplicanOverlap}},
-  \code{\link{amplicanPipelineConservative}},
-  \code{\link{amplicanPipeline}},
-  \code{\link{amplicanReport}},
-  \code{\link{amplicanSummarize}}
+Other analysis steps: 
+\code{\link{amplicanConsensus}()},
+\code{\link{amplicanFilter}()},
+\code{\link{amplicanMap}()},
+\code{\link{amplicanNormalize}()},
+\code{\link{amplicanOverlap}()},
+\code{\link{amplicanPipelineConservative}()},
+\code{\link{amplicanPipeline}()},
+\code{\link{amplicanReport}()},
+\code{\link{amplicanSummarize}()}
 }
 \concept{analysis steps}

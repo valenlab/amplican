@@ -4,9 +4,13 @@
 \alias{amplicanNormalize}
 \title{Remove events that can be found in Controls.}
 \usage{
-amplicanNormalize(aln, cfgT, add = c("guideRNA", "Group"),
-  skip = c("counts", "score", "seqnames", "read_id", "strand",
-  "overlaps", "consensus"), min_freq = 0.01)
+amplicanNormalize(
+  aln,
+  cfgT,
+  add = c("guideRNA", "Group"),
+  skip = c("counts", "score", "seqnames", "read_id", "strand", "overlaps", "consensus"),
+  min_freq = 0.01
+)
 }
 \arguments{
 \item{aln}{(data.frame) Contains events from alignments.}
@@ -56,13 +60,15 @@ amplicanNormalize(aln, cfgT)
 
 }
 \seealso{
-Other analysis steps: \code{\link{amplicanAlign}},
-  \code{\link{amplicanConsensus}},
-  \code{\link{amplicanFilter}}, \code{\link{amplicanMap}},
-  \code{\link{amplicanOverlap}},
-  \code{\link{amplicanPipelineConservative}},
-  \code{\link{amplicanPipeline}},
-  \code{\link{amplicanReport}},
-  \code{\link{amplicanSummarize}}
+Other analysis steps: 
+\code{\link{amplicanAlign}()},
+\code{\link{amplicanConsensus}()},
+\code{\link{amplicanFilter}()},
+\code{\link{amplicanMap}()},
+\code{\link{amplicanOverlap}()},
+\code{\link{amplicanPipelineConservative}()},
+\code{\link{amplicanPipeline}()},
+\code{\link{amplicanReport}()},
+\code{\link{amplicanSummarize}()}
 }
 \concept{analysis steps}

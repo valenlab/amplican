@@ -77,20 +77,17 @@ AlignmentsExperimentSet(...)
 
 \S4method{c}{AlignmentsExperimentSet}(x, ...)
 
-\S4method{[}{AlignmentsExperimentSet,numeric,missing,missing}(x, i, j, ...,
-  drop = TRUE)
+\S4method{[}{AlignmentsExperimentSet,numeric,missing,missing}(x, i, j, ..., drop = TRUE)
 
 \method{as.list}{AlignmentsExperimentSet}(x, ...)
 
 \S4method{$}{AlignmentsExperimentSet}(x, name)
 
-\S4method{writeAlignments}{AlignmentsExperimentSet}(x, file = "",
-  aln_format = "txt")
+\S4method{writeAlignments}{AlignmentsExperimentSet}(x, file = "", aln_format = "txt")
 
 \S4method{lookupAlignment}{AlignmentsExperimentSet}(x, ID, read_id = 1)
 
-\S4method{extractEvents}{AlignmentsExperimentSet}(object,
-  use_parallel = FALSE)
+\S4method{extractEvents}{AlignmentsExperimentSet}(object, use_parallel = FALSE)
 }
 \arguments{
 \item{...}{pass any number of AlignmentsExperimentSet objects, make sure

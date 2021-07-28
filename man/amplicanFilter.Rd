@@ -48,14 +48,15 @@ amplicanFilter(aln, cfgT, 30)
 \seealso{
 \code{\link{findPD}} and \code{\link{findEOP}}
 
-Other analysis steps: \code{\link{amplicanAlign}},
-  \code{\link{amplicanConsensus}},
-  \code{\link{amplicanMap}},
-  \code{\link{amplicanNormalize}},
-  \code{\link{amplicanOverlap}},
-  \code{\link{amplicanPipelineConservative}},
-  \code{\link{amplicanPipeline}},
-  \code{\link{amplicanReport}},
-  \code{\link{amplicanSummarize}}
+Other analysis steps: 
+\code{\link{amplicanAlign}()},
+\code{\link{amplicanConsensus}()},
+\code{\link{amplicanMap}()},
+\code{\link{amplicanNormalize}()},
+\code{\link{amplicanOverlap}()},
+\code{\link{amplicanPipelineConservative}()},
+\code{\link{amplicanPipeline}()},
+\code{\link{amplicanReport}()},
+\code{\link{amplicanSummarize}()}
 }
 \concept{analysis steps}

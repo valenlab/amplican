@@ -33,6 +33,8 @@ findLQR(aln)
 \seealso{
 \code{\link{findPD}} \code{\link{findEOP}}
 
-Other filters: \code{\link{findEOP}}, \code{\link{findPD}}
+Other filters: 
+\code{\link{findEOP}()},
+\code{\link{findPD}()}
 }
 \concept{filters}

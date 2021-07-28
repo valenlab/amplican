@@ -29,6 +29,6 @@ unassigned <- unassigned[order(unassigned$BarcodeFrequency,
 # print alignment of most frequent unassigned reads
 cat(amplican_print_reads(unassigned[1, 'Forward'],
                          unassigned[1, 'Reverse']),
-          sep = "\\n")
+          sep = "\n")
 
 }

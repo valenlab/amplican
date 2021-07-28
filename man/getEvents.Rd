@@ -4,8 +4,15 @@
 \alias{getEvents}
 \title{Transform aligned strings into GRanges representation of events.}
 \usage{
-getEvents(pattern, subject, scores, ID = "NA", ampl_shift = 1L,
-  ampl_start = 1L, strand_info = "+")
+getEvents(
+  pattern,
+  subject,
+  scores,
+  ID = "NA",
+  ampl_shift = 1L,
+  ampl_start = 1L,
+  strand_info = "+"
+)
 }
 \arguments{
 \item{pattern}{(character) Aligned pattern.}

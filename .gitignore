@@ -9,3 +9,5 @@ inst/extdata/results/reports/*.html
 src/*.o
 src/*.so
 src/*.dll
+/doc/
+/Meta/
