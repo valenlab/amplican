@@ -38,7 +38,7 @@ amplicanPipe <- function(min_freq_default) {
   function(
     config, fastq_folder, results_folder, knit_reports = TRUE,
     write_alignments_format = "txt", average_quality = 30,
-    min_quality = 0, batch_size = 1e6, use_parallel = FALSE,
+    min_quality = 0, batch_size = 1e7, use_parallel = FALSE,
     scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
       match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
     gap_opening = 25, gap_extension = 0, fastqfiles = 0.5,

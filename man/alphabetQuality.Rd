@@ -4,7 +4,7 @@
 \alias{alphabetQuality}
 \title{This filters out sequences which have nonstandard nucleotides.}
 \usage{
-alphabetQuality(reads, batch_size = 1e+06)
+alphabetQuality(reads, batch_size = 1e+07)
 }
 \arguments{
 \item{reads}{(ShortRead object) Loaded reads from fastq.}

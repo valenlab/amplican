@@ -147,7 +147,7 @@ findPD <- function(aln, cfgT, PRIMER_DIMER = 30) {
 #' @param batch_size (numeric) How many reads to process at a time.
 #' @return (boolean) Logical vector with the valid rows as TRUE.
 #'
-goodBaseQuality <- function(reads, min = 20, batch_size = 1e6) {
+goodBaseQuality <- function(reads, min = 20, batch_size = 1e7) {
   if (is.logical(reads)) {
     return(reads)
   }
@@ -182,7 +182,7 @@ goodBaseQuality <- function(reads, min = 20, batch_size = 1e6) {
 #' @param batch_size (numeric) How many reads to process at a time.
 #' @return (boolean) Logical vector with the valid rows as TRUE.
 #'
-goodAvgQuality <- function(reads, avg = 30, batch_size = 1e6) {
+goodAvgQuality <- function(reads, avg = 30, batch_size = 1e7) {
   if (is.logical(reads)) {
     return(reads)
   }
@@ -212,7 +212,7 @@ goodAvgQuality <- function(reads, avg = 30, batch_size = 1e6) {
 #' @param batch_size (numeric) How many reads to process at a time.
 #' @return (boolean) Logical vector with the valid rows as TRUE.
 #'
-alphabetQuality <- function(reads, batch_size = 1e6) {
+alphabetQuality <- function(reads, batch_size = 1e7) {
   if (is.logical(reads)) {
     return(reads)
   }

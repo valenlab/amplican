@@ -12,7 +12,7 @@ amplicanPipelineConservative(
   write_alignments_format = "txt",
   average_quality = 30,
   min_quality = 0,
-  batch_size = 1e+06,
+  batch_size = 1e+07,
   use_parallel = FALSE,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5, mismatch = -4,
     baseOnly = TRUE, type = "DNA"),

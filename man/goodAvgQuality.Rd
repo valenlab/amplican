@@ -4,7 +4,7 @@
 \alias{goodAvgQuality}
 \title{This filters out sequences which have bad average quality readings.}
 \usage{
-goodAvgQuality(reads, avg = 30, batch_size = 1e+06)
+goodAvgQuality(reads, avg = 30, batch_size = 1e+07)
 }
 \arguments{
 \item{reads}{(ShortRead object) Loaded reads from fastq.}
