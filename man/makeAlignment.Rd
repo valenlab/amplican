@@ -8,6 +8,7 @@ makeAlignment(
   cfgT,
   average_quality,
   min_quality,
+  batch_size,
   scoring_matrix,
   gap_opening,
   gap_extension,
@@ -29,6 +30,9 @@ If the average quality of the reads fall below value of
 the minimum quality for ALL nucleotides in given read. If one of nucleotides
 has quality BELLOW \code{min_quality}, then the sequence is filtered.
 Default is 20.}
+
+\item{batch_size}{(numeric) How many reads to analyze at a time? Needed for
+filtering of large fastq files.}
 
 \item{scoring_matrix}{(matrix) Default is 'NUC44'. Pass desired matrix using
 \code{\link{nucleotideSubstitutionMatrix}}.}

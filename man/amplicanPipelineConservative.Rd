@@ -12,6 +12,7 @@ amplicanPipelineConservative(
   write_alignments_format = "txt",
   average_quality = 30,
   min_quality = 0,
+  batch_size = 1e+06,
   use_parallel = FALSE,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5, mismatch = -4,
     baseOnly = TRUE, type = "DNA"),
@@ -79,6 +80,9 @@ If the average quality of the reads fall below value of
 the minimum quality for ALL nucleotides in given read. If one of nucleotides
 has quality BELLOW \code{min_quality}, then the sequence is filtered.
 Default is 20.}
+
+\item{batch_size}{(numeric) How many reads to analyze at a time? Needed for
+filtering of large fastq files.}
 
 \item{use_parallel}{(boolean) Set to TRUE, if you have registered
 multicore back-end.}

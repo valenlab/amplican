@@ -4,10 +4,12 @@
 \alias{alphabetQuality}
 \title{This filters out sequences which have nonstandard nucleotides.}
 \usage{
-alphabetQuality(reads)
+alphabetQuality(reads, batch_size = 1e+06)
 }
 \arguments{
 \item{reads}{(ShortRead object) Loaded reads from fastq.}
+
+\item{batch_size}{(numeric) How many reads to process at a time.}
 }
 \value{
 (boolean) Logical vector with the valid rows as TRUE.

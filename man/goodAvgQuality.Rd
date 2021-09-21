@@ -4,7 +4,7 @@
 \alias{goodAvgQuality}
 \title{This filters out sequences which have bad average quality readings.}
 \usage{
-goodAvgQuality(reads, avg = 30)
+goodAvgQuality(reads, avg = 30, batch_size = 1e+06)
 }
 \arguments{
 \item{reads}{(ShortRead object) Loaded reads from fastq.}
@@ -13,7 +13,9 @@ goodAvgQuality(reads, avg = 30)
 sequence should be. For example, if we have a sequence with nucleotides which
 have quality 70-70-70, the average would be 70. If set the average to 70 or
 less the sequence will pass. If we set the average to 71 the sequence will
-not pass. The average is set to 0 by default.}
+not pass.}
+
+\item{batch_size}{(numeric) How many reads to process at a time.}
 }
 \value{
 (boolean) Logical vector with the valid rows as TRUE.

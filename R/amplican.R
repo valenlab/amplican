@@ -38,7 +38,7 @@ amplicanPipe <- function(min_freq_default) {
   function(
     config, fastq_folder, results_folder, knit_reports = TRUE,
     write_alignments_format = "txt", average_quality = 30,
-    min_quality = 0, use_parallel = FALSE,
+    min_quality = 0, batch_size = 1e6, use_parallel = FALSE,
     scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
       match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
     gap_opening = 25, gap_extension = 0, fastqfiles = 0.5,
@@ -58,6 +58,7 @@ amplicanPipe <- function(min_freq_default) {
                          fastq_folder = fastq_folder,
                          use_parallel = use_parallel,
                          average_quality = average_quality,
+                         batch_size = batch_size,
                          scoring_matrix = scoring_matrix,
                          gap_opening = gap_opening,
                          gap_extension = gap_extension,
@@ -90,6 +91,7 @@ amplicanPipe <- function(min_freq_default) {
     writeLines(c(paste("Config file:        ", config),
                  paste("Average Quality:    ", average_quality),
                  paste("Minimum Quality:    ", min_quality),
+                 paste("Batch size:         ", batch_size),
                  paste("Write Alignments:   ", toString(write_alignments_format)),
                  paste("Fastq files Mode:   ", fastqfiles),
                  paste("Gap Opening:        ", gap_opening),
@@ -241,6 +243,8 @@ amplicanPipe <- function(min_freq_default) {
 #' the minimum quality for ALL nucleotides in given read. If one of nucleotides
 #' has quality BELLOW \code{min_quality}, then the sequence is filtered.
 #' Default is 20.
+#' @param batch_size (numeric) How many reads to analyze at a time? Needed for
+#' filtering of large fastq files.
 #' @param write_alignments_format (character vector) Whether
 #' \code{amplicanPipeline} should write alignments results to separate files.
 #' Alignments are also always saved as .rds object of

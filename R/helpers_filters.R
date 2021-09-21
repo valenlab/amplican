@@ -143,15 +143,30 @@ findPD <- function(aln, cfgT, PRIMER_DIMER = 30) {
 #' @param min (numeric) This is the minimum quality that we accept for
 #' every nucleotide. For example, if we have a sequence with nucleotides which
 #' have quality 50-50-50-50-10, and we set the minimum to 30, the whole sequence
-#' will be a bad sequence. The minimum is set to 0 by default.
+#' will be a bad sequence.
+#' @param batch_size (numeric) How many reads to process at a time.
 #' @return (boolean) Logical vector with the valid rows as TRUE.
 #'
-goodBaseQuality <- function(reads, min = 20) {
+goodBaseQuality <- function(reads, min = 20, batch_size = 1e6) {
   if (is.logical(reads)) {
     return(reads)
   }
-  return(matrixStats::rowMins(methods::as(quality(reads), "matrix"),
-                              na.rm = TRUE) >= min)
+
+  goodq <- function(x) {
+    return(matrixStats::rowMins(methods::as(quality(x), "matrix"),
+                                na.rm = TRUE) >= min)
+  }
+
+  if (is.na(batch_size) | batch_size >= length(reads)) return(goodq(reads))
+
+  n <- as.integer(1L + length(reads) / batch_size)
+  i <- seq_along(reads)
+  i <- split(i, cut(i, n, labels = FALSE))
+
+  return(
+    unlist(unname(lapply(i, function(idx, x) {
+    goodq(x[idx])
+  }, reads))))
 }
 
 
@@ -163,15 +178,30 @@ goodBaseQuality <- function(reads, min = 20) {
 #' sequence should be. For example, if we have a sequence with nucleotides which
 #' have quality 70-70-70, the average would be 70. If set the average to 70 or
 #' less the sequence will pass. If we set the average to 71 the sequence will
-#' not pass. The average is set to 0 by default.
+#' not pass.
+#' @param batch_size (numeric) How many reads to process at a time.
 #' @return (boolean) Logical vector with the valid rows as TRUE.
 #'
-goodAvgQuality <- function(reads, avg = 30) {
+goodAvgQuality <- function(reads, avg = 30, batch_size = 1e6) {
   if (is.logical(reads)) {
     return(reads)
   }
-  return(Matrix::rowMeans(methods::as(quality(reads), "matrix"),
-                          na.rm = TRUE) >= avg)
+
+  goodq <- function(x) {
+    return(Matrix::rowMeans(methods::as(quality(x), "matrix"),
+                            na.rm = TRUE) >= avg)
+  }
+
+  if (is.na(batch_size) | batch_size >= length(reads)) return(goodq(reads))
+
+  n <- as.integer(1L + length(reads) / batch_size)
+  i <- seq_along(reads)
+  i <- split(i, cut(i, n, labels = FALSE))
+
+  return(
+    unlist(unname(lapply(i, function(idx, x) {
+      goodq(x[idx])
+    }, reads))))
 }
 
 
@@ -179,13 +209,26 @@ goodAvgQuality <- function(reads, avg = 30) {
 #'
 #' @keywords internal
 #' @param reads (ShortRead object) Loaded reads from fastq.
+#' @param batch_size (numeric) How many reads to process at a time.
 #' @return (boolean) Logical vector with the valid rows as TRUE.
 #'
-alphabetQuality <- function(reads) {
+alphabetQuality <- function(reads, batch_size = 1e6) {
   if (is.logical(reads)) {
     return(reads)
   }
 
-  nucq <- ShortRead::nFilter()
-  return(as.logical(nucq(reads)))
+  nucq <- function(x) {
+    as.logical(ShortRead::nFilter()(x))
+  }
+
+  if (is.na(batch_size) | batch_size >= length(reads)) return(nucq(reads))
+
+  n <- as.integer(1L + length(reads) / batch_size)
+  i <- seq_along(reads)
+  i <- split(i, cut(i, n, labels = FALSE))
+
+  return(
+    unlist(unname(lapply(i, function(idx, x) {
+      nucq(x[idx])
+    }, reads))))
 }

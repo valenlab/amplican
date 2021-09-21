@@ -28,6 +28,7 @@ amplicanAlign <- function(
   use_parallel = FALSE,
   average_quality = 30,
   min_quality = 20,
+  batch_size = 1e6,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
     match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
   gap_opening = 25,
@@ -90,6 +91,7 @@ amplicanAlign <- function(
   finalAES <- BiocParallel::bplapply(configSplit, FUN = makeAlignment,
                                      average_quality,
                                      min_quality,
+                                     batch_size,
                                      scoring_matrix,
                                      gap_opening,
                                      gap_extension,
