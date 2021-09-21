@@ -150,7 +150,19 @@ goodBaseQuality <- function(reads, min = 20) {
   if (is.logical(reads)) {
     return(reads)
   }
-  return(matrixStats::rowMins(methods::as(quality(reads), "matrix"),
+  read_qual <- quality(reads)
+  if (sum(width(read_qual))>2.14e+9) { # too large to fit in a R matrix
+    nreads_that_fit <- floor(2.14e+9/max(width(read_qual)))
+    nreads_tot <- length(read_qual)
+    res <- as.logical(rep(NA, nreads_tot))
+    for (i_iter in 0:(ceiling(nreads_tot/nreads_that_fit)-1)){ # not very R way to deal with it
+      idx_range <- (i_iter*nreads_that_fit + 1):min(i_iter*nreads_that_fit + nreads_that_fit, nreads_tot)
+      res[idx_range] <- matrixStats::rowMins(methods::as(read_qual[idx_range], "matrix"),
+                              na.rm = TRUE) >= min
+    }
+    return(res)
+  }
+  return(matrixStats::rowMins(methods::as(read_qual, "matrix"),
                               na.rm = TRUE) >= min)
 }
 
@@ -170,7 +182,19 @@ goodAvgQuality <- function(reads, avg = 30) {
   if (is.logical(reads)) {
     return(reads)
   }
-  return(Matrix::rowMeans(methods::as(quality(reads), "matrix"),
+  read_qual <- quality(reads)
+  if (sum(width(read_qual))>2.14e+9) {  # too large to fit in a R matrix
+    nreads_that_fit <- floor(2.14e+9/max(width(read_qual)))
+    nreads_tot <- length(read_qual)
+    res <- as.logical(rep(NA, nreads_tot))
+    for (i_iter in 0:(ceiling(nreads_tot/nreads_that_fit)-1)){  # not very R way to deal with it
+      idx_range <- (i_iter*nreads_that_fit + 1):min(i_iter*nreads_that_fit + nreads_that_fit, nreads_tot)
+      res[idx_range] <- Matrix::rowMeans(methods::as(read_qual[idx_range], "matrix"),
+                              na.rm = TRUE) >= avg
+    }
+    return(res)
+  }
+  return(Matrix::rowMeans(methods::as(read_qual, "matrix"),
                           na.rm = TRUE) >= avg)
 }
 
