@@ -1,6 +1,7 @@
 Config file:         full/path/to/config/file/that/has/been/used.csv
 Average Quality:     30
 Minimum Quality:     0
+Batch size:          1e+07
 Write Alignments:    txt
 Fastq files Mode:    0
 Gap Opening:         25

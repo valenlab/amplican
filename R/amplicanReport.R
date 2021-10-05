@@ -103,8 +103,10 @@ amplicanReport <- function(results_folder,
 
     report_name <- paste0(report_files[i], ".Rmd")
     rmarkdown::draft(file = report_name,
-                     template = template_names[i],
-                     package = "amplican",
+                     template = system.file(
+                       "rmarkdown", "templates",
+                       template_names[i], package = "amplican"),
+                     package = NULL,
                      edit = FALSE)
 
     rmdParamList <- switch(levels[i],

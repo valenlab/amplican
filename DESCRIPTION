@@ -6,7 +6,7 @@ Description: `amplican` performs alignment of the amplicon reads, normalizes
     and presents results in form of  aggregated reports. Data and statistics can 
     be broken down by experiments, barcodes, user defined groups, guides and 
     amplicons allowing for quick identification of potential problems.
-Version: 1.15.3
+Version: 1.15.4
 Authors@R: c(
     person("Kornel", "Labun", email = "kornel.labun@gmail.com", role = "aut"),
     person("Eivind", "Valen", email = "eivind.valen@gmail.com", role = c("cph", "cre"))
@@ -45,7 +45,7 @@ Imports:
     rmarkdown (>= 1.6),
     knitr (>= 1.16),
     clusterCrit (>= 1.2.7)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Suggests:
     testthat,
     BiocStyle,

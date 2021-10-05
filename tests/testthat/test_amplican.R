@@ -11,9 +11,15 @@ fastq_folder <- system.file("extdata", package = "amplican")
 results_folder <- tempdir()
 # results_folder <- system.file("extdata", "results", package = "amplican")
 # vignettes_path <- system.file('vignettes', package = 'amplican')
-
+#
 # devtools::unload()
 library(amplican)
+
+test_that("amplican theme teplates are loaded properly", {
+  expect_gte(
+    nchar(system.file("rmarkdown", "templates",
+                      "id_report", package = "amplican")), 1)
+})
 
 test_that("amplican runs through example files without any issues", {
   expect_message(

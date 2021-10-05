@@ -884,7 +884,8 @@ setMethod("extractEvents", "AlignmentsExperimentSet", function(
   } else {
     BiocParallel::bpparam()
   }
-  finalGR <- BiocParallel::bplapply(object, FUN = getEventInfoObj, BPPARAM = p)
+  #finalGR <- BiocParallel::bplapply(object, FUN = getEventInfoObj, BPPARAM = p)
+  finalGR <- lapply(object, getEventInfoObj)
   finalGR <- unlist(GenomicRanges::GRangesList(finalGR), use.names = FALSE)
   flipRanges(GenomicRanges::as.data.frame(finalGR, row.names = NULL),
              experimentData(object))
