@@ -1213,7 +1213,7 @@ plot_variants <- function(alignments, config, id,
                                     ymin = ymin, ymax = ymax),
                        colour = "black", alpha = 0) +
     ggplot2::geom_text(ggplot2::aes(label = value)) +
-    ggplot2::scale_fill_manual(values = amplicon_colors) +
+    ggplot2::scale_fill_manual(values = amplicon_colors, na.value = "transparent") +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position="none",
                    plot.background = ggplot2::element_blank(),
