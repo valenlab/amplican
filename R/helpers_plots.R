@@ -16,9 +16,13 @@ sh <- 1.33
 # C "#4285F4" blue
 # G "#FBBC05"  yellow
 # T "#34A853" green
+# M, R, W, S, Y, K, V, H, D, B, N - grey #DFCFBE
 amplicon_colors <- c("#EA4335", "#4285F4", "#FBBC05", "#34A853",
-                     "#EA4335", "#4285F4", "#FBBC05", "#34A853", "#FFFFFF")
-names(amplicon_colors) <- c("A", "C", "G", "T", "a", "c", "g", "t", "-")
+                     "#EA4335", "#4285F4", "#FBBC05", "#34A853", "#FFFFFF",
+                     rep("#DFCFBE", 22))
+names(amplicon_colors) <- c("A", "C", "G", "T", "a", "c", "g", "t", "-",
+                            "M", "R", "W", "S", "Y", "K", "V", "H", "D", "B", "N",
+                            "m", "r", "w", "s", "y", "k", "v", "h", "d", "b", "n")
 codon_colors <- c("#E15D44", "#98B4D4", "#D65076", "#BC243C", "#009B77",
                   "#D65076", "#BC243C", "#E15D44", "#D65076", "#009B77",
                   "#009B77", "#98B4D4", "#009B77", "#009B77", "#009B77",

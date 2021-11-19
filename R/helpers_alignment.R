@@ -137,6 +137,7 @@ is_hdr <- function(reads, scores, amplicon, donor, type = "overlap",
 makeAlignment <- function(cfgT,
                           average_quality,
                           min_quality,
+                          filter_n,
                           batch_size,
                           scoring_matrix,
                           gap_opening,
@@ -169,8 +170,12 @@ makeAlignment <- function(cfgT,
     goodBaseQuality(rveT, min = min_quality, batch_size = batch_size)
   avrq <- goodAvgQuality(fwdT, avg = average_quality, batch_size = batch_size) &
     goodAvgQuality(rveT, avg = average_quality, batch_size = batch_size)
-  nucq <- alphabetQuality(fwdT, batch_size = batch_size) &
-    alphabetQuality(rveT, batch_size = batch_size)
+  nucq <- if (filter_n) {
+    alphabetQuality(fwdT, batch_size = batch_size) &
+      alphabetQuality(rveT, batch_size = batch_size)
+  } else {
+    rep(TRUE, length(avrq))
+  }
   goodReads <- goodq & avrq & nucq
 
   barcodeTable <- data.frame(Barcode = barcode,

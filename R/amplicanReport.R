@@ -121,7 +121,7 @@ amplicanReport <- function(results_folder,
                            summary = list(barcode_summary = barcode_summary,
                                           config_summary = config_summary,
                                           links = paste0(links,
-                                                         collapse = "\n")))
+                                                         collapse = "\\\\n")))
     rmd_content <- readLines(report_name)
     for (k in seq_along(rmdParamList)) {
       # 11th line is params:
@@ -133,11 +133,11 @@ amplicanReport <- function(results_folder,
       rmd_content[11 + k] <- gsub(":.*", new_param, rmd_content[11 + k])
     }
     cat(rmd_content, file = report_name, sep = "\n")
+  }
 
-    if (knit_reports) {
-      rmarkdown::render(report_name,
-                        params = rmdParamList,
-                        envir = parent.frame())
+  if (knit_reports) {
+    for (i in rev(seq_along(levels))) {
+      rmarkdown::render(paste0(report_files[i], ".Rmd"))
     }
   }
 

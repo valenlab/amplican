@@ -8,6 +8,7 @@ makeAlignment(
   cfgT,
   average_quality,
   min_quality,
+  filter_n,
   batch_size,
   scoring_matrix,
   gap_opening,
@@ -30,6 +31,8 @@ If the average quality of the reads fall below value of
 the minimum quality for ALL nucleotides in given read. If one of nucleotides
 has quality BELLOW \code{min_quality}, then the sequence is filtered.
 Default is 20.}
+
+\item{filter_n}{(boolean)  Whether to filter out reads containing N base.}
 
 \item{batch_size}{(numeric) How many reads to analyze at a time? Needed for
 filtering of large fastq files.}

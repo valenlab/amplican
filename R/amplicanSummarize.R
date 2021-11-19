@@ -1,6 +1,6 @@
 getHits <- function(aln_fwd, aln_rve) {
   if (nrow(aln_fwd) == 0 | nrow(aln_rve) == 0) return(S4Vectors::Hits())
-  suppressWarnings(IRanges::findOverlaps(
+  suppressWarnings(GenomicRanges::findOverlaps(
     GenomicRanges::GRanges(
       seqnames = paste0(aln_fwd$seqnames, "_", aln_fwd$read_id),
       ranges = IRanges::IRanges(start = aln_fwd$start,
@@ -108,23 +108,34 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
 
   # The last two columns should be the interval columns
   # find events that are overlapping each other
-  oMatch <- getHits(aln_fwd, aln_rve)
-  fi <- S4Vectors::from(oMatch)
-  ri <- S4Vectors::to(oMatch)
-  oScore <- aln_fwd$score[fi] >= aln_rve$score[ri]
-  oScore_fwd <- unique(fi[oScore])
-  oScore_rve_not <- unique(ri[oScore])
-  oScore_rve <- unique(ri[!oScore])
-  oScore_fwd_not <- unique(fi[!oScore])
-  consensus[aln_fwd$num[oScore_fwd]] <- TRUE
-  consensus[aln_rve$num[oScore_rve]] <- TRUE
-  # filter scored events from further calculation
-  if (length(c(oScore_fwd, oScore_fwd_not)) > 0) {
-    aln_fwd <- aln_fwd[-c(oScore_fwd, oScore_fwd_not), ]
+
+  for (useq in unique(aln_fwd$seqnames)) {
+    oMatch <- getHits(aln_fwd[aln_fwd$seqnames == useq],
+                      aln_rve[aln_rve$seqnames == useq])
+    fi <- S4Vectors::from(oMatch)
+    ri <- S4Vectors::to(oMatch)
+    oScore <- aln_fwd[aln_fwd$seqnames == useq]$score[fi] >=
+      aln_rve[aln_rve$seqnames == useq]$score[ri]
+
+    oScore_fwd <- unique(fi[oScore])
+    oScore_rve_not <- unique(ri[oScore])
+    oScore_rve <- unique(ri[!oScore])
+    oScore_fwd_not <- unique(fi[!oScore])
+    consensus[aln_fwd[aln_fwd$seqnames == useq]$num[oScore_fwd]] <- TRUE
+    consensus[aln_rve[aln_rve$seqnames == useq]$num[oScore_rve]] <- TRUE
+
+    # filter scored events from further calculation
+    if (length(c(oScore_fwd, oScore_fwd_not)) > 0) {
+      aln_fwd <- rbind(aln_fwd[aln_fwd$seqnames == useq][-c(oScore_fwd, oScore_fwd_not), ],
+                       aln_fwd[aln_fwd$seqnames != useq])
+    }
+    if (length(c(oScore_rve, oScore_rve_not)) > 0) {
+      aln_rve <- rbind(aln_rve[aln_rve$seqnames == useq][-c(oScore_rve, oScore_rve_not), ],
+                       aln_rve[aln_rve$seqnames != useq])
+    }
   }
-  if (length(c(oScore_rve, oScore_rve_not)) > 0) {
-    aln_rve <- aln_rve[-c(oScore_rve, oScore_rve_not), ]
-  }
+
+
 
   if (!promiscuous) {
     # find events that overlap EOP from other strand and set them to true

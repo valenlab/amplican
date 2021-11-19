@@ -10,9 +10,10 @@ amplicanAlign(
   use_parallel = FALSE,
   average_quality = 30,
   min_quality = 20,
+  filter_n = FALSE,
   batch_size = 1e+06,
   scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5, mismatch = -4,
-    baseOnly = TRUE, type = "DNA"),
+    baseOnly = FALSE, type = "DNA"),
   gap_opening = 25,
   gap_extension = 0,
   fastqfiles = 0.5,
@@ -42,6 +43,8 @@ If the average quality of the reads fall below value of
 the minimum quality for ALL nucleotides in given read. If one of nucleotides
 has quality BELLOW \code{min_quality}, then the sequence is filtered.
 Default is 20.}
+
+\item{filter_n}{(boolean)  Whether to filter out reads containing N base.}
 
 \item{batch_size}{(numeric) How many reads to analyze at a time? Needed for
 filtering of large fastq files.}

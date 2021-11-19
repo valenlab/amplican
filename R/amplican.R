@@ -24,23 +24,20 @@
 "_PACKAGE"
 .onAttach <- function(libname, pkgname) {
   packageStartupMessage(
-    paste0("Pease consider supporting this software by citing:\n\n",
+    paste0("Please consider supporting this software by citing:\n\n",
           "Labun et al. 2019\n",
           "Accurate analysis of genuine CRISPR editing events with ampliCan.\n",
           "Genome Res. 2019 Mar 8\n",
-          "doi: 10.1101/gr.244293.118\n",
-          "\nWithout appreciation scientific software is usually abandoned and",
-          " eventually deprecated, but you can easily support authors by ",
-          "citations."))
+          "doi: 10.1101/gr.244293.118\n"))
 }
 
 amplicanPipe <- function(min_freq_default) {
   function(
     config, fastq_folder, results_folder, knit_reports = TRUE,
     write_alignments_format = "txt", average_quality = 30,
-    min_quality = 0, batch_size = 1e7, use_parallel = FALSE,
+    min_quality = 0, filter_n = FALSE, batch_size = 1e7, use_parallel = FALSE,
     scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
-      match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA"),
+      match = 5, mismatch = -4, baseOnly = FALSE, type = "DNA"),
     gap_opening = 25, gap_extension = 0, fastqfiles = 0.5,
     primer_mismatch = 0, donor_mismatch = 3, PRIMER_DIMER = 30,
     event_filter = TRUE, cut_buffer = 5,
@@ -63,6 +60,7 @@ amplicanPipe <- function(min_freq_default) {
                          gap_opening = gap_opening,
                          gap_extension = gap_extension,
                          min_quality = min_quality,
+                         filter_n = filter_n,
                          fastqfiles = fastqfiles,
                          primer_mismatch = primer_mismatch,
                          donor_mismatch = donor_mismatch)
@@ -91,6 +89,7 @@ amplicanPipe <- function(min_freq_default) {
     writeLines(c(paste("Config file:        ", config),
                  paste("Average Quality:    ", average_quality),
                  paste("Minimum Quality:    ", min_quality),
+                 paste("Filter N-reads:     ", filter_n),
                  paste("Batch size:         ", batch_size),
                  paste("Write Alignments:   ", toString(write_alignments_format)),
                  paste("Fastq files Mode:   ", fastqfiles),
@@ -173,6 +172,8 @@ amplicanPipe <- function(min_freq_default) {
     cfgT$guideRNA[cfgT$Direction] <- revComp(cfgT$guideRNA[cfgT$Direction])
     # normalize
     message("Normalizing events...")
+    # we remove all N as they are just noise from poor sequencing
+    aln <- aln[aln$replacement != "N", ]
     aln <- amplicanNormalize(aln, cfgT, min_freq = min_freq, add = normalize)
 
     message("Saving normalized events...")
@@ -243,6 +244,7 @@ amplicanPipe <- function(min_freq_default) {
 #' the minimum quality for ALL nucleotides in given read. If one of nucleotides
 #' has quality BELLOW \code{min_quality}, then the sequence is filtered.
 #' Default is 20.
+#' @param filter_n (boolean)  Whether to filter out reads containing N base.
 #' @param batch_size (numeric) How many reads to analyze at a time? Needed for
 #' filtering of large fastq files.
 #' @param write_alignments_format (character vector) Whether
@@ -339,7 +341,7 @@ amplicanPipe <- function(min_freq_default) {
 # min_quality = 0
 # use_parallel = FALSE
 # scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
-#   match = 5, mismatch = -4, baseOnly = TRUE, type = "DNA")
+#   match = 5, mismatch = -4, baseOnly = FALSE, type = "DNA")
 # gap_opening = 25
 # gap_extension = 0
 # fastqfiles = 0.5
