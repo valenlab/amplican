@@ -6,7 +6,7 @@ Description: `amplican` performs alignment of the amplicon reads, normalizes
     and presents results in form of  aggregated reports. Data and statistics can 
     be broken down by experiments, barcodes, user defined groups, guides and 
     amplicons allowing for quick identification of potential problems.
-Version: 1.17.1
+Version: 1.17.2
 Authors@R: c(
     person("Kornel", "Labun", email = "kornel.labun@gmail.com", role = "aut"),
     person("Eivind", "Valen", email = "eivind.valen@gmail.com", role = c("cph", "cre"))
@@ -34,7 +34,7 @@ Imports:
     BiocParallel (>= 1.10.1),
     gtable (>= 0.2.0),
     gridExtra (>= 2.2.1),
-    ggplot2 (>= 2.2.0),
+    ggplot2 (>= 3.3.4),
     ggthemes (>= 3.4.0),
     waffle (>= 0.7.0),
     stringr (>= 1.2.0),
@@ -44,8 +44,8 @@ Imports:
     dplyr (>= 0.7.2),
     rmarkdown (>= 1.6),
     knitr (>= 1.16),
-    clusterCrit (>= 1.2.7)
-RoxygenNote: 7.1.2
+    cluster (>= 2.1.4)
+RoxygenNote: 7.2.3
 Suggests:
     testthat,
     BiocStyle,

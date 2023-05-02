@@ -18,7 +18,7 @@
 #' - **x**
 #' - **y**
 #' - color
-#' - size
+#' - linewidth
 #' - linetype
 #' - alpha
 #' - lineend

@@ -100,7 +100,7 @@ ggplot_deletions <- function(xData) {
     geom_bezier(ggplot2::aes(x = x, y = y, group = group,
                                       alpha = frequency,
                                       colour = overlaps,
-                                      size = frequency),
+                                      linewidth = frequency),
                          data = xData) +
     ggplot2::scale_colour_manual(values = is_cut_colors) +
     ggplot2::xlab("Relative Nucleotide Position")
@@ -115,7 +115,7 @@ ggplot_insertions <- function(xData) {
                                        y = frequency,
                                        group = group,
                                        alpha = frequencyReal,
-                                       size = frequency),
+                                       linewidth = frequency),
                           fill = "#FF0000")
 }
 
@@ -537,11 +537,11 @@ plot_mismatches <- function(alignments,
   freqAgrMinus <- rbind(freqAgrMinus, mock)
 
   mut_fr <- ggplot_mismatches(freqAgrPlus)
-  mut_fr <- amplican_xlim(mut_fr, xlabels, box, pr$primers, c(from, to))
+  mut_fr <- amplican_xlim(mut_fr, xlabels, box, pr$primers, c(from, to + 1))
   mut_fr <- amplican_style(mut_fr)
 
   mut_re <- ggplot_mismatches(freqAgrMinus)
-  mut_re <- amplican_xlim(mut_re, xlabels, box, pr$primers, c(from, to))
+  mut_re <- amplican_xlim(mut_re, xlabels, box, pr$primers, c(from, to + 1))
   mut_re <- amplican_style(mut_re)
 
   return_plot(freqAgr, amplicon, from, to, mut_fr, mut_re)
@@ -616,12 +616,12 @@ plot_deletions <- function(alignments,
 
   arch_plot_fr <- ggplot_deletions(archRanges[archRanges$strand == "+", ])
   arch_plot_fr <- amplican_xlim(arch_plot_fr, xlabels, box,
-                                pr$primers, c(from, to))
+                                pr$primers, c(from, to + 1))
   arch_plot_fr <- amplican_style(arch_plot_fr)
 
   arch_plot_re <- ggplot_deletions(archRanges[archRanges$strand == "-", ])
   arch_plot_re <- amplican_xlim(arch_plot_re, xlabels, box,
-                                pr$primers, c(from, to))
+                                pr$primers, c(from, to + 1))
   arch_plot_re <- amplican_style(arch_plot_re)
 
   return_plot(archRanges, amplicon, from, to, arch_plot_fr, arch_plot_re)
@@ -700,11 +700,11 @@ plot_insertions <- function(alignments,
   box <- box + cut_buffer
 
   ins_fr <- ggplot_insertions(triangleFr)
-  ins_fr <- amplican_xlim(ins_fr, xlabels, box, pr$primers, c(from, to))
+  ins_fr <- amplican_xlim(ins_fr, xlabels, box, pr$primers, c(from, to + 1))
   ins_fr <- amplican_style(ins_fr)
 
   ins_re <- ggplot_insertions(triangleRe)
-  ins_re <- amplican_xlim(ins_re, xlabels, box, pr$primers, c(from, to))
+  ins_re <- amplican_xlim(ins_re, xlabels, box, pr$primers, c(from, to + 1))
   ins_re <- amplican_style(ins_re)
 
   return_plot(idRangesReduced, amplicon, from, to, ins_fr, ins_re)
@@ -789,10 +789,10 @@ plot_cuts <- function(alignments,
     geom_bezier(ggplot2::aes(x= x, y = y, group = group,
                                       alpha = frequency,
                                       colour = seqnames,
-                                      size = frequency),
+                                      linewidth = frequency),
                          data = archRanges) +
     ggplot2::theme_bw() +
-    ggplot2::guides(size = FALSE, alpha = FALSE) +
+    ggplot2::guides(linewidth = "none", alpha = "none") +
     ggplot2::theme(legend.position = c(1, 1),
                    legend.justification = c(1.01, 1.01)) +
     ggplot2::labs(y = "Frequency [%]",
@@ -800,7 +800,7 @@ plot_cuts <- function(alignments,
                   x = "Relative Nucleotide Position") +
     ggplot2::scale_x_continuous(labels = xlabels,
                                 breaks = xlabels,
-                                limits = c(from, to)) +
+                                limits = c(from, to + 1)) +
     ggplot2::geom_vline(xintercept = pr$primers,
                         linetype = "dotdash",
                         colour = "blue") +
