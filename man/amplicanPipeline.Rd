@@ -27,7 +27,8 @@ amplicanPipeline(
   cut_buffer = 5,
   promiscuous_consensus = TRUE,
   normalize = c("guideRNA", "Group"),
-  min_freq = min_freq_default
+  min_freq = min_freq_default,
+  continue = TRUE
 )
 }
 \arguments{
@@ -148,6 +149,10 @@ same 'guideRNA' in the same 'Group' will be normalized.}
 \item{min_freq}{(numeric) All events below this frequency are treated as
 sequencing errors and rejected. This parameter is used during normalization
 through \code{\link{amplicanNormalize}}.}
+
+\item{continue}{(boolean) Default TRUE, decides whether to continue failed
+ampliCan runs. In case of FALSE, all contents in `results` folder will
+be removed.}
 }
 \value{
 (invisible) results_folder path
