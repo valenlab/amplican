@@ -197,11 +197,12 @@ annotate_with_amplicon <- function(p, amplicon, from, to) {
   p +
     ggplot2::annotate(
       "text",
-      x = seq(from, to),
+      x = seq(from = from, by = 1, length.out = ampl_len),
       label = amplicon,
       y = 0,
       colour = amplicon_colors[
-        match(toupper(amplicon), names(amplicon_colors))])
+        match(toupper(amplicon), names(amplicon_colors))]) +
+    ggplot2::xlim(from, to)
 }
 
 return_plot <- function(freqAgr, amplicon, from, to, plot_fr, plot_re) {
