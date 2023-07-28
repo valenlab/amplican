@@ -12,7 +12,8 @@ aln <- fread(system.file("test_data", "test_aln.csv", package = "amplican"))
 cfgT <- fread(system.file("test_data", "test_cfg.csv", package = "amplican"))
 
 test_that("amplicanOverlap works as intended when not relative", {
-  expect_true(all(amplicanOverlap(aln, cfgT, cut_buffer = 0) == aln$overlaps))
+  expect_true(all(amplicanOverlap(aln, cfgT, cut_buffer = 0,
+                                  relative = FALSE) == aln$overlaps))
 })
 
 test_that("amplicanConsensus works as intended when not relative", {

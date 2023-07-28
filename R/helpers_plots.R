@@ -496,7 +496,9 @@ plot_amplicon <- function(amplicon, from, to) {
 #'                                "events_filtered_shifted_normalized.csv",
 #'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
+#' id <- c('ID_1', 'ID_3'); cut_buffer = 5; xlab_spacing = 4;
 #' p <- plot_mismatches(alignments, config, c('ID_1', 'ID_3'))
+#' ggplot2::ggsave("~/test.png", p, width = 25, units = "in")
 #'
 plot_mismatches <- function(alignments,
                             config,
@@ -538,11 +540,11 @@ plot_mismatches <- function(alignments,
   freqAgrMinus <- rbind(freqAgrMinus, mock)
 
   mut_fr <- ggplot_mismatches(freqAgrPlus)
-  mut_fr <- amplican_xlim(mut_fr, xlabels, box, pr$primers, c(from, to + 1))
+  mut_fr <- amplican_xlim(mut_fr, xlabels, box, pr$primers, c(from, to))
   mut_fr <- amplican_style(mut_fr)
 
   mut_re <- ggplot_mismatches(freqAgrMinus)
-  mut_re <- amplican_xlim(mut_re, xlabels, box, pr$primers, c(from, to + 1))
+  mut_re <- amplican_xlim(mut_re, xlabels, box, pr$primers, c(from, to))
   mut_re <- amplican_style(mut_re)
 
   return_plot(freqAgr, amplicon, from, to, mut_fr, mut_re)
@@ -617,12 +619,12 @@ plot_deletions <- function(alignments,
 
   arch_plot_fr <- ggplot_deletions(archRanges[archRanges$strand == "+", ])
   arch_plot_fr <- amplican_xlim(arch_plot_fr, xlabels, box,
-                                pr$primers, c(from, to + 1))
+                                pr$primers, c(from, to))
   arch_plot_fr <- amplican_style(arch_plot_fr)
 
   arch_plot_re <- ggplot_deletions(archRanges[archRanges$strand == "-", ])
   arch_plot_re <- amplican_xlim(arch_plot_re, xlabels, box,
-                                pr$primers, c(from, to + 1))
+                                pr$primers, c(from, to))
   arch_plot_re <- amplican_style(arch_plot_re)
 
   return_plot(archRanges, amplicon, from, to, arch_plot_fr, arch_plot_re)
@@ -701,11 +703,11 @@ plot_insertions <- function(alignments,
   box <- box + cut_buffer
 
   ins_fr <- ggplot_insertions(triangleFr)
-  ins_fr <- amplican_xlim(ins_fr, xlabels, box, pr$primers, c(from, to + 1))
+  ins_fr <- amplican_xlim(ins_fr, xlabels, box, pr$primers, c(from, to))
   ins_fr <- amplican_style(ins_fr)
 
   ins_re <- ggplot_insertions(triangleRe)
-  ins_re <- amplican_xlim(ins_re, xlabels, box, pr$primers, c(from, to + 1))
+  ins_re <- amplican_xlim(ins_re, xlabels, box, pr$primers, c(from, to))
   ins_re <- amplican_style(ins_re)
 
   return_plot(idRangesReduced, amplicon, from, to, ins_fr, ins_re)
@@ -801,7 +803,7 @@ plot_cuts <- function(alignments,
                   x = "Relative Nucleotide Position") +
     ggplot2::scale_x_continuous(labels = xlabels,
                                 breaks = xlabels,
-                                limits = c(from, to + 1)) +
+                                limits = c(from, to)) +
     ggplot2::geom_vline(xintercept = pr$primers,
                         linetype = "dotdash",
                         colour = "blue") +
@@ -1003,6 +1005,7 @@ merge_3_grobs <- function(cgb, vgb, tgb) {
     nrow = 2)
   fin
 }
+
 merge_2_grobs <- function(vgb, tgb) {
   tgb$heights <- grid::unit(rep(1/(nrow(tgb)), nrow(tgb)), "npc")
   bot <- gtable::gtable_add_cols(vgb, sum(tgb$widths))
@@ -1053,9 +1056,10 @@ merge_2_grobs <- function(vgb, tgb) {
 #' @param top (numeric) Specify number of most frequent reads to plot. By
 #' default it is 10. Check \code{\link{plot_heterogeneity}} to see how many
 #' reads will be enough to give good overview of your variants.
-#' @param annot ("codon" or NA) What to display for
+#' @param annot ("codon" or "cov" or NA) What to display for
 #' annotation top plot. When NA will not display anything, also not display
-#' total summary.
+#' total summary. Codon plot is all reading frames for a given window, and the default
+#' "cov" is coverage of all indels and mismatches over a given window.
 #' @param summary_plot (boolean) Whether small summary plot in the upper right
 #' corner should be displayed. Top bar summarizes total reads with
 #' frameshift (F), reads with Edits without Frameshift (Edits) and reads
@@ -1078,17 +1082,30 @@ merge_2_grobs <- function(vgb, tgb) {
 #'                                "events_filtered_shifted_normalized.csv",
 #'                                package = "amplican")
 #' alignments <- read.csv(alignments_file)
+#'
+#' alignments <- alignments[alignments$consensus & alignments$overlaps, ]
 #' p <- plot_variants(alignments[alignments$consensus & alignments$overlaps, ],
 #'                    config, c('ID_1','ID_3'))
 #'
 plot_variants <- function(alignments, config, id,
                           cut_buffer = 5, top = 10,
-                          annot = "codon", summary_plot = TRUE) {
-  seqnames <- read_id <- replacement <- NULL
+                          annot = "cov", summary_plot = TRUE) {
+  seqnames <- read_id <- replacement <- position <- NULL
 
   archRanges <- alignments[alignments$seqnames %in% id, ]
   if (dim(archRanges)[1] == 0) return("No variants to plot.")
   archRanges$strand <- "*"
+
+  # total counts per position for "cov" plot
+  if (annot == "cov") {
+    cvgR <- archRanges[archRanges$type != "insertion", ]
+    cvgR <- IRanges::IRanges(start = cvgR$start,
+                             end = cvgR$end,
+                             score = cvgR$counts)
+    cvg <- as.vector(coverage(cvgR, shift = -1 * min(start(cvgR)) + 1, weight = "score"))
+    names(cvg) <- min(start(cvgR)):max(end(cvgR))
+    cvg <- cvg / sum(config$Reads_Filtered[config$ID %in% id])
+  }
 
   amplicon <- get_seq(config, id)
   box <- upperGroups(amplicon)[1]
@@ -1276,6 +1293,33 @@ plot_variants <- function(alignments, config, id,
     cgb <- ggplot2::ggplotGrob(cplot)
   }
 
+  if (!is.na(annot) & annot == "cov") {
+    cvg <- cvg[names(cvg) %in% start(box):end(box)]
+    cvg <- data.frame(coverage = cvg,
+                      position = names(cvg))
+    cplot <- ggplot2::ggplot(cvg,
+                             ggplot2::aes(x = as.numeric(position),
+                                          y = coverage)) +
+      ggplot2::geom_line() +
+      ggplot2::geom_point() +
+      ggplot2::theme_bw() +
+      ggplot2::theme(legend.position = "none",
+                     axis.title.x = ggplot2::element_blank(),
+                     axis.text.x = ggplot2::element_blank(),
+                     axis.ticks.x = ggplot2::element_blank(),
+                     plot.background = ggplot2::element_blank(),
+                     panel.grid.major = ggplot2::element_blank(),
+                     panel.grid.minor = ggplot2::element_blank(),
+                     panel.border = ggplot2::element_blank(),
+                     panel.background = ggplot2::element_blank(),
+                     axis.ticks.y = ggplot2::element_blank(),
+                     plot.margin = grid::unit(
+                       c(0, 0, -2, 0), "char")) +
+      ggplot2::labs(x = "", y = "Coverage") +
+      ggplot2::xlim(c(start(box) - 0.5, end(box) + 0.5))
+    cgb <- ggplot2::ggplotGrob(cplot)
+  }
+
   vtable <- archRanges[, c("frequency", "counts", "width")]
   vtable <- rbind(
     data.frame(frequency = ampl_freq, counts = ampl_count, width = 0), vtable)
@@ -1303,7 +1347,7 @@ plot_variants <- function(alignments, config, id,
                                  t = 1:(nrow(tgb) - 1), l = 1, r = 3)
   vgb <- ggplot2::ggplotGrob(vplot)
 
-  if (!is.na(annot) & annot == "codon" & summary_plot) {
+  if (!is.na(annot) & annot %in% c("codon", "cov") & summary_plot) {
     bnames <- c("Edited", "Match", "F")
     cfgS <- config[config$ID %in% id,
                    c("Reads_Filtered", "Reads_Edited", "Reads_Frameshifted")]

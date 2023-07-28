@@ -10,7 +10,7 @@ plot_variants(
   id,
   cut_buffer = 5,
   top = 10,
-  annot = "codon",
+  annot = "cov",
   summary_plot = TRUE
 )
 }
@@ -31,9 +31,10 @@ used in the analysis.}
 default it is 10. Check \code{\link{plot_heterogeneity}} to see how many
 reads will be enough to give good overview of your variants.}
 
-\item{annot}{("codon" or NA) What to display for
+\item{annot}{("codon" or "cov" or NA) What to display for
 annotation top plot. When NA will not display anything, also not display
-total summary.}
+total summary. Codon plot is all reading frames for a given window, and the default
+"cov" is coverage of all indels and mismatches over a given window.}
 
 \item{summary_plot}{(boolean) Whether small summary plot in the upper right
 corner should be displayed. Top bar summarizes total reads with
@@ -84,6 +85,8 @@ alignments_file <- system.file("extdata", "results", "alignments",
                                "events_filtered_shifted_normalized.csv",
                                package = "amplican")
 alignments <- read.csv(alignments_file)
+
+alignments <- alignments[alignments$consensus & alignments$overlaps, ]
 p <- plot_variants(alignments[alignments$consensus & alignments$overlaps, ],
                    config, c('ID_1','ID_3'))
 

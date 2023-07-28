@@ -41,7 +41,9 @@ alignments_file <- system.file("extdata", "results", "alignments",
                                "events_filtered_shifted_normalized.csv",
                                package = "amplican")
 alignments <- read.csv(alignments_file)
+id <- c('ID_1', 'ID_3'); cut_buffer = 5; xlab_spacing = 4;
 p <- plot_mismatches(alignments, config, c('ID_1', 'ID_3'))
+ggplot2::ggsave("~/test.png", p, width = 25, units = "in")
 
 }
 \seealso{

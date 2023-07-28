@@ -3,7 +3,7 @@ Average Quality:     30
 Minimum Quality:     0
 Filter N-reads:      FALSE
 Batch size:          1e+07
-Write Alignments:    txt
+Write Alignments:    None
 Fastq files Mode:    0
 Gap Opening:         25
 Gap Extension:       0

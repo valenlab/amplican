@@ -24,7 +24,7 @@ test_that("Amplicon plot is a plot class.",{
 })
 
 test_that("Mismatch plot is a construct of grobs.",{
-  p <- plot_mismatches(events, config, config$ID[1])
+  p <- suppressWarnings(plot_mismatches(events, config, config$ID[1]))
   expect_true(gtable::is.gtable(p))
 })
 
