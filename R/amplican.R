@@ -34,12 +34,14 @@
 amplicanPipe <- function(min_freq_default) {
   function(
     config, fastq_folder, results_folder, knit_reports = TRUE,
-    write_alignments_format = "txt", average_quality = 30,
+    write_alignments_format = "None", average_quality = 30,
     min_quality = 0, filter_n = FALSE, batch_size = 1e7, use_parallel = FALSE,
     scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
       match = 5, mismatch = -4, baseOnly = FALSE, type = "DNA"),
     gap_opening = 25, gap_extension = 0, fastqfiles = 0.5,
-    primer_mismatch = 0, donor_mismatch = 3, PRIMER_DIMER = 30,
+    primer_mismatch = 2,
+    donor_mismatch = 3, donor_strict = FALSE,
+    PRIMER_DIMER = 30,
     event_filter = TRUE, cut_buffer = 5,
     promiscuous_consensus = TRUE, normalize = c("guideRNA", "Group"),
     min_freq = min_freq_default,
@@ -78,7 +80,8 @@ amplicanPipe <- function(min_freq_default) {
                     filter_n = filter_n,
                     fastqfiles = fastqfiles,
                     primer_mismatch = primer_mismatch,
-                    donor_mismatch = donor_mismatch)
+                    donor_mismatch = donor_mismatch,
+                    donor_strict = donor_strict)
       message("Saving alignments...")
       saveRDS(aln, rds_file)
     }
@@ -187,6 +190,18 @@ amplicanPipe <- function(min_freq_default) {
         }
       }
       cfgT$Reads_Filtered <- cfgT$Reads - cfgT$PRIMER_DIMER - cfgT$Low_Score
+
+      if (donor_strict) {
+        for (i in seq_len(dim(cfgT)[1])) {
+          aln[seqnames == cfgT$ID[i], ]$readType <-
+            is_hdr_strict_by_id(aln[seqnames == cfgT$ID[i], ],
+                                get_seq(cfgT, cfgT$ID[i]),
+                                get_seq(cfgT, cfgT$ID[i], "Donor"),
+                                scoring_matrix, gap_opening,
+                                gap_extension, donor_mismatch)
+
+        }
+      }
 
       # shift to relative (most left UPPER case is position 0)
       message("Shifting events as relative...")
@@ -332,6 +347,10 @@ amplicanPipe <- function(min_freq_default) {
 #' The higher the parameter the less strict will be algorithm accepting read as
 #' HDR. Set to 0 if only perfect alignments to the donor template marked as HDR,
 #' unadvised due to error rate of the sequencers.
+#' @param donor_strict (logical) Applies more strict algorithm for HDR detection.
+#' Only these reads that have all of the donor events will count as HDR. Tolerates `donor_mismatch`
+#' level of noise, but no indels are allowed. Use this when your reads should span over the
+#' whole window of the donor events. Might be more time consuming.
 #' @param PRIMER_DIMER (numeric) Value specifying buffer for PRIMER DIMER
 #' detection. For a given read it will be recognized as PRIMER DIMER when
 #' alignment will introduce gap of size bigger than: \cr

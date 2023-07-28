@@ -178,7 +178,7 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
 amplicanOverlap <- function(aln, cfgT, cut_buffer = 5, relative = FALSE) {
   if (dim(aln)[1] == 0) return(logical(0))
   cutSites <- lapply(cfgT$ID, function(x) {
-    upperGroups(get_amplicon(cfgT, x)) + cut_buffer})
+    upperGroups(get_seq(cfgT, x)) + cut_buffer})
   cutSitesCheck <- sapply(cutSites, length) == 0
   if (any(cutSitesCheck)) {
     message("Warning: Config file row without upper case groups (guideRNA): ",

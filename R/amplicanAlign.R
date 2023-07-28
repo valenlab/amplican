@@ -36,7 +36,8 @@ amplicanAlign <- function(
   gap_extension = 0,
   fastqfiles = 0.5,
   primer_mismatch = 0,
-  donor_mismatch = 3) {
+  donor_mismatch = 3,
+  donor_strict = FALSE) {
 
   message("Checking configuration file...")
   cfgT <- data.frame(data.table::fread(config))
@@ -99,7 +100,8 @@ amplicanAlign <- function(
                                      gap_extension,
                                      fastqfiles,
                                      primer_mismatch,
-                                     donor_mismatch, BPPARAM = p)
+                                     donor_mismatch,
+                                     donor_strict, BPPARAM = p)
   finalAES <- Reduce(c, finalAES)
 
   # sort like at the entry point

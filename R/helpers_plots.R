@@ -508,7 +508,7 @@ plot_mismatches <- function(alignments,
   idRanges <- idRanges[idRanges$type == "mismatch", ]
   if (dim(idRanges)[1] == 0) return("No mismatches to plot.")
 
-  amplicon <- get_amplicon(config, id)
+  amplicon <- get_seq(config, id)
   ampl_len <- nchar(amplicon)
   box <- upperGroups(amplicon)
 
@@ -592,7 +592,7 @@ plot_deletions <- function(alignments,
                              alignments$type == "deletion", ]
   if (dim(archRanges)[1] == 0) return("No deletions to plot.")
 
-  amplicon <- get_amplicon(config, id)
+  amplicon <- get_seq(config, id)
   ampl_len <- nchar(amplicon)
   box <- upperGroups(amplicon)
 
@@ -668,7 +668,7 @@ plot_insertions <- function(alignments,
                            alignments$type == "insertion", ]
   if (dim(idRanges)[1] == 0) return("No insertions to plot.")
 
-  amplicon <- get_amplicon(config, id)
+  amplicon <- get_seq(config, id)
   ampl_len <- nchar(amplicon)
   data.table::setDT(idRanges)
   idRangesReduced <- idRanges[, list(counts = sum(counts)),
@@ -751,7 +751,7 @@ plot_cuts <- function(alignments,
                              alignments$type == "deletion", ]
   archRanges <- archRanges[archRanges$strand == "+", ]
 
-  amplicon <- get_amplicon(config, id)
+  amplicon <- get_seq(config, id)
   ampl_len <- nchar(amplicon)
 
   if (dim(archRanges)[1] == 0) return("No cuts to plot.")
@@ -1090,7 +1090,7 @@ plot_variants <- function(alignments, config, id,
   if (dim(archRanges)[1] == 0) return("No variants to plot.")
   archRanges$strand <- "*"
 
-  amplicon <- get_amplicon(config, id)
+  amplicon <- get_seq(config, id)
   box <- upperGroups(amplicon)[1]
   if (length(box) == 1) {
     box_shift <- IRanges::start(box)[1]

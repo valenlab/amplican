@@ -18,7 +18,8 @@ amplicanAlign(
   gap_extension = 0,
   fastqfiles = 0.5,
   primer_mismatch = 0,
-  donor_mismatch = 3
+  donor_mismatch = 3,
+  donor_strict = FALSE
 )
 }
 \arguments{
@@ -80,6 +81,11 @@ donor template. This parameter is only used when donor template is specified.
 The higher the parameter the less strict will be algorithm accepting read as
 HDR. Set to 0 if only perfect alignments to the donor template marked as HDR,
 unadvised due to error rate of the sequencers.}
+
+\item{donor_strict}{(logical) Applies more strict algorithm for HDR detection.
+Only these reads that have all of the donor events will count as HDR. Tolerates `donor_mismatch`
+level of noise, but no indels are allowed. Use this when your reads should span over the
+whole window of the donor events. Might be more time consuming.}
 }
 \value{
 (AlignmentsExperimentSet) Check \code{\link{AlignmentsExperimentSet}}

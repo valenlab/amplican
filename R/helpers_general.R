@@ -31,6 +31,8 @@ decode <- function(x) {
 }
 
 
+
+
 #' amplicon sequence, reverse complemented when needed
 #'
 #' @keywords internal
@@ -38,8 +40,8 @@ decode <- function(x) {
 #' @param id (vector) a vector of id's
 #' @return (character) amplicon sequence, reverse complemented if Direction 1
 #'
-get_amplicon <- function(config, id) {
-  amplicon <- as.character(config[which(config$ID == id[1]), "Amplicon"])
+get_seq <- function(config, id, column = "Amplicon") {
+  amplicon <- as.character(config[which(config$ID == id[1]), column])
   if (config[which(config$ID == id[1]), "Direction"] == 1) {
     # revComp makes upper cases
     groups <- as.data.frame(upperGroups(amplicon))
@@ -54,7 +56,6 @@ get_amplicon <- function(config, id) {
   }
   return(amplicon)
 }
-
 
 #' left primer sequence
 #'
@@ -233,7 +234,7 @@ amplicanMap <- function(aln, cfgT) {
   no_upper <- FALSE
 
   for (id in unique(GenomeInfoDb::seqnames(aln))) {
-    amplicon <- get_amplicon(cfgT, id)
+    amplicon <- get_seq(cfgT, id)
     zero_point <- upperGroups(amplicon)
     if (length(zero_point) == 0) {
       no_upper <- TRUE

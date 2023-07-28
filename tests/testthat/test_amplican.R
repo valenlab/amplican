@@ -22,7 +22,7 @@ test_that("amplican theme teplates are loaded properly", {
 })
 
 test_that("amplican runs through example files without any issues", {
-  expect_message(
+  expect_warning(
     amplicanPipeline(config, fastq_folder, results_folder,
                      knit_reports = FALSE,
                      primer_mismatch = 0,

@@ -9,7 +9,7 @@ amplicanPipelineConservative(
   fastq_folder,
   results_folder,
   knit_reports = TRUE,
-  write_alignments_format = "txt",
+  write_alignments_format = "None",
   average_quality = 30,
   min_quality = 0,
   filter_n = FALSE,
@@ -20,8 +20,9 @@ amplicanPipelineConservative(
   gap_opening = 25,
   gap_extension = 0,
   fastqfiles = 0.5,
-  primer_mismatch = 0,
+  primer_mismatch = 2,
   donor_mismatch = 3,
+  donor_strict = FALSE,
   PRIMER_DIMER = 30,
   event_filter = TRUE,
   cut_buffer = 5,
@@ -122,6 +123,11 @@ donor template. This parameter is only used when donor template is specified.
 The higher the parameter the less strict will be algorithm accepting read as
 HDR. Set to 0 if only perfect alignments to the donor template marked as HDR,
 unadvised due to error rate of the sequencers.}
+
+\item{donor_strict}{(logical) Applies more strict algorithm for HDR detection.
+Only these reads that have all of the donor events will count as HDR. Tolerates `donor_mismatch`
+level of noise, but no indels are allowed. Use this when your reads should span over the
+whole window of the donor events. Might be more time consuming.}
 
 \item{PRIMER_DIMER}{(numeric) Value specifying buffer for PRIMER DIMER
 detection. For a given read it will be recognized as PRIMER DIMER when

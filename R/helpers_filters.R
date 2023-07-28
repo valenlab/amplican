@@ -35,21 +35,21 @@ findLQR <- function(aln) {
 
   x <- cbind(range01(aln_n$score), range01(aln_n$events))
 
-  k2 <- stats::kmeans(x, 2, iter.max = 1000, nstart = 1000)
+  k2 <- cluster::clara(x, 2, samples = 500, sampsize = 1000)
   # silhouette criterion is
-  k2s <- mean(cluster::silhouette(k2$cluster, stats::dist(x))[, "sil_width"])
+  k2s <- mean(cluster::silhouette(k2)[, "sil_width"])
   if (!is.finite(k2s)) return(logical(dim(aln)[1]))
-  k3 <- stats::kmeans(x, 3, iter.max = 1000, nstart = 1000)
-  k3s <-  mean(cluster::silhouette(k3$cluster, stats::dist(x))[, "sil_width"])
+  k3 <- cluster::clara(x, 3, samples = 500, sampsize = 1000)
+  k3s <-  mean(cluster::silhouette(k3)[, "sil_width"])
   if (!is.finite(k3s)) return(logical(dim(aln)[1]))
   if (k2s >= k3s) return(logical(dim(aln)[1])) else {
     # find top left center and filter it
     # plot(x, col = k3$cluster)
     # points(k3$center, col=1:2, pch=8, cex=1)
 
-    centers <- apply(k3$centers, 1,
+    centers <- apply(k3$medoids, 1,
                      function(x) sqrt((x[1] - 1) ^ 2 + x[2] ^ 2))
-    bs <- aln_n[k3$cluster == which.max(centers)]
+    bs <- aln_n[k3$medoids == which.max(centers)]
     return(aln$seqnames %in% bs$seqnames & aln$read_id %in% bs$read_id)
   }
 }
@@ -88,7 +88,7 @@ findEOP <- function(aln, cfgT) {
 
   if (any(aln$start < 0 | aln$end < 0)) { # if events are relative
     for (i in seq_along(cfgT$ID)) {
-      amplicon <- get_amplicon(cfgT, cfgT$ID[i])
+      amplicon <- get_seq(cfgT, cfgT$ID[i])
       zero_point <- upperGroups(amplicon)
       if (length(zero_point) == 0) next()
       cfgT$fwdPrPosEnd[i] <- cfgT$fwdPrPosEnd[i] - 1 *

@@ -124,6 +124,71 @@ is_hdr <- function(reads, scores, amplicon, donor, type = "overlap",
 }
 
 
+#' Figure out which reads conform to the HDR using the donor.
+#'
+#' This is strict detection as compared to `is_hdr` which was designed to be
+#' less specific and allow for all kinds of donors. This method requires that
+#' you have exactly the same events (mismatches, insertions, deletions) as the difference
+#' between amplicon and donor sequences. Additional mismatches are also allowed, but restricted to
+#' only `donor_mismatch` number. This method assumes you have only consensus events and specific ID
+#' only.
+#'
+#' @param aln_id (data.table) This are events that contain already consensus column,
+#' they are not shifted yet. These are only for one specific ID.
+#' @param amplicon (string) amplicon sequence of this ID
+#' @param donor (string) donor sequence of this ID
+#' @param scoring_matrix (scoring matrix)
+#' @param gap_opening (integer)
+#' @param gap_extension (integer)
+#' @param donor_mismatch (integer) How many mismatches are allowed in addition to the HDR events?
+#' @export
+#' @return (boolean vector) of TRUE where HDR was detected
+#'
+is_hdr_strict_by_id <- function(aln_id, amplicon, donor, scoring_matrix,
+                          gap_opening = 25,
+                          gap_extension = 0,
+                          donor_mismatch = 3) {
+  if (nrow(aln_id) == 0 | donor == "") return(rep(FALSE, nrow(aln_id)))
+  originally <- replacement <- . <- NULL
+  # donor vs amplicon
+  aln <- Biostrings::pairwiseAlignment(
+    DNAStringSet(toupper(donor)),
+    DNAStringSet(toupper(amplicon)),
+    substitutionMatrix = scoring_matrix, type = "overlap",
+    gapOpening = gap_opening, gapExtension = gap_extension)
+  pat <- pattern(aln)
+  subj <-  subject(aln)
+  # extract events we want to find to quantify read as fully HDR
+  hdr_events <- amplican::getEvents(pat, subj, scores = score(aln),
+                                    ID = aln_id$seqnames[1], strand_info = "+",
+                                    ampl_start = start(subj))
+
+  # this is strict alghoritm
+  # we take only consensus events
+  events <- aln_id[aln_id$consensus, ]
+  # Reads with mismatches ONLY can be HDR, filters out about half of the reads here
+  cand <- events[, .(n = .N,
+                     nMM = all(type == "mismatch")), by = "read_id"]
+  cand <- cand[cand$nMM &
+                 (cand$n >= length(hdr_events)) &
+                 (cand$n <= (length(hdr_events) + donor_mismatch))]
+  cand <- events$read_id %in% cand$read_id
+
+  if (length(cand) == 0) return(rep(FALSE, nrow(aln_id)))
+  hits <- events[cand, ][
+    as.data.table(hdr_events),
+    on = .(start = start,
+           end == end,
+           width == width,
+           originally == originally,
+           replacement == replacement,
+           type == type)]
+  hits <- hits[, .(n = .N), by = "read_id"]
+  hits <- hits$read_id[hits$n == length(hdr_events)]
+  return(aln_id$read_id %in% hits)
+}
+
+
 #' Make alignments helper.
 #'
 #' Aligning reads to the amplicons for each ID in this barcode, constructing
@@ -144,7 +209,8 @@ makeAlignment <- function(cfgT,
                           gap_extension,
                           fastqfiles,
                           primer_mismatch,
-                          donor_mismatch) {
+                          donor_mismatch,
+                          donor_strict) {
 
   barcode <- cfgT$Barcode[1]
   message("Aligning reads for ", barcode)
@@ -279,12 +345,16 @@ makeAlignment <- function(cfgT,
             type = "overlap", substitutionMatrix =  scoring_matrix,
             gapOpening = gap_opening, gapExtension = gap_extension)
         if (donor != "") {
-          fwdAType[[cfgT$ID[i]]] <- is_hdr(
-            rF, score(fwdA[[cfgT$ID[i]]]),
-            amplicon, donor,
-            type = "overlap", scoring_matrix =  scoring_matrix,
-            gap_opening = gap_opening, gap_extension = gap_extension,
-            donor_mismatch = donor_mismatch)
+          fwdAType[[cfgT$ID[i]]] <- if (donor_strict) {
+            rep(FALSE, length(rF))
+          } else {
+            is_hdr(
+              rF, score(fwdA[[cfgT$ID[i]]]),
+              amplicon, donor,
+              type = "overlap", scoring_matrix =  scoring_matrix,
+              gap_opening = gap_opening, gap_extension = gap_extension,
+              donor_mismatch = donor_mismatch)
+          }
         }
       }
 
@@ -301,12 +371,16 @@ makeAlignment <- function(cfgT,
           gapOpening = gap_opening, gapExtension = gap_extension)
 
         if (donor != "") {
-          rveAType[[cfgT$ID[i]]] <- is_hdr(
-            rR, score(rveA[[cfgT$ID[i]]]),
-            amplicon, donor,
-            type = "overlap", scoring_matrix =  scoring_matrix,
-            gap_opening = gap_opening, gap_extension = gap_extension,
-            donor_mismatch = donor_mismatch)
+          rveAType[[cfgT$ID[i]]] <- if (donor_strict) {
+            rep(FALSE, length(rR))
+          } else {
+            is_hdr(
+              rR, score(rveA[[cfgT$ID[i]]]),
+              amplicon, donor,
+              type = "overlap", scoring_matrix =  scoring_matrix,
+              gap_opening = gap_opening, gap_extension = gap_extension,
+              donor_mismatch = donor_mismatch)
+          }
         }
       }
       countsA[[cfgT$ID[i]]] <- IDunqT$Total
