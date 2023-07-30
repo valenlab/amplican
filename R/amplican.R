@@ -56,7 +56,8 @@ amplicanPipe <- function(min_freq_default) {
 
     if (!continue) {
       message("continue is FALSE, removeing contents of results folder.")
-      unlink(results_folder, recursive = T)
+      unlink(results_folder, recursive = TRUE)
+      dir.create(results_folder, showWarnings = FALSE)
     }
     resultsFolder <- file.path(results_folder, "alignments")
     if (!dir.exists(resultsFolder)) {
@@ -84,6 +85,7 @@ amplicanPipe <- function(min_freq_default) {
                     donor_strict = donor_strict)
       message("Saving alignments...")
       saveRDS(aln, rds_file)
+      message("Saved alignments.")
     }
 
     # save as other formats
@@ -141,8 +143,10 @@ amplicanPipe <- function(min_freq_default) {
       aln <- extractEvents(aln, use_parallel = use_parallel)
       message("Saving complete events - unfiltered...")
       data.table::fwrite(aln, re_file)
-      data.table::setDT(aln)
+      message("Saved complete events - unfiltered.")
+      aln <- data.table::as.data.table(aln)
     } else {
+      message("Reading complete events - unfiltered.")
       aln <- fread(re_file)
     }
 
@@ -168,7 +172,7 @@ amplicanPipe <- function(min_freq_default) {
       # summarize how many PRIMER DIMER reads per ID
       onlyPD <- aln[PD, ]
       onlyPD <- unique(onlyPD, by = c("seqnames", "read_id"))
-      data.table::setDT(onlyPD)
+      onlyPD <- data.table::as.data.table(onlyPD)
       summaryPD <- onlyPD[, list(counts  = sum(counts)), by = c("seqnames")]
       cfgT$PRIMER_DIMER <- 0
       cfgT$PRIMER_DIMER[match(summaryPD$seqnames, cfgT$ID)] <- summaryPD$counts
@@ -209,10 +213,12 @@ amplicanPipe <- function(min_freq_default) {
       aln <- data.frame(amplicanMap(aln, cfgT), stringsAsFactors = FALSE)
       message("Saving shifted events - filtered...")
       data.table::fwrite(aln, efs_file)
+      message("Saved shifted events - filtered.")
       # revert guides to 5'-3'
       cfgT$guideRNA[cfgT$Direction] <- revComp(cfgT$guideRNA[cfgT$Direction])
       data.table::fwrite(cfgT, cs_file)
     } else {
+      message("Reading shifted events - filtered.")
       aln <- fread(efs_file)
       cfgT <- fread(cs_file)
     }
@@ -226,7 +232,9 @@ amplicanPipe <- function(min_freq_default) {
       aln <- amplicanNormalize(aln, cfgT, min_freq = min_freq, add = normalize)
       message("Saving normalized events...")
       data.table::fwrite(aln, efsn_file)
+      message("Saved normalized events.")
     } else {
+      message("Reading normalized events.")
       aln <- fread(efsn_file)
     }
 

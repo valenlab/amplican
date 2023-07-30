@@ -26,7 +26,8 @@ test_that("amplican runs through example files without any issues", {
     amplicanPipeline(config, fastq_folder, results_folder,
                      knit_reports = FALSE,
                      primer_mismatch = 0,
-                     fastqfiles = 0))
+                     fastqfiles = 0,
+                     continue = FALSE))
 })
 
 # # after successful amplican pipeline run, replace auto generated
