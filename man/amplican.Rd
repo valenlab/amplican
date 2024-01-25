@@ -2,8 +2,8 @@
 % Please edit documentation in R/amplican.R
 \docType{package}
 \name{amplican}
-\alias{amplican}
 \alias{amplican-package}
+\alias{amplican}
 \title{Automated analysis of CRISPR experiments.}
 \description{
 Main goals:

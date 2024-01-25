@@ -10,8 +10,9 @@ plot_variants(
   id,
   cut_buffer = 5,
   top = 10,
-  annot = "cov",
-  summary_plot = TRUE
+  annot = if (amplican:::get_seq(config, id, "Donor") == "") "cov" else NA,
+  summary_plot = amplican:::get_seq(config, id, "Donor") == "",
+  frameshift = amplican:::get_seq(config, id, "Donor") == ""
 )
 }
 \arguments{
@@ -22,7 +23,8 @@ alignments_events.csv file.}
 
 \item{id}{(string or vector of strings) Name of the ID column from config
 file or name of multiple IDs if it is possible to group them. First amplicon
-will be used as the basis for plot.}
+will be used as the basis for plot. If Donor is available we will try to add the first
+donor and mark it on the plot.}
 
 \item{cut_buffer}{(numeric) Default is 5, you should specify the same as
 used in the analysis.}
@@ -39,7 +41,9 @@ total summary. Codon plot is all reading frames for a given window, and the defa
 \item{summary_plot}{(boolean) Whether small summary plot in the upper right
 corner should be displayed. Top bar summarizes total reads with
 frameshift (F), reads with Edits without Frameshift (Edits) and reads
-without Edits (Match).
+without Edits (Match).}
+
+\item{frameshift}{(boolean) Whether to include Frameshift column in the table.
 \preformatted{
 annot            on    | off
 }}
@@ -89,6 +93,9 @@ alignments <- read.csv(alignments_file)
 alignments <- alignments[alignments$consensus & alignments$overlaps, ]
 p <- plot_variants(alignments[alignments$consensus & alignments$overlaps, ],
                    config, c('ID_1','ID_3'))
+# with Donor we dont plot summary and the annot, summary plot and frameshift
+p <- plot_variants(alignments[alignments$consensus & alignments$overlaps, ],
+                   config, c('ID_5'))
 
 }
 \seealso{

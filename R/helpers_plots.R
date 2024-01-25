@@ -1050,7 +1050,8 @@ merge_2_grobs <- function(vgb, tgb) {
 #' @param config (data.frame) Loaded table from config_summary.csv file.
 #' @param id (string or vector of strings) Name of the ID column from config
 #' file or name of multiple IDs if it is possible to group them. First amplicon
-#' will be used as the basis for plot.
+#' will be used as the basis for plot. If Donor is available we will try to add the first
+#' donor and mark it on the plot.
 #' @param cut_buffer (numeric) Default is 5, you should specify the same as
 #' used in the analysis.
 #' @param top (numeric) Specify number of most frequent reads to plot. By
@@ -1064,6 +1065,7 @@ merge_2_grobs <- function(vgb, tgb) {
 #' corner should be displayed. Top bar summarizes total reads with
 #' frameshift (F), reads with Edits without Frameshift (Edits) and reads
 #' without Edits (Match).
+#' @param frameshift (boolean) Whether to include Frameshift column in the table.
 #' \preformatted{
 #' annot            on    | off
 #  summary_plot  on | off | off
@@ -1086,10 +1088,15 @@ merge_2_grobs <- function(vgb, tgb) {
 #' alignments <- alignments[alignments$consensus & alignments$overlaps, ]
 #' p <- plot_variants(alignments[alignments$consensus & alignments$overlaps, ],
 #'                    config, c('ID_1','ID_3'))
+#' # with Donor we dont plot summary and the annot, summary plot and frameshift
+#' p <- plot_variants(alignments[alignments$consensus & alignments$overlaps, ],
+#'                    config, c('ID_5'))
 #'
 plot_variants <- function(alignments, config, id,
                           cut_buffer = 5, top = 10,
-                          annot = "cov", summary_plot = TRUE) {
+                          annot = if (amplican:::get_seq(config, id, "Donor") == "") "cov" else NA,
+                          summary_plot = amplican:::get_seq(config, id, "Donor") == "",
+                          frameshift = amplican:::get_seq(config, id, "Donor") == "") {
   seqnames <- read_id <- replacement <- position <- NULL
 
   archRanges <- alignments[alignments$seqnames %in% id, ]
@@ -1097,7 +1104,7 @@ plot_variants <- function(alignments, config, id,
   archRanges$strand <- "*"
 
   # total counts per position for "cov" plot
-  if (annot == "cov") {
+  if (!is.na(annot) & annot == "cov") {
     cvgR <- archRanges[archRanges$type != "insertion", ]
     cvgR <- IRanges::IRanges(start = cvgR$start,
                              end = cvgR$end,
@@ -1107,7 +1114,7 @@ plot_variants <- function(alignments, config, id,
     cvg <- cvg / sum(config$Reads_Filtered[config$ID %in% id])
   }
 
-  amplicon <- get_seq(config, id)
+  amplicon <- get_seq(config, id) # this assumes both ids have same amplicon
   box <- upperGroups(amplicon)[1]
   if (length(box) == 1) {
     box_shift <- IRanges::start(box)[1]
@@ -1135,9 +1142,9 @@ plot_variants <- function(alignments, config, id,
   archRanges <- archRanges[
     order(seqnames, read_id, type, start, end, replacement), ]
   archRanges <- archRanges[, `:=` (event_id = as.numeric(seq_len(.N))),
-                           by = c("seqnames", "read_id")]
+                           by = c("seqnames", "read_id", "readType")]
   archRanges <- data.table::dcast(archRanges,
-                                  seqnames + read_id + counts ~ event_id,
+                                  seqnames + read_id + readType + counts ~ event_id,
                                   value.var = c(
                                     "start", "end", "type", "replacement"))
   # add frameshift info
@@ -1179,6 +1186,9 @@ plot_variants <- function(alignments, config, id,
   yaxis <- seq_len(top + 2) # + amplicon reference + empty (column header)
   yaxis_names <- c("", "amplicon", seq_len(top))
   archRanges <- archRanges[seq_len(top), ]
+  yaxis_names[c(FALSE, FALSE, archRanges$readType)] <- "donor"
+  archRanges$readType <- NULL
+
   variants <- matrix(toupper(amplicon),
                      nrow = length(yaxis),
                      ncol = length(amplicon), byrow = TRUE)
@@ -1326,11 +1336,12 @@ plot_variants <- function(alignments, config, id,
   vtable$frequency <- round(vtable$frequency, 2)
   vtable[is.na(vtable) | !apply(vtable, 2, is.finite)] <- 0
   colnames(vtable) <- c("Freq", "Count", "F")
+  if (!frameshift) vtable$F <- NULL
   tgb <- gridExtra::tableGrob(
     vtable, theme = gridExtra::ttheme_minimal(core = list(
       bg_params = list(
         fill = c(cRamp(vtable$Freq), cRamp(vtable$Count),
-                 cRampF(vtable[["F"]])),
+                 if (!frameshift) c() else cRampF(vtable[["F"]])),
         col = NA))), rows = NULL)
 
   separators <- replicate(ncol(tgb) - 1,
@@ -1338,13 +1349,13 @@ plot_variants <- function(alignments, config, id,
                                              gp=grid::gpar(lty = 2)),
                           simplify=FALSE)
   tgb <- gtable::gtable_add_grob(tgb, grobs = separators,
-                               t = 1, b = nrow(tgb), l = 2:3)
+                               t = 1, b = nrow(tgb), l = if (!frameshift) 2 else 2:3)
   separators <- replicate(nrow(tgb) - 1,
                           grid::segmentsGrob(y1 = grid::unit(0, "npc"),
                                              gp=grid::gpar(lty = 2)),
                           simplify=FALSE)
   tgb <- gtable::gtable_add_grob(tgb, grobs = separators,
-                                 t = 1:(nrow(tgb) - 1), l = 1, r = 3)
+                                 t = 1:(nrow(tgb) - 1), l = 1, r = if (!frameshift) 2 else 3)
   vgb <- ggplot2::ggplotGrob(vplot)
 
   if (!is.na(annot) & annot %in% c("codon", "cov") & summary_plot) {

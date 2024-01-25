@@ -129,63 +129,62 @@ is_hdr <- function(reads, scores, amplicon, donor, type = "overlap",
 #' This is strict detection as compared to `is_hdr` which was designed to be
 #' less specific and allow for all kinds of donors. This method requires that
 #' you have exactly the same events (mismatches, insertions, deletions) as the difference
-#' between amplicon and donor sequences. Additional mismatches are also allowed, but restricted to
-#' only `donor_mismatch` number. This method assumes you have only consensus events and specific ID
-#' only.
+#' between amplicon and donor sequences. It ignores everything else, so other mismatches and small
+#' indels etc. as noise are allowed here for valid HDR.
 #'
-#' @param aln_id (data.table) This are events that contain already consensus column,
-#' they are not shifted yet. These are only for one specific ID.
-#' @param amplicon (string) amplicon sequence of this ID
-#' @param donor (string) donor sequence of this ID
+#' @param aln (data.table) This are events that contain already consensus column,
+#' they are also shifted and normalized.
+#' @param cfgT (data.table) Config data.table with columns for amplicon and donor.
 #' @param scoring_matrix (scoring matrix)
 #' @param gap_opening (integer)
 #' @param gap_extension (integer)
-#' @param donor_mismatch (integer) How many mismatches are allowed in addition to the HDR events?
 #' @export
-#' @return (boolean vector) of TRUE where HDR was detected
+#' @return (aln) same as aln on entry, but readType is updated to TRUE when read is recognized as HDR
 #'
-is_hdr_strict_by_id <- function(aln_id, amplicon, donor, scoring_matrix,
+is_hdr_strict <- function(aln, cfgT, scoring_matrix,
                           gap_opening = 25,
-                          gap_extension = 0,
-                          donor_mismatch = 3) {
-  if (nrow(aln_id) == 0 | donor == "") return(rep(FALSE, nrow(aln_id)))
-  originally <- replacement <- . <- NULL
-  # donor vs amplicon
-  aln <- Biostrings::pairwiseAlignment(
-    DNAStringSet(toupper(donor)),
-    DNAStringSet(toupper(amplicon)),
-    substitutionMatrix = scoring_matrix, type = "overlap",
-    gapOpening = gap_opening, gapExtension = gap_extension)
-  pat <- pattern(aln)
-  subj <-  subject(aln)
-  # extract events we want to find to quantify read as fully HDR
-  hdr_events <- amplican::getEvents(pat, subj, scores = score(aln),
-                                    ID = aln_id$seqnames[1], strand_info = "+",
-                                    ampl_start = start(subj))
+                          gap_extension = 0) {
+  . <- NULL
 
-  # this is strict alghoritm
-  # we take only consensus events
-  events <- aln_id[aln_id$consensus, ]
-  # Reads with mismatches ONLY can be HDR, filters out about half of the reads here
-  cand <- events[, .(n = .N,
-                     nMM = all(type == "mismatch")), by = "read_id"]
-  cand <- cand[cand$nMM &
-                 (cand$n >= length(hdr_events)) &
-                 (cand$n <= (length(hdr_events) + donor_mismatch))]
-  cand <- events$read_id %in% cand$read_id
+  for (i in seq_len(dim(cfgT)[1])) {
+    amplicon <- get_seq(cfgT, cfgT$ID[i])
+    donor <- get_seq(cfgT, cfgT$ID[i], "Donor")
+    aln_id <- aln$seqnames == cfgT$ID[i]
 
-  if (length(cand) == 0) return(rep(FALSE, nrow(aln_id)))
-  hits <- events[cand, ][
-    as.data.table(hdr_events),
-    on = .(start = start,
-           end == end,
-           width == width,
-           originally == originally,
-           replacement == replacement,
-           type == type)]
-  hits <- hits[, .(n = .N), by = "read_id"]
-  hits <- hits$read_id[hits$n == length(hdr_events)]
-  return(aln_id$read_id %in% hits)
+    if (!any(aln_id) | donor == "") next()
+
+    # donor vs amplicon
+    d_a_aln <- Biostrings::pairwiseAlignment(
+      DNAStringSet(toupper(donor)),
+      DNAStringSet(toupper(amplicon)),
+      substitutionMatrix = scoring_matrix, type = "overlap",
+      gapOpening = gap_opening, gapExtension = gap_extension)
+    pat <- pattern(d_a_aln)
+    subj <-  subject(d_a_aln)
+    # extract events we want to find to quantify read as fully HDR
+    hdr_events <- amplican::getEvents(pat, subj, scores = score(d_a_aln),
+                                      ID = aln$seqnames[aln_id][1], strand_info = "+",
+                                      ampl_start = start(subj))
+    if (length(hdr_events) == 0) next()
+    hdr_events <- amplicanMap(hdr_events, cfgT)
+
+    # this is strict algorithm
+    # we take only consensus events
+    events <- aln[aln_id & aln$consensus, ]
+    if (nrow(events) == 0) next()
+
+    hits <- data.table::merge.data.table(as.data.table(events),
+                                         as.data.table(hdr_events),
+                                         all.x = F, all.y = F,
+                                         by = c("start", "end", "width",
+                                                "originally", "replacement", "type"))
+    if (nrow(hits) == 0) next()
+    hits <- as.data.table(hits)
+    hits <- hits[, .(n = .N), by = "read_id.x"]
+    hits <- hits$read_id[hits$n == length(hdr_events)] # make sure all events are represented
+    aln[aln_id, ]$readType <- aln[aln_id, ]$read_id %in% hits
+  }
+  return(aln)
 }
 
 

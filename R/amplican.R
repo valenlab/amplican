@@ -24,11 +24,12 @@
 "_PACKAGE"
 .onAttach <- function(libname, pkgname) {
   packageStartupMessage(
-    paste0("Please consider supporting this software by citing:\n\n",
-          "Labun et al. 2019\n",
-          "Accurate analysis of genuine CRISPR editing events with ampliCan.\n",
-          "Genome Res. 2019 Mar 8\n",
-          "doi: 10.1101/gr.244293.118\n"))
+    paste0("version: ", utils::packageVersion("amplican"), "\n",
+           "Please consider supporting this software by citing:\n\n",
+           "Labun et al. 2019\n",
+           "Accurate analysis of genuine CRISPR editing events with ampliCan.\n",
+           "Genome Res. 2019 Mar 8\n",
+           "doi: 10.1101/gr.244293.118\n"))
 }
 
 amplicanPipe <- function(min_freq_default) {
@@ -103,7 +104,8 @@ amplicanPipe <- function(min_freq_default) {
     if (!file.exists(logFileName)) {
       message("Saving parameters...")
       logFileConn <- file(logFileName, open = "at")
-      writeLines(c(paste("Config file:        ", config),
+      writeLines(c(paste("amplican Version:   ", utils::packageVersion("amplican")),
+                   paste("Config file:        ", config),
                    paste("Average Quality:    ", average_quality),
                    paste("Minimum Quality:    ", min_quality),
                    paste("Filter N-reads:     ", filter_n),
@@ -156,7 +158,7 @@ amplicanPipe <- function(min_freq_default) {
 
     efs_file <- file.path(resultsFolder, "events_filtered_shifted.csv")
     cs_file <- file.path(results_folder, "config_summary.csv")
-    if (!file.exists(efs_file)) {
+    if (!file.exists(efs_file) | !file.exists(cs_file)) {
       aln$overlaps <- amplicanOverlap(aln, cfgT, cut_buffer = cut_buffer)
       aln$consensus <- if (fastqfiles <= 0.5) {
         amplicanConsensus(aln, cfgT, promiscuous = promiscuous_consensus)
@@ -195,18 +197,6 @@ amplicanPipe <- function(min_freq_default) {
       }
       cfgT$Reads_Filtered <- cfgT$Reads - cfgT$PRIMER_DIMER - cfgT$Low_Score
 
-      if (donor_strict) {
-        for (i in seq_len(dim(cfgT)[1])) {
-          aln[seqnames == cfgT$ID[i], ]$readType <-
-            is_hdr_strict_by_id(aln[seqnames == cfgT$ID[i], ],
-                                get_seq(cfgT, cfgT$ID[i]),
-                                get_seq(cfgT, cfgT$ID[i], "Donor"),
-                                scoring_matrix, gap_opening,
-                                gap_extension, donor_mismatch)
-
-        }
-      }
-
       # shift to relative (most left UPPER case is position 0)
       message("Shifting events as relative...")
       data.table::setDF(aln)
@@ -238,6 +228,16 @@ amplicanPipe <- function(min_freq_default) {
       aln <- fread(efsn_file)
     }
 
+    if (donor_strict) {
+      message("HDR detection with strict search...")
+      aln <- is_hdr_strict(aln, cfgT,
+                           scoring_matrix, gap_opening,
+                           gap_extension)
+      message("Saving normalized events with HDR...")
+      data.table::fwrite(aln, efsn_file)
+      message("Saved normalized events with HDR.")
+    }
+
     # summarize
     cfgT <- amplicanSummarize(aln[aln$consensus & aln$overlaps, ], cfgT)
     data.table::fwrite(
@@ -250,10 +250,11 @@ amplicanPipe <- function(min_freq_default) {
 
     # reports
     reportsFolder <- file.path(results_folder, "reports")
-    if (!dir.exists(reportsFolder)) {
+    if (dir.exists(reportsFolder)) {
+      unlink(reportsFolder, recursive = T)
       dir.create(reportsFolder)
     } else {
-      unlink(reportsFolder, recursive = T)
+      dir.create(reportsFolder)
     }
 
     message(paste0("Making reports... \nDue to high quality ",

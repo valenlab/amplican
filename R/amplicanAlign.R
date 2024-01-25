@@ -73,6 +73,7 @@ amplicanAlign <- function(
 
   cfgT$Reverse_PrimerRC <- revComp(cfgT$Reverse_Primer)
   cfgT <- checkPrimers(cfgT, fastqfiles)
+  cfgT$Direction <- as.logical(cfgT$Direction)
 
   cfgT$guideRNA[cfgT$Direction] <- revComp(cfgT$guideRNA[cfgT$Direction])
   cfgT$RguideRNA <- revComp(cfgT$guideRNA)
