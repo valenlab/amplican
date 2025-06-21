@@ -233,16 +233,16 @@ amplicanMap <- function(aln, cfgT) {
   aln <- GenomicRanges::GRanges(aln)
   no_upper <- FALSE
 
-  for (id in unique(GenomeInfoDb::seqnames(aln))) {
+  for (id in unique(Seqinfo::seqnames(aln))) {
     amplicon <- get_seq(cfgT, id)
     zero_point <- upperGroups(amplicon)
     if (length(zero_point) == 0) {
       no_upper <- TRUE
-      aln <- aln[GenomeInfoDb::seqnames(aln) != id, ]
+      aln <- aln[Seqinfo::seqnames(aln) != id, ]
       next()
     }
     aln[GenomicRanges::seqnames(aln) == id] <-
-      GenomicRanges::shift(aln[GenomeInfoDb::seqnames(aln) == id],
+      GenomicRanges::shift(aln[Seqinfo::seqnames(aln) == id],
                            shift = -1 * GenomicRanges::start(zero_point)[1])
   }
 
@@ -479,9 +479,9 @@ cigarsToEvents <- function(cigars, aln_pos_start, query_seq, ref, read_id, mapq,
     GenomicRanges::GRanges()
   }
   seqnames <- unique(as.character(seqnames))
-  GenomeInfoDb::seqlevels(mm) <- seqnames
-  GenomeInfoDb::seqlevels(del) <- seqnames
-  GenomeInfoDb::seqlevels(ins) <- seqnames
+  Seqinfo::seqlevels(mm) <- seqnames
+  Seqinfo::seqlevels(del) <- seqnames
+  Seqinfo::seqlevels(ins) <- seqnames
   c(mm, del, ins)
 }
 

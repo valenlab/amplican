@@ -15,7 +15,7 @@ amplicanPipelineConservative(
   filter_n = FALSE,
   batch_size = 1e+07,
   use_parallel = FALSE,
-  scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(match = 5, mismatch = -4,
+  scoring_matrix = pwalign::nucleotideSubstitutionMatrix(match = 5, mismatch = -4,
     baseOnly = FALSE, type = "DNA"),
   gap_opening = 25,
   gap_extension = 0,

@@ -19,15 +19,15 @@ test_that("upperGroups returns correct IRanges", {
 
 test_that("getEventInfo returns correct GRanges", {
   # no events
-  events <- Biostrings::pairwiseAlignment(Biostrings::DNAString("ACTG"),
-                                          Biostrings::DNAString("ACTG"),
-                                          type = "global")
+  events <- pwalign::pairwiseAlignment(Biostrings::DNAString("ACTG"),
+                                       Biostrings::DNAString("ACTG"),
+                                       type = "global")
   expect_identical(getEventInfo(events, "test", 1), GenomicRanges::GRanges())
 
   # simple deletion
-  events <- Biostrings::pairwiseAlignment(Biostrings::DNAString("ACTAGT"),
-                                          Biostrings::DNAString("ACTGAGT"),
-                                          type = "global")
+  events <- pwalign::pairwiseAlignment(Biostrings::DNAString("ACTAGT"),
+                                       Biostrings::DNAString("ACTGAGT"),
+                                       type = "global")
   gr1 <- GenomicRanges::GRanges(seqnames = "test",
                                ranges = IRanges::IRanges(4, 4),
                                strand = "+",
@@ -41,9 +41,9 @@ test_that("getEventInfo returns correct GRanges", {
   expect_identical(test_gr1, gr1)
 
   # simple mismatch
-  events <- Biostrings::pairwiseAlignment(Biostrings::DNAString("ACTAAGT"),
-                                          Biostrings::DNAString("ACTGAGT"),
-                                          type = "global")
+  events <- pwalign::pairwiseAlignment(Biostrings::DNAString("ACTAAGT"),
+                                       Biostrings::DNAString("ACTGAGT"),
+                                       type = "global")
   gr2 <- GenomicRanges::GRanges(seqnames = "test",
                                ranges = IRanges::IRanges(4, 4),
                                strand = "+",
@@ -57,9 +57,9 @@ test_that("getEventInfo returns correct GRanges", {
   expect_identical(test_gr2, gr2)
 
   #simple mismatch + insertion
-  events <- Biostrings::pairwiseAlignment(Biostrings::DNAString("ACTAAAGT"),
-                                          Biostrings::DNAString("ACTGAGT"),
-                                          type = "global")
+  events <- pwalign::pairwiseAlignment(Biostrings::DNAString("ACTAAAGT"),
+                                       Biostrings::DNAString("ACTGAGT"),
+                                       type = "global")
   gr3 <- GenomicRanges::GRanges(seqnames = "test",
                                ranges = IRanges::IRanges(c(6, 4), c(6, 4)),
                                strand = c("+", "+"),
@@ -73,7 +73,7 @@ test_that("getEventInfo returns correct GRanges", {
   expect_identical(test_gr3, gr3)
 
   # ins + del + ins + del
-  events <- Biostrings::pairwiseAlignment(
+  events <- pwalign::pairwiseAlignment(
     Biostrings::DNAString("AGGGTAAAGTCCATGGCCCCAATTTGTGTGTAG"),
     Biostrings::DNAString("AGTGAAGTCAAACATGGAATTAGTGTGTTAA"), type = "global")
   gr4 <- GenomicRanges::GRanges(
@@ -99,7 +99,7 @@ test_that("getEventInfo returns correct GRanges", {
   expect_identical(test_gr4, gr4)
 
   # overhang + ins + del + ins + del
-  events <- Biostrings::pairwiseAlignment(
+  events <- pwalign::pairwiseAlignment(
     Biostrings::DNAString("AGGGTAAAAGTCCATGGCCCAATTTGTGTGTAG"),
     Biostrings::DNAString("CCCCCCCCCCCAGTGAAGTCAAACATGGAATTAGTGTGTTAA"),
     type = "global")
@@ -120,7 +120,7 @@ test_that("getEventInfo returns correct GRanges", {
   expect_identical(test_gr5, gr5)
 
   # ins + ins
-  events <- Biostrings::pairwiseAlignment(
+  events <- pwalign::pairwiseAlignment(
     Biostrings::DNAString("ACTGGGGGGGGGGACTGGGGGGGGGGACT"),
     Biostrings::DNAString("ACTACTACT"), type = "global")
   gr6 <- GenomicRanges::GRanges(seqnames = "test",
@@ -136,7 +136,7 @@ test_that("getEventInfo returns correct GRanges", {
   expect_identical(test_gr6, gr6)
 
   # insertion + mismatch
-  events <- Biostrings::pairwiseAlignment(
+  events <- pwalign::pairwiseAlignment(
     Biostrings::DNAString("ACTACTTCT"),
     Biostrings::DNAString("ACTGGGGGGGGGGACTACT"), type = "global")
   gr7 <- GenomicRanges::GRanges(seqnames = "test",
@@ -153,7 +153,7 @@ test_that("getEventInfo returns correct GRanges", {
 
   # multiple reads at the same time
   # first pair returns no alignments
-  events <- Biostrings::pairwiseAlignment(
+  events <- pwalign::pairwiseAlignment(
     Biostrings::DNAStringSet(c("AGTG", "ACTAGT", "ACTAAGT", "ACTAAAGT",
                                "AGGGTAAAGTCCATGGCCCCAATTTGTGTGTAG",
                                "AGGGTAAAAGTCCATGGCCCAATTTGTGTGTAG")),
@@ -195,7 +195,7 @@ test_that("getEventInfo returns correct GRanges", {
   s1 <- "ACTAGT"   #AC--------------------TAGT
   ampl <- "CCCCCCCCCCCAGTGAAGTCAAACATGGAATTAGTGTGTTAA"
   fwdPrPos <- stringr::str_locate(ampl, "CCAGT")[1, 1]
-  events <- Biostrings::pairwiseAlignment(
+  events <- pwalign::pairwiseAlignment(
     Biostrings::DNAString(s1),
     Biostrings::subseq(ampl, start = fwdPrPos),
     type = "global")

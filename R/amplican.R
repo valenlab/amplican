@@ -40,7 +40,7 @@ amplicanPipe <- function(min_freq_default) {
     config, fastq_folder, results_folder, knit_reports = TRUE,
     write_alignments_format = "None", average_quality = 30,
     min_quality = 0, filter_n = FALSE, batch_size = 1e7, use_parallel = FALSE,
-    scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
+    scoring_matrix = pwalign::nucleotideSubstitutionMatrix(
       match = 5, mismatch = -4, baseOnly = FALSE, type = "DNA"),
     gap_opening = 25, gap_extension = 0, fastqfiles = 0.5,
     primer_mismatch = 2,
@@ -410,7 +410,7 @@ amplicanPipe <- function(min_freq_default) {
 # average_quality = 30
 # min_quality = 0
 # use_parallel = FALSE
-# scoring_matrix = Biostrings::nucleotideSubstitutionMatrix(
+# scoring_matrix = pwalign::nucleotideSubstitutionMatrix(
 #   match = 5, mismatch = -4, baseOnly = FALSE, type = "DNA")
 # gap_opening = 25
 # gap_extension = 0
