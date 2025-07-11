@@ -41,7 +41,13 @@ decode <- function(x) {
 #' @return (character) amplicon sequence, reverse complemented if Direction 1
 #'
 get_seq <- function(config, id, column = "Amplicon") {
+  if (!column %in% colnames(config)) { # if column is Donor or not in config return ""
+    return("")
+  }
   amplicon <- as.character(config[which(config$ID == id[1]), ][[column]])
+  if (is.na(amplicon)) {
+    return("")
+  }
   if (config[which(config$ID == id[1]), "Direction"] == 1) {
     # revComp makes upper cases
     groups <- as.data.frame(upperGroups(amplicon))

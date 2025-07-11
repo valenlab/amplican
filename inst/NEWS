@@ -1,3 +1,8 @@
+amplican 1.31.2
+-----------------------
+    o major changes to amplican way of finding primers, it should be way faster and more robust
+    o some small fixes to make findLQR more robust
+
 amplican 1.5.8
 -----------------------
     o amplican has been published now, doi: 10.1101/gr.244293.118

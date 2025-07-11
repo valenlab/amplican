@@ -635,7 +635,7 @@ init <- function(x, i) {
 #' @rdname AlignmentsExperimentSet-class
 setMethod("[", c("AlignmentsExperimentSet", "numeric", "missing", "missing"),
           function(x, i, j, ..., drop=TRUE) {
-            if (any(i > length(x))) stop("Subsetting out of bonds.")
+            if (any(i > length(x))) stop("Subsetting out of bounds.")
             init(x, i)
           })
 

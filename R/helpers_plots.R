@@ -796,7 +796,7 @@ plot_cuts <- function(alignments,
                          data = archRanges) +
     ggplot2::theme_bw() +
     ggplot2::guides(linewidth = "none", alpha = "none") +
-    ggplot2::theme(legend.position = c(1, 1),
+    ggplot2::theme(legend.position.inside = c(1, 1),
                    legend.justification = c(1.01, 1.01)) +
     ggplot2::labs(y = "Frequency [%]",
                   colour = "Experiments",

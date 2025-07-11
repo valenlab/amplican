@@ -32,21 +32,46 @@ comb_along <- function(seq, m = 2, letters = c("A", "C", "T", "G")) {
   unique(as.vector(seq))
 }
 
-
-locate_pr_start <- function(reads, primer, m = 0) {
-  primer <- comb_along(primer, m)
-  primer <- sapply(primer, function(pr) {
-    stringr::str_locate(reads, pr)[, 1]
-  }, simplify = TRUE, USE.NAMES = FALSE)
-  reads <- if (!is.null(dim(primer))) {
-    matrixStats::rowMaxs(primer, na.rm = TRUE)
-  } else {
-    suppressWarnings(max(primer, na.rm = TRUE))
+#' Find full or partial primer start positions with mismatches.
+#'
+#' This function finds a primer that can be partially truncated at the 5' end.
+#' It handles both full matches inside the read and partial matches at the
+#' beginning of the read.
+#'
+#' @param reads A character vector of DNA sequences.
+#' @param primer A single character string for the primer sequence.
+#' @param m The maximum number of allowed mismatches.
+#' @param min_overlap The minimum number of base pairs the primer must overlap
+#'   with the read. A good value is often around half the primer length.
+#' @return A numeric vector of the EARLIEST start position for a valid match,
+#'   with NA for no match.
+locate_pr_start <- function(reads, primer,
+                            m = 3,
+                            min_overlap = ceiling(nchar(primer)/2)) {
+  primer_len <- nchar(primer)
+  if (min_overlap > primer_len) {
+    stop("min_overlap cannot be greater than the primer length.")
   }
-  reads[!is.finite(reads)] <- NA
-  reads
-}
 
+  # 1. Align the single full primer against all reads using overlap alignment.
+  # This is the most robust way to handle 5' truncations and mismatches.
+  pwa <- pwalign::pairwiseAlignment(
+    pattern = Biostrings::DNAStringSet(reads),
+    subject = Biostrings::DNAString(primer),
+    type = "overlap",
+    substitutionMatrix = pwalign::nucleotideSubstitutionMatrix(
+      match = 1, mismatch = -1, baseOnly = FALSE, type = "DNA"),
+    gapOpening = 1, # Disallow indels
+    gapExtension = 1)
+
+  valid_indices <- which(pwalign::nmatch(pwa) >= min_overlap & pwalign::nedit(pwa) <= m)
+  results <- rep(NA_real_, length(reads))
+  if (length(valid_indices) == 0) {
+    return(results)
+  }
+  results[valid_indices] <- start(pwalign::pattern(pwa))[valid_indices]
+  return(results)
+}
 
 is_hdr <- function(reads, scores, amplicon, donor, type = "overlap",
                    scoring_matrix, gap_opening = 25, gap_extension = 0,

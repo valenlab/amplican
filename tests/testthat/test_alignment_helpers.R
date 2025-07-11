@@ -9,6 +9,28 @@ test_that("comb_along returns correct number of elements", {
   expect_equal(length(comb_along("AAA", 1)), 10)
 })
 
+test_that("primers that we can match primers correctly", {
+  primer_seq <- "AGGTCTACGTGGACCCTGCA" # 20bp
+  reads_test <- c(
+    # Case 1: Perfect partial match at the start (12bp overlap) (1)
+    "GTGGACCCTGCAGATTACATAGGAGAGAGAGAGAG",
+    # Case 2: Full match, but further inside the read (9)
+    "GATTACATAGGTCTACGTGGACCCTGCAGATTACA",
+    # Case 3: Partial match with 1 mismatch at the start (1)
+    "GTGGACCCTACAGATTACATAGGAGAGAGAGAGAG", # Original: GTGGACCCTGCA... (G->A)
+    # Case 4: No match (NA)
+    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    # Case 5: Full match at the start (less common but possible) (1)
+    "AGGTCTACGTGGACCCTGCAGATTACATAGGAGAG",
+    # Case 6: A shorter partial match also exists, but a longer one is inside
+    # The function should prefer the one with better alignment (17)
+    "ACCCTGCAGATTACATAGGTCTACGTGGACCCTGCA",
+    # Case 7: Too many mismatches (NA)
+    "ACCCGGCAGCTTACACAGGTCTACATGAACACTGCA"
+  )
+  expect_equal(locate_pr_start(reads_test, primer_seq, m = 2), c(1, 9, 1, NA, 1, 17, NA))
+})
+
 test_that("upperGroups returns correct IRanges", {
   expect_identical(upperGroups("aaaccTTTTGGggg"),
                    IRanges::IRanges(6, 11))

@@ -35,11 +35,16 @@ findLQR <- function(aln) {
 
   x <- cbind(range01(aln_n$score), range01(aln_n$events))
 
-  k2 <- cluster::clara(x, 2, samples = 500, sampsize = 1000)
+  # The sample size for clara cannot be larger than the number of reads
+  sampsize <- min(1000, nrow(aln_n))
+  # Minimum practical size for clustering to be effective.
+  if (sampsize < 100) return(logical(dim(aln)[1]))
+
+  k2 <- cluster::clara(x, 2, samples = 500, sampsize = sampsize)
   # silhouette criterion is
   k2s <- mean(cluster::silhouette(k2)[, "sil_width"])
   if (!is.finite(k2s)) return(logical(dim(aln)[1]))
-  k3 <- cluster::clara(x, 3, samples = 500, sampsize = 1000)
+  k3 <- cluster::clara(x, 3, samples = 500, sampsize = sampsize)
   k3s <-  mean(cluster::silhouette(k3)[, "sil_width"])
   if (!is.finite(k3s)) return(logical(dim(aln)[1]))
   if (k2s >= k3s) return(logical(dim(aln)[1])) else {
@@ -49,7 +54,8 @@ findLQR <- function(aln) {
 
     centers <- apply(k3$medoids, 1,
                      function(x) sqrt((x[1] - 1) ^ 2 + x[2] ^ 2))
-    bs <- aln_n[k3$medoids == which.max(centers)]
+    rows_to_filter <- k3$clustering == which.max(centers)
+    bs <- aln_n[rows_to_filter, ]
     return(aln$seqnames %in% bs$seqnames & aln$read_id %in% bs$read_id)
   }
 }

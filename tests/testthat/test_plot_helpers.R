@@ -58,7 +58,7 @@ test_that("When no insertions to plot returns text.",{
 
 test_that("Cuts plot is returning a plot.",{
   p <- plot_cuts(events, config, c(config$ID[1], config$ID[3]))
-  expect_true(ggplot2::is.ggplot(p))
+  expect_true(ggplot2::is_ggplot(p))
 })
 
 test_that("When no cuts to plot returns text.",{

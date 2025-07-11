@@ -23,10 +23,11 @@ filter events using \code{amplicanOverlap}.
 \details{
 Adds columns to cfgT:
 \itemize{
-\item{ReadsCut}{ Count of reads with deletions overlapping expected
-cut site.}
-\item{Reads_Frameshifted}{ Count of reads with frameshift
-overlapping expected cut site.}
+\item{HDR}{Count of reads identified as Homology Directed Repair events.}
+\item{Reads_Del}{Count of reads containing at least one deletion.}
+\item{Reads_In}{Count of reads containing at least one insertion.}
+\item{Reads_Edited}{Count of reads with any edit (insertion, deletion, or HDR).}
+\item{Reads_Frameshifted}{Count of reads with a frameshift (net indel length is not a multiple of 3).}
 }
 }
 \examples{
