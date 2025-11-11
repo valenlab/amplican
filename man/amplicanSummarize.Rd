@@ -22,7 +22,7 @@ filter events using \code{amplicanOverlap}.
 }
 \details{
 Adds columns to cfgT:
-\itemize{
+\describe{
 \item{HDR}{Count of reads identified as Homology Directed Repair events.}
 \item{Reads_Del}{Count of reads containing at least one deletion.}
 \item{Reads_In}{Count of reads containing at least one insertion.}

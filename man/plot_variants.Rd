@@ -10,9 +10,9 @@ plot_variants(
   id,
   cut_buffer = 5,
   top = 10,
-  annot = if (amplican:::get_seq(config, id, "Donor") == "") "cov" else NA,
-  summary_plot = amplican:::get_seq(config, id, "Donor") == "",
-  frameshift = amplican:::get_seq(config, id, "Donor") == ""
+  annot = if (amplican::get_seq(config, id, "Donor") == "") "cov" else NA,
+  summary_plot = amplican::get_seq(config, id, "Donor") == "",
+  frameshift = amplican::get_seq(config, id, "Donor") == ""
 )
 }
 \arguments{
@@ -70,15 +70,12 @@ Variant plot shows amplicon reference, UPPER letters which were the basis for
 window selection are highlighted with dashed white box (guideRNA). Black
 triangles are reflecting insertion points. Dashed letters indicate deletions.
 Table associated with variant plot represents:
-\itemize{
+\describe{
 \item{Freq - }{Frequency of given read in experiment. Variants are ordered by
 frequency value.}
 \item{Count - }{Represents raw count of this variant reads in experiment.}
 \item{F - }{Sum of deletion and insertion widths of events overlapping
 presented window. Green background indicates frameshift. }}
-}
-\note{
-This function is inspired by \code{\link[CrispRVariants]{plotAlignments}}.
 }
 \examples{
 #example config

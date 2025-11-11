@@ -47,8 +47,8 @@ if (params$links != "") {
 ## Read Quality
 
 ```{r echo = F}
-library(ggplot2)
-library(waffle)
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(amplican))
 summaryDF <- data.frame(data.table::fread(params$barcode_summary))
 
 total_reads <- sum(summaryDF$read_count)

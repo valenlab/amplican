@@ -128,7 +128,7 @@ many experiments. Allows to examine alignments in great detail.
 
 \describe{
 \item{\code{fwdReads,rveReads}}{(list) Named list where each element is of class
-\code{\link{PairwiseAlignmentsSingleSubject}}. Names correspond
+\code{\link[pwalign]{PairwiseAlignmentsSingleSubject}}. Names correspond
 to the experiment ID. Contains alignments of reads against amplicons.}
 
 \item{\code{fwdReadsType,rveReadsType}}{(list) Named list where each element is of
@@ -164,7 +164,7 @@ Write out human readable alignments for given experiment and read_id.:  \cr
 \section{Coercion based on events}{
 
 Coerce to \code{data.frame} compatible with
-\code{\link{GRanges}} .: \cr
+\code{\link[GenomicRanges]{GRanges}} .: \cr
 as.data.frame(x)
 }
 

@@ -38,6 +38,7 @@ decode <- function(x) {
 #' @keywords internal
 #' @param config (data.frame) config table
 #' @param id (vector) a vector of id's
+#' @export
 #' @return (character) amplicon sequence, reverse complemented if Direction 1
 #'
 get_seq <- function(config, id, column = "Amplicon") {
@@ -98,14 +99,14 @@ get_right_primer <- function(config, id) {
 #' Helper to construct GRanges with additional metadata columns.
 #'
 #' @keywords internal
-#' @param x (\code{\link{IRanges}}) names(x) indicating read_id
+#' @param x (\code{\link[IRanges]{IRanges}}) names(x) indicating read_id
 #' @param ID (string)
 #' @param type (string)
 #' @param score (numeric) scores from the alignments
 #' @param strand_info (string) Either '+', '-'
 #' @param originally (string) Base pairs on the amplicon.
 #' @param replacement (string) Base pairs on the read.
-#' @return (\code{\link{GRanges}}) Object with meta-data
+#' @return (\code{\link[GenomicRanges]{GRanges}}) Object with meta-data
 #'
 defGR <- function(x,
                   ID,
@@ -132,7 +133,7 @@ defGR <- function(x,
 #' Cumulative sum to calculate shift
 #'
 #' @keywords internal
-#' @param x (\code{\link{IRanges}})
+#' @param x (\code{\link[IRanges]{IRanges}})
 #' @return (numeric vector)
 #'
 cumsumw <- function(x) {
@@ -151,7 +152,7 @@ cumsumw <- function(x) {
 #' Has 4 groups of uppercases of length 7, 4, 1 and 3.
 #' @keywords internal
 #' @param candidate (string) A string with the nucleotide sequence.
-#' @return (\code{\link{IRanges}}) A IRanges object with uppercases groups for
+#' @return (\code{\link[IRanges]{IRanges}}) A IRanges object with uppercases groups for
 #' given candidate string
 #'
 upperGroups <- function(candidate) {
@@ -212,7 +213,7 @@ flipRanges <- function(idR, cfgT) {
 #' Map events to their respective relative coordinates specified with
 #' UPPER case.
 #'
-#' Translate coordinates of \code{\link{GRanges}} events so that they can be
+#' Translate coordinates of \code{\link[GenomicRanges]{GRanges}} events so that they can be
 #' relative to the amplicon. As point zero we assume first left sided UPPER case
 #' letter in the
 #' amplicon. Be weary that events for amplicons without expected cut sites are
@@ -221,7 +222,7 @@ flipRanges <- function(idR, cfgT) {
 #'
 #' @param aln (data.frame) List of events to map to the relative coordinates.
 #' @param cfgT (data.frame) config table
-#' @return (\code{\link{GRanges}}) Same as events, but the coordinates are
+#' @return (\code{\link[GenomicRanges]{GRanges}}) Same as events, but the coordinates are
 #' relative to the expected cut sites.
 #' @export
 #' @family analysis steps
@@ -272,11 +273,11 @@ amplicanMap <- function(aln, cfgT) {
 #' @param ID (character) Will be used as seqnames of output GRanges.
 #' @param ampl_shift (numeric) Possible shift of the amplicons.
 #' @param ampl_start (numeric) Real amplicon starts.
-#' \code{\link{pairwiseAlignment}} clips alignments, therefore to output
+#' \code{\link[pwalign]{pairwiseAlignment}} clips alignments, therefore to output
 #' GRanges relative to the amplicon sequence (subject) ranges have to be
 #' shifted.
 #' @param strand_info (character) Strands to assign.
-#' @return (\code{\link{GRanges}}) Same as events.
+#' @return (\code{\link[GenomicRanges]{GRanges}}) Same as events.
 #' @export
 #'
 getEvents <- function(pattern, subject, scores, ID = "NA", ampl_shift = 1L,
@@ -331,13 +332,12 @@ getEvents <- function(pattern, subject, scores, ID = "NA", ampl_shift = 1L,
 #' This function takes alignments and gives back the events coordinates.
 #'
 #' @keywords internal
-#' @param align (\code{\link{PairwiseAlignmentsSingleSubject}})
+#' @param align (\code{\link[pwalign]{PairwiseAlignmentsSingleSubject}})
 #' @param ID (string)
 #' @param ampl_shift (numeric vector) Shift events additionally by this value.
 #' PairwiseAlignmentsSingleSubject returns truncated alignments.
-#' @param ampl_len (numeric) Length of the amplicon (subject)
 #' @param strand_info (string) Either '+', '-' or default '*'
-#' @return (\code{\link{GRanges}}) Object with meta-data for insertion,
+#' @return (\code{\link[GenomicRanges]{GRanges}}) Object with meta-data for insertion,
 #' deletion, mismatch
 #'
 getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
@@ -377,7 +377,7 @@ getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
 
 #' Transform extended CIGAR strings into GRanges.
 #'
-#' Transform extended CIGAR strings into \code{\link{GRanges}} representation
+#' Transform extended CIGAR strings into \code{\link[GenomicRanges]{GRanges}} representation
 #' with events of deletions, insertions and mismatches.
 #'
 #' @param cigars (character) Extended CIGARS.
@@ -390,7 +390,7 @@ getEventInfo <- function(align, ID, ampl_shift, strand_info = "+") {
 #' the reference sequences.
 #' @param counts (integer) Vector of cigar counts, if data collapsed.
 #' @param strands (character) Strands to assign.
-#' @return (\code{\link{GRanges}}) Same as events.
+#' @return (\code{\link[GenomicRanges]{GRanges}}) Same as events.
 #' @export
 #'
 cigarsToEvents <- function(cigars, aln_pos_start, query_seq, ref, read_id, mapq,
@@ -504,7 +504,7 @@ cigarsToEvents <- function(cigars, aln_pos_start, query_seq, ref, read_id, mapq,
 #' @param ID (character) ID of the experiment, will be used as seqnames of the
 #' reutner ranges.
 #' @param strand_info (character) Strand to assign.
-#' @return (\code{\link{GRanges}}) Same as events.
+#' @return (\code{\link[GenomicRanges]{GRanges}}) Same as events.
 #' @export
 #'
 pairToEvents <- function(file, ID = "NA", strand_info = "+") {

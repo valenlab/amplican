@@ -10,7 +10,7 @@ upperGroups(candidate)
 \item{candidate}{(string) A string with the nucleotide sequence.}
 }
 \value{
-(\code{\link{IRanges}}) A IRanges object with uppercases groups for
+(\code{\link[IRanges]{IRanges}}) A IRanges object with uppercases groups for
 given candidate string
 }
 \description{

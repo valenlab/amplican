@@ -26,14 +26,14 @@ getEvents(
 \item{ampl_shift}{(numeric) Possible shift of the amplicons.}
 
 \item{ampl_start}{(numeric) Real amplicon starts.
-\code{\link{pairwiseAlignment}} clips alignments, therefore to output
+\code{\link[pwalign]{pairwiseAlignment}} clips alignments, therefore to output
 GRanges relative to the amplicon sequence (subject) ranges have to be
 shifted.}
 
 \item{strand_info}{(character) Strands to assign.}
 }
 \value{
-(\code{\link{GRanges}}) Same as events.
+(\code{\link[GenomicRanges]{GRanges}}) Same as events.
 }
 \description{
 Transforms aligned strings into GRanges representation with

@@ -113,7 +113,7 @@ findEOP <- function(aln, cfgT) {
 #'
 #' Use to filter reads that are most likely PRIMER DIMERS.
 #' @param aln (data.frame) Should contain events from alignments in
-#' \code{\link{GRanges}} style with columns eg. seqnames, width, start, end.
+#' \code{\link[GenomicRanges]{GRanges}} style with columns eg. seqnames, width, start, end.
 #' @param cfgT (data.frame) Needs columns Forward_Primer, ReversePrimer and
 #' Amplicon.
 #' @param PRIMER_DIMER (numeric) Value specifying buffer for PRIMER DIMER

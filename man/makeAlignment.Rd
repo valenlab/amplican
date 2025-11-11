@@ -39,7 +39,7 @@ Default is 20.}
 filtering of large fastq files.}
 
 \item{scoring_matrix}{(matrix) Default is 'NUC44'. Pass desired matrix using
-\code{\link{nucleotideSubstitutionMatrix}}.}
+\code{\link[pwalign]{nucleotideSubstitutionMatrix}}.}
 
 \item{gap_opening}{(numeric) The opening gap score.}
 
@@ -48,7 +48,7 @@ filtering of large fastq files.}
 \item{fastqfiles}{(numeric) Normally you want to use both FASTQ files. But in
 some special cases, you may want to use only the forward file, or only
 the reverse file. Possible options:
-\itemize{
+\describe{
  \item{0}{ Use both FASTQ files.}
  \item{0.5}{ Use both FASTQ files, but only for one of the reads (forward or
  reverse) is required to have primer perfectly matched to sequence - eg. use

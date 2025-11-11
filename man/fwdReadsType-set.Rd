@@ -13,7 +13,7 @@ fwdReadsType(x) <- value
 }
 \value{
 (AlignmentsExperimentSet)
-\code{\link{PairwiseAlignmentsSingleSubject}} class.
+\code{\link[pwalign]{PairwiseAlignmentsSingleSubject}} class.
 }
 \description{
 Set read type for forward reads.

@@ -37,9 +37,9 @@ the reference sequences.}
 \item{counts}{(integer) Vector of cigar counts, if data collapsed.}
 }
 \value{
-(\code{\link{GRanges}}) Same as events.
+(\code{\link[GenomicRanges]{GRanges}}) Same as events.
 }
 \description{
-Transform extended CIGAR strings into \code{\link{GRanges}} representation
+Transform extended CIGAR strings into \code{\link[GenomicRanges]{GRanges}} representation
 with events of deletions, insertions and mismatches.
 }

@@ -1,3 +1,4 @@
+amplican Version:    1.31.3
 Config file:         full/path/to/config/file/that/has/been/used.csv
 Average Quality:     30
 Minimum Quality:     0

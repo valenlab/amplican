@@ -13,7 +13,7 @@ rveReads(x) <- value
 }
 \value{
 (AlignmentsExperimentSet)
-\code{\link{PairwiseAlignmentsSingleSubject}} class.
+\code{\link[pwalign]{PairwiseAlignmentsSingleSubject}} class.
 }
 \description{
 Set alignments for forward reads.

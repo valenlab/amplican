@@ -1,6 +1,80 @@
 #' @include helpers_general.R
 NULL
 
+#' Create a Waffle Chart using ggplot2
+#'
+#' This function generates a waffle chart, which is a grid of squares showing
+#' parts of a whole. It's a simple replacement for the deprecated 'waffle' package
+#' for basic use cases.
+#'
+#' @param parts A named numeric vector where names are the categories and
+#'   values are the number of squares to be plotted for each category.
+#' @param rows The number of rows in the waffle grid. The number of columns will
+#'   be calculated based on the total number of squares.
+#' @param title A string for the plot title.
+#' @param colors A character vector of colors to use for the different categories.
+#'   The number of colors should match the number of categories in `parts`.
+#' @param legend_pos The position of the legend (e.g., "bottom", "right", "none").
+#' @return A ggplot object representing the waffle chart.
+#' @import ggplot2
+#' @export
+#' @examples
+#' read_q_per <- c("Good Reads\n100 (80%)" = 80, "Bad Reads\n25 (20%)" = 20)
+#' waffle(
+#'   parts = read_q_per,
+#'   rows = 10,
+#'   title = "Quality of all reads",
+#'   colors = c('#E69F00', '#000000')
+#' )
+#'
+waffle <- function(parts, rows = 10, title = NULL, colors = NULL, legend_pos = "bottom") {
+
+  # Ensure parts is a numeric vector
+  parts <- unlist(parts)
+
+  # Calculate total number of tiles and number of columns
+  total_tiles <- sum(parts)
+  if (total_tiles == 0) {
+    # Handle empty case to avoid errors
+    return(ggplot() + theme_void() + labs(title = title))
+  }
+  cols <- ceiling(total_tiles / rows)
+
+  # Create a vector of categories, repeated by the number of tiles for each
+  categories_vec <- rep(names(parts), times = parts)
+
+  # Create the grid data frame
+  plot_data <- expand.grid(y = 1:rows, x = 1:cols)
+
+  # Trim grid to the exact number of tiles needed
+  plot_data <- plot_data[1:total_tiles, ]
+
+  # Assign categories and ensure the order is preserved for the legend
+  plot_data$category <- factor(categories_vec, levels = names(parts))
+
+  # Create the ggplot object
+  p <- ggplot(plot_data, aes(x = .data$x, y = .data$y, fill = .data$category)) +
+    geom_tile(color = "white", linewidth = 0.5) +
+    coord_equal(expand = FALSE) +
+    labs(title = title) +
+    theme_void() +
+    theme(
+      plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
+      legend.position = legend_pos,
+      legend.title = element_blank()
+    )
+
+  # Apply custom colors if provided
+  if (!is.null(colors)) {
+    p <- p + scale_fill_manual(values = colors, na.value = "transparent")
+  }
+
+  # Reverse y-axis to fill from bottom-left up, common for waffle charts
+  p <- p + scale_y_reverse()
+
+  return(p)
+}
+
 # scaling for the bezier archs, euation to calculate height relative to y
 # simplifies to y = 4/3 * h
 sh <- 1.33
@@ -1038,7 +1112,7 @@ merge_2_grobs <- function(vgb, tgb) {
 #' window selection are highlighted with dashed white box (guideRNA). Black
 #' triangles are reflecting insertion points. Dashed letters indicate deletions.
 #' Table associated with variant plot represents:
-#' \itemize{
+#' \describe{
 #' \item{Freq - }{Frequency of given read in experiment. Variants are ordered by
 #' frequency value.}
 #' \item{Count - }{Represents raw count of this variant reads in experiment.}
@@ -1073,8 +1147,6 @@ merge_2_grobs <- function(vgb, tgb) {
 #' @return (variant plot) gtable object of variants plot
 #' @export
 #' @family specialized plots
-#' @note
-#' This function is inspired by \code{\link[CrispRVariants]{plotAlignments}}.
 #' @examples
 #' #example config
 #' config <- read.csv(system.file("extdata", "results", "config_summary.csv",
@@ -1094,9 +1166,9 @@ merge_2_grobs <- function(vgb, tgb) {
 #'
 plot_variants <- function(alignments, config, id,
                           cut_buffer = 5, top = 10,
-                          annot = if (amplican:::get_seq(config, id, "Donor") == "") "cov" else NA,
-                          summary_plot = amplican:::get_seq(config, id, "Donor") == "",
-                          frameshift = amplican:::get_seq(config, id, "Donor") == "") {
+                          annot = if (amplican::get_seq(config, id, "Donor") == "") "cov" else NA,
+                          summary_plot = amplican::get_seq(config, id, "Donor") == "",
+                          frameshift = amplican::get_seq(config, id, "Donor") == "") {
   seqnames <- read_id <- replacement <- position <- NULL
 
   archRanges <- alignments[alignments$seqnames %in% id, ]

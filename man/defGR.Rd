@@ -15,7 +15,7 @@ defGR(
 )
 }
 \arguments{
-\item{x}{(\code{\link{IRanges}}) names(x) indicating read_id}
+\item{x}{(\code{\link[IRanges]{IRanges}}) names(x) indicating read_id}
 
 \item{ID}{(string)}
 
@@ -30,7 +30,7 @@ defGR(
 \item{replacement}{(string) Base pairs on the read.}
 }
 \value{
-(\code{\link{GRanges}}) Object with meta-data
+(\code{\link[GenomicRanges]{GRanges}}) Object with meta-data
 }
 \description{
 Helper to construct GRanges with additional metadata columns.

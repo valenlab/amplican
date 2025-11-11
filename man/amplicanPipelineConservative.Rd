@@ -54,7 +54,7 @@ reports will be prepared, but not knitted}
 Alignments are also always saved as .rds object of
 \code{\link{AlignmentsExperimentSet}} class.
 Possible options are:
-\itemize{
+\describe{
  \item{"fasta"}{ outputs alignments in fasta format where header indicates
 experiment ID, read id and number of reads}
  \item{"txt"}{ simple format, read information followed by forward read and
@@ -93,7 +93,7 @@ filtering of large fastq files.}
 multicore back-end.}
 
 \item{scoring_matrix}{(matrix) Default is 'NUC44'. Pass desired matrix using
-\code{\link{nucleotideSubstitutionMatrix}}.}
+\code{\link[pwalign]{nucleotideSubstitutionMatrix}}.}
 
 \item{gap_opening}{(numeric) The opening gap score.}
 
@@ -102,7 +102,7 @@ multicore back-end.}
 \item{fastqfiles}{(numeric) Normally you want to use both FASTQ files. But in
 some special cases, you may want to use only the forward file, or only
 the reverse file. Possible options:
-\itemize{
+\describe{
  \item{0}{ Use both FASTQ files.}
  \item{0.5}{ Use both FASTQ files, but only for one of the reads (forward or
  reverse) is required to have primer perfectly matched to sequence - eg. use

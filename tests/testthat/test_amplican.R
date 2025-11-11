@@ -15,7 +15,7 @@ results_folder <- tempdir()
 # devtools::unload()
 library(amplican)
 
-test_that("amplican theme teplates are loaded properly", {
+test_that("amplican theme templates are loaded properly", {
   expect_gte(
     nchar(system.file("rmarkdown", "templates",
                       "id_report", package = "amplican")), 1)

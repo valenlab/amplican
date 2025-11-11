@@ -7,7 +7,7 @@
 getEventInfo(align, ID, ampl_shift, strand_info = "+")
 }
 \arguments{
-\item{align}{(\code{\link{PairwiseAlignmentsSingleSubject}})}
+\item{align}{(\code{\link[pwalign]{PairwiseAlignmentsSingleSubject}})}
 
 \item{ID}{(string)}
 
@@ -15,11 +15,9 @@ getEventInfo(align, ID, ampl_shift, strand_info = "+")
 PairwiseAlignmentsSingleSubject returns truncated alignments.}
 
 \item{strand_info}{(string) Either '+', '-' or default '*'}
-
-\item{ampl_len}{(numeric) Length of the amplicon (subject)}
 }
 \value{
-(\code{\link{GRanges}}) Object with meta-data for insertion,
+(\code{\link[GenomicRanges]{GRanges}}) Object with meta-data for insertion,
 deletion, mismatch
 }
 \description{
