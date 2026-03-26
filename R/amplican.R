@@ -69,38 +69,126 @@ amplicanPipe <- function(min_freq_default) {
       dir.create(resultsFolder)
     }
     rds_file <- file.path(resultsFolder, "AlignmentsExperimentSet.rds")
+    re_file <- file.path(resultsFolder, "raw_events.csv")
+    un_file <- file.path(resultsFolder, "unassigned_reads.csv")
+    bd_file <- file.path(results_folder, "barcode_reads_filters.csv")
+    cfgT_temp_file <- file.path(resultsFolder, "experiment_data.rds")
 
     if (file.exists(rds_file)) {
       message("Loading alignments...")
       aln <- readRDS(rds_file)
-    } else {
-      aln <- amplicanAlign(config = config,
-                    fastq_folder = fastq_folder,
-                    use_parallel = use_parallel,
-                    average_quality = average_quality,
-                    batch_size = batch_size,
-                    scoring_matrix = scoring_matrix,
-                    gap_opening = gap_opening,
-                    gap_extension = gap_extension,
-                    min_quality = min_quality,
-                    filter_n = filter_n,
-                    fastqfiles = fastqfiles,
-                    primer_mismatch = primer_mismatch,
-                    donor_mismatch = donor_mismatch,
-                    donor_strict = donor_strict)
-      message("Saving alignments...")
-      saveRDS(aln, rds_file)
-      message("Saved alignments.")
-    }
-
-    # save as other formats
-    if (!"None" %in% write_alignments_format) {
-      for (frmt in write_alignments_format) {
-        aln_file_frmt <- file.path(resultsFolder,
-                                   paste0("alignments.", frmt))
-        if (!file.exists(aln_file_frmt)) {
-          writeAlignments(aln, aln_file_frmt, frmt)
+      if (!"None" %in% write_alignments_format) {
+        for (frmt in write_alignments_format) {
+          aln_file_frmt <- file.path(resultsFolder,
+                                     paste0("alignments.", frmt))
+          if (!file.exists(aln_file_frmt)) {
+            writeAlignments(aln, aln_file_frmt, frmt)
+          }
         }
+      }
+      if (!file.exists(un_file)) {
+        message("Saving unassigned sequences...")
+        unData <- unassignedData(aln)
+        if (!is.null(unData)) data.table::fwrite(unData, un_file)
+      }
+      if (!file.exists(bd_file)) {
+        message("Saving barcode statistics...")
+        data.table::fwrite(barcodeData(aln), bd_file)
+      }
+      cfgT <- experimentData(aln)
+      if (!file.exists(re_file)) {
+        message("Translating alignments into events...")
+        aln <- extractEvents(aln, use_parallel = use_parallel)
+        message("Saving complete events - unfiltered...")
+        data.table::fwrite(aln, re_file)
+        message("Saved complete events - unfiltered.")
+        aln <- data.table::as.data.table(aln)
+      } else {
+        message("Reading complete events - unfiltered.")
+        aln <- data.table::fread(re_file)
+      }
+    } else {
+      tempFolder <- file.path(resultsFolder, "temp")
+      if (!dir.exists(tempFolder)) dir.create(tempFolder)
+
+      if (!file.exists(re_file) || !file.exists(cfgT_temp_file)) {
+        message("Making alignments in chunked mode...")
+        aln_paths <- amplicanAlign(config = config,
+                      fastq_folder = fastq_folder,
+                      use_parallel = use_parallel,
+                      average_quality = average_quality,
+                      batch_size = batch_size,
+                      scoring_matrix = scoring_matrix,
+                      gap_opening = gap_opening,
+                      gap_extension = gap_extension,
+                      min_quality = min_quality,
+                      filter_n = filter_n,
+                      fastqfiles = fastqfiles,
+                      primer_mismatch = primer_mismatch,
+                      donor_mismatch = donor_mismatch,
+                      donor_strict = donor_strict,
+                      temp_folder = tempFolder)
+
+        message("Extracting events and compiling statistics...")
+        p <- if (!use_parallel) BiocParallel::SerialParam() else BiocParallel::bpparam()
+
+        chunk_results <- BiocParallel::bplapply(aln_paths, function(path) {
+           chunk_aln <- readRDS(path)
+           if (!"None" %in% write_alignments_format) {
+              for (frmt in write_alignments_format) {
+                writeAlignments(chunk_aln, paste0(path, ".", frmt), frmt)
+              }
+           }
+           chunk_events <- extractEvents(chunk_aln, use_parallel = FALSE)
+           csv_file <- gsub("_aln.rds", "_events.csv", path)
+           data.table::fwrite(chunk_events, csv_file)
+           return(list(
+              events_file = csv_file,
+              unData = unassignedData(chunk_aln),
+              bdData = barcodeData(chunk_aln),
+              cfgT = experimentData(chunk_aln)
+           ))
+        }, BPPARAM = p)
+
+        if (!"None" %in% write_alignments_format) {
+          for (frmt in write_alignments_format) {
+            aln_file_frmt <- file.path(resultsFolder, paste0("alignments.", frmt))
+            if (file.exists(aln_file_frmt)) unlink(aln_file_frmt)
+            for (path in aln_paths) {
+               chunk_frmt <- paste0(path, ".", frmt)
+               if (file.exists(chunk_frmt)) {
+                   file.append(aln_file_frmt, chunk_frmt)
+                   file.remove(chunk_frmt)
+               }
+            }
+          }
+        }
+
+        unData <- data.table::rbindlist(lapply(chunk_results, function(x) x$unData), fill=TRUE)
+        if (!is.null(unData) && nrow(unData) > 0) {
+          message("Saving unassigned sequences...")
+          data.table::fwrite(unData, un_file)
+        }
+
+        message("Saving barcode statistics...")
+        bdData <- data.table::rbindlist(lapply(chunk_results, function(x) x$bdData), fill=TRUE)
+        data.table::fwrite(bdData, bd_file)
+
+        cfgT_chunks <- lapply(chunk_results, function(x) x$cfgT)
+        cfgT <- as.data.frame(data.table::rbindlist(cfgT_chunks, fill = TRUE))
+        original_config <- data.frame(data.table::fread(config))
+        cfgT <- cfgT[match(original_config$ID, cfgT$ID), ]
+        saveRDS(cfgT, cfgT_temp_file)
+
+        message("Saving complete events - unfiltered...")
+        aln <- data.table::rbindlist(lapply(chunk_results, function(x) data.table::fread(x$events_file)), fill=TRUE)
+        data.table::fwrite(aln, re_file)
+        message("Saved complete events - unfiltered.")
+
+      } else {
+        message("Reading complete events - unfiltered.")
+        aln <- data.table::fread(re_file)
+        cfgT <- readRDS(cfgT_temp_file)
       }
     }
 
@@ -125,35 +213,6 @@ amplicanPipe <- function(min_freq_default) {
                    "Scoring Matrix:"), logFileConn)
       utils::write.csv(scoring_matrix, logFileConn, quote = FALSE, row.names = TRUE)
       close(logFileConn)
-    }
-
-
-    un_file <- file.path(resultsFolder, "unassigned_reads.csv")
-    if (!file.exists(un_file)) {
-      message("Saving unassigned sequences...")
-      unData <- unassignedData(aln)
-      if (!is.null(unData)) data.table::fwrite(
-        unData, file.path(resultsFolder, "unassigned_reads.csv"))
-    }
-
-    bd_file <- file.path(results_folder, "barcode_reads_filters.csv")
-    if (!file.exists(bd_file)) {
-      message("Saving barcode statistics...")
-      data.table::fwrite(barcodeData(aln), bd_file)
-    }
-    cfgT <- experimentData(aln)
-
-    re_file <- file.path(resultsFolder, "raw_events.csv")
-    if (!file.exists(re_file)) {
-      message("Translating alignments into events...")
-      aln <- extractEvents(aln, use_parallel = use_parallel)
-      message("Saving complete events - unfiltered...")
-      data.table::fwrite(aln, re_file)
-      message("Saved complete events - unfiltered.")
-      aln <- data.table::as.data.table(aln)
-    } else {
-      message("Reading complete events - unfiltered.")
-      aln <- fread(re_file)
     }
 
     seqnames <- read_id <- counts <- NULL
@@ -189,14 +248,22 @@ amplicanPipe <- function(min_freq_default) {
       # alignment event filter
       cfgT$Low_Score <- 0
       if (event_filter) {
-        for (i in seq_len(dim(cfgT)[1])) {
+        bad_reads_list <- lapply(seq_len(dim(cfgT)[1]), function(i) {
           aln_id <- aln[seqnames == cfgT$ID[i], ]
-          if (dim(aln_id)[1] == 0 | cfgT$Donor[i] != "") next()
+          if (dim(aln_id)[1] == 0 | cfgT$Donor[i] != "") return(NULL)
           onlyBR <- aln_id[findLQR(aln_id), ]
           onlyBR <- unique(onlyBR, by = "read_id")
-          cfgT[i, "Low_Score"] <- sum(onlyBR$counts)
-          aln <- aln[!(aln$seqnames == cfgT$ID[i] &
-                         aln$read_id %in% onlyBR$read_id), ]
+          
+          if (nrow(onlyBR) > 0) {
+            cfgT[i, "Low_Score"] <<- sum(onlyBR$counts)
+            return(onlyBR[, c("seqnames", "read_id"), with = FALSE])
+          }
+          return(NULL)
+        })
+        
+        bad_reads <- data.table::rbindlist(bad_reads_list)
+        if (nrow(bad_reads) > 0) {
+          aln <- aln[!bad_reads, on = c("seqnames", "read_id")]
         }
       }
       cfgT$Reads_Filtered <- cfgT$Reads - cfgT$PRIMER_DIMER - cfgT$Low_Score
@@ -255,7 +322,7 @@ amplicanPipe <- function(min_freq_default) {
     # reports
     reportsFolder <- file.path(results_folder, "reports")
     if (dir.exists(reportsFolder)) {
-      unlink(reportsFolder, recursive = T)
+      unlink(reportsFolder, recursive = TRUE)
       dir.create(reportsFolder)
     } else {
       dir.create(reportsFolder)
@@ -313,8 +380,8 @@ amplicanPipe <- function(min_freq_default) {
 #' filtering of large fastq files.
 #' @param write_alignments_format (character vector) Whether
 #' \code{amplicanPipeline} should write alignments results to separate files.
-#' Alignments are also always saved as .rds object of
-#' \code{\link{AlignmentsExperimentSet}} class.
+#' Alignments are also saved as chunked .rds objects inside the `temp` folder
+#' to conserve memory.
 #' Possible options are:
 #' \describe{
 #'  \item{"fasta"}{ outputs alignments in fasta format where header indicates

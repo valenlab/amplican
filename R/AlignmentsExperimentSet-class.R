@@ -612,9 +612,9 @@ setMethod("c", "AlignmentsExperimentSet", function(x, ...) {
                fwdReadsType = do.call(c, lapply(args, fwdReadsType)),
                rveReadsType = do.call(c, lapply(args, rveReadsType)),
                readCounts = do.call(c, lapply(args, readCounts)),
-               unassignedData = Reduce(rbind, lapply(args, unassignedData)),
-               experimentData = Reduce(rbind, lapply(args, experimentData)),
-               barcodeData = Reduce(rbind, lapply(args, barcodeData)))
+               unassignedData = as.data.frame(data.table::rbindlist(lapply(args, unassignedData), fill=TRUE)),
+               experimentData = as.data.frame(data.table::rbindlist(lapply(args, experimentData), fill=TRUE)),
+               barcodeData = as.data.frame(data.table::rbindlist(lapply(args, barcodeData), fill=TRUE)))
 })
 
 init <- function(x, i) {

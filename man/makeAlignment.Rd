@@ -16,7 +16,8 @@ makeAlignment(
   fastqfiles,
   primer_mismatch,
   donor_mismatch,
-  donor_strict
+  donor_strict,
+  temp_folder = NULL
 )
 }
 \arguments{

@@ -50,19 +50,20 @@ amplicanNormalize <- function(aln, cfgT,
     return(aln)
   }
   data.table::setDT(aln)
-  map <- match(aln$seqnames, cfgT$ID)
-  for (column in add) {
-    aln[[column]] <- cfgT[[column]][map]
+  data.table::setDT(cfgT)
+  
+  if (length(add) > 0) {
+    aln[cfgT, (add) := mget(paste0("i.", add)), on = .(seqnames = ID)]
   }
   cols <- names(aln)[!names(aln) %in% skip]
 
+  map <- match(aln$seqnames, cfgT$ID)
   ctr_indices <- cfgT[["Control"]][map]
   aln_ctr <- aln[ctr_indices, ]
   data.table::setkeyv(aln_ctr, cols)
   aln <- aln[!ctr_indices]
   data.table::setkeyv(aln, cols)
 
-  data.table::setDT(cfgT)
   cfgT_total_reads <- cfgT[, list(Reads_Filtered = sum(Reads_Filtered)),
                           by = c(add, "Control")]
   cfgT_total_reads <- cfgT_total_reads[cfgT_total_reads$Control, ]
@@ -72,8 +73,8 @@ amplicanNormalize <- function(aln, cfgT,
   aln_ctr_freq$frequency <- aln_ctr_freq$counts/aln_ctr_freq$Reads_Filtered
   aln_ctr_freq <- aln_ctr_freq[frequency > min_freq, ]
 
-  # dplyr used as data.table has issues handling too big dt
-  aln <- dplyr::anti_join(aln, aln_ctr_freq, by = cols)
+  # The data.table way (Instantaneous and zero-copy)
+  aln <- aln[!aln_ctr_freq, on = cols]
   aln <- data.table::rbindlist(list(aln, aln_ctr))
   aln <- aln[, colnames(aln)[!colnames(aln) %in% add], with=FALSE]
   data.table::setDF(aln)

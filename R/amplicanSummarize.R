@@ -109,31 +109,37 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
   # The last two columns should be the interval columns
   # find events that are overlapping each other
 
+  fwd_to_remove <- integer()
+  rve_to_remove <- integer()
+
   for (useq in unique(aln_fwd$seqnames)) {
-    oMatch <- getHits(aln_fwd[aln_fwd$seqnames == useq],
-                      aln_rve[aln_rve$seqnames == useq])
+    idx_fwd <- which(aln_fwd$seqnames == useq)
+    idx_rve <- which(aln_rve$seqnames == useq)
+    
+    oMatch <- getHits(aln_fwd[idx_fwd, ], aln_rve[idx_rve, ])
     fi <- S4Vectors::from(oMatch)
     ri <- S4Vectors::to(oMatch)
-    oScore <- aln_fwd[aln_fwd$seqnames == useq]$score[fi] >=
-      aln_rve[aln_rve$seqnames == useq]$score[ri]
+    oScore <- aln_fwd[idx_fwd, ]$score[fi] >=
+      aln_rve[idx_rve, ]$score[ri]
 
     oScore_fwd <- unique(fi[oScore])
     oScore_rve_not <- unique(ri[oScore])
     oScore_rve <- unique(ri[!oScore])
     oScore_fwd_not <- unique(fi[!oScore])
-    consensus[aln_fwd[aln_fwd$seqnames == useq]$num[oScore_fwd]] <- TRUE
-    consensus[aln_rve[aln_rve$seqnames == useq]$num[oScore_rve]] <- TRUE
+    consensus[aln_fwd[idx_fwd, ]$num[oScore_fwd]] <- TRUE
+    consensus[aln_rve[idx_rve, ]$num[oScore_rve]] <- TRUE
 
     # filter scored events from further calculation
     if (length(c(oScore_fwd, oScore_fwd_not)) > 0) {
-      aln_fwd <- rbind(aln_fwd[aln_fwd$seqnames == useq][-c(oScore_fwd, oScore_fwd_not), ],
-                       aln_fwd[aln_fwd$seqnames != useq])
+      fwd_to_remove <- c(fwd_to_remove, idx_fwd[c(oScore_fwd, oScore_fwd_not)])
     }
     if (length(c(oScore_rve, oScore_rve_not)) > 0) {
-      aln_rve <- rbind(aln_rve[aln_rve$seqnames == useq][-c(oScore_rve, oScore_rve_not), ],
-                       aln_rve[aln_rve$seqnames != useq])
+      rve_to_remove <- c(rve_to_remove, idx_rve[c(oScore_rve, oScore_rve_not)])
     }
   }
+
+  if (length(fwd_to_remove) > 0) aln_fwd <- aln_fwd[-fwd_to_remove, ]
+  if (length(rve_to_remove) > 0) aln_rve <- aln_rve[-rve_to_remove, ]
 
 
 
@@ -237,46 +243,45 @@ amplicanOverlap <- function(aln, cfgT, cut_buffer = 5, relative = FALSE) {
 #' amplicanSummarize(aln, cfgT)
 #'
 amplicanSummarize <- function(aln, cfgT) {
-  seqnames <- read_id <- counts <- start <- end <- score <- NULL
+  seqnames <- read_id <- counts <- type <- readType <- width <- NULL
+  has_HDR <- has_Del <- has_In <- has_Edit <- is_FS <- NULL
+  i.HDR <- i.Reads_Del <- i.Reads_In <- i.Reads_Edited <- i.Reads_Frameshifted <- NULL
+  
   data.table::setDT(aln)
-  cfgT$HDR <- cfgT$Reads_Del <- cfgT$Reads_In <-
-    cfgT$Reads_Edited <- cfgT$Reads_Frameshifted <- 0
-
-  # HDR
-  aln_noD <- unique(aln[aln$readType, ], by = c("seqnames", "read_id"))
-  widthT_final <- aln_noD[, list(counts = sum(counts)), by = seqnames]
-  map <- match(widthT_final$seqnames, cfgT$ID)
-  cfgT$HDR[map] <- widthT_final$counts
-
-  # Reads that had deletion
-  alnD <- aln[aln$type == "deletion", ]
-  aln_noD <- unique(alnD, by = c("seqnames", "read_id"))
-  widthT_final <- aln_noD[, list(counts = sum(counts)), by = seqnames]
-  map <- match(widthT_final$seqnames, cfgT$ID)
-  cfgT$Reads_Del[map] <- widthT_final$counts
-
-  # Reads that had insertion
-  alnI <- aln[aln$type == "insertion", ]
-  aln_noD <- unique(alnI, by = c("seqnames", "read_id"))
-  widthT_final <- aln_noD[, list(counts = sum(counts)), by = seqnames]
-  map <- match(widthT_final$seqnames, cfgT$ID)
-  cfgT$Reads_In[map] <- widthT_final$counts
-
-  # Reads that had editing: deletions or insertions (or HDR)
-  aln_E <- aln[aln$type %in% c("insertion", "deletion") | aln$readType, ]
-  aln_noD <- unique(aln_E, by = c("seqnames", "read_id"))
-  widthT_final <- aln_noD[, list(counts = sum(counts)), by = seqnames]
-  map <- match(widthT_final$seqnames, cfgT$ID)
-  cfgT$Reads_Edited[map] <- widthT_final$counts
-
-  # Frameshift
-  aln <- aln[type != "mismatch"] # mismatch has width of 1
-  aln[type == "deletion", width := width * -1L] # by reference
-  widthT <- aln[, list(width = sum(width)),
-                by = c("seqnames", "read_id", "counts")]
-  widthT <- widthT[widthT$width %% 3 != 0, ]
-  widthT_final <- widthT[, list(counts = sum(counts)), by = c("seqnames")]
-  map <- match(widthT_final$seqnames, cfgT$ID)
-  cfgT$Reads_Frameshifted[map] <- widthT_final$counts
-  cfgT
+  data.table::setDT(cfgT)
+  
+  # Step 1: Summarize what happened in each read_id in one go
+  read_summary <- aln[, .(
+    has_HDR = any(readType == TRUE),
+    has_Del = any(type == "deletion"),
+    has_In  = any(type == "insertion"),
+    is_FS   = sum(ifelse(type == "deletion", -width, ifelse(type == "insertion", width, 0L))) %% 3 != 0,
+    read_counts = max(counts) # Assuming counts are identical for the same read_id
+  ), by = .(seqnames, read_id)]
+  
+  read_summary[, has_Edit := has_Del | has_In | has_HDR]
+  
+  # Step 2: Aggregate up to the seqnames (experiment) level
+  exp_summary <- read_summary[, .(
+    HDR = sum(read_counts * has_HDR),
+    Reads_Del = sum(read_counts * has_Del),
+    Reads_In = sum(read_counts * has_In),
+    Reads_Edited = sum(read_counts * has_Edit),
+    Reads_Frameshifted = sum(read_counts * is_FS)
+  ), by = seqnames]
+  
+  # Step 3: Update cfgT by reference
+  cfgT[exp_summary, `:=`(
+    HDR = i.HDR,
+    Reads_Del = i.Reads_Del,
+    Reads_In = i.Reads_In,
+    Reads_Edited = i.Reads_Edited,
+    Reads_Frameshifted = i.Reads_Frameshifted
+  ), on = .(ID = seqnames)]
+  
+  # Fill NAs with 0 for experiments that had no events
+  cols <- c("HDR", "Reads_Del", "Reads_In", "Reads_Edited", "Reads_Frameshifted")
+  for (j in cols) data.table::set(cfgT, which(is.na(cfgT[[j]])), j, 0)
+  
+  return(data.table::setDF(cfgT))
 }

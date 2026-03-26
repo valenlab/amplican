@@ -43,22 +43,23 @@ amplicanFilter <- function(aln, cfgT, PRIMER_DIMER) {
   PD <- findPD(aln, cfgT, PRIMER_DIMER = PRIMER_DIMER)
 
   # PRIMER DIMER reads with unique ID and read_id
-  onlyPD <- aln[PD, c("seqnames", "read_id")]
-  onlyPD <- onlyPD[!duplicated(onlyPD), ]
+  onlyPD <- unique(aln[PD, .(seqnames, read_id)])
 
-  # apply filter
-  PD <- which(aln$seqnames %in% onlyPD$seqnames)
-  read_ids <- onlyPD$read_id[match(aln$seqnames[PD], onlyPD$seqnames)]
-  PD <- PD[aln$read_id[PD] == read_ids]
-  aln <- aln[-PD,]
+  # Native data.table anti-join
+  aln <- aln[!onlyPD, on = .(seqnames, read_id)]
 
   # alignment events filter
-  for (i in seq_len(dim(cfgT)[1])) {
+  bad_reads_list <- lapply(seq_len(dim(cfgT)[1]), function(i) {
     aln_id <- aln[seqnames == cfgT$ID[i], ]
     onlyBR <- aln_id[findLQR(aln_id), ]
     onlyBR <- unique(onlyBR, by = "read_id")
-    aln <- aln[!(aln$seqnames == cfgT$ID[i] &
-                   aln$read_id %in% onlyBR$read_id), ]
+    if (nrow(onlyBR) > 0) return(onlyBR[, c("seqnames", "read_id"), with = FALSE])
+    return(NULL)
+  })
+
+  bad_reads <- data.table::rbindlist(bad_reads_list)
+  if (nrow(bad_reads) > 0) {
+    aln <- aln[!bad_reads, on = c("seqnames", "read_id")]
   }
 
   aln

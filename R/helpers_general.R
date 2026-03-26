@@ -172,41 +172,42 @@ upperGroups <- function(candidate) {
 #' direction 1 reverse complemented, "+" and "-" swapped.
 #'
 flipRanges <- function(idR, cfgT) {
-
+  data.table::setDT(idR) # Ensure it's a data.table
   is_dir <- as.logical(cfgT$Direction)
   to_flip <- cfgT[is_dir, "ID"]
-  to_flip <- idR$seqnames %in% to_flip
-
-  if (any(to_flip)) {
+  
+  # Create a logical vector/index for fast subsetting
+  idx_flip <- idR$seqnames %in% to_flip
+  if (any(idx_flip)) {
     ampl_lengths <- nchar(as.character(cfgT[is_dir, "Amplicon"]))
     ampl_ids <- as.character(cfgT[is_dir, "ID"])
-    ids_mapping <- match(idR[to_flip, "seqnames"], ampl_ids)
+    ids_mapping <- match(idR$seqnames[idx_flip], ampl_ids)
     ampl_lengths <- ampl_lengths[ids_mapping]
-
-    idR[to_flip, "originally"] <- revComp(idR[to_flip, "originally"])
-    idR[to_flip, "replacement"] <- revComp(idR[to_flip, "replacement"])
-
-    strand <- idR[to_flip, "strand"]
-    strand_minus <- strand == "-"
-    strand[strand == "+"] <- "-"
-    strand[strand_minus] <- "+"
-    idR[to_flip, "strand"] <- strand
-
-    # mm + del end -> start & start -> end
-    # ins start -> start & end -> end
+    
+    # Update by reference
+    idR[idx_flip, `:=`(
+      originally = revComp(originally),
+      replacement = revComp(replacement),
+      strand = data.table::fcase(strand == "+", "-", strand == "-", "+", default = strand)
+    )]
+    
     ins <- idR$type == "insertion"
-
-    old_starts <- idR[to_flip & !ins, "start"]
-    idR[to_flip & !ins, "start"] <-
-      ampl_lengths[!ins[to_flip]] - idR[to_flip & !ins, "end"] + 1
-    idR[to_flip & !ins, "end"] <- ampl_lengths[!ins[to_flip]] - old_starts + 1
-
-    idR[to_flip & ins, "start"] <-
-      ampl_lengths[ins[to_flip]] - idR[to_flip & ins, "start"] + 1
-    idR[to_flip & ins, "end"] <-
-      idR[to_flip & ins, "width"] + idR[to_flip & ins, "start"] - 1
+    
+    # Update not-insertions (cache old values — `:=` evaluates left-to-right)
+    old_start <- idR$start[idx_flip & !ins]
+    old_end   <- idR$end[idx_flip & !ins]
+    idR[idx_flip & !ins, `:=`(
+      start = ampl_lengths[!ins[idx_flip]] - old_end + 1,
+      end   = ampl_lengths[!ins[idx_flip]] - old_start + 1
+    )]
+    
+    # Update insertions
+    idR[idx_flip & ins, `:=`(
+      start = ampl_lengths[ins[idx_flip]] - start + 1,
+      end   = width + (ampl_lengths[ins[idx_flip]] - start + 1) - 1
+    )]
   }
-  return(idR)
+  return(data.table::setDF(idR))
 }
 
 
@@ -238,24 +239,28 @@ flipRanges <- function(idR, cfgT) {
 #'
 amplicanMap <- function(aln, cfgT) {
   aln <- GenomicRanges::GRanges(aln)
-  no_upper <- FALSE
-
-  for (id in unique(Seqinfo::seqnames(aln))) {
+  
+  # Pre-calculate a named vector of shifts based on cfgT IDs
+  shifts <- sapply(unique(cfgT$ID), function(id) {
     amplicon <- get_seq(cfgT, id)
     zero_point <- upperGroups(amplicon)
-    if (length(zero_point) == 0) {
-      no_upper <- TRUE
-      aln <- aln[Seqinfo::seqnames(aln) != id, ]
-      next()
-    }
-    aln[GenomicRanges::seqnames(aln) == id] <-
-      GenomicRanges::shift(aln[Seqinfo::seqnames(aln) == id],
-                           shift = -1 * GenomicRanges::start(zero_point)[1])
+    if (length(zero_point) == 0) return(NA_integer_)
+    return(-1L * GenomicRanges::start(zero_point)[1])
+  })
+
+  # Map the shifts to the actual rows in the GRanges object
+  row_shifts <- shifts[as.character(GenomicRanges::seqnames(aln))]
+
+  # Filter out amplicons with no UPPER case (NA shifts)
+  valid_rows <- !is.na(row_shifts)
+  if (!all(valid_rows)) {
+    warning("Events for amplicons without UPPER case are filtered.")
+    aln <- aln[valid_rows]
+    row_shifts <- row_shifts[valid_rows]
   }
 
-  if (no_upper) {
-    warning("Events for amplicons without UPPER case are filtered.")
-  }
+  # Apply the shift in one C-level vectorized step
+  aln <- GenomicRanges::shift(aln, shift = row_shifts)
 
   return(aln)
 }

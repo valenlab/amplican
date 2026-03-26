@@ -51,8 +51,8 @@ reports will be prepared, but not knitted}
 
 \item{write_alignments_format}{(character vector) Whether
 \code{amplicanPipeline} should write alignments results to separate files.
-Alignments are also always saved as .rds object of
-\code{\link{AlignmentsExperimentSet}} class.
+Alignments are also saved as chunked .rds objects inside the `temp` folder
+to conserve memory.
 Possible options are:
 \describe{
  \item{"fasta"}{ outputs alignments in fasta format where header indicates

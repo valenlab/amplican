@@ -19,7 +19,8 @@ amplicanAlign(
   fastqfiles = 0.5,
   primer_mismatch = 0,
   donor_mismatch = 3,
-  donor_strict = FALSE
+  donor_strict = FALSE,
+  temp_folder = NULL
 )
 }
 \arguments{

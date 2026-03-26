@@ -37,7 +37,8 @@ amplicanAlign <- function(
   fastqfiles = 0.5,
   primer_mismatch = 0,
   donor_mismatch = 3,
-  donor_strict = FALSE) {
+  donor_strict = FALSE,
+  temp_folder = NULL) {
 
   message("Checking configuration file...")
   cfgT <- data.frame(data.table::fread(config))
@@ -92,17 +93,23 @@ amplicanAlign <- function(
   config_order <- cfgT$ID
   configSplit <- split(cfgT, f = cfgT$Barcode)
   finalAES <- BiocParallel::bplapply(configSplit, FUN = makeAlignment,
-                                     average_quality,
-                                     min_quality,
-                                     filter_n,
-                                     batch_size,
-                                     scoring_matrix,
-                                     gap_opening,
-                                     gap_extension,
-                                     fastqfiles,
-                                     primer_mismatch,
-                                     donor_mismatch,
-                                     donor_strict, BPPARAM = p)
+                                     average_quality = average_quality,
+                                     min_quality = min_quality,
+                                     filter_n = filter_n,
+                                     batch_size = batch_size,
+                                     scoring_matrix = scoring_matrix,
+                                     gap_opening = gap_opening,
+                                     gap_extension = gap_extension,
+                                     fastqfiles = fastqfiles,
+                                     primer_mismatch = primer_mismatch,
+                                     donor_mismatch = donor_mismatch,
+                                     donor_strict = donor_strict,
+                                     temp_folder = temp_folder, BPPARAM = p)
+
+  if (!is.null(temp_folder)) {
+    return(unlist(finalAES))
+  }
+
   finalAES <- Reduce(c, finalAES)
 
   # sort like at the entry point
