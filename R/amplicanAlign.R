@@ -7,6 +7,7 @@
 #' coercion into GRanges (plus is for forward and minus for reverse reads).
 #' It is also possible to output alignments in other, additional formats.
 #' @inheritParams amplicanPipeline
+#' @param temp_folder Folder where we will save temporary files (not deleted after succesfull run)
 #' @return (AlignmentsExperimentSet) Check \code{\link{AlignmentsExperimentSet}}
 #' class for details. You can use \code{\link{lookupAlignment}} to examine
 #' alignments visually.

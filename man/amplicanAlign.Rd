@@ -87,6 +87,8 @@ unadvised due to error rate of the sequencers.}
 Only these reads that have all of the donor events will count as HDR. Tolerates `donor_mismatch`
 level of noise, but no indels are allowed. Use this when your reads should span over the
 whole window of the donor events. Might be more time consuming.}
+
+\item{temp_folder}{Folder where we will save temporary files (not deleted after succesfull run)}
 }
 \value{
 (AlignmentsExperimentSet) Check \code{\link{AlignmentsExperimentSet}}

@@ -39,7 +39,6 @@ Imports:
     stats (>= 3.4.1),
     matrixStats (>= 0.52.2),
     Matrix (>= 1.2-10),
-    dplyr (>= 0.7.2),
     data.table (>= 1.10.4-3),
     rmarkdown (>= 1.6),
     knitr (>= 1.16),
