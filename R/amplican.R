@@ -63,6 +63,13 @@ amplicanPipe <- function(min_freq_default) {
       message("continue is FALSE, removeing contents of results folder.")
       unlink(results_folder, recursive = TRUE)
       dir.create(results_folder, showWarnings = FALSE)
+    } else {
+      temp_files <- list.files(results_folder, pattern = "\\.temp$",
+                               full.names = TRUE, recursive = TRUE)
+      if (length(temp_files) > 0) {
+        message("Cleaning up ", length(temp_files), " stale .temp files...")
+        file.remove(temp_files)
+      }
     }
     resultsFolder <- file.path(results_folder, "alignments")
     if (!dir.exists(resultsFolder)) {
@@ -82,25 +89,35 @@ amplicanPipe <- function(min_freq_default) {
           aln_file_frmt <- file.path(resultsFolder,
                                      paste0("alignments.", frmt))
           if (!file.exists(aln_file_frmt)) {
-            writeAlignments(aln, aln_file_frmt, frmt)
+            aln_file_frmt_temp <- paste0(aln_file_frmt, ".temp")
+            writeAlignments(aln, aln_file_frmt_temp, frmt)
+            file.rename(aln_file_frmt_temp, aln_file_frmt)
           }
         }
       }
       if (!file.exists(un_file)) {
         message("Saving unassigned sequences...")
         unData <- unassignedData(aln)
-        if (!is.null(unData)) data.table::fwrite(unData, un_file)
+        if (!is.null(unData)) {
+          un_file_temp <- paste0(un_file, ".temp")
+          data.table::fwrite(unData, un_file_temp)
+          file.rename(un_file_temp, un_file)
+        }
       }
       if (!file.exists(bd_file)) {
         message("Saving barcode statistics...")
-        data.table::fwrite(barcodeData(aln), bd_file)
+        bd_file_temp <- paste0(bd_file, ".temp")
+        data.table::fwrite(barcodeData(aln), bd_file_temp)
+        file.rename(bd_file_temp, bd_file)
       }
       cfgT <- experimentData(aln)
       if (!file.exists(re_file)) {
         message("Translating alignments into events...")
         aln <- extractEvents(aln, use_parallel = use_parallel)
         message("Saving complete events - unfiltered...")
-        data.table::fwrite(aln, re_file)
+        re_file_temp <- paste0(re_file, ".temp")
+        data.table::fwrite(aln, re_file_temp)
+        file.rename(re_file_temp, re_file)
         message("Saved complete events - unfiltered.")
         aln <- data.table::as.data.table(aln)
       } else {
@@ -134,14 +151,23 @@ amplicanPipe <- function(min_freq_default) {
 
         chunk_results <- BiocParallel::bplapply(aln_paths, function(path) {
            chunk_aln <- readRDS(path)
-           if (!"None" %in% write_alignments_format) {
-              for (frmt in write_alignments_format) {
-                writeAlignments(chunk_aln, paste0(path, ".", frmt), frmt)
-              }
-           }
-           chunk_events <- extractEvents(chunk_aln, use_parallel = FALSE)
            csv_file <- gsub("_aln.rds", "_events.csv", path)
-           data.table::fwrite(chunk_events, csv_file)
+           
+           if (!file.exists(csv_file)) {
+             if (!"None" %in% write_alignments_format) {
+                for (frmt in write_alignments_format) {
+                  frmt_file <- paste0(path, ".", frmt)
+                  frmt_temp <- paste0(frmt_file, ".temp")
+                  writeAlignments(chunk_aln, frmt_temp, frmt)
+                  file.rename(frmt_temp, frmt_file)
+                }
+             }
+             chunk_events <- extractEvents(chunk_aln, use_parallel = FALSE)
+             csv_file_temp <- paste0(csv_file, ".temp")
+             data.table::fwrite(chunk_events, csv_file_temp)
+             file.rename(csv_file_temp, csv_file)
+           }
+           
            return(list(
               events_file = csv_file,
               unData = unassignedData(chunk_aln),
@@ -153,13 +179,18 @@ amplicanPipe <- function(min_freq_default) {
         if (!"None" %in% write_alignments_format) {
           for (frmt in write_alignments_format) {
             aln_file_frmt <- file.path(resultsFolder, paste0("alignments.", frmt))
-            if (file.exists(aln_file_frmt)) unlink(aln_file_frmt)
+            aln_file_frmt_temp <- paste0(aln_file_frmt, ".temp")
+            if (file.exists(aln_file_frmt_temp)) unlink(aln_file_frmt_temp)
             for (path in aln_paths) {
                chunk_frmt <- paste0(path, ".", frmt)
                if (file.exists(chunk_frmt)) {
-                   file.append(aln_file_frmt, chunk_frmt)
-                   file.remove(chunk_frmt)
+                   file.append(aln_file_frmt_temp, chunk_frmt)
                }
+            }
+            file.rename(aln_file_frmt_temp, aln_file_frmt)
+            for (path in aln_paths) {
+               chunk_frmt <- paste0(path, ".", frmt)
+               if (file.exists(chunk_frmt)) file.remove(chunk_frmt)
             }
           }
         }
@@ -167,22 +198,30 @@ amplicanPipe <- function(min_freq_default) {
         unData <- data.table::rbindlist(lapply(chunk_results, function(x) x$unData), fill=TRUE)
         if (!is.null(unData) && nrow(unData) > 0) {
           message("Saving unassigned sequences...")
-          data.table::fwrite(unData, un_file)
+          un_file_temp <- paste0(un_file, ".temp")
+          data.table::fwrite(unData, un_file_temp)
+          file.rename(un_file_temp, un_file)
         }
 
         message("Saving barcode statistics...")
         bdData <- data.table::rbindlist(lapply(chunk_results, function(x) x$bdData), fill=TRUE)
-        data.table::fwrite(bdData, bd_file)
+        bd_file_temp <- paste0(bd_file, ".temp")
+        data.table::fwrite(bdData, bd_file_temp)
+        file.rename(bd_file_temp, bd_file)
 
         cfgT_chunks <- lapply(chunk_results, function(x) x$cfgT)
         cfgT <- as.data.frame(data.table::rbindlist(cfgT_chunks, fill = TRUE))
         original_config <- data.frame(data.table::fread(config))
         cfgT <- cfgT[match(original_config$ID, cfgT$ID), ]
-        saveRDS(cfgT, cfgT_temp_file)
+        cfgT_temp_file_writing <- paste0(cfgT_temp_file, ".temp")
+        saveRDS(cfgT, cfgT_temp_file_writing)
+        file.rename(cfgT_temp_file_writing, cfgT_temp_file)
 
         message("Saving complete events - unfiltered...")
         aln <- data.table::rbindlist(lapply(chunk_results, function(x) data.table::fread(x$events_file)), fill=TRUE)
-        data.table::fwrite(aln, re_file)
+        re_file_temp <- paste0(re_file, ".temp")
+        data.table::fwrite(aln, re_file_temp)
+        file.rename(re_file_temp, re_file)
         message("Saved complete events - unfiltered.")
 
       } else {
@@ -195,7 +234,8 @@ amplicanPipe <- function(min_freq_default) {
     logFileName <- file.path(results_folder, "RunParameters.txt")
     if (!file.exists(logFileName)) {
       message("Saving parameters...")
-      logFileConn <- file(logFileName, open = "at")
+      logFileNameTemp <- paste0(logFileName, ".temp")
+      logFileConn <- file(logFileNameTemp, open = "at")
       writeLines(c(paste("amplican Version:   ", utils::packageVersion("amplican")),
                    paste("Config file:        ", config),
                    paste("Average Quality:    ", average_quality),
@@ -213,6 +253,7 @@ amplicanPipe <- function(min_freq_default) {
                    "Scoring Matrix:"), logFileConn)
       utils::write.csv(scoring_matrix, logFileConn, quote = FALSE, row.names = TRUE)
       close(logFileConn)
+      file.rename(logFileNameTemp, logFileName)
     }
 
     seqnames <- read_id <- counts <- NULL
@@ -273,11 +314,15 @@ amplicanPipe <- function(min_freq_default) {
       data.table::setDF(aln)
       aln <- data.frame(amplicanMap(aln, cfgT), stringsAsFactors = FALSE)
       message("Saving shifted events - filtered...")
-      data.table::fwrite(aln, efs_file)
+      efs_file_temp <- paste0(efs_file, ".temp")
+      data.table::fwrite(aln, efs_file_temp)
+      file.rename(efs_file_temp, efs_file)
       message("Saved shifted events - filtered.")
       # revert guides to 5'-3'
       cfgT$guideRNA[cfgT$Direction] <- revComp(cfgT$guideRNA[cfgT$Direction])
-      data.table::fwrite(cfgT, cs_file)
+      cs_file_temp <- paste0(cs_file, ".temp")
+      data.table::fwrite(cfgT, cs_file_temp)
+      file.rename(cs_file_temp, cs_file)
     } else {
       message("Reading shifted events - filtered.")
       aln <- fread(efs_file)
@@ -292,7 +337,9 @@ amplicanPipe <- function(min_freq_default) {
       aln <- aln[aln$replacement != "N", ]
       aln <- amplicanNormalize(aln, cfgT, min_freq = min_freq, add = normalize)
       message("Saving normalized events...")
-      data.table::fwrite(aln, efsn_file)
+      efsn_file_temp <- paste0(efsn_file, ".temp")
+      data.table::fwrite(aln, efsn_file_temp)
+      file.rename(efsn_file_temp, efsn_file)
       message("Saved normalized events.")
     } else {
       message("Reading normalized events.")
@@ -305,19 +352,23 @@ amplicanPipe <- function(min_freq_default) {
                            scoring_matrix, gap_opening,
                            gap_extension)
       message("Saving normalized events with HDR...")
-      data.table::fwrite(aln, efsn_file)
+      efsn_file_temp <- paste0(efsn_file, ".temp")
+      data.table::fwrite(aln, efsn_file_temp)
+      file.rename(efsn_file_temp, efsn_file)
       message("Saved normalized events with HDR.")
     }
 
     # summarize
     cfgT <- amplicanSummarize(aln[aln$consensus & aln$overlaps, ], cfgT)
+    cs_file_temp <- paste0(cs_file, ".temp")
     data.table::fwrite(
       cfgT[, c("ID", "Barcode", "Forward_Reads_File", "Reverse_Reads_File",
                "Group", "guideRNA", "Found_Guide", "Control", "Forward_Primer",
                "Reverse_Primer", "Direction", "Amplicon", "Donor", "fwdPrPosEnd",
                "rvePrPos", "Reads", "PRIMER_DIMER", "Low_Score",
                "Reads_Filtered", "Reads_Del", "Reads_In",
-               "Reads_Edited", "Reads_Frameshifted", "HDR")], cs_file)
+               "Reads_Edited", "Reads_Frameshifted", "HDR")], cs_file_temp)
+    file.rename(cs_file_temp, cs_file)
 
     # reports
     reportsFolder <- file.path(results_folder, "reports")

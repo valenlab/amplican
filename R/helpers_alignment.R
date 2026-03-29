@@ -255,6 +255,15 @@ makeAlignment <- function(cfgT,
                           temp_folder = NULL) {
 
   barcode <- cfgT$Barcode[1]
+  
+  if (!is.null(temp_folder)) {
+    temp_file <- file.path(temp_folder, paste0(barcode, "_aln.rds"))
+    if (file.exists(temp_file)) {
+      message("Skipping alignments for ", barcode, " (already exists)")
+      return(temp_file)
+    }
+  }
+
   message("Aligning reads for ", barcode)
 
   fwdA <- vector("list", length(cfgT$ID))
@@ -364,7 +373,9 @@ makeAlignment <- function(cfgT,
                         barcodeData = barcodeTable)
     if (!is.null(temp_folder)) {
       temp_file <- file.path(temp_folder, paste0(barcode, "_aln.rds"))
-      saveRDS(aes, temp_file)
+      temp_file_writing <- file.path(temp_folder, paste0(barcode, "_aln.rds.temp"))
+      saveRDS(aes, temp_file_writing)
+      file.rename(temp_file_writing, temp_file)
       return(temp_file)
     }
     return(aes)
@@ -511,7 +522,9 @@ makeAlignment <- function(cfgT,
                barcodeData = barcodeTable)
   if (!is.null(temp_folder)) {
     temp_file <- file.path(temp_folder, paste0(barcode, "_aln.rds"))
-    saveRDS(aes, temp_file)
+    temp_file_writing <- file.path(temp_folder, paste0(barcode, "_aln.rds.temp"))
+    saveRDS(aes, temp_file_writing)
+    file.rename(temp_file_writing, temp_file)
     return(temp_file)
   }
   return(aes)
