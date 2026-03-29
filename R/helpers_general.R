@@ -201,10 +201,12 @@ flipRanges <- function(idR, cfgT) {
       end   = ampl_lengths[!ins[idx_flip]] - old_start + 1
     )]
     
-    # Update insertions
+    # Update insertions (cache old start — `:=` evaluates left-to-right)
+    old_ins_start <- idR$start[idx_flip & ins]
+    new_ins_start <- ampl_lengths[ins[idx_flip]] - old_ins_start + 1
     idR[idx_flip & ins, `:=`(
-      start = ampl_lengths[ins[idx_flip]] - start + 1,
-      end   = width + (ampl_lengths[ins[idx_flip]] - start + 1) - 1
+      start = new_ins_start,
+      end   = width + new_ins_start - 1
     )]
   }
   return(data.table::setDF(idR))

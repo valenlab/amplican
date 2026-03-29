@@ -189,11 +189,9 @@ is_hdr_strict <- function(aln, cfgT, scoring_matrix,
   . <- NULL
 
   for (i in seq_len(dim(cfgT)[1])) {
-    amplicon <- get_seq(cfgT, cfgT$ID[i])
     donor <- get_seq(cfgT, cfgT$ID[i], "Donor")
-    aln_id <- aln$seqnames == cfgT$ID[i]
-
-    if (!any(aln_id) | donor == "") next()
+    if (donor == "") next()
+    amplicon <- get_seq(cfgT, cfgT$ID[i])
 
     # donor vs amplicon
     d_a_aln <- pwalign::pairwiseAlignment(
@@ -205,14 +203,16 @@ is_hdr_strict <- function(aln, cfgT, scoring_matrix,
     subj <-  subject(d_a_aln)
     # extract events we want to find to quantify read as fully HDR
     hdr_events <- amplican::getEvents(pat, subj, scores = score(d_a_aln),
-                                      ID = aln$seqnames[aln_id][1], strand_info = "+",
+                                      ID = cfgT$ID[i], strand_info = "+",
                                       ampl_start = start(subj))
     if (length(hdr_events) == 0) next()
     hdr_events <- amplicanMap(hdr_events, cfgT)
 
-    # this is strict algorithm
-    # we take only consensus events
-    events <- aln[aln_id & aln$consensus, ]
+    # this is strict algorithm, using binary lookups instead of sequential vectors
+    events <- aln[.(cfgT$ID[i]), on = "seqnames", nomatch = NULL]
+    if (nrow(events) == 0) next()
+
+    events <- events[consensus == TRUE]
     if (nrow(events) == 0) next()
 
     hits <- data.table::merge.data.table(as.data.table(events),
@@ -223,8 +223,10 @@ is_hdr_strict <- function(aln, cfgT, scoring_matrix,
     if (nrow(hits) == 0) next()
     hits <- as.data.table(hits)
     hits <- hits[, .(n = .N), by = "read_id.x"]
-    hits <- hits$read_id[hits$n == length(hdr_events)] # make sure all events are represented
-    aln[seqnames == cfgT$ID[i], readType := read_id %in% hits]
+    valid_reads <- hits$read_id.x[hits$n == length(hdr_events)]
+    if(length(valid_reads) == 0) next()
+
+    aln[.(cfgT$ID[i]), readType := read_id %in% valid_reads, on = "seqnames"]
   }
   return(aln)
 }

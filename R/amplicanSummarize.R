@@ -106,36 +106,28 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
     aln_fwd <- aln_fwd[!aln_fwd_seq_id %in% b_fwd$seq_id, ]
   }
 
-  # The last two columns should be the interval columns
-  # find events that are overlapping each other
-
+  # Single vectorized getHits run avoiding nested seqnames iteration loop matching
   fwd_to_remove <- integer()
   rve_to_remove <- integer()
 
-  for (useq in unique(aln_fwd$seqnames)) {
-    idx_fwd <- which(aln_fwd$seqnames == useq)
-    idx_rve <- which(aln_rve$seqnames == useq)
-    
-    oMatch <- getHits(aln_fwd[idx_fwd, ], aln_rve[idx_rve, ])
+  oMatch <- getHits(aln_fwd, aln_rve)
+
+  if (length(oMatch) > 0) {
     fi <- S4Vectors::from(oMatch)
     ri <- S4Vectors::to(oMatch)
-    oScore <- aln_fwd[idx_fwd, ]$score[fi] >=
-      aln_rve[idx_rve, ]$score[ri]
+    oScore <- aln_fwd$score[fi] >= aln_rve$score[ri]
 
     oScore_fwd <- unique(fi[oScore])
     oScore_rve_not <- unique(ri[oScore])
     oScore_rve <- unique(ri[!oScore])
     oScore_fwd_not <- unique(fi[!oScore])
-    consensus[aln_fwd[idx_fwd, ]$num[oScore_fwd]] <- TRUE
-    consensus[aln_rve[idx_rve, ]$num[oScore_rve]] <- TRUE
+
+    consensus[aln_fwd$num[oScore_fwd]] <- TRUE
+    consensus[aln_rve$num[oScore_rve]] <- TRUE
 
     # filter scored events from further calculation
-    if (length(c(oScore_fwd, oScore_fwd_not)) > 0) {
-      fwd_to_remove <- c(fwd_to_remove, idx_fwd[c(oScore_fwd, oScore_fwd_not)])
-    }
-    if (length(c(oScore_rve, oScore_rve_not)) > 0) {
-      rve_to_remove <- c(rve_to_remove, idx_rve[c(oScore_rve, oScore_rve_not)])
-    }
+    fwd_to_remove <- unique(c(oScore_fwd, oScore_fwd_not))
+    rve_to_remove <- unique(c(oScore_rve, oScore_rve_not))
   }
 
   if (length(fwd_to_remove) > 0) aln_fwd <- aln_fwd[-fwd_to_remove, ]
@@ -250,14 +242,21 @@ amplicanSummarize <- function(aln, cfgT) {
   data.table::setDT(aln)
   data.table::setDT(cfgT)
   
+  # Vectorize net_width globally (avoids expensive ifelse inside grouping)
+  aln[, net_width := 0L]
+  aln[type == "deletion", net_width := -width]
+  aln[type == "insertion", net_width := width]
+
   # Step 1: Summarize what happened in each read_id in one go
   read_summary <- aln[, .(
     has_HDR = any(readType == TRUE),
     has_Del = any(type == "deletion"),
     has_In  = any(type == "insertion"),
-    is_FS   = sum(ifelse(type == "deletion", -width, ifelse(type == "insertion", width, 0L))) %% 3 != 0,
+    is_FS   = sum(net_width) %% 3 != 0,
     read_counts = max(counts) # Assuming counts are identical for the same read_id
   ), by = .(seqnames, read_id)]
+
+  aln[, net_width := NULL]  # clean up
   
   read_summary[, has_Edit := has_Del | has_In | has_HDR]
   

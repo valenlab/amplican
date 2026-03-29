@@ -50,10 +50,12 @@ amplicanNormalize <- function(aln, cfgT,
     return(aln)
   }
   data.table::setDT(aln)
-  data.table::setDT(cfgT)
+  cfgT <- data.table::as.data.table(cfgT)  # local copy — don't modify caller's object
   
   if (length(add) > 0) {
-    aln[cfgT, (add) := mget(paste0("i.", add)), on = .(seqnames = ID)]
+    for (col in add) {
+      aln[cfgT, (col) := get(paste0("i.", col)), on = .(seqnames = ID)]
+    }
   }
   cols <- names(aln)[!names(aln) %in% skip]
 

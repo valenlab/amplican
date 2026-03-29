@@ -26,6 +26,7 @@
 #' @importFrom pwalign pairwiseAlignment writePairwiseAlignments pattern subject unaligned compareStrings
 #'
 "_PACKAGE"
+utils::globalVariables(c(".", "Forward", "ID", "Reverse", "Total", "consensus", "net_width", "originally", "readType", "read_counts", "read_id", "replacement"))
 .onAttach <- function(libname, pkgname) {
   packageStartupMessage(
     paste0("version: ", utils::packageVersion("amplican"), "\n",
@@ -289,14 +290,15 @@ amplicanPipe <- function(min_freq_default) {
       # alignment event filter
       cfgT$Low_Score <- 0
       if (event_filter) {
+        data.table::setkey(aln, seqnames)
         bad_reads_list <- lapply(seq_len(dim(cfgT)[1]), function(i) {
-          aln_id <- aln[seqnames == cfgT$ID[i], ]
-          if (dim(aln_id)[1] == 0 | cfgT$Donor[i] != "") return(NULL)
+          aln_id <- aln[.(cfgT$ID[i]), nomatch = NULL]
+          if (nrow(aln_id) == 0 || cfgT$Donor[i] != "") return(NULL)
           onlyBR <- aln_id[findLQR(aln_id), ]
           onlyBR <- unique(onlyBR, by = "read_id")
           
           if (nrow(onlyBR) > 0) {
-            cfgT[i, "Low_Score"] <<- sum(onlyBR$counts)
+            data.table::set(cfgT, i, "Low_Score", sum(onlyBR$counts))
             return(onlyBR[, c("seqnames", "read_id"), with = FALSE])
           }
           return(NULL)

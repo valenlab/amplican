@@ -605,13 +605,13 @@ setMethod("names", "AlignmentsExperimentSet", function(x) {
 #' @rdname AlignmentsExperimentSet-class
 #' @aliases c,AlignmentsExperimentSet-method
 setMethod("c", "AlignmentsExperimentSet", function(x, ...) {
-  args <- if (missing(x)) list(...) else (list(x, ...))
+  args <- if (missing(x)) list(...) else list(x, ...)
   aln <- methods::new("AlignmentsExperimentSet",
-               fwdReads = do.call(c, lapply(args, fwdReads)),
-               rveReads = do.call(c, lapply(args, rveReads)),
-               fwdReadsType = do.call(c, lapply(args, fwdReadsType)),
-               rveReadsType = do.call(c, lapply(args, rveReadsType)),
-               readCounts = do.call(c, lapply(args, readCounts)),
+               fwdReads = unlist(unname(lapply(args, fwdReads)), recursive = FALSE),
+               rveReads = unlist(unname(lapply(args, rveReads)), recursive = FALSE),
+               fwdReadsType = unlist(unname(lapply(args, fwdReadsType)), recursive = FALSE),
+               rveReadsType = unlist(unname(lapply(args, rveReadsType)), recursive = FALSE),
+               readCounts = unlist(unname(lapply(args, readCounts)), recursive = FALSE),
                unassignedData = as.data.frame(data.table::rbindlist(lapply(args, unassignedData), fill=TRUE)),
                experimentData = as.data.frame(data.table::rbindlist(lapply(args, experimentData), fill=TRUE)),
                barcodeData = as.data.frame(data.table::rbindlist(lapply(args, barcodeData), fill=TRUE)))
@@ -884,10 +884,45 @@ setMethod("extractEvents", "AlignmentsExperimentSet", function(
   } else {
     BiocParallel::bpparam()
   }
-  finalGR <- BiocParallel::bplapply(object, FUN = getEventInfoObj, BPPARAM = p)
+
+  fwd_reads <- fwdReads(object)
+  rve_reads <- rveReads(object)
+  fwd_types <- fwdReadsType(object)
+  rve_types <- rveReadsType(object)
+  r_counts <- readCounts(object)
+  exp_data <- experimentData(object)
+  obj_names <- names(object)
+
+  # Use seq_along directly to extract internal variables, avoiding S4 object chunk overhead
+  finalGR <- BiocParallel::bplapply(seq_along(obj_names), function(i) {
+    ID <- obj_names[i]
+    cfg <- exp_data[exp_data$ID == ID, , drop = FALSE]
+    fwdPrPos <- if (is.null(cfg$fwdPrPos)) 1 else cfg$fwdPrPos
+
+    tempGR <- c(getEventInfo(fwd_reads[[ID]], ID, fwdPrPos, "+"),
+                getEventInfo(rve_reads[[ID]], ID, fwdPrPos, "-"))
+    tempGR$counts <- r_counts[[ID]][as.integer(tempGR$read_id)]
+    if (length(tempGR) > 0) tempGR$readType <- FALSE
+
+    plus_strand <- as.vector(GenomicRanges::strand(tempGR) == "+")
+    fwd_ids <- as.integer(tempGR$read_id)[plus_strand]
+    fRT <- fwd_types[[ID]]
+    if (!is.null(fRT) & sum(plus_strand) > 0 & length(fwd_ids) > 0) {
+      tempGR$readType[plus_strand] <- fRT[fwd_ids]
+    }
+
+    minus_strand <- as.vector(GenomicRanges::strand(tempGR) == "-")
+    rve_ids <- as.integer(tempGR$read_id)[minus_strand]
+    rRT <- rve_types[[ID]]
+    if (!is.null(rRT) & sum(minus_strand) > 0 & length(rve_ids) > 0) {
+      tempGR$readType[minus_strand] <- rRT[rve_ids]
+    }
+    tempGR
+  }, BPPARAM = p)
+
   finalGR <- unlist(GenomicRanges::GRangesList(finalGR), use.names = FALSE)
   flipRanges(GenomicRanges::as.data.frame(finalGR, row.names = NULL),
-             experimentData(object))
+             exp_data)
 })
 
 
