@@ -72,7 +72,7 @@ amplicanNormalize <- function(aln, cfgT,
 
   aln_ctr_freq <- aln_ctr[, list(counts = sum(counts)), by = cols]
   aln_ctr_freq <-  merge(aln_ctr_freq, cfgT_total_reads, all = TRUE, by = add)
-  aln_ctr_freq$frequency <- aln_ctr_freq$counts/aln_ctr_freq$Reads_Filtered
+  aln_ctr_freq[, frequency := counts / Reads_Filtered]
   aln_ctr_freq <- aln_ctr_freq[frequency > min_freq, ]
 
   # The data.table way (Instantaneous and zero-copy)

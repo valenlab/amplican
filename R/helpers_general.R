@@ -38,25 +38,28 @@ decode <- function(x) {
 #' @keywords internal
 #' @param config (data.frame) config table
 #' @param id (vector) a vector of id's
+#' @param column (character) column name to extract
+#' @param row (integer or NULL) pre-computed row index to avoid repeated lookup
 #' @export
 #' @return (character) amplicon sequence, reverse complemented if Direction 1
 #'
-get_seq <- function(config, id, column = "Amplicon") {
+get_seq <- function(config, id, column = "Amplicon", row = NULL) {
   if (!column %in% colnames(config)) { # if column is Donor or not in config return ""
     return("")
   }
-  amplicon <- as.character(config[which(config$ID == id[1]), ][[column]])
+  if (is.null(row)) row <- match(id[1], config$ID)
+  amplicon <- as.character(config[[column]][row])
   if (is.na(amplicon)) {
     return("")
   }
-  if (config[which(config$ID == id[1]), "Direction"] == 1) {
+  if (config[["Direction"]][row] == 1) {
     # revComp makes upper cases
     groups <- as.data.frame(upperGroups(amplicon))
     old_starts <- groups$start
     groups$start <- nchar(amplicon) - groups$end + 1
     groups$end <- nchar(amplicon) - old_starts + 1
     amplicon <- tolower(revComp(amplicon))
-    for (i in seq_len(dim(groups)[1])) { # there may be many UPPER groups
+    for (i in seq_len(nrow(groups))) { # there may be many UPPER groups
       substr(amplicon, groups$start[i], groups$end[i]) <-
         toupper(substr(amplicon, groups$start[i], groups$end[i]))
     }
@@ -69,13 +72,15 @@ get_seq <- function(config, id, column = "Amplicon") {
 #' @keywords internal
 #' @param config (data.frame) config table
 #' @param id (vector) a vector of id's
+#' @param row (integer or NULL) pre-computed row index to avoid repeated lookup
 #' @return (character) left primer sequence
 #'
-get_left_primer <- function(config, id) {
-  if (config[which(config$ID == id[1]), "Direction"] == 1) {
-    as.character(config[which(config$ID == id[1]), "Reverse_Primer"])
+get_left_primer <- function(config, id, row = NULL) {
+  if (is.null(row)) row <- match(id[1], config$ID)
+  if (config[["Direction"]][row] == 1) {
+    as.character(config[["Reverse_Primer"]][row])
   } else {
-    as.character(config[which(config$ID == id[1]), "Forward_Primer"])
+    as.character(config[["Forward_Primer"]][row])
   }
 }
 
@@ -85,13 +90,15 @@ get_left_primer <- function(config, id) {
 #' @keywords internal
 #' @param config (data.frame) config table
 #' @param id (vector) a vector of id's
+#' @param row (integer or NULL) pre-computed row index to avoid repeated lookup
 #' @return (character) right primer sequence
 #'
-get_right_primer <- function(config, id) {
-  if (config[which(config$ID == id[1]), "Direction"] == 1) {
-    revComp(as.character(config[which(config$ID == id[1]), "Forward_Primer"]))
+get_right_primer <- function(config, id, row = NULL) {
+  if (is.null(row)) row <- match(id[1], config$ID)
+  if (config[["Direction"]][row] == 1) {
+    revComp(as.character(config[["Forward_Primer"]][row]))
   } else {
-    revComp(as.character(config[which(config$ID == id[1]), "Reverse_Primer"]))
+    revComp(as.character(config[["Reverse_Primer"]][row]))
   }
 }
 
@@ -156,10 +163,9 @@ cumsumw <- function(x) {
 #' given candidate string
 #'
 upperGroups <- function(candidate) {
-  return(IRanges::reduce(IRanges::IRanges(
-    start = which(stringr::str_detect(strsplit(candidate, "")[[1]],
-                                      "[[:upper:]]")),
-    width = 1)))
+  m <- gregexpr("[A-Z]+", candidate)[[1]]
+  if (m[1] == -1L) return(IRanges::IRanges())
+  IRanges::IRanges(start = as.integer(m), width = attr(m, "match.length"))
 }
 
 
@@ -243,12 +249,14 @@ amplicanMap <- function(aln, cfgT) {
   aln <- GenomicRanges::GRanges(aln)
   
   # Pre-calculate a named vector of shifts based on cfgT IDs
-  shifts <- sapply(unique(cfgT$ID), function(id) {
-    amplicon <- get_seq(cfgT, id)
+  id_rows <- match(unique(cfgT$ID), cfgT$ID)
+  shifts <- sapply(seq_along(id_rows), function(j) {
+    amplicon <- get_seq(cfgT, cfgT$ID[id_rows[j]], row = id_rows[j])
     zero_point <- upperGroups(amplicon)
     if (length(zero_point) == 0) return(NA_integer_)
     return(-1L * GenomicRanges::start(zero_point)[1])
   })
+  names(shifts) <- unique(cfgT$ID)
 
   # Map the shifts to the actual rows in the GRanges object
   row_shifts <- shifts[as.character(GenomicRanges::seqnames(aln))]

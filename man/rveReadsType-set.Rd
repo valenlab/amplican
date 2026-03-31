@@ -20,7 +20,7 @@ Set read type for reverse reads.
 }
 \examples{
 file_path <- system.file("extdata", "results", "alignments",
-                         "AlignmentsExperimentSet.rds", package = "amplican")
+                         "temp", "barcode_1_aln.rds", package = "amplican")
 aln <- readRDS(file_path)
 rveReadsType(aln) <- rveReadsType(aln) # replace with the same values
 }

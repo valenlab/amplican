@@ -195,7 +195,7 @@ ggplot_insertions <- function(xData) {
 
 
 triangulate_ranges <- function(xRanges) {
-  if (dim(xRanges)[1] != 0) {
+  if (nrow(xRanges) != 0) {
     ifR <- ifr <- rep(xRanges$frequency, each = 3)
     ifr[c(TRUE, FALSE, FALSE)] <- 0
     data.frame(frequency = ifr,
@@ -203,7 +203,7 @@ triangulate_ranges <- function(xRanges) {
                position = as.vector(rbind(xRanges$start - 0.5,
                                           xRanges$start - 0.5,
                                           xRanges$end + 0.5)), # ins start 108
-               group = rep(1:dim(xRanges)[1], each = 3))       # means it's ins
+               group = rep(1:nrow(xRanges), each = 3))       # means it's ins
   } else {                                                     # between 107/108
     data.frame(frequency = c(), position = c(), group = c())
   }
@@ -355,7 +355,7 @@ metaplot_mismatches <- function(alnmt, config, group, selection) {
   if (length(alnmt) == 0) return("No mismatches to plot.")
   alnmt[[group]] <- config[[group]][match(alnmt$seqnames, config$ID)]
   alnmt <- group_to_selection(alnmt, config, group, selection)
-  if (dim(alnmt)[1] == 0) return("No mismatches to plot.")
+  if (nrow(alnmt) == 0) return("No mismatches to plot.")
 
   data.table::setDT(alnmt)
   freqAgr <- alnmt[, list(counts = sum(counts)),
@@ -423,7 +423,7 @@ metaplot_deletions <- function(alnmt, config, group,
   alnmt[[group]] <- config[[group]][match(alnmt$seqnames, config$ID)]
   alnmt <- group_to_selection(alnmt, config, group, selection)
 
-  if (dim(alnmt)[1] == 0) return("No deletions to plot.")
+  if (nrow(alnmt) == 0) return("No deletions to plot.")
   data.table::setDT(alnmt)
   archRanges <- alnmt[, list(counts = sum(counts),
                              overlaps = sum(get(over)) > 0),
@@ -479,7 +479,7 @@ metaplot_insertions <- function(alnmt, config, group, selection) {
   alnmt[,group] <- config[[group]][match(alnmt$seqnames, config$ID)]
   alnmt <- group_to_selection(alnmt, config, group, selection)
 
-  if (dim(alnmt)[1] == 0) return("No insertions to plot.")
+  if (nrow(alnmt) == 0) return("No insertions to plot.")
   data.table::setDT(alnmt)
   idRangesReduced <- alnmt[, list(counts = sum(counts)),
                            by = c("strand", "start", "end")]
@@ -582,7 +582,7 @@ plot_mismatches <- function(alignments,
 
   idRanges <- alignments[alignments$seqnames %in% id, ]
   idRanges <- idRanges[idRanges$type == "mismatch", ]
-  if (dim(idRanges)[1] == 0) return("No mismatches to plot.")
+  if (nrow(idRanges) == 0) return("No mismatches to plot.")
 
   amplicon <- get_seq(config, id)
   ampl_len <- nchar(amplicon)
@@ -666,7 +666,7 @@ plot_deletions <- function(alignments,
                            over = "overlaps") {
   archRanges <- alignments[alignments$seqnames %in% id &
                              alignments$type == "deletion", ]
-  if (dim(archRanges)[1] == 0) return("No deletions to plot.")
+  if (nrow(archRanges) == 0) return("No deletions to plot.")
 
   amplicon <- get_seq(config, id)
   ampl_len <- nchar(amplicon)
@@ -742,7 +742,7 @@ plot_insertions <- function(alignments,
 
   idRanges <- alignments[alignments$seqnames %in% id &
                            alignments$type == "insertion", ]
-  if (dim(idRanges)[1] == 0) return("No insertions to plot.")
+  if (nrow(idRanges) == 0) return("No insertions to plot.")
 
   amplicon <- get_seq(config, id)
   ampl_len <- nchar(amplicon)
@@ -757,7 +757,7 @@ plot_insertions <- function(alignments,
   idRangesRe <- idRangesReduced[idRangesReduced$strand == "-", ]
   triangleRe <- triangulate_ranges(idRangesRe)
 
-  if (dim(idRangesRe)[1] != 0 | dim(idRangesFr)[1] != 0) {
+  if (nrow(idRangesRe) != 0 | nrow(idRangesFr) != 0) {
     ampl_len <- max(c(max(c(0, triangleFr$position), na.rm = TRUE),
                       max(c(0, triangleRe$position), na.rm = TRUE),
                       ampl_len), na.rm = TRUE)
@@ -830,7 +830,7 @@ plot_cuts <- function(alignments,
   amplicon <- get_seq(config, id)
   ampl_len <- nchar(amplicon)
 
-  if (dim(archRanges)[1] == 0) return("No cuts to plot.")
+  if (nrow(archRanges) == 0) return("No cuts to plot.")
   data.table::setDT(archRanges)
   frequency <- NULL
   archRanges <- archRanges[, list(counts = sum(counts)),
@@ -849,7 +849,7 @@ plot_cuts <- function(alignments,
     pr$primers <- pr$primers - box_shift
   }
   box <- box + cut_buffer
-  if (dim(archRanges)[1] == 0) return("No cuts to plot.")
+  if (nrow(archRanges) == 0) return("No cuts to plot.")
 
   amplicon <- strsplit(amplicon, "")[[1]]
   frequency <- seqnames <- x <- y <- group <- NULL
@@ -1172,7 +1172,7 @@ plot_variants <- function(alignments, config, id,
   seqnames <- read_id <- replacement <- position <- NULL
 
   archRanges <- alignments[alignments$seqnames %in% id, ]
-  if (dim(archRanges)[1] == 0) return("No variants to plot.")
+  if (nrow(archRanges) == 0) return("No variants to plot.")
   archRanges$strand <- "*"
 
   # total counts per position for "cov" plot
@@ -1230,31 +1230,35 @@ plot_variants <- function(alignments, config, id,
   archRanges$frequency <-
     archRanges$counts/sum(config$Reads_Filtered[config$ID %in% id])
 
-  # restrict ranges
+  # restrict ranges — pre-compute column names
   max_event <- max(as.numeric(gsub("start_", "", cols[grepl("start_", cols)])))
+  start_cols <- paste0("start_", seq_len(max_event))
+  end_cols   <- paste0("end_", seq_len(max_event))
+  type_cols  <- paste0("type_", seq_len(max_event))
+  repl_cols  <- paste0("replacement_", seq_len(max_event))
   for (i in seq_len(max_event)) {
-    na_cases <- is.na(archRanges[[paste0("start_", i)]])
+    na_cases <- is.na(archRanges[[start_cols[i]]])
     if (all(na_cases)) next()
     shftGR <- IRanges::restrict(IRanges::IRanges(
-      start = archRanges[[paste0("start_", i)]][!na_cases],
-      end = archRanges[[paste0("end_", i)]][!na_cases]),
+      start = archRanges[[start_cols[i]]][!na_cases],
+      end = archRanges[[end_cols[i]]][!na_cases]),
       start = xaxis[1],
       end = xaxis[length(xaxis)], keep.all.ranges = TRUE)
-    archRanges[[paste0("start_", i)]][!na_cases] <- IRanges::start(shftGR)
-    archRanges[[paste0("end_", i)]][!na_cases] <- IRanges::end(shftGR)
-    cols <- paste0(c("start_", "end_", "type_", "replacement_"), i)
+    archRanges[[start_cols[i]]][!na_cases] <- IRanges::start(shftGR)
+    archRanges[[end_cols[i]]][!na_cases] <- IRanges::end(shftGR)
+    restrict_cols <- c(start_cols[i], end_cols[i], type_cols[i], repl_cols[i])
     data.table::set(archRanges,
                     i = which(!na_cases)[IRanges::width(shftGR) == 0],
-                    j = cols, value = NA)
+                    j = restrict_cols, value = NA)
   }
 
-  if (dim(archRanges)[1] == 0) return("No variants to plot.")
+  if (nrow(archRanges) == 0) return("No variants to plot.")
   archRanges <- archRanges[order(-archRanges$frequency), ]
   ampl_freq <- 1 - sum(archRanges$frequency)
   ampl_count <-
     sum(config$Reads_Filtered[config$ID %in% id]) - sum(archRanges$counts)
 
-  if (dim(archRanges)[1] < top) top <- dim(archRanges)[1]
+  if (nrow(archRanges) < top) top <- nrow(archRanges)
   yaxis <- seq_len(top + 2) # + amplicon reference + empty (column header)
   yaxis_names <- c("", "amplicon", seq_len(top))
   archRanges <- archRanges[seq_len(top), ]
@@ -1266,23 +1270,25 @@ plot_variants <- function(alignments, config, id,
                      ncol = length(amplicon), byrow = TRUE)
   variants[1, ] <- "" # header empty
 
-  insertion_melt <- data.frame()
-  # deletions and mismatches
+  # deletions, mismatches, and insertions — pre-allocated list instead of rbind
+  insertion_list <- vector("list", top * max_event)
+  ins_count <- 0L
   for (i in seq_len(top)) {
     for (j in seq_len(max_event)) {
-      if (is.na(archRanges[[paste0("type_", j)]][i])) next()
-      if (archRanges[[paste0("type_", j)]][i] == "insertion") {
-        insertion_melt <- rbind(insertion_melt,
-                                c(top - i + 1,
-                                  archRanges[[paste0("start_", j)]][i] - 0.5))
+      type_val <- archRanges[[type_cols[j]]][i]
+      if (is.na(type_val)) next()
+      if (type_val == "insertion") {
+        ins_count <- ins_count + 1L
+        insertion_list[[ins_count]] <- c(top - i + 1,
+                                         archRanges[[start_cols[j]]][i] - 0.5)
       }
-      if (archRanges[[paste0("type_", j)]][i] == "mismatch") {
-        variants[i + 2, which(archRanges[[paste0("start_", j)]][i] == xaxis)] <-
-          as.character(archRanges[[paste0("replacement_", j)]][i])
+      if (type_val == "mismatch") {
+        variants[i + 2, which(archRanges[[start_cols[j]]][i] == xaxis)] <-
+          as.character(archRanges[[repl_cols[j]]][i])
       }
-      if (archRanges[[paste0("type_", j)]][i] == "deletion") {
-        variants[i + 2, which(archRanges[[paste0("start_", j)]][i] == xaxis):
-                   which(archRanges[[paste0("end_", j)]][i] == xaxis)] <- "-"
+      if (type_val == "deletion") {
+        variants[i + 2, which(archRanges[[start_cols[j]]][i] == xaxis):
+                   which(archRanges[[end_cols[j]]][i] == xaxis)] <- "-"
       }
     }
   }
@@ -1298,7 +1304,12 @@ plot_variants <- function(alignments, config, id,
   variants_melt$ymax <- variants_melt$Var1
   variants_melt$xmin <- variants_melt$Var2 - 0.5
   variants_melt$xmax <- variants_melt$Var2 + 0.5
-  if (dim(insertion_melt)[1] > 0) colnames(insertion_melt) <- c("y", "x")
+  if (ins_count > 0) {
+    insertion_melt <- as.data.frame(do.call(rbind, insertion_list[seq_len(ins_count)]))
+    colnames(insertion_melt) <- c("y", "x")
+  } else {
+    insertion_melt <- data.frame()
+  }
 
   x<-xlab<-xmax<-xmin<-y<-ylab<-ymax<-ymin<-value<-codon<-NULL
   vplot <- ggplot2::ggplot(variants_melt,
@@ -1333,7 +1344,7 @@ plot_variants <- function(alignments, config, id,
       if (length(id) == 1) id else "", collapse = "")),
       x = "Relative Nucleotide Position")
 
-  if (dim(insertion_melt)[1] > 0) {
+  if (nrow(insertion_melt) > 0) {
     vplot <- vplot + ggplot2::geom_point(data = data.frame(insertion_melt),
                                          ggplot2::aes(x = x, y = y), shape = 25,
                                          size = 4,

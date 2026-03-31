@@ -4,12 +4,16 @@
 \alias{get_seq}
 \title{amplicon sequence, reverse complemented when needed}
 \usage{
-get_seq(config, id, column = "Amplicon")
+get_seq(config, id, column = "Amplicon", row = NULL)
 }
 \arguments{
 \item{config}{(data.frame) config table}
 
 \item{id}{(vector) a vector of id's}
+
+\item{column}{(character) column name to extract}
+
+\item{row}{(integer or NULL) pre-computed row index to avoid repeated lookup}
 }
 \value{
 (character) amplicon sequence, reverse complemented if Direction 1

@@ -186,13 +186,10 @@ amplicanPipe <- function(min_freq_default) {
                chunk_frmt <- paste0(path, ".", frmt)
                if (file.exists(chunk_frmt)) {
                    file.append(aln_file_frmt_temp, chunk_frmt)
+                   file.remove(chunk_frmt)
                }
             }
             file.rename(aln_file_frmt_temp, aln_file_frmt)
-            for (path in aln_paths) {
-               chunk_frmt <- paste0(path, ".", frmt)
-               if (file.exists(chunk_frmt)) file.remove(chunk_frmt)
-            }
           }
         }
 
@@ -258,7 +255,7 @@ amplicanPipe <- function(min_freq_default) {
     }
 
     seqnames <- read_id <- counts <- NULL
-    if (dim(aln)[1] == 0) stop("There are no events.",
+    if (nrow(aln) == 0) stop("There are no events.",
                                "Check whether you have correct primers in the config file.")
 
     efs_file <- file.path(resultsFolder, "events_filtered_shifted.csv")
@@ -291,7 +288,7 @@ amplicanPipe <- function(min_freq_default) {
       cfgT$Low_Score <- 0
       if (event_filter) {
         data.table::setkey(aln, seqnames)
-        bad_reads_list <- lapply(seq_len(dim(cfgT)[1]), function(i) {
+        bad_reads_list <- lapply(seq_len(nrow(cfgT)), function(i) {
           aln_id <- aln[.(cfgT$ID[i]), nomatch = NULL]
           if (nrow(aln_id) == 0 || cfgT$Donor[i] != "") return(NULL)
           onlyBR <- aln_id[findLQR(aln_id), ]

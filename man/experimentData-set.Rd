@@ -19,7 +19,7 @@ Set experiment data.frame with information on the experiment level.
 }
 \examples{
 file_path <- system.file("extdata", "results", "alignments",
-                         "AlignmentsExperimentSet.rds", package = "amplican")
+                         "temp", "barcode_1_aln.rds", package = "amplican")
 aln <- readRDS(file_path)
 experimentData(aln) <- experimentData(aln) # replace with the same values
 }

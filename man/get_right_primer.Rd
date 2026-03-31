@@ -4,12 +4,14 @@
 \alias{get_right_primer}
 \title{right primer sequence}
 \usage{
-get_right_primer(config, id)
+get_right_primer(config, id, row = NULL)
 }
 \arguments{
 \item{config}{(data.frame) config table}
 
 \item{id}{(vector) a vector of id's}
+
+\item{row}{(integer or NULL) pre-computed row index to avoid repeated lookup}
 }
 \value{
 (character) right primer sequence

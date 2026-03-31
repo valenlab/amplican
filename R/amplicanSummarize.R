@@ -1,17 +1,18 @@
 getHits <- function(aln_fwd, aln_rve) {
   if (nrow(aln_fwd) == 0 | nrow(aln_rve) == 0) return(S4Vectors::Hits())
-  suppressWarnings(GenomicRanges::findOverlaps(
-    GenomicRanges::GRanges(
-      seqnames = paste0(aln_fwd$seqnames, "_", aln_fwd$read_id),
-      ranges = IRanges::IRanges(start = aln_fwd$start,
-                                end = aln_fwd$end),
-      strand = "*"),
-    GenomicRanges::GRanges(
-      seqnames = paste0(aln_rve$seqnames, "_", aln_rve$read_id),
-      IRanges::IRanges(start = aln_rve$start,
-                       end = aln_rve$end),
-      strand = "*"),
-    type = "any", select = "all"))
+
+  fwd <- aln_fwd[, .(seqnames, read_id, start, end)]
+  fwd[, fwd_idx := .I]
+  rve <- aln_rve[, .(seqnames, read_id, start, end)]
+  rve[, rve_idx := .I]
+
+  data.table::setkey(rve, seqnames, read_id, start, end)
+  hits <- data.table::foverlaps(fwd, rve, type = "any", nomatch = NULL)
+
+  if (nrow(hits) == 0) return(S4Vectors::Hits())
+  S4Vectors::Hits(from = hits$fwd_idx, to = hits$rve_idx,
+                  nLnode = nrow(aln_fwd), nRnode = nrow(aln_rve),
+                  sort.by.query = FALSE)
 }
 
 
@@ -63,7 +64,7 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
   data.table::setDT(aln)
 
   aln <- aln[, which(colnames(aln) %in% cols_all), with = FALSE]
-  if (dim(aln)[1] == 0) return(logical(0))
+  if (nrow(aln) == 0) return(logical(0))
   consensus <- rep(FALSE, nrow(aln))
   aln$num <- seq_len(nrow(aln))
 
@@ -94,16 +95,12 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
   b_rve <- eop_rve[eop_rve$overlaps, ]
   b_fwd <- eop_fwd[eop_fwd$overlaps, ]
   if (nrow(b_rve) + nrow(b_fwd) > 0) {
-    # both strands are broken
-    b_rve$seq_id <- paste0(b_rve$seqnames, "*_*", b_rve$read_id)
-    b_fwd$seq_id <- paste0(b_fwd$seqnames, "*_*", b_fwd$read_id)
-    b_rve <- b_rve[!b_rve$seq_id %in% b_fwd$seq_id, ]
-    b_fwd <- b_fwd[!b_fwd$seq_id %in% b_rve$seq_id, ]
+    # both strands are broken — remove reads that appear in the other strand
+    b_rve <- b_rve[!b_fwd, on = .(seqnames, read_id)]
+    b_fwd <- b_fwd[!b_rve, on = .(seqnames, read_id)]
     # filter out events from those broken IDs
-    aln_rve_seq_id <- paste0(aln_rve$seqnames, "*_*", aln_rve$read_id)
-    aln_fwd_seq_id <- paste0(aln_fwd$seqnames, "*_*", aln_fwd$read_id)
-    aln_rve <- aln_rve[!aln_rve_seq_id %in% b_rve$seq_id, ]
-    aln_fwd <- aln_fwd[!aln_fwd_seq_id %in% b_fwd$seq_id, ]
+    aln_rve <- aln_rve[!b_rve, on = .(seqnames, read_id)]
+    aln_fwd <- aln_fwd[!b_fwd, on = .(seqnames, read_id)]
   }
 
   # Single vectorized getHits run avoiding nested seqnames iteration loop matching
@@ -174,9 +171,9 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
 #' all(aln$overlaps == amplicanOverlap(aln, cfgT))
 #'
 amplicanOverlap <- function(aln, cfgT, cut_buffer = 5, relative = FALSE) {
-  if (dim(aln)[1] == 0) return(logical(0))
-  cutSites <- lapply(cfgT$ID, function(x) {
-    upperGroups(get_seq(cfgT, x)) + cut_buffer})
+  if (nrow(aln) == 0) return(logical(0))
+  cutSites <- lapply(seq_along(cfgT$ID), function(i) {
+    upperGroups(get_seq(cfgT, cfgT$ID[i], row = i)) + cut_buffer})
   cutSitesCheck <- sapply(cutSites, length) == 0
   if (any(cutSitesCheck)) {
     message("Warning: Config file row without upper case groups (guideRNA): ",
@@ -193,11 +190,13 @@ amplicanOverlap <- function(aln, cfgT, cut_buffer = 5, relative = FALSE) {
   }
 
   alnIR <- IRanges::IRanges(aln$start, aln$end, aln$width)
-  overlap <- vector(length = dim(aln)[1])
-  # overlap assessment
-  for(i in seq_along(cfgT$ID)) {
-    map <- which(aln$seqnames == cfgT$ID[i])
-    overlap[map] <- IRanges::overlapsAny(alnIR[map], cutSites[[i]])
+  overlap <- logical(nrow(aln))
+  # map each event to its experiment row index once
+  map <- match(aln$seqnames, cfgT$ID)
+  idx_by_exp <- split(seq_len(nrow(aln)), map)
+  for (exp_i in names(idx_by_exp)) {
+    rows <- idx_by_exp[[exp_i]]
+    overlap[rows] <- IRanges::overlapsAny(alnIR[rows], cutSites[[as.integer(exp_i)]])
   }
   overlap
 }

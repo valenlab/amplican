@@ -207,7 +207,7 @@ setMethod("length", "AlignmentsExperimentSet", function(x) {
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' fwdReads(aln)
 setGeneric("fwdReads", function(x) standardGeneric("fwdReads"))
@@ -228,7 +228,7 @@ setMethod("fwdReads", "AlignmentsExperimentSet", function(x) x@fwdReads)
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' fwdReads(aln) <- fwdReads(aln) # replace with the same values
 setGeneric("fwdReads<-", function(x, value) standardGeneric("fwdReads<-"))
@@ -249,7 +249,7 @@ setMethod("fwdReads<-", "AlignmentsExperimentSet", function(x, value) {
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' rveReads(aln)
 setGeneric("rveReads", function(x) standardGeneric("rveReads"))
@@ -270,7 +270,7 @@ setMethod("rveReads", "AlignmentsExperimentSet", function(x) x@rveReads)
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' rveReads(aln) <- rveReads(aln) # replace with the same values
 setGeneric("rveReads<-", function(x, value) standardGeneric("rveReads<-"))
@@ -291,7 +291,7 @@ setMethod("rveReads<-", "AlignmentsExperimentSet", function(x, value) {
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' fwdReadsType(aln)
 setGeneric("fwdReadsType", function(x) standardGeneric("fwdReadsType"))
@@ -312,7 +312,7 @@ setMethod("fwdReadsType", "AlignmentsExperimentSet", function(x) x@fwdReadsType)
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' fwdReadsType(aln) <- fwdReadsType(aln) # replace with the same values
 setGeneric("fwdReadsType<-", function(x, value) {
@@ -335,7 +335,7 @@ setMethod("fwdReadsType<-", "AlignmentsExperimentSet", function(x, value) {
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' rveReadsType(aln)
 setGeneric("rveReadsType", function(x) standardGeneric("rveReadsType"))
@@ -356,7 +356,7 @@ setMethod("rveReadsType", "AlignmentsExperimentSet", function(x) x@rveReadsType)
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' rveReadsType(aln) <- rveReadsType(aln) # replace with the same values
 setGeneric("rveReadsType<-", function(x, value) {
@@ -379,7 +379,7 @@ setMethod("rveReadsType<-", "AlignmentsExperimentSet", function(x, value) {
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' unassignedData(aln)
 setGeneric("unassignedData", function(x) standardGeneric("unassignedData"))
@@ -402,7 +402,7 @@ setMethod("unassignedData", "AlignmentsExperimentSet", function(x) {
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' unassignedData(aln) <- unassignedData(aln) #replace with the same values
 setGeneric("unassignedData<-", function(x, value) {
@@ -425,7 +425,7 @@ setMethod("unassignedData<-", "AlignmentsExperimentSet", function(x, value) {
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' readCounts(aln)
 setGeneric("readCounts", function(x) standardGeneric("readCounts"))
@@ -448,7 +448,7 @@ setMethod("readCounts", "AlignmentsExperimentSet", function(x) {
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' readCounts(aln) <- readCounts(aln) # replace with the same values
 setGeneric("readCounts<-", function(x, value) {
@@ -471,7 +471,7 @@ setMethod("readCounts<-", "AlignmentsExperimentSet", function(x, value) {
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' experimentData(aln)
 setGeneric("experimentData", function(x) standardGeneric("experimentData"))
@@ -493,7 +493,7 @@ setMethod("experimentData", "AlignmentsExperimentSet", function(x) {
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' experimentData(aln) <- experimentData(aln) # replace with the same values
 setGeneric("experimentData<-", function(x, value) {
@@ -516,7 +516,7 @@ setMethod("experimentData<-", "AlignmentsExperimentSet", function(x, value) {
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' barcodeData(aln)
 setGeneric("barcodeData", function(x) standardGeneric("barcodeData"))
@@ -538,7 +538,7 @@ setMethod("barcodeData", "AlignmentsExperimentSet", function(x) {
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' barcodeData(aln) <- barcodeData(aln) #replace with the same values as before
 setGeneric("barcodeData<-", function(x, value) {
@@ -560,7 +560,7 @@ setMethod("barcodeData<-", "AlignmentsExperimentSet", function(x, value) {
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' unassignedCount(aln)
 setGeneric("unassignedCount", function(x) standardGeneric("unassignedCount"))
@@ -581,7 +581,7 @@ setMethod("unassignedCount", "AlignmentsExperimentSet", function(x) {
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' writeAlignments(aln, file.path(tempdir(), "aln.txt"))
 #'
@@ -669,7 +669,7 @@ setMethod("$", "AlignmentsExperimentSet", function(x, name) {
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' writeAlignments(aln, file.path(tempdir(), "aln.txt"))
 #'
@@ -700,54 +700,60 @@ setMethod("writeAlignments", "AlignmentsExperimentSet", function(
     on.exit(close(file))
   }
 
+  # Cache S4 slot access once to avoid repeated method dispatch
+  rc <- readCounts(x)
+  fr <- fwdReads(x)
+  rr <- rveReads(x)
+  frt <- fwdReadsType(x)
+
   if (aln_format == "txt") {
     for (ID in x@experimentData$ID) {
-      if (is.null(readCounts(x)[[ID]])) next()
+      if (is.null(rc[[ID]])) next()
       writeLines(as.vector(rbind(
         paste("ID:", ID,
               "read_id:",
-              format(seq_len(length(readCounts(x)[[ID]]))),
-              "Count:", format(readCounts(x)[[ID]])),
-        if (length(fwdReads(x)[[ID]]) > 0) rbind(
-          as.character(pwalign::pattern(fwdReads(x)[[ID]])),
-          as.character(pwalign::subject(fwdReads(x)[[ID]]))),
-        if (length(fwdReads(x)[[ID]]) == length(rveReads(x)[[ID]])) "",
-        if (length(rveReads(x)[[ID]]) > 0) rbind(
-          as.character(pwalign::pattern(rveReads(x)[[ID]])),
-          as.character(pwalign::subject(rveReads(x)[[ID]]))), "")),
+              format(seq_len(length(rc[[ID]]))),
+              "Count:", format(rc[[ID]])),
+        if (length(fr[[ID]]) > 0) rbind(
+          as.character(pwalign::pattern(fr[[ID]])),
+          as.character(pwalign::subject(fr[[ID]]))),
+        if (length(fr[[ID]]) == length(rr[[ID]])) "",
+        if (length(rr[[ID]]) > 0) rbind(
+          as.character(pwalign::pattern(rr[[ID]])),
+          as.character(pwalign::subject(rr[[ID]]))), "")),
         file)
     }
   }
 
   if (aln_format == "fasta") {
     for (ID in x@experimentData$ID) {
-      counts = readCounts(x)[[ID]]
+      counts <- rc[[ID]]
       if (is.null(counts)) next()
       writeLines(as.vector(rbind(
-        if (length(fwdReads(x)[[ID]]) > 0)
+        if (length(fr[[ID]]) > 0)
           rbind(paste(">Forward read ID:", ID,
                       "read_id:",
-                      format(seq_len(length(fwdReads(x)[[ID]]))),
+                      format(seq_len(length(fr[[ID]]))),
                       "Count:", format(counts),
-                      "Type:", format(fwdReadsType(x)[[ID]])),
-                as.character(pwalign::pattern(fwdReads(x)[[ID]])),
+                      "Type:", format(frt[[ID]])),
+                as.character(pwalign::pattern(fr[[ID]])),
                 paste(">Forward amplicon ID:", ID,
                       "read_id:",
-                      format(seq_len(length(fwdReads(x)[[ID]]))),
+                      format(seq_len(length(fr[[ID]]))),
                       "Count:", format(counts)),
-                as.character(pwalign::subject(fwdReads(x)[[ID]]))),
-        if (length(rveReads(x)[[ID]]) > 0)
+                as.character(pwalign::subject(fr[[ID]]))),
+        if (length(rr[[ID]]) > 0)
           rbind(paste(">Reverse read ID:", ID,
                       "read_id:",
-                      format(seq_len(length(rveReads(x)[[ID]]))),
+                      format(seq_len(length(rr[[ID]]))),
                       "Count:", format(counts),
-                      "Type:", format(rveReadsType(x)[[ID]])),
-                as.character(pwalign::pattern(rveReads(x)[[ID]])),
+                      "Type:", format(frt[[ID]])),
+                as.character(pwalign::pattern(rr[[ID]])),
                 paste(">Reverse amplicon ID:", ID,
                       "read_id:",
-                      format(seq_len(length(rveReads(x)[[ID]]))),
+                      format(seq_len(length(rr[[ID]]))),
                       "Count:", format(counts)),
-                as.character(pwalign::subject(rveReads(x)[[ID]]))))
+                as.character(pwalign::subject(rr[[ID]]))))
       ), file)
     }
   }
@@ -770,7 +776,7 @@ setMethod("writeAlignments", "AlignmentsExperimentSet", function(
 #' @examples
 #' # load example object
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' # look at most frequent reads aligned from experiment ID_1
 #' lookupAlignment(aln, "ID_1")
@@ -854,7 +860,7 @@ getEventInfoObj <- function(object) {
 #' @export
 #' @examples
 #' file_path <- system.file("extdata", "results", "alignments",
-#'                          "AlignmentsExperimentSet.rds", package = "amplican")
+#'                          "temp", "barcode_1_aln.rds", package = "amplican")
 #' aln <- readRDS(file_path)
 #' extractEvents(aln)
 #'

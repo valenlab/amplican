@@ -20,7 +20,7 @@ Set read type for forward reads.
 }
 \examples{
 file_path <- system.file("extdata", "results", "alignments",
-                         "AlignmentsExperimentSet.rds", package = "amplican")
+                         "temp", "barcode_1_aln.rds", package = "amplican")
 aln <- readRDS(file_path)
 fwdReadsType(aln) <- fwdReadsType(aln) # replace with the same values
 }

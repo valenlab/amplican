@@ -24,7 +24,7 @@ range01 <- function(x){(x-min(x))/(max(x)-min(x))}
 #'
 findLQR <- function(aln) {
   data.table::setDT(aln)
-  if (dim(aln)[1] < 1000) return(logical(dim(aln)[1]))
+  if (nrow(aln) < 1000) return(logical(nrow(aln)))
   events <- NULL
 
   aln_n <- aln[, list(events = .N/max(end), score = max(score)),
@@ -38,16 +38,16 @@ findLQR <- function(aln) {
   # The sample size for clara cannot be larger than the number of reads
   sampsize <- min(1000, nrow(aln_n))
   # Minimum practical size for clustering to be effective.
-  if (sampsize < 100) return(logical(dim(aln)[1]))
+  if (sampsize < 100) return(logical(nrow(aln)))
 
   k2 <- cluster::clara(x, 2, samples = 500, sampsize = sampsize)
   # silhouette criterion is
   k2s <- mean(cluster::silhouette(k2)[, "sil_width"])
-  if (!is.finite(k2s)) return(logical(dim(aln)[1]))
+  if (!is.finite(k2s)) return(logical(nrow(aln)))
   k3 <- cluster::clara(x, 3, samples = 500, sampsize = sampsize)
   k3s <-  mean(cluster::silhouette(k3)[, "sil_width"])
-  if (!is.finite(k3s)) return(logical(dim(aln)[1]))
-  if (k2s >= k3s) return(logical(dim(aln)[1])) else {
+  if (!is.finite(k3s)) return(logical(nrow(aln)))
+  if (k2s >= k3s) return(logical(nrow(aln))) else {
     # find top left center and filter it
     # plot(x, col = k3$cluster)
     # points(k3$center, col=1:2, pch=8, cex=1)
@@ -94,7 +94,7 @@ findEOP <- function(aln, cfgT) {
 
   if (any(aln$start < 0 | aln$end < 0)) { # if events are relative
     for (i in seq_along(cfgT$ID)) {
-      amplicon <- get_seq(cfgT, cfgT$ID[i])
+      amplicon <- get_seq(cfgT, cfgT$ID[i], row = i)
       zero_point <- upperGroups(amplicon)
       if (length(zero_point) == 0) next()
       cfgT$fwdPrPosEnd[i] <- cfgT$fwdPrPosEnd[i] - 1 *

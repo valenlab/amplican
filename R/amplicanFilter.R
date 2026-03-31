@@ -50,7 +50,7 @@ amplicanFilter <- function(aln, cfgT, PRIMER_DIMER) {
 
   # alignment events filter
   # Using data.table fast binary search instead of O(N) full vector scan
-  bad_reads_list <- lapply(seq_len(dim(cfgT)[1]), function(i) {
+  bad_reads_list <- lapply(seq_len(nrow(cfgT)), function(i) {
     aln_id <- aln[.(cfgT$ID[i]), on = "seqnames", nomatch = NULL]
     if (nrow(aln_id) == 0) return(NULL)
     onlyBR <- aln_id[findLQR(aln_id), ]

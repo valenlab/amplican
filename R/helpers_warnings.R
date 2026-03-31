@@ -80,8 +80,8 @@ checkPrimers <- function(configTable, fastqfiles) {
 #'
 checkConfigFile <- function(configTable, fastq_folder) {
 
-  totalRows <- dim(configTable)[1]
-  totalCols <- dim(configTable)[2]
+  totalRows <- nrow(configTable)
+  totalCols <- ncol(configTable)
 
   rp_num <- grepl("\\d", configTable$Forward_Primer)
   if (any(rp_num)) {

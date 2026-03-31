@@ -173,7 +173,7 @@ Human readable format looks like this:
 
 ```{r, echo=TRUE}
 aln <- system.file("extdata", "results", "alignments", 
-                   "AlignmentsExperimentSet.rds", 
+                   "temp", "barcode_1_aln.rds", 
                    package = "amplican")
 aln <- readRDS(aln)
 amplican::lookupAlignment(aln, ID = "ID_1") # will print most frequent alignment for ID_1

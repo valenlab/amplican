@@ -187,47 +187,63 @@ is_hdr_strict <- function(aln, cfgT, scoring_matrix,
                           gap_opening = 25,
                           gap_extension = 0) {
   . <- NULL
+  join_cols <- c("seqnames", "start", "end", "width",
+                 "originally", "replacement", "type")
+  all_hdr <- vector("list", nrow(cfgT))
+  n_hdr_per_id <- integer(0)
 
-  for (i in seq_len(dim(cfgT)[1])) {
-    donor <- get_seq(cfgT, cfgT$ID[i], "Donor")
+  # Phase 1: collect HDR events per donor (tiny objects, no large data touched)
+  for (i in seq_len(nrow(cfgT))) {
+    donor <- get_seq(cfgT, cfgT$ID[i], "Donor", row = i)
     if (donor == "") next()
-    amplicon <- get_seq(cfgT, cfgT$ID[i])
+    amplicon <- get_seq(cfgT, cfgT$ID[i], row = i)
 
-    # donor vs amplicon
     d_a_aln <- pwalign::pairwiseAlignment(
       DNAStringSet(toupper(donor)),
       DNAStringSet(toupper(amplicon)),
       substitutionMatrix = scoring_matrix, type = "overlap",
       gapOpening = gap_opening, gapExtension = gap_extension)
     pat <- pattern(d_a_aln)
-    subj <-  subject(d_a_aln)
-    # extract events we want to find to quantify read as fully HDR
+    subj <- subject(d_a_aln)
+
     hdr_events <- amplican::getEvents(pat, subj, scores = score(d_a_aln),
                                       ID = cfgT$ID[i], strand_info = "+",
                                       ampl_start = start(subj))
     if (length(hdr_events) == 0) next()
     hdr_events <- amplicanMap(hdr_events, cfgT)
-
-    # this is strict algorithm, using binary lookups instead of sequential vectors
-    events <- aln[.(cfgT$ID[i]), on = "seqnames", nomatch = NULL]
-    if (nrow(events) == 0) next()
-
-    events <- events[consensus == TRUE]
-    if (nrow(events) == 0) next()
-
-    hits <- data.table::merge.data.table(as.data.table(events),
-                                         as.data.table(hdr_events),
-                                         all.x = FALSE, all.y = FALSE,
-                                         by = c("start", "end", "width",
-                                                "originally", "replacement", "type"))
-    if (nrow(hits) == 0) next()
-    hits <- as.data.table(hits)
-    hits <- hits[, .(n = .N), by = "read_id.x"]
-    valid_reads <- hits$read_id.x[hits$n == length(hdr_events)]
-    if(length(valid_reads) == 0) next()
-
-    aln[.(cfgT$ID[i]), readType := read_id %in% valid_reads, on = "seqnames"]
+    hdr_dt <- as.data.table(hdr_events)[, ..join_cols]
+    n_hdr_per_id[[cfgT$ID[i]]] <- nrow(hdr_dt)
+    all_hdr[[i]] <- hdr_dt
   }
+
+  all_hdr_dt <- data.table::rbindlist(all_hdr)
+  if (nrow(all_hdr_dt) == 0) return(aln)
+
+  # Phase 2: single vectorized join + update (touches large aln once)
+  needed <- c("seqnames", "read_id", "start", "end", "width",
+              "originally", "replacement", "type")
+  cons <- aln[consensus == TRUE, ..needed]
+  if (nrow(cons) == 0) return(aln)
+
+  hits <- cons[all_hdr_dt, on = join_cols, nomatch = NULL,
+               .(seqnames, read_id)]
+  if (nrow(hits) == 0) return(aln)
+
+  hit_counts <- hits[, .N, by = .(seqnames, read_id)]
+
+  expected_dt <- data.table::data.table(
+    seqnames = names(n_hdr_per_id),
+    n_expected = unname(n_hdr_per_id))
+
+  valid <- hit_counts[expected_dt, on = "seqnames", nomatch = NULL
+                     ][N == n_expected, .(seqnames, read_id)]
+
+  donor_ids <- unique(all_hdr_dt$seqnames)
+  aln[seqnames %in% donor_ids, readType := FALSE]
+  if (nrow(valid) > 0) {
+    aln[valid, readType := TRUE, on = .(seqnames, read_id)]
+  }
+
   return(aln)
 }
 
@@ -283,6 +299,7 @@ makeAlignment <- function(cfgT,
   }
 
   unqT_list <- list()
+  chunk_count <- 0L
   bad_base_quality <- 0
   bad_average_quality <- 0
   bad_alphabet <- 0
@@ -332,14 +349,13 @@ makeAlignment <- function(cfgT,
       fwdT_good <- fwdT[goodReads]
       rveT_good <- rveT[goodReads]
 
-      chunk_unqT <- data.frame(
+      chunk_unqT <- data.table::data.table(
         Forward = if (fastqfiles == 2) "" else as.character(ShortRead::sread(fwdT_good)),
-        Reverse = if (fastqfiles == 1) "" else as.character(ShortRead::sread(rveT_good)),
-        stringsAsFactors = FALSE
+        Reverse = if (fastqfiles == 1) "" else as.character(ShortRead::sread(rveT_good))
       )
-      chunk_unqT$Total <- paste0(chunk_unqT$Forward, chunk_unqT$Reverse)
-      chunk_unqT <- stats::aggregate(Total ~ Forward + Reverse, chunk_unqT, length)
-      unqT_list[[length(unqT_list) + 1]] <- chunk_unqT
+      chunk_unqT <- chunk_unqT[, .(Total = .N), by = .(Forward, Reverse)]
+      chunk_count <- chunk_count + 1L
+      unqT_list[[chunk_count]] <- chunk_unqT
     }
   }
 
@@ -352,15 +368,14 @@ makeAlignment <- function(cfgT,
                              filtered_read_count = filtered_read_count,
                              stringsAsFactors = FALSE)
 
-  if (length(unqT_list) > 0) {
-    unqT <- data.table::rbindlist(unqT_list)
+  if (chunk_count > 0) {
+    unqT <- data.table::rbindlist(unqT_list[seq_len(chunk_count)])
     unqT <- unqT[, .(Total = sum(Total)), by = .(Forward, Reverse)]
-    data.table::setDF(unqT)
   } else {
-    unqT <- data.frame(Forward=character(), Reverse=character(), Total=integer(), stringsAsFactors=FALSE)
+    unqT <- data.table::data.table(Forward=character(), Reverse=character(), Total=integer())
   }
 
-  if (dim(unqT)[1] == 0) {
+  if (nrow(unqT) == 0) {
     barcodeTable$unique_reads <- 0
     barcodeTable$unassigned_reads <- 0
     barcodeTable$assigned_reads <- 0
@@ -383,18 +398,19 @@ makeAlignment <- function(cfgT,
     return(aes)
   }
 
-  unqT$BarcodeFrequency <- unqT$Total / sum(unqT$Total)
-  unqT <- unqT[order(unqT$Forward, unqT$Reverse), ]
-  unqT$Asigned <- FALSE
-  unqT[c("Forward", "Reverse")] <- lapply(unqT[c("Forward", "Reverse")],
-                                          function(x) toupper(as.character(x)))
+  data.table::set(unqT, j = "BarcodeFrequency", value = unqT$Total / sum(unqT$Total))
+  data.table::setorder(unqT, Forward, Reverse)
+  data.table::set(unqT, j = "Asigned", value = FALSE)
+  data.table::set(unqT, j = "Forward", value = toupper(as.character(unqT$Forward)))
+  data.table::set(unqT, j = "Reverse", value = toupper(as.character(unqT$Reverse)))
   barcodeTable$unique_reads <- nrow(unqT)
 
   fwd_primer_cache <- list()
   rve_primer_cache <- list()
 
   # for each experiment
-  for (i in seq_len(dim(cfgT)[1])) {
+  n_cfg <- nrow(cfgT)
+  for (i in seq_len(n_cfg)) {
 
     # Primers and amplicon info
     fwdPrimer <- toupper(cfgT$Forward_Primer[i])
@@ -404,25 +420,25 @@ makeAlignment <- function(cfgT,
 
     # Search for the forward, reverse and targets
     if (fastqfiles == 2 | fwdPrimer == "") {
-      unqT$fwdPrInReadPos <- NA
-      unqT$forwardFound <- FALSE
+      data.table::set(unqT, j = "fwdPrInReadPos", value = NA)
+      data.table::set(unqT, j = "forwardFound", value = FALSE)
     } else {
       if (!fwdPrimer %in% names(fwd_primer_cache)) {
         fwd_primer_cache[[fwdPrimer]] <- locate_pr_start(unqT$Forward, fwdPrimer, primer_mismatch)
       }
-      unqT$fwdPrInReadPos <- fwd_primer_cache[[fwdPrimer]]
-      unqT$forwardFound <- is.finite(unqT$fwdPrInReadPos)
+      data.table::set(unqT, j = "fwdPrInReadPos", value = fwd_primer_cache[[fwdPrimer]])
+      data.table::set(unqT, j = "forwardFound", value = is.finite(unqT$fwdPrInReadPos))
     }
 
     if (fastqfiles == 1 | rvePrimer == "") {
-      unqT$rvePrInReadPos <- NA
-      unqT$reverseFound <- FALSE
+      data.table::set(unqT, j = "rvePrInReadPos", value = NA)
+      data.table::set(unqT, j = "reverseFound", value = FALSE)
     } else {
       if (!rvePrimer %in% names(rve_primer_cache)) {
         rve_primer_cache[[rvePrimer]] <- locate_pr_start(unqT$Reverse, rvePrimer, primer_mismatch)
       }
-      unqT$rvePrInReadPos <- rve_primer_cache[[rvePrimer]]
-      unqT$reverseFound <- is.finite(unqT$rvePrInReadPos)
+      data.table::set(unqT, j = "rvePrInReadPos", value = rve_primer_cache[[rvePrimer]])
+      data.table::set(unqT, j = "reverseFound", value = is.finite(unqT$rvePrInReadPos))
     }
 
     primersFound <-
@@ -435,19 +451,19 @@ makeAlignment <- function(cfgT,
       } else {
         unqT$forwardFound & unqT$reverseFound
       }
-    unqT$Asigned <- unqT$Asigned | primersFound
+    data.table::set(unqT, j = "Asigned", value = unqT$Asigned | primersFound)
     IDunqT <- unqT[primersFound, ]
     # most abundant fwd + rve combination from the top
-    IDunqT <- IDunqT[order(-IDunqT$Total), ]
+    data.table::setorder(IDunqT, -Total)
 
-    if (dim(IDunqT)[1] > 0) {
+    if (nrow(IDunqT) > 0) {
       # when some reads match to correct primers
       # do alignments with removed dna bases before primers to allow
       # reads and amplicons start with primer
       # when calling events into GRanges shift_ampl is used to adapt for
       # subtractions happening here
       if (fastqfiles != 2) {
-        rF <- Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[, "Forward"]),
+        rF <- Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[["Forward"]]),
                                  start = IDunqT$fwdPrInReadPos)
         fwdA[[cfgT$ID[i]]] <-
           pwalign::pairwiseAlignment(
@@ -474,7 +490,7 @@ makeAlignment <- function(cfgT,
 
       if (fastqfiles != 1) {
         rR <- Biostrings::reverseComplement(
-          Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[, "Reverse"]),
+          Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[["Reverse"]]),
                              start = IDunqT$rvePrInReadPos))
         rveA[[cfgT$ID[i]]] <- pwalign::pairwiseAlignment(
           rR,
@@ -506,9 +522,10 @@ makeAlignment <- function(cfgT,
   barcodeTable$assigned_reads <- sum(unqT$Asigned)
   unassignedTable <- unqT[!unqT$Asigned, ]
 
-  if (dim(unassignedTable)[1] > 0) {
-    unassignedTable$Barcode <- barcode
-    unassignedTable <- unassignedTable[order(-unassignedTable$Total),]
+  if (nrow(unassignedTable) > 0) {
+    data.table::set(unassignedTable, j = "Barcode", value = barcode)
+    data.table::setorder(unassignedTable, -Total)
+    data.table::setDF(unassignedTable)
   } else {
     unassignedTable <- NULL
   }

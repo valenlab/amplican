@@ -23,7 +23,7 @@ Prints alignments in blast-like style for human examination.
 \examples{
 # load example object
 file_path <- system.file("extdata", "results", "alignments",
-                         "AlignmentsExperimentSet.rds", package = "amplican")
+                         "temp", "barcode_1_aln.rds", package = "amplican")
 aln <- readRDS(file_path)
 # look at most frequent reads aligned from experiment ID_1
 lookupAlignment(aln, "ID_1")
