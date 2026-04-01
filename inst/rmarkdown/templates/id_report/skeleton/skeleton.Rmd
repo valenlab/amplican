@@ -19,7 +19,8 @@ params:
 library(amplican)
 library(ggplot2)
 alignments <- data.table::fread(params$alignments)
-data.table::setDF(alignments)
+alignments <- alignments[(consensus) & (overlaps)]
+alignments[, strand := "+"]
 config <- data.frame(data.table::fread(params$config_summary))
 height <- plot_height(length(unique(config$ID)))
 ```
@@ -135,7 +136,6 @@ plot_heterogeneity(alignments, config)
 ***
 
 ```{r plot_alignments, results='asis', echo=F, message=F, warning=F}
-alignments_cons <- alignments[alignments$consensus & alignments$overlaps, ]
 src = sapply(config$ID, function(i) {
   knitr::knit_expand(text = c(
     "## {{i}}  \n", 
@@ -160,7 +160,7 @@ src = sapply(config$ID, function(i) {
     "### Variants  \n", 
     paste('```{r var-{{i}}, echo = F, message=F, results = "asis", ',
           'message=F, warning=F}', collapse = ''),
-    paste('p <- amplican::plot_variants(alignments_cons, config, "{{i}}", ',
+    paste('p <- amplican::plot_variants(alignments, config, "{{i}}", ',
           ' params$cut_buffer)', collapse = ''),
     '```\n'))
 })

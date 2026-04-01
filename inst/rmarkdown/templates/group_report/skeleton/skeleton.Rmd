@@ -17,7 +17,8 @@ params:
 library(amplican)
 library(ggplot2)
 alignments <- data.table::fread(params$alignments)
-data.table::setDF(alignments)
+alignments <- alignments[(consensus) & (overlaps)]
+alignments[, strand := "+"]
 config <- data.frame(data.table::fread(params$config_summary))
 height <- plot_height(length(unique(config$Group)))
 ```
@@ -119,8 +120,6 @@ plot_heterogeneity(alignments, config, level = 'Group')
 ***
 
 ```{r plot_alignments, results='asis', echo=F, message=F, warning=F}
-alignments <- alignments[alignments$consensus & alignments$overlaps, ]
-alignments$strand <- "+" # strand does not matter after consensus filtering
 src = sapply(unique(config$Group), function(i) {
   knitr::knit_expand(text = c(
     "## Group {{i}}  \n", 
