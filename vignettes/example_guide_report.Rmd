@@ -37,7 +37,6 @@ height <- plot_height(length(unique(config$guideRNA)))
 **Filtered Reads** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS or filtered based on low alignment score  
 **Edit rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have edits  
 **Frameshift** - plot shows what percentage of reads have frameshift  
-**Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads. The more yellow each row, the less heterogeneity in the reads, more black means reads don't repeat often and are unique  
 
 
 ***
@@ -108,12 +107,6 @@ ggplot(data = config, aes(x = as.factor(guideRNA), y = frameshift_percentage, or
         legend.position = 'None') +
   ylim(0, 100) + 
   coord_flip()
-``` 
-
-## Heterogeneity of reads  
-
-```{r plot read heterogeneity, echo=FALSE, fig.height=height + 1, fig.width=14, message=F, warning=FALSE}
-plot_heterogeneity(alignments, config, level = 'guideRNA')
 ``` 
 
 ***

@@ -35,7 +35,6 @@ height <- amplican::plot_height(length(unique(config$Barcode)))
 **Filtered Reads** - plot shows percentage of assigned reads that have been recognized as PRIMER DIMERS or filtered based on low alignment score  
 **Edit rates** - plot gives overview of percentage of reads (not filtered as PRIMER DIMER) that have edits  
 **Frameshift** - plot shows what percentage of reads that have frameshift  
-**Read heterogeneity plot** - shows what is the share of each of the unique reads in total count of all reads. The more yellow each row, the less heterogeneity in the reads, more black means reads don't repeat often and are unique  
 **Top unassigned reads** - take a look at the alignment of most abundant 
 forward and reverse complemented reverse reads for each barcode, 
 if you find that there is many unassigned reads you can ivestigate here.  
@@ -139,12 +138,6 @@ ggplot(data = barcodeTable, aes(x = as.factor(Barcode),
   coord_flip() +
   geom_text(aes(x = as.factor(Barcode), 
                 y = frameshift_percentage, label = Reads_Frameshifted), hjust = -1)
-``` 
-
-## Heterogeneity of reads  
-
-```{r plot read heterogeneity, echo=FALSE, fig.height=height + 1, fig.width=14, message=F, warning=FALSE}
-plot_heterogeneity(alignments, config, level = 'Barcode')
 ``` 
 
 ***  
