@@ -186,6 +186,7 @@ is_hdr <- function(reads, scores, amplicon, donor, type = "overlap",
 is_hdr_strict <- function(aln, cfgT, scoring_matrix,
                           gap_opening = 25,
                           gap_extension = 0) {
+  aln <- data.table::as.data.table(aln)
   . <- NULL
   join_cols <- c("seqnames", "start", "end", "width",
                  "originally", "replacement", "type")
@@ -273,7 +274,7 @@ makeAlignment <- function(cfgT,
                           temp_folder = NULL) {
 
   barcode <- cfgT$Barcode[1]
-  
+
   if (!is.null(temp_folder)) {
     temp_file <- file.path(temp_folder, paste0(barcode, "_aln.rds"))
     if (file.exists(temp_file)) {

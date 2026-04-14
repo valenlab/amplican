@@ -51,7 +51,7 @@ amplicanNormalize <- function(aln, cfgT,
   }
   data.table::setDT(aln)
   cfgT <- data.table::as.data.table(cfgT)  # local copy — don't modify caller's object
-  
+
   if (length(add) > 0) {
     for (col in add) {
       aln[cfgT, (col) := get(paste0("i.", col)), on = .(seqnames = ID)]
@@ -79,6 +79,5 @@ amplicanNormalize <- function(aln, cfgT,
   aln <- aln[!aln_ctr_freq, on = cols]
   aln <- data.table::rbindlist(list(aln, aln_ctr))
   aln <- aln[, colnames(aln)[!colnames(aln) %in% add], with=FALSE]
-  data.table::setDF(aln)
   aln
 }
