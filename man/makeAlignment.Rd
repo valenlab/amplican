@@ -17,7 +17,9 @@ makeAlignment(
   primer_mismatch,
   donor_mismatch,
   donor_strict,
-  temp_folder = NULL
+  temp_folder = NULL,
+  sample = 0,
+  seed = 0
 )
 }
 \arguments{
@@ -77,6 +79,10 @@ level of noise, but no indels are allowed. Use this when your reads should span 
 whole window of the donor events. Might be more time consuming.}
 
 \item{temp_folder}{Folder where we will save temporary files (not deleted after succesfull run)}
+
+\item{sample}{(numeric) if user specifies `sample` > 0, we will sample only `sample` reads instead of reading full file, then we will process as normal.}
+
+\item{seed}{(numeric) random seed used for sampling, only used when `sample` > 0.}
 }
 \value{
 amplicanAlignment object for this barcode experiments

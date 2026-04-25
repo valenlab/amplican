@@ -29,7 +29,9 @@ amplicanPipelineConservative(
   promiscuous_consensus = TRUE,
   normalize = c("guideRNA", "Group"),
   min_freq = min_freq_default,
-  continue = TRUE
+  continue = TRUE,
+  sample = 0,
+  seed = 0
 )
 }
 \arguments{
@@ -159,6 +161,10 @@ through \code{\link{amplicanNormalize}}.}
 \item{continue}{(boolean) Default TRUE, decides whether to continue failed
 ampliCan runs. In case of FALSE, all contents in `results` folder will
 be removed.}
+
+\item{sample}{(numeric) if user specifies `sample` > 0, we will sample only `sample` reads instead of reading full file, then we will process as normal.}
+
+\item{seed}{(numeric) random seed used for sampling, only used when `sample` > 0.}
 }
 \value{
 (invisible) results_folder path

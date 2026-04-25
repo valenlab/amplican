@@ -47,7 +47,7 @@ comb_along <- function(seq, m = 2, letters = c("A", "C", "T", "G")) {
 #'   with NA for no match.
 locate_pr_start <- function(reads, primer,
                             m = 3,
-                            min_overlap = ceiling(nchar(primer)/2)) {
+                            min_overlap = ceiling(nchar(primer) / 2)) {
   primer_len <- nchar(primer)
   if (min_overlap > primer_len) {
     stop("min_overlap cannot be greater than the primer length.")
@@ -60,9 +60,11 @@ locate_pr_start <- function(reads, primer,
     subject = Biostrings::DNAString(primer),
     type = "overlap",
     substitutionMatrix = pwalign::nucleotideSubstitutionMatrix(
-      match = 1, mismatch = -1, baseOnly = FALSE, type = "DNA"),
+      match = 1, mismatch = -1, baseOnly = FALSE, type = "DNA"
+    ),
     gapOpening = 1, # Disallow indels
-    gapExtension = 1)
+    gapExtension = 1
+  )
 
   valid_indices <- which(pwalign::nmatch(pwa) >= min_overlap & pwalign::nedit(pwa) <= m)
   results <- rep(NA_real_, length(reads))
@@ -76,46 +78,37 @@ locate_pr_start <- function(reads, primer,
 is_hdr <- function(reads, scores, amplicon, donor, type = "overlap",
                    scoring_matrix, gap_opening = 25, gap_extension = 0,
                    donor_mismatch = 3) {
-
   align <- pwalign::pairwiseAlignment(
     DNAStringSet(toupper(donor)), DNAStringSet(toupper(amplicon)),
     substitutionMatrix = scoring_matrix, type = type,
-    gapOpening = gap_opening, gapExtension = gap_extension)
+    gapOpening = gap_opening, gapExtension = gap_extension
+  )
   pat <- pattern(align)
-  subj <-  subject(align)
+  subj <- subject(align)
   # extract events we want to find to quantify read as fully HDR
-  hdr_events <- amplican::getEvents(pat, subj, scores = score(align),
-                                 ID = "HDR", strand_info = "+",
-                                 ampl_start = start(subj))
+  hdr_events <- amplican::getEvents(pat, subj,
+    scores = score(align),
+    ID = "HDR", strand_info = "+",
+    ampl_start = start(subj)
+  )
   names(hdr_events) <- NULL
   hdr_events <- IRanges::ranges(hdr_events)
 
-  # Fast exact match bypass
-  reads_dna <- DNAStringSet(reads)
-  donor_dna <- DNAStringSet(toupper(donor))
-  is_exact_donor <- reads_dna == donor_dna
-
-  is_hdr <- rep(FALSE, length(reads))
-  if (all(is_exact_donor)) {
-    is_hdr[] <- TRUE
-    return(is_hdr)
-  }
-
-  reads_to_align <- reads[!is_exact_donor]
-
   # now align reads to donor
-  alignD <- pwalign::pairwiseAlignment(reads_to_align,
-    donor_dna,
+  alignD <- pwalign::pairwiseAlignment(reads,
+    DNAStringSet(toupper(donor)),
     type = type, substitutionMatrix = scoring_matrix,
-    gapOpening = gap_opening, gapExtension = gap_extension)
-  better_scores <- score(alignD) >= scores[!is_exact_donor]
-
+    gapOpening = gap_opening, gapExtension = gap_extension
+  )
+  better_scores <- score(alignD) >= scores
+  is_hdr <- rep(FALSE, length(reads))
   if (sum(better_scores) == 0) {
-    is_hdr[is_exact_donor] <- TRUE
     return(is_hdr)
   }
-  comparison <- pwalign::compareStrings(pattern(alignD[better_scores]),
-                                        subject(alignD[better_scores]))
+  comparison <- pwalign::compareStrings(
+    pattern(alignD[better_scores]),
+    subject(alignD[better_scores])
+  )
   comparison <- IRanges::RleList(strsplit(comparison, split = ""))
 
   mm <- IRanges::IRangesList(comparison == "?") # need to tile
@@ -136,7 +129,7 @@ is_hdr <- function(reads, scores, amplicon, donor, type = "overlap",
   comparison <- c(comparison, mm)
 
   shft <- start(subject(alignD[better_scores]))[as.numeric(names(comparison))]
-  comparison <- IRanges::shift(comparison,  shft - 1)
+  comparison <- IRanges::shift(comparison, shft - 1)
   overlaps_hdr <- IRanges::overlapsAny(comparison, hdr_events, type = "any")
   all_e_not_overlap <- sapply(split(!overlaps_hdr, names(comparison)), all)
   if (length(all_e_not_overlap) > 0) {
@@ -158,10 +151,10 @@ is_hdr <- function(reads, scores, amplicon, donor, type = "overlap",
   ok_hdr <- c(
     reads_ids[!reads_ids %in% as.integer(names(comparison))],
     all_e_not_overlap,
-    as.integer(names(overlaps_e[overlaps_e <= 0])))
+    as.integer(names(overlaps_e[overlaps_e <= 0]))
+  )
 
-  is_hdr[is_exact_donor] <- TRUE
-  is_hdr[!is_exact_donor][better_scores][ok_hdr] <- TRUE
+  is_hdr[better_scores][ok_hdr] <- TRUE
   is_hdr
 }
 
@@ -186,65 +179,52 @@ is_hdr <- function(reads, scores, amplicon, donor, type = "overlap",
 is_hdr_strict <- function(aln, cfgT, scoring_matrix,
                           gap_opening = 25,
                           gap_extension = 0) {
-  aln <- data.table::as.data.table(aln)
   . <- NULL
-  join_cols <- c("seqnames", "start", "end", "width",
-                 "originally", "replacement", "type")
-  all_hdr <- vector("list", nrow(cfgT))
-  n_hdr_per_id <- integer(0)
 
-  # Phase 1: collect HDR events per donor (tiny objects, no large data touched)
-  for (i in seq_len(nrow(cfgT))) {
-    donor <- get_seq(cfgT, cfgT$ID[i], "Donor", row = i)
-    if (donor == "") next()
-    amplicon <- get_seq(cfgT, cfgT$ID[i], row = i)
+  for (i in seq_len(dim(cfgT)[1])) {
+    amplicon <- get_seq(cfgT, cfgT$ID[i])
+    donor <- get_seq(cfgT, cfgT$ID[i], "Donor")
+    aln_id <- aln$seqnames == cfgT$ID[i]
 
+    if (!any(aln_id) | donor == "") next()
+
+    # donor vs amplicon
     d_a_aln <- pwalign::pairwiseAlignment(
       DNAStringSet(toupper(donor)),
       DNAStringSet(toupper(amplicon)),
       substitutionMatrix = scoring_matrix, type = "overlap",
-      gapOpening = gap_opening, gapExtension = gap_extension)
+      gapOpening = gap_opening, gapExtension = gap_extension
+    )
     pat <- pattern(d_a_aln)
     subj <- subject(d_a_aln)
-
-    hdr_events <- amplican::getEvents(pat, subj, scores = score(d_a_aln),
-                                      ID = cfgT$ID[i], strand_info = "+",
-                                      ampl_start = start(subj))
+    # extract events we want to find to quantify read as fully HDR
+    hdr_events <- amplican::getEvents(pat, subj,
+      scores = score(d_a_aln),
+      ID = aln$seqnames[aln_id][1], strand_info = "+",
+      ampl_start = start(subj)
+    )
     if (length(hdr_events) == 0) next()
     hdr_events <- amplicanMap(hdr_events, cfgT)
-    hdr_dt <- as.data.table(hdr_events)[, ..join_cols]
-    n_hdr_per_id[[cfgT$ID[i]]] <- nrow(hdr_dt)
-    all_hdr[[i]] <- hdr_dt
+
+    # this is strict algorithm
+    # we take only consensus events
+    events <- aln[aln_id & aln$consensus, ]
+    if (nrow(events) == 0) next()
+
+    hits <- data.table::merge.data.table(as.data.table(events),
+      as.data.table(hdr_events),
+      all.x = F, all.y = F,
+      by = c(
+        "start", "end", "width",
+        "originally", "replacement", "type"
+      )
+    )
+    if (nrow(hits) == 0) next()
+    hits <- as.data.table(hits)
+    hits <- hits[, .(n = .N), by = "read_id.x"]
+    hits <- hits$read_id[hits$n == length(hdr_events)] # make sure all events are represented
+    aln[aln_id, readType := read_id %in% hits]
   }
-
-  all_hdr_dt <- data.table::rbindlist(all_hdr)
-  if (nrow(all_hdr_dt) == 0) return(aln)
-
-  # Phase 2: single vectorized join + update (touches large aln once)
-  needed <- c("seqnames", "read_id", "start", "end", "width",
-              "originally", "replacement", "type")
-  cons <- aln[consensus == TRUE, ..needed]
-  if (nrow(cons) == 0) return(aln)
-
-  hits <- cons[all_hdr_dt, on = join_cols, nomatch = NULL,
-               .(seqnames, read_id)]
-  if (nrow(hits) == 0) return(aln)
-
-  hit_counts <- hits[, .N, by = .(seqnames, read_id)]
-
-  expected_dt <- data.table::data.table(
-    seqnames = names(n_hdr_per_id),
-    n_expected = unname(n_hdr_per_id))
-
-  valid <- hit_counts[expected_dt, on = "seqnames", nomatch = NULL
-                     ][N == n_expected, .(seqnames, read_id)]
-
-  donor_ids <- unique(all_hdr_dt$seqnames)
-  aln[seqnames %in% donor_ids, readType := FALSE]
-  if (nrow(valid) > 0) {
-    aln[valid, readType := TRUE, on = .(seqnames, read_id)]
-  }
-
   return(aln)
 }
 
@@ -271,8 +251,9 @@ makeAlignment <- function(cfgT,
                           primer_mismatch,
                           donor_mismatch,
                           donor_strict,
-                          temp_folder = NULL) {
-
+                          temp_folder = NULL,
+                          sample = 0,
+                          seed = 0) {
   barcode <- cfgT$Barcode[1]
 
   if (!is.null(temp_folder)) {
@@ -291,11 +272,19 @@ makeAlignment <- function(cfgT,
 
   # Read Reads for this Barcode
   if (fastqfiles != 2) {
-    fwdStream <- ShortRead::FastqStreamer(cfgT$Forward_Reads_File[1], n = batch_size)
+    if (sample > 0) {
+      fwdStream <- ShortRead::FastqSampler(cfgT$Forward_Reads_File[1], n = sample)
+    } else {
+      fwdStream <- ShortRead::FastqStreamer(cfgT$Forward_Reads_File[1], n = batch_size)
+    }
     on.exit(close(fwdStream), add = TRUE)
   }
   if (fastqfiles != 1) {
-    rveStream <- ShortRead::FastqStreamer(cfgT$Reverse_Reads_File[1], n = batch_size)
+    if (sample > 0) {
+      rveStream <- ShortRead::FastqSampler(cfgT$Reverse_Reads_File[1], n = sample)
+    } else {
+      rveStream <- ShortRead::FastqStreamer(cfgT$Reverse_Reads_File[1], n = batch_size)
+    }
     on.exit(close(rveStream), add = TRUE)
   }
 
@@ -307,9 +296,15 @@ makeAlignment <- function(cfgT,
   read_count <- 0
   filtered_read_count <- 0
 
+  sampled_already <- FALSE
+
   repeat {
+    if (sample > 0 && sampled_already) break
+    if (sample > 0) set.seed(seed)
     fwdT <- if (fastqfiles != 2) ShortRead::yield(fwdStream) else NULL
+    if (sample > 0) set.seed(seed)
     rveT <- if (fastqfiles != 1) ShortRead::yield(rveStream) else NULL
+    sampled_already <- TRUE
 
     if (fastqfiles == 1) {
       if (length(fwdT) == 0) break
@@ -360,20 +355,22 @@ makeAlignment <- function(cfgT,
     }
   }
 
-  barcodeTable <- data.frame(Barcode = barcode,
-                             experiment_count = length(unique(cfgT$ID)),
-                             read_count = read_count,
-                             bad_base_quality = bad_base_quality,
-                             bad_average_quality = bad_average_quality,
-                             bad_alphabet = bad_alphabet,
-                             filtered_read_count = filtered_read_count,
-                             stringsAsFactors = FALSE)
+  barcodeTable <- data.frame(
+    Barcode = barcode,
+    experiment_count = length(unique(cfgT$ID)),
+    read_count = read_count,
+    bad_base_quality = bad_base_quality,
+    bad_average_quality = bad_average_quality,
+    bad_alphabet = bad_alphabet,
+    filtered_read_count = filtered_read_count,
+    stringsAsFactors = FALSE
+  )
 
   if (chunk_count > 0) {
     unqT <- data.table::rbindlist(unqT_list[seq_len(chunk_count)])
     unqT <- unqT[, .(Total = sum(Total)), by = .(Forward, Reverse)]
   } else {
-    unqT <- data.table::data.table(Forward=character(), Reverse=character(), Total=integer())
+    unqT <- data.table::data.table(Forward = character(), Reverse = character(), Total = integer())
   }
 
   if (nrow(unqT) == 0) {
@@ -381,14 +378,15 @@ makeAlignment <- function(cfgT,
     barcodeTable$unassigned_reads <- 0
     barcodeTable$assigned_reads <- 0
     aes <- methods::new("AlignmentsExperimentSet",
-                        fwdReads = fwdA,
-                        rveReads = rveA,
-                        fwdReadsType = fwdAType,
-                        rveReadsType = rveAType,
-                        readCounts = countsA,
-                        unassignedData = NULL,
-                        experimentData = cfgT,
-                        barcodeData = barcodeTable)
+      fwdReads = fwdA,
+      rveReads = rveA,
+      fwdReadsType = fwdAType,
+      rveReadsType = rveAType,
+      readCounts = countsA,
+      unassignedData = NULL,
+      experimentData = cfgT,
+      barcodeData = barcodeTable
+    )
     if (!is.null(temp_folder)) {
       temp_file <- file.path(temp_folder, paste0(barcode, "_aln.rds"))
       temp_file_writing <- file.path(temp_folder, paste0(barcode, "_aln.rds.temp"))
@@ -412,7 +410,6 @@ makeAlignment <- function(cfgT,
   # for each experiment
   n_cfg <- nrow(cfgT)
   for (i in seq_len(n_cfg)) {
-
     # Primers and amplicon info
     fwdPrimer <- toupper(cfgT$Forward_Primer[i])
     rvePrimer <- toupper(cfgT$Reverse_Primer[i])
@@ -465,15 +462,18 @@ makeAlignment <- function(cfgT,
       # subtractions happening here
       if (fastqfiles != 2) {
         rF <- Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[["Forward"]]),
-                                 start = IDunqT$fwdPrInReadPos)
+          start = IDunqT$fwdPrInReadPos
+        )
         fwdA[[cfgT$ID[i]]] <-
           pwalign::pairwiseAlignment(
             rF,
             Biostrings::subseq(amplicon,
-                               start = cfgT$fwdPrPos[i],
-                               end = cfgT$rvePrPosEnd[i]),
+              start = cfgT$fwdPrPos[i],
+              end = cfgT$rvePrPosEnd[i]
+            ),
             type = "overlap", substitutionMatrix = scoring_matrix,
-            gapOpening = gap_opening, gapExtension = gap_extension)
+            gapOpening = gap_opening, gapExtension = gap_extension
+          )
 
         if (donor != "") {
           fwdAType[[cfgT$ID[i]]] <- if (donor_strict) {
@@ -482,9 +482,10 @@ makeAlignment <- function(cfgT,
             is_hdr(
               rF, score(fwdA[[cfgT$ID[i]]]),
               amplicon, donor,
-              type = "overlap", scoring_matrix =  scoring_matrix,
+              type = "overlap", scoring_matrix = scoring_matrix,
               gap_opening = gap_opening, gap_extension = gap_extension,
-              donor_mismatch = donor_mismatch)
+              donor_mismatch = donor_mismatch
+            )
           }
         }
       }
@@ -492,14 +493,18 @@ makeAlignment <- function(cfgT,
       if (fastqfiles != 1) {
         rR <- Biostrings::reverseComplement(
           Biostrings::subseq(Biostrings::DNAStringSet(IDunqT[["Reverse"]]),
-                             start = IDunqT$rvePrInReadPos))
+            start = IDunqT$rvePrInReadPos
+          )
+        )
         rveA[[cfgT$ID[i]]] <- pwalign::pairwiseAlignment(
           rR,
           Biostrings::subseq(amplicon,
-                             start = cfgT$fwdPrPos[i],
-                             end = cfgT$rvePrPosEnd[i]),
+            start = cfgT$fwdPrPos[i],
+            end = cfgT$rvePrPosEnd[i]
+          ),
           type = "overlap", substitutionMatrix = scoring_matrix,
-          gapOpening = gap_opening, gapExtension = gap_extension)
+          gapOpening = gap_opening, gapExtension = gap_extension
+        )
 
         if (donor != "") {
           rveAType[[cfgT$ID[i]]] <- if (donor_strict) {
@@ -508,9 +513,10 @@ makeAlignment <- function(cfgT,
             is_hdr(
               rR, score(rveA[[cfgT$ID[i]]]),
               amplicon, donor,
-              type = "overlap", scoring_matrix =  scoring_matrix,
+              type = "overlap", scoring_matrix = scoring_matrix,
               gap_opening = gap_opening, gap_extension = gap_extension,
-              donor_mismatch = donor_mismatch)
+              donor_mismatch = donor_mismatch
+            )
           }
         }
       }
@@ -532,14 +538,15 @@ makeAlignment <- function(cfgT,
   }
 
   aes <- methods::new("AlignmentsExperimentSet",
-               fwdReads = fwdA,
-               rveReads = rveA,
-               fwdReadsType = fwdAType,
-               rveReadsType = rveAType,
-               readCounts = countsA,
-               unassignedData = unassignedTable,
-               experimentData = cfgT,
-               barcodeData = barcodeTable)
+    fwdReads = fwdA,
+    rveReads = rveA,
+    fwdReadsType = fwdAType,
+    rveReadsType = rveAType,
+    readCounts = countsA,
+    unassignedData = unassignedTable,
+    experimentData = cfgT,
+    barcodeData = barcodeTable
+  )
   if (!is.null(temp_folder)) {
     temp_file <- file.path(temp_folder, paste0(barcode, "_aln.rds"))
     temp_file_writing <- file.path(temp_folder, paste0(barcode, "_aln.rds.temp"))

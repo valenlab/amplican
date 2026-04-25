@@ -29,12 +29,15 @@
 utils::globalVariables(c(".", "Forward", "ID", "Reverse", "Total", "consensus", "net_width", "originally", "readType", "read_counts", "read_id", "replacement"))
 .onAttach <- function(libname, pkgname) {
   packageStartupMessage(
-    paste0("version: ", utils::packageVersion("amplican"), "\n",
-           "Please consider supporting this software by citing:\n\n",
-           "Labun et al. 2019\n",
-           "Accurate analysis of genuine CRISPR editing events with ampliCan.\n",
-           "Genome Res. 2019 Mar 8\n",
-           "doi: 10.1101/gr.244293.118\n"))
+    paste0(
+      "version: ", utils::packageVersion("amplican"), "\n",
+      "Please consider supporting this software by citing:\n\n",
+      "Labun et al. 2019\n",
+      "Accurate analysis of genuine CRISPR editing events with ampliCan.\n",
+      "Genome Res. 2019 Mar 8\n",
+      "doi: 10.1101/gr.244293.118\n"
+    )
+  )
 }
 
 amplicanPipe <- function(min_freq_default) {
@@ -43,7 +46,8 @@ amplicanPipe <- function(min_freq_default) {
     write_alignments_format = "None", average_quality = 30,
     min_quality = 0, filter_n = FALSE, batch_size = 1e7, use_parallel = FALSE,
     scoring_matrix = pwalign::nucleotideSubstitutionMatrix(
-      match = 5, mismatch = -4, baseOnly = FALSE, type = "DNA"),
+      match = 5, mismatch = -4, baseOnly = FALSE, type = "DNA"
+    ),
     gap_opening = 25, gap_extension = 0, fastqfiles = 0.5,
     primer_mismatch = 2,
     donor_mismatch = 3, donor_strict = FALSE,
@@ -51,8 +55,8 @@ amplicanPipe <- function(min_freq_default) {
     event_filter = TRUE, cut_buffer = 5,
     promiscuous_consensus = TRUE, normalize = c("guideRNA", "Group"),
     min_freq = min_freq_default,
-    continue = TRUE) {
-
+    continue = TRUE, sample = 0, seed = 0
+  ) {
     config <- normalizePath(config)
     fastq_folder <- normalizePath(fastq_folder)
     results_folder <- normalizePath(results_folder)
@@ -65,8 +69,10 @@ amplicanPipe <- function(min_freq_default) {
       unlink(results_folder, recursive = TRUE)
       dir.create(results_folder, showWarnings = FALSE)
     } else {
-      temp_files <- list.files(results_folder, pattern = "\\.temp$",
-                               full.names = TRUE, recursive = TRUE)
+      temp_files <- list.files(results_folder,
+        pattern = "\\.temp$",
+        full.names = TRUE, recursive = TRUE
+      )
       if (length(temp_files) > 0) {
         message("Cleaning up ", length(temp_files), " stale .temp files...")
         file.remove(temp_files)
@@ -87,8 +93,10 @@ amplicanPipe <- function(min_freq_default) {
       aln <- readRDS(rds_file)
       if (!"None" %in% write_alignments_format) {
         for (frmt in write_alignments_format) {
-          aln_file_frmt <- file.path(resultsFolder,
-                                     paste0("alignments.", frmt))
+          aln_file_frmt <- file.path(
+            resultsFolder,
+            paste0("alignments.", frmt)
+          )
           if (!file.exists(aln_file_frmt)) {
             aln_file_frmt_temp <- paste0(aln_file_frmt, ".temp")
             writeAlignments(aln, aln_file_frmt_temp, frmt)
@@ -131,50 +139,54 @@ amplicanPipe <- function(min_freq_default) {
 
       if (!file.exists(re_file) || !file.exists(cfgT_temp_file)) {
         message("Making alignments in chunked mode...")
-        aln_paths <- amplicanAlign(config = config,
-                      fastq_folder = fastq_folder,
-                      use_parallel = use_parallel,
-                      average_quality = average_quality,
-                      batch_size = batch_size,
-                      scoring_matrix = scoring_matrix,
-                      gap_opening = gap_opening,
-                      gap_extension = gap_extension,
-                      min_quality = min_quality,
-                      filter_n = filter_n,
-                      fastqfiles = fastqfiles,
-                      primer_mismatch = primer_mismatch,
-                      donor_mismatch = donor_mismatch,
-                      donor_strict = donor_strict,
-                      temp_folder = tempFolder)
+        aln_paths <- amplicanAlign(
+          config = config,
+          fastq_folder = fastq_folder,
+          use_parallel = use_parallel,
+          average_quality = average_quality,
+          batch_size = batch_size,
+          scoring_matrix = scoring_matrix,
+          gap_opening = gap_opening,
+          gap_extension = gap_extension,
+          min_quality = min_quality,
+          filter_n = filter_n,
+          fastqfiles = fastqfiles,
+          primer_mismatch = primer_mismatch,
+          donor_mismatch = donor_mismatch,
+          donor_strict = donor_strict,
+          temp_folder = tempFolder,
+          sample = sample,
+          seed = seed
+        )
 
         message("Extracting events and compiling statistics...")
         p <- if (!use_parallel) BiocParallel::SerialParam() else BiocParallel::bpparam()
 
         chunk_results <- BiocParallel::bplapply(aln_paths, function(path) {
-           chunk_aln <- readRDS(path)
-           csv_file <- gsub("_aln.rds", "_events.csv", path)
-           
-           if (!file.exists(csv_file)) {
-             if (!"None" %in% write_alignments_format) {
-                for (frmt in write_alignments_format) {
-                  frmt_file <- paste0(path, ".", frmt)
-                  frmt_temp <- paste0(frmt_file, ".temp")
-                  writeAlignments(chunk_aln, frmt_temp, frmt)
-                  file.rename(frmt_temp, frmt_file)
-                }
-             }
-             chunk_events <- extractEvents(chunk_aln, use_parallel = FALSE)
-             csv_file_temp <- paste0(csv_file, ".temp")
-             data.table::fwrite(chunk_events, csv_file_temp)
-             file.rename(csv_file_temp, csv_file)
-           }
-           
-           return(list(
-              events_file = csv_file,
-              unData = unassignedData(chunk_aln),
-              bdData = barcodeData(chunk_aln),
-              cfgT = experimentData(chunk_aln)
-           ))
+          chunk_aln <- readRDS(path)
+          csv_file <- gsub("_aln.rds", "_events.csv", path)
+
+          if (!file.exists(csv_file)) {
+            if (!"None" %in% write_alignments_format) {
+              for (frmt in write_alignments_format) {
+                frmt_file <- paste0(path, ".", frmt)
+                frmt_temp <- paste0(frmt_file, ".temp")
+                writeAlignments(chunk_aln, frmt_temp, frmt)
+                file.rename(frmt_temp, frmt_file)
+              }
+            }
+            chunk_events <- extractEvents(chunk_aln, use_parallel = FALSE)
+            csv_file_temp <- paste0(csv_file, ".temp")
+            data.table::fwrite(chunk_events, csv_file_temp)
+            file.rename(csv_file_temp, csv_file)
+          }
+
+          return(list(
+            events_file = csv_file,
+            unData = unassignedData(chunk_aln),
+            bdData = barcodeData(chunk_aln),
+            cfgT = experimentData(chunk_aln)
+          ))
         }, BPPARAM = p)
 
         if (!"None" %in% write_alignments_format) {
@@ -183,17 +195,17 @@ amplicanPipe <- function(min_freq_default) {
             aln_file_frmt_temp <- paste0(aln_file_frmt, ".temp")
             if (file.exists(aln_file_frmt_temp)) unlink(aln_file_frmt_temp)
             for (path in aln_paths) {
-               chunk_frmt <- paste0(path, ".", frmt)
-               if (file.exists(chunk_frmt)) {
-                   file.append(aln_file_frmt_temp, chunk_frmt)
-                   file.remove(chunk_frmt)
-               }
+              chunk_frmt <- paste0(path, ".", frmt)
+              if (file.exists(chunk_frmt)) {
+                file.append(aln_file_frmt_temp, chunk_frmt)
+                file.remove(chunk_frmt)
+              }
             }
             file.rename(aln_file_frmt_temp, aln_file_frmt)
           }
         }
 
-        unData <- data.table::rbindlist(lapply(chunk_results, function(x) x$unData), fill=TRUE)
+        unData <- data.table::rbindlist(lapply(chunk_results, function(x) x$unData), fill = TRUE)
         if (!is.null(unData) && nrow(unData) > 0) {
           message("Saving unassigned sequences...")
           un_file_temp <- paste0(un_file, ".temp")
@@ -202,7 +214,7 @@ amplicanPipe <- function(min_freq_default) {
         }
 
         message("Saving barcode statistics...")
-        bdData <- data.table::rbindlist(lapply(chunk_results, function(x) x$bdData), fill=TRUE)
+        bdData <- data.table::rbindlist(lapply(chunk_results, function(x) x$bdData), fill = TRUE)
         bd_file_temp <- paste0(bd_file, ".temp")
         data.table::fwrite(bdData, bd_file_temp)
         file.rename(bd_file_temp, bd_file)
@@ -216,12 +228,11 @@ amplicanPipe <- function(min_freq_default) {
         file.rename(cfgT_temp_file_writing, cfgT_temp_file)
 
         message("Saving complete events - unfiltered...")
-        aln <- data.table::rbindlist(lapply(chunk_results, function(x) data.table::fread(x$events_file)), fill=TRUE)
+        aln <- data.table::rbindlist(lapply(chunk_results, function(x) data.table::fread(x$events_file)), fill = TRUE)
         re_file_temp <- paste0(re_file, ".temp")
         data.table::fwrite(aln, re_file_temp)
         file.rename(re_file_temp, re_file)
         message("Saved complete events - unfiltered.")
-
       } else {
         message("Reading complete events - unfiltered.")
         aln <- data.table::fread(re_file)
@@ -234,29 +245,35 @@ amplicanPipe <- function(min_freq_default) {
       message("Saving parameters...")
       logFileNameTemp <- paste0(logFileName, ".temp")
       logFileConn <- file(logFileNameTemp, open = "at")
-      writeLines(c(paste("amplican Version:   ", utils::packageVersion("amplican")),
-                   paste("Config file:        ", config),
-                   paste("Average Quality:    ", average_quality),
-                   paste("Minimum Quality:    ", min_quality),
-                   paste("Filter N-reads:     ", filter_n),
-                   paste("Batch size:         ", batch_size),
-                   paste("Write Alignments:   ", toString(write_alignments_format)),
-                   paste("Fastq files Mode:   ", fastqfiles),
-                   paste("Gap Opening:        ", gap_opening),
-                   paste("Gap Extension:      ", gap_extension),
-                   paste("Consensus:          ", promiscuous_consensus),
-                   paste("Normalize:          ", toString(normalize)),
-                   paste("PRIMER DIMER buffer:", PRIMER_DIMER),
-                   paste("Cut buffer:", cut_buffer),
-                   "Scoring Matrix:"), logFileConn)
+      writeLines(c(
+        paste("amplican Version:   ", utils::packageVersion("amplican")),
+        paste("Config file:        ", config),
+        paste("Average Quality:    ", average_quality),
+        paste("Minimum Quality:    ", min_quality),
+        paste("Filter N-reads:     ", filter_n),
+        paste("Batch size:         ", batch_size),
+        paste("Write Alignments:   ", toString(write_alignments_format)),
+        paste("Fastq files Mode:   ", fastqfiles),
+        paste("Gap Opening:        ", gap_opening),
+        paste("Gap Extension:      ", gap_extension),
+        paste("Consensus:          ", promiscuous_consensus),
+        paste("Normalize:          ", toString(normalize)),
+        paste("PRIMER DIMER buffer:", PRIMER_DIMER),
+        paste("Cut buffer:", cut_buffer),
+        "Scoring Matrix:"
+      ), logFileConn)
       utils::write.csv(scoring_matrix, logFileConn, quote = FALSE, row.names = TRUE)
       close(logFileConn)
       file.rename(logFileNameTemp, logFileName)
     }
 
     seqnames <- read_id <- counts <- NULL
-    if (nrow(aln) == 0) stop("There are no events.",
-                               "Check whether you have correct primers in the config file.")
+    if (nrow(aln) == 0) {
+      stop(
+        "There are no events.",
+        "Check whether you have correct primers in the config file."
+      )
+    }
 
     efs_file <- file.path(resultsFolder, "events_filtered_shifted.csv")
     cs_file <- file.path(results_folder, "config_summary.csv")
@@ -264,7 +281,9 @@ amplicanPipe <- function(min_freq_default) {
       aln$overlaps <- amplicanOverlap(aln, cfgT, cut_buffer = cut_buffer)
       aln$consensus <- if (fastqfiles <= 0.5) {
         amplicanConsensus(aln, cfgT, promiscuous = promiscuous_consensus)
-      } else { TRUE }
+      } else {
+        TRUE
+      }
 
       # filter events overlapping primers
       eOP <- findEOP(aln, cfgT)
@@ -277,7 +296,7 @@ amplicanPipe <- function(min_freq_default) {
       onlyPD <- aln[PD, ]
       onlyPD <- unique(onlyPD, by = c("seqnames", "read_id"))
       onlyPD <- data.table::as.data.table(onlyPD)
-      summaryPD <- onlyPD[, list(counts  = sum(counts)), by = c("seqnames")]
+      summaryPD <- onlyPD[, list(counts = sum(counts)), by = c("seqnames")]
       cfgT$PRIMER_DIMER <- 0
       cfgT$PRIMER_DIMER[match(summaryPD$seqnames, cfgT$ID)] <- summaryPD$counts
 
@@ -290,17 +309,19 @@ amplicanPipe <- function(min_freq_default) {
         data.table::setkey(aln, seqnames)
         bad_reads_list <- lapply(seq_len(nrow(cfgT)), function(i) {
           aln_id <- aln[.(cfgT$ID[i]), nomatch = NULL]
-          if (nrow(aln_id) == 0 || cfgT$Donor[i] != "") return(NULL)
+          if (nrow(aln_id) == 0 || cfgT$Donor[i] != "") {
+            return(NULL)
+          }
           onlyBR <- aln_id[findLQR(aln_id), ]
           onlyBR <- unique(onlyBR, by = "read_id")
-          
+
           if (nrow(onlyBR) > 0) {
             data.table::set(cfgT, i, "Low_Score", sum(onlyBR$counts))
             return(onlyBR[, c("seqnames", "read_id"), with = FALSE])
           }
           return(NULL)
         })
-        
+
         bad_reads <- data.table::rbindlist(bad_reads_list)
         if (nrow(bad_reads) > 0) {
           aln <- aln[!bad_reads, on = c("seqnames", "read_id")]
@@ -328,8 +349,10 @@ amplicanPipe <- function(min_freq_default) {
       cfgT <- fread(cs_file)
     }
 
-    efsn_file <- file.path(resultsFolder,
-                           "events_filtered_shifted_normalized.csv")
+    efsn_file <- file.path(
+      resultsFolder,
+      "events_filtered_shifted_normalized.csv"
+    )
     if (!file.exists(efsn_file)) {
       message("Normalizing events...")
       # we remove all N as they are just noise from poor sequencing
@@ -347,9 +370,11 @@ amplicanPipe <- function(min_freq_default) {
 
     if (donor_strict) {
       message("HDR detection with strict search...")
-      aln <- is_hdr_strict(aln, cfgT,
-                           scoring_matrix, gap_opening,
-                           gap_extension)
+      aln <- is_hdr_strict(
+        aln, cfgT,
+        scoring_matrix, gap_opening,
+        gap_extension
+      )
       message("Saving normalized events with HDR...")
       efsn_file_temp <- paste0(efsn_file, ".temp")
       data.table::fwrite(aln, efsn_file_temp)
@@ -361,12 +386,15 @@ amplicanPipe <- function(min_freq_default) {
     cfgT <- amplicanSummarize(aln[aln$consensus & aln$overlaps, ], cfgT)
     cs_file_temp <- paste0(cs_file, ".temp")
     data.table::fwrite(
-      cfgT[, c("ID", "Barcode", "Forward_Reads_File", "Reverse_Reads_File",
-               "Group", "guideRNA", "Found_Guide", "Control", "Forward_Primer",
-               "Reverse_Primer", "Direction", "Amplicon", "Donor", "fwdPrPosEnd",
-               "rvePrPos", "Reads", "PRIMER_DIMER", "Low_Score",
-               "Reads_Filtered", "Reads_Del", "Reads_In",
-               "Reads_Edited", "Reads_Frameshifted", "HDR")], cs_file_temp)
+      cfgT[, c(
+        "ID", "Barcode", "Forward_Reads_File", "Reverse_Reads_File",
+        "Group", "guideRNA", "Found_Guide", "Control", "Forward_Primer",
+        "Reverse_Primer", "Direction", "Amplicon", "Donor", "fwdPrPosEnd",
+        "rvePrPos", "Reads", "PRIMER_DIMER", "Low_Score",
+        "Reads_Filtered", "Reads_Del", "Reads_In",
+        "Reads_Edited", "Reads_Frameshifted", "HDR"
+      )], cs_file_temp
+    )
     file.rename(cs_file_temp, cs_file)
 
     # reports
@@ -378,19 +406,26 @@ amplicanPipe <- function(min_freq_default) {
       dir.create(reportsFolder)
     }
 
-    message(paste0("Making reports... \nDue to high quality ",
-                   "figures, it is time consuming. Use .Rmd templates for ",
-                   "more control."))
+    message(paste0(
+      "Making reports... \nDue to high quality ",
+      "figures, it is time consuming. Use .Rmd templates for ",
+      "more control."
+    ))
     amplicanReport(results_folder,
-                   knit_reports = knit_reports,
-                   cut_buffer = cut_buffer,
-                   report_files = file.path(reportsFolder,
-                                            c("id_report",
-                                              "barcode_report",
-                                              "group_report",
-                                              "guide_report",
-                                              "amplicon_report",
-                                              "index")))
+      knit_reports = knit_reports,
+      cut_buffer = cut_buffer,
+      report_files = file.path(
+        reportsFolder,
+        c(
+          "id_report",
+          "barcode_report",
+          "group_report",
+          "guide_report",
+          "amplicon_report",
+          "index"
+        )
+      )
+    )
     message("Finished.")
     invisible(results_folder)
   }
@@ -505,6 +540,8 @@ amplicanPipe <- function(min_freq_default) {
 #' @param continue (boolean) Default TRUE, decides whether to continue failed
 #' ampliCan runs. In case of FALSE, all contents in `results` folder will
 #' be removed.
+#' @param sample (numeric) if user specifies `sample` > 0, we will sample only `sample` reads instead of reading full file, then we will process as normal.
+#' @param seed (numeric) random seed used for sampling, only used when `sample` > 0.
 #' @include amplicanAlign.R amplicanReport.R
 #' @return (invisible) results_folder path
 #' @export
@@ -517,7 +554,7 @@ amplicanPipe <- function(min_freq_default) {
 #' # output folder
 #' results_folder <- tempdir()
 #'
-#' #full analysis, not knitting files automatically
+#' # full analysis, not knitting files automatically
 #' amplicanPipeline(config, fastq_folder, results_folder, knit_reports = FALSE)
 #'
 # config <- system.file("extdata", "config.csv", package = "amplican")
