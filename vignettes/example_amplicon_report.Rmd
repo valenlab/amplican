@@ -162,6 +162,9 @@ ggplot(data = ampliconTable, aes(x = as.factor(group),
 src = sapply(seq_along(uniqueAmlicons), function(i) {
   ID = config$ID[config$AmpliconUpper == uniqueAmlicons[i]]
   ID = paste0("c('", paste0(ID, collapse = "','"), "')", collapse = "")
+  amplicon <- config$Amplicon[config$AmpliconUpper == uniqueAmlicons[i]][1]
+  plot_bp <- nchar(gsub("[a-z]", "", amplicon)) + params$cut_buffer * 2
+  fig_width <- max(round(plot_bp * 25 / 150), 10)
   knitr::knit_expand(text = c(
     "## Group {{i}}  \n", 
     "### Deletions  \n", 
@@ -190,7 +193,7 @@ src = sapply(seq_along(uniqueAmlicons), function(i) {
     '```\n',
     "### Variants  \n", 
     paste('```{r var-{{i}}, echo = F, message=F, results = "asis", ',
-          'message=F, warning=F}', collapse = ''),
+          'fig.width={{fig_width}}, message=F, warning=F}', collapse = ''),
     paste('p <- amplican::plot_variants(alignments, config, {{ID}}, ',
           ' params$cut_buffer)', collapse = ''),
     '```\n'))

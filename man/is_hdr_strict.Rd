@@ -2,29 +2,76 @@
 % Please edit documentation in R/helpers_alignment.R
 \name{is_hdr_strict}
 \alias{is_hdr_strict}
-\title{Figure out which reads conform to the HDR using the donor.}
+\title{Determine which reads conform to HDR using the donor (strict, event-presence).}
 \usage{
-is_hdr_strict(aln, cfgT, scoring_matrix, gap_opening = 25, gap_extension = 0)
+is_hdr_strict(
+  aln,
+  cfgT,
+  scoring_matrix,
+  gap_opening = 25,
+  gap_extension = 0,
+  donor_mismatch = Inf,
+  cut_buffer = 5
+)
 }
 \arguments{
-\item{aln}{(data.table) This are events that contain already consensus column,
-they are also shifted and normalized.}
+\item{aln}{(data.table) Consensus-filtered, shifted, and normalised events
+table (must contain columns \code{seqnames}, \code{read_id}, \code{consensus},
+\code{readType}, \code{start}, \code{end}, \code{width}, \code{originally},
+\code{replacement}, \code{type}).}
 
-\item{cfgT}{(data.table) Config data.table with columns for amplicon and donor.}
+\item{cfgT}{(data.table or data.frame) Config table with at least columns
+\code{ID}, \code{Amplicon}, \code{Donor}, and \code{Direction}.}
 
-\item{scoring_matrix}{(scoring matrix)}
+\item{scoring_matrix}{Substitution matrix passed to
+\code{\link[pwalign]{pairwiseAlignment}} for the donor-vs-amplicon alignment.}
 
-\item{gap_opening}{(integer)}
+\item{gap_opening}{(numeric) Gap-opening penalty. Default 25.}
 
-\item{gap_extension}{(integer)}
+\item{gap_extension}{(numeric) Gap-extension penalty. Default 0.}
+
+\item{donor_mismatch}{(numeric) Maximum number of extra consensus events
+(beyond the required donor events) allowed within the amplicon UPPERCASE
+window.  Set to \code{Inf} (default) to allow unlimited noise, or to
+\code{0} to require no extra events in the window.}
+
+\item{cut_buffer}{(numeric) Number of bases to expand the UPPERCASE window
+on each side.  Same semantics as in \code{\link{amplicanOverlap}}.
+Default 5.}
 }
 \value{
-(aln) same as aln on entry, but readType is updated to TRUE when read is recognized as HDR
+(data.table) Same as \code{aln} on entry, but \code{readType} is set
+  to \code{TRUE} for every row whose \code{read_id} contains all donor events
+  and at most \code{donor_mismatch} additional events in the window.
 }
 \description{
-This is strict detection as compared to `is_hdr` which was designed to be
-less specific and allow for all kinds of donors. This method requires that
-you have exactly the same events (mismatches, insertions, deletions) as the difference
-between amplicon and donor sequences. It ignores everything else, so other mismatches and small
-indels etc. as noise are allowed here for valid HDR.
+This is the strict counterpart to \code{\link{is_hdr}}.  A read is marked HDR
+if and only if \emph{every} event that distinguishes the donor from the amplicon
+is present verbatim (same \code{start}, \code{end}, \code{width},
+\code{originally}, \code{replacement}, and \code{type}) in that read's
+consensus events.
+}
+\details{
+\strong{Key behaviours}:
+\itemize{
+  \item Only rows where \code{consensus == TRUE} are used to match donor events.
+        However, the \code{readType} flag is written back to \emph{all} rows
+        sharing the same \code{read_id} (including non-consensus rows).
+  \item When \code{donor_mismatch = Inf} (default), additional events in the
+        read (noise mismatches, extra indels) do \strong{not} disqualify a
+        read — only the \emph{absence} of a required donor event does.
+  \item When \code{donor_mismatch} is finite (e.g. 0), extra consensus events
+        \emph{within the amplicon UPPERCASE window} (expanded by
+        \code{cut_buffer}) are counted.  If more than \code{donor_mismatch}
+        extra events fall in that window, the read is rejected.  Events
+        outside the window (e.g. near primers) are ignored.
+  \item A different substitution at the same position as a donor event (e.g.
+        the donor has G->A but the read has G->C) is rejected because the
+        \code{replacement} column differs in the inner-join merge.
+  \item If the donor and amplicon are identical (no events), or if no read
+        events match any donor event, the function returns \code{aln} unchanged.
+}
+}
+\seealso{
+\code{\link{is_hdr}} for the permissive, score-based alternative.
 }

@@ -75,6 +75,50 @@ locate_pr_start <- function(reads, primer,
   return(results)
 }
 
+#' Determine which reads conform to HDR using a donor template (permissive).
+#'
+#' Aligns each read to the donor and accepts it as HDR when two conditions hold:
+#' \enumerate{
+#'   \item The read aligns to the donor at least as well as to the amplicon
+#'         (\code{score(read vs donor) >= score(read vs amplicon)}).
+#'   \item The number of events in the read that \emph{overlap the donor-event
+#'         positions} (i.e. the positions that differ between donor and amplicon)
+#'         and have width 1 does not exceed \code{donor_mismatch} after subtracting
+#'         the donor events themselves.
+#' }
+#'
+#' \strong{Important}: \code{donor_mismatch} counts only events whose coordinates
+#' overlap the donor-vs-amplicon event window. Mismatches or indels in the read
+#' that fall \emph{outside} that window are invisible to this threshold and never
+#' disqualify a read.
+#'
+#' \strong{Score tie behaviour}: reads that align equally well to the donor and
+#' the amplicon (equal scores) are treated as candidates (\code{>=}) and proceed
+#' to the event-overlap check.
+#'
+#' Use \code{\link{is_hdr_strict}} when you require every donor-specific event to
+#' be present verbatim in the read.
+#'
+#' @param reads (\code{\link[Biostrings]{DNAStringSet}}) Aligned reads.
+#' @param scores (numeric) Alignment scores of \code{reads} against the amplicon
+#'   (e.g. from \code{pwalign::pairwiseAlignment}).
+#' @param amplicon (character) Amplicon sequence (single string).
+#' @param donor (character) Donor template sequence (single string).
+#' @param type (character) Alignment type passed to
+#'   \code{\link[pwalign]{pairwiseAlignment}}.  Default \code{"overlap"}.
+#' @param scoring_matrix Substitution matrix (e.g. from
+#'   \code{\link[pwalign]{nucleotideSubstitutionMatrix}}).
+#' @param gap_opening (numeric) Gap-opening penalty. Default 25.
+#' @param gap_extension (numeric) Gap-extension penalty. Default 0.
+#' @param donor_mismatch (numeric) Maximum number of width-1 events (single-base
+#'   mismatches, single-base deletions, single-base insertions) that are allowed
+#'   to overlap the donor-event positions.  Only events within the donor-vs-amplicon
+#'   event coordinate window are counted; events elsewhere in the read are ignored.
+#'   Set to 0 to require the donor region to match perfectly (note: sequencing error
+#'   rate makes 0 inadvisable in practice). Default 3.
+#' @keywords internal
+#' @return (logical vector) TRUE for each read classified as HDR.
+#' @seealso \code{\link{is_hdr_strict}} for an event-presence-based alternative.
 is_hdr <- function(reads, scores, amplicon, donor, type = "overlap",
                    scoring_matrix, gap_opening = 25, gap_extension = 0,
                    donor_mismatch = 3) {
@@ -159,26 +203,63 @@ is_hdr <- function(reads, scores, amplicon, donor, type = "overlap",
 }
 
 
-#' Figure out which reads conform to the HDR using the donor.
+#' Determine which reads conform to HDR using the donor (strict, event-presence).
 #'
-#' This is strict detection as compared to `is_hdr` which was designed to be
-#' less specific and allow for all kinds of donors. This method requires that
-#' you have exactly the same events (mismatches, insertions, deletions) as the difference
-#' between amplicon and donor sequences. It ignores everything else, so other mismatches and small
-#' indels etc. as noise are allowed here for valid HDR.
+#' This is the strict counterpart to \code{\link{is_hdr}}.  A read is marked HDR
+#' if and only if \emph{every} event that distinguishes the donor from the amplicon
+#' is present verbatim (same \code{start}, \code{end}, \code{width},
+#' \code{originally}, \code{replacement}, and \code{type}) in that read's
+#' consensus events.
 #'
-#' @param aln (data.table) This are events that contain already consensus column,
-#' they are also shifted and normalized.
-#' @param cfgT (data.table) Config data.table with columns for amplicon and donor.
-#' @param scoring_matrix (scoring matrix)
-#' @param gap_opening (integer)
-#' @param gap_extension (integer)
+#' \strong{Key behaviours}:
+#' \itemize{
+#'   \item Only rows where \code{consensus == TRUE} are used to match donor events.
+#'         However, the \code{readType} flag is written back to \emph{all} rows
+#'         sharing the same \code{read_id} (including non-consensus rows).
+#'   \item When \code{donor_mismatch = Inf} (default), additional events in the
+#'         read (noise mismatches, extra indels) do \strong{not} disqualify a
+#'         read — only the \emph{absence} of a required donor event does.
+#'   \item When \code{donor_mismatch} is finite (e.g. 0), extra consensus events
+#'         \emph{within the amplicon UPPERCASE window} (expanded by
+#'         \code{cut_buffer}) are counted.  If more than \code{donor_mismatch}
+#'         extra events fall in that window, the read is rejected.  Events
+#'         outside the window (e.g. near primers) are ignored.
+#'   \item A different substitution at the same position as a donor event (e.g.
+#'         the donor has G->A but the read has G->C) is rejected because the
+#'         \code{replacement} column differs in the inner-join merge.
+#'   \item If the donor and amplicon are identical (no events), or if no read
+#'         events match any donor event, the function returns \code{aln} unchanged.
+#' }
+#'
+#' @param aln (data.table) Consensus-filtered, shifted, and normalised events
+#'   table (must contain columns \code{seqnames}, \code{read_id}, \code{consensus},
+#'   \code{readType}, \code{start}, \code{end}, \code{width}, \code{originally},
+#'   \code{replacement}, \code{type}).
+#' @param cfgT (data.table or data.frame) Config table with at least columns
+#'   \code{ID}, \code{Amplicon}, \code{Donor}, and \code{Direction}.
+#' @param scoring_matrix Substitution matrix passed to
+#'   \code{\link[pwalign]{pairwiseAlignment}} for the donor-vs-amplicon alignment.
+#' @param gap_opening (numeric) Gap-opening penalty. Default 25.
+#' @param gap_extension (numeric) Gap-extension penalty. Default 0.
+#' @param donor_mismatch (numeric) Maximum number of extra consensus events
+#'   (beyond the required donor events) allowed within the amplicon UPPERCASE
+#'   window.  Set to \code{Inf} (default) to allow unlimited noise, or to
+#'   \code{0} to require no extra events in the window.
+#' @param cut_buffer (numeric) Number of bases to expand the UPPERCASE window
+#'   on each side.  Same semantics as in \code{\link{amplicanOverlap}}.
+#'   Default 5.
 #' @export
-#' @return (aln) same as aln on entry, but readType is updated to TRUE when read is recognized as HDR
+#' @return (data.table) Same as \code{aln} on entry, but \code{readType} is set
+#'   to \code{TRUE} for every row whose \code{read_id} contains all donor events
+#'   and at most \code{donor_mismatch} additional events in the window.
+#' @seealso \code{\link{is_hdr}} for the permissive, score-based alternative.
 #'
 is_hdr_strict <- function(aln, cfgT, scoring_matrix,
                           gap_opening = 25,
-                          gap_extension = 0) {
+                          gap_extension = 0,
+                          donor_mismatch = Inf,
+                          cut_buffer = 5) {
+  setDT(aln)
   . <- NULL
 
   for (i in seq_len(dim(cfgT)[1])) {
@@ -222,7 +303,33 @@ is_hdr_strict <- function(aln, cfgT, scoring_matrix,
     if (nrow(hits) == 0) next()
     hits <- as.data.table(hits)
     hits <- hits[, .(n = .N), by = "read_id.x"]
-    hits <- hits$read_id[hits$n == length(hdr_events)] # make sure all events are represented
+    hits <- hits$read_id.x[hits$n == length(hdr_events)] # make sure all events are represented
+
+    # enforce donor_mismatch: count extra events within the UPPERCASE window
+    if (is.finite(donor_mismatch) && length(hits) > 0) {
+      ug <- upperGroups(amplicon)
+      if (length(ug) > 0) {
+        # shift to relative coords (matching amplicanMap) and expand
+        ug <- IRanges::shift(ug, -1L * IRanges::start(ug)[1])
+        ug <- ug + cut_buffer
+        # count events in window per hit read
+        hit_events <- events[read_id %in% hits]
+        hit_ranges <- IRanges::IRanges(
+          start = hit_events$start, end = hit_events$end
+        )
+        in_window <- IRanges::overlapsAny(hit_ranges, ug)
+        windowed <- hit_events[in_window, .(n = .N), by = "read_id"]
+        # subtract donor events that fall in the window
+        hdr_dt <- as.data.table(hdr_events)
+        hdr_ranges <- IRanges::IRanges(
+          start = hdr_dt$start, end = hdr_dt$end
+        )
+        n_hdr_in_window <- sum(IRanges::overlapsAny(hdr_ranges, ug))
+        windowed[, extra := n - n_hdr_in_window]
+        bad <- windowed$read_id[windowed$extra > donor_mismatch]
+        hits <- hits[!hits %in% bad]
+      }
+    }
     aln[aln_id, readType := read_id %in% hits]
   }
   return(aln)

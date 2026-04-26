@@ -268,6 +268,8 @@ amplicanPipe <- function(min_freq_default) {
     }
 
     seqnames <- read_id <- counts <- NULL
+    data.table::setDT(cfgT)
+    data.table::setDT(aln)
     if (nrow(aln) == 0) {
       stop(
         "There are no events.",
@@ -341,7 +343,7 @@ amplicanPipe <- function(min_freq_default) {
       # revert guides to 5'-3'
       cfgT$guideRNA[cfgT$Direction] <- revComp(cfgT$guideRNA[cfgT$Direction])
       cs_file_temp <- paste0(cs_file, ".temp")
-      data.table::fwrite(cfgT, cs_file_temp)
+      data.table::fwrite(cfgT, cs_file_temp, nThread = 1)
       file.rename(cs_file_temp, cs_file)
     } else {
       message("Reading shifted events - filtered.")
@@ -373,7 +375,9 @@ amplicanPipe <- function(min_freq_default) {
       aln <- is_hdr_strict(
         aln, cfgT,
         scoring_matrix, gap_opening,
-        gap_extension
+        gap_extension,
+        donor_mismatch = donor_mismatch,
+        cut_buffer = cut_buffer
       )
       message("Saving normalized events with HDR...")
       efsn_file_temp <- paste0(efsn_file, ".temp")
@@ -506,16 +510,25 @@ amplicanPipe <- function(min_freq_default) {
 #' during primer matching of the reads, that groups reads by experiments.
 #' When \code{primer_mismatch = 0} no mismatches are allowed, which can increase
 #' number of unasssigned read.
-#' @param donor_mismatch (numeric) How many events of length 1 (mismatches,
-#' deletions and insertions of length 1) are allowed when aligning toward the
-#' donor template. This parameter is only used when donor template is specified.
-#' The higher the parameter the less strict will be algorithm accepting read as
-#' HDR. Set to 0 if only perfect alignments to the donor template marked as HDR,
-#' unadvised due to error rate of the sequencers.
-#' @param donor_strict (logical) Applies more strict algorithm for HDR detection.
-#' Only these reads that have all of the donor events will count as HDR. Tolerates `donor_mismatch`
-#' level of noise, but no indels are allowed. Use this when your reads should span over the
-#' whole window of the donor events. Might be more time consuming.
+#' @param donor_mismatch (numeric) Maximum number of width-1 events (single-base
+#' mismatches or single-base indels) that are allowed to overlap the
+#' donor-vs-amplicon event positions. Only events whose coordinates fall within
+#' the donor-event window are counted; mismatches or indels elsewhere in the read
+#' are invisible to this threshold. The higher the value the more permissive the
+#' HDR calling. Set to 0 to require the donor region to match perfectly (not
+#' recommended in practice due to sequencing error rate). Only used when a donor
+#' template is provided and \code{donor_strict = FALSE}.
+#' @param donor_strict (logical) Applies the strict event-presence algorithm for
+#' HDR detection via \code{\link{is_hdr_strict}}. When \code{TRUE}, only reads
+#' that contain \emph{every} event distinguishing the donor from the amplicon
+#' (matched exactly by coordinate, type, and sequence) are counted as HDR.
+#' When \code{donor_mismatch = Inf} (the default), additional events elsewhere
+#' in the read (noise) do \strong{not} disqualify a read.  When
+#' \code{donor_mismatch} is finite (e.g. 0), reads carrying more than
+#' \code{donor_mismatch} extra consensus events beyond the donor events are
+#' rejected.
+#' Use when your reads should span the full donor-event window and you want
+#' exact event-coordinate matching. More time-consuming than the default.
 #' @param PRIMER_DIMER (numeric) Value specifying buffer for PRIMER DIMER
 #' detection. For a given read it will be recognized as PRIMER DIMER when
 #' alignment will introduce gap of size bigger than: \cr
@@ -527,13 +540,15 @@ amplicanPipe <- function(min_freq_default) {
 #' @param promiscuous_consensus (boolean) Whether rules of
 #' \code{\link{amplicanConsensus}} should be \code{promiscuous}. When
 #' promiscuous, we allow indels that have no confirmation on the other strand.
-#' @param normalize (character vector) If column 'Control' in config table
+#' @param normalize (character vector or NULL) If column 'Control' in config table
 #' has all FALSE/0 values then normalization is skipped. Otherwise,
 #' normalization is strict, which means events that are
 #' found in 'Control' TRUE group will be removed in 'Control' FALSE group.
 #' This parameter by default uses columns 'guideRNA' and 'Group' to impose
 #' additional restrictions on normalized events eg. only events created by the
-#' same 'guideRNA' in the same 'Group' will be normalized.
+#' same 'guideRNA' in the same 'Group' will be normalized. Pass \\code{NULL}
+#' to skip normalization entirely even when Control rows are present. Pass
+#' \\code{c()} to normalize globally with no group stratification.
 #' @param min_freq (numeric) All events below this frequency are treated as
 #' sequencing errors and rejected. This parameter is used during normalization
 #' through \code{\link{amplicanNormalize}}.

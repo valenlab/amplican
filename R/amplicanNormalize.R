@@ -11,10 +11,12 @@
 #' All events from control group are returned back.
 #' @param aln (data.frame) Contains events from alignments.
 #' @param cfgT (data.frame) Config table with information about experiments.
-#' @param add (character vector) Columns from cfgT that should be included
+#' @param add (character vector or NULL) Columns from cfgT that should be included
 #' in event table for normalization matching. Defaults to c("guideRNA", "Group")
 #' , which means that only those events created by the same guideRNA in the same
-#' Group will be removed if found in Control.
+#' Group will be removed if found in Control. Pass \code{NULL} to skip
+#' normalization entirely, even when Control rows are present. Pass \code{c()}
+#' to normalize globally without any group stratification.
 #' @param skip (character vector) Specifies which columns of aln to skip.
 #' @param min_freq (numeric) All events from control group below this frequency
 #' will be not included in filtering. Use this to filter out background noise
@@ -45,6 +47,9 @@ amplicanNormalize <- function(aln, cfgT,
                                        "overlaps", "consensus"),
                               min_freq = 0.01){
   Reads_Filtered <- frequency <- NULL
+  if (is.null(add)) {
+    return(aln)
+  }
   if (!any(cfgT$Control)) {
     warning("Column 'Control' has no TRUE/1 values. Nothing to normalize.")
     return(aln)
@@ -71,7 +76,12 @@ amplicanNormalize <- function(aln, cfgT,
   cfgT_total_reads <- cfgT_total_reads[cfgT_total_reads$Control, ]
 
   aln_ctr_freq <- aln_ctr[, list(counts = sum(counts)), by = cols]
-  aln_ctr_freq <-  merge(aln_ctr_freq, cfgT_total_reads, all = TRUE, by = add)
+  if (length(add) > 0) {
+    aln_ctr_freq <- merge(aln_ctr_freq, cfgT_total_reads, all = TRUE, by = add)
+  } else {
+    # No grouping columns: use a single global total reads for all controls
+    aln_ctr_freq[, Reads_Filtered := sum(cfgT_total_reads$Reads_Filtered)]
+  }
   aln_ctr_freq[, frequency := counts / Reads_Filtered]
   aln_ctr_freq <- aln_ctr_freq[frequency > min_freq, ]
 

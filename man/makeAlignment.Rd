@@ -66,17 +66,26 @@ during primer matching of the reads, that groups reads by experiments.
 When \code{primer_mismatch = 0} no mismatches are allowed, which can increase
 number of unasssigned read.}
 
-\item{donor_mismatch}{(numeric) How many events of length 1 (mismatches,
-deletions and insertions of length 1) are allowed when aligning toward the
-donor template. This parameter is only used when donor template is specified.
-The higher the parameter the less strict will be algorithm accepting read as
-HDR. Set to 0 if only perfect alignments to the donor template marked as HDR,
-unadvised due to error rate of the sequencers.}
+\item{donor_mismatch}{(numeric) Maximum number of width-1 events (single-base
+mismatches or single-base indels) that are allowed to overlap the
+donor-vs-amplicon event positions. Only events whose coordinates fall within
+the donor-event window are counted; mismatches or indels elsewhere in the read
+are invisible to this threshold. The higher the value the more permissive the
+HDR calling. Set to 0 to require the donor region to match perfectly (not
+recommended in practice due to sequencing error rate). Only used when a donor
+template is provided and \code{donor_strict = FALSE}.}
 
-\item{donor_strict}{(logical) Applies more strict algorithm for HDR detection.
-Only these reads that have all of the donor events will count as HDR. Tolerates `donor_mismatch`
-level of noise, but no indels are allowed. Use this when your reads should span over the
-whole window of the donor events. Might be more time consuming.}
+\item{donor_strict}{(logical) Applies the strict event-presence algorithm for
+HDR detection via \code{\link{is_hdr_strict}}. When \code{TRUE}, only reads
+that contain \emph{every} event distinguishing the donor from the amplicon
+(matched exactly by coordinate, type, and sequence) are counted as HDR.
+When \code{donor_mismatch = Inf} (the default), additional events elsewhere
+in the read (noise) do \strong{not} disqualify a read.  When
+\code{donor_mismatch} is finite (e.g. 0), reads carrying more than
+\code{donor_mismatch} extra consensus events beyond the donor events are
+rejected.
+Use when your reads should span the full donor-event window and you want
+exact event-coordinate matching. More time-consuming than the default.}
 
 \item{temp_folder}{Folder where we will save temporary files (not deleted after succesfull run)}
 

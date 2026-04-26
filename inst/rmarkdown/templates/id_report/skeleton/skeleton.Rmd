@@ -130,6 +130,9 @@ ggplot(data = config, aes(x = as.factor(ID), y = frameshift_percentage, order = 
 
 ```{r plot_alignments, results='asis', echo=F, message=F, warning=F}
 src = sapply(config$ID, function(i) {
+  amplicon <- config$Amplicon[config$ID == i][1]
+  plot_bp <- nchar(gsub("[a-z]", "", amplicon)) + params$cut_buffer * 2
+  fig_width <- max(round(plot_bp * 25 / 150), 10)
   knitr::knit_expand(text = c(
     "## {{i}}  \n", 
     "### Deletions  \n", 
@@ -152,7 +155,7 @@ src = sapply(config$ID, function(i) {
     '```\n', 
     "### Variants  \n", 
     paste('```{r var-{{i}}, echo = F, message=F, results = "asis", ',
-          'message=F, warning=F}', collapse = ''),
+          'fig.width={{fig_width}}, message=F, warning=F}', collapse = ''),
     paste('p <- amplican::plot_variants(alignments, config, "{{i}}", ',
           ' params$cut_buffer)', collapse = ''),
     '```\n'))

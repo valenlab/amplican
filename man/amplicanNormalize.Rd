@@ -17,10 +17,12 @@ amplicanNormalize(
 
 \item{cfgT}{(data.frame) Config table with information about experiments.}
 
-\item{add}{(character vector) Columns from cfgT that should be included
+\item{add}{(character vector or NULL) Columns from cfgT that should be included
 in event table for normalization matching. Defaults to c("guideRNA", "Group")
 , which means that only those events created by the same guideRNA in the same
-Group will be removed if found in Control.}
+Group will be removed if found in Control. Pass \code{NULL} to skip
+normalization entirely, even when Control rows are present. Pass \code{c()}
+to normalize globally without any group stratification.}
 
 \item{skip}{(character vector) Specifies which columns of aln to skip.}
 
