@@ -46,7 +46,6 @@ amplicanNormalize <- function(aln, cfgT,
                                        "read_id", "strand",
                                        "overlaps", "consensus"),
                               min_freq = 0.01){
-  Reads_Filtered <- frequency <- NULL
   if (is.null(add)) {
     return(aln)
   }

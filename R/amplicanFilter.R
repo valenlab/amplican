@@ -35,7 +35,6 @@
 #' amplicanFilter(aln, cfgT, 30)
 #'
 amplicanFilter <- function(aln, cfgT, PRIMER_DIMER) {
-  seqnames <- NULL
 
   eOP <- findEOP(aln, cfgT)
   aln <- aln[!eOP, ]

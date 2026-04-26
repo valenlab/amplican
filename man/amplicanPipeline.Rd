@@ -161,9 +161,9 @@ normalization is strict, which means events that are
 found in 'Control' TRUE group will be removed in 'Control' FALSE group.
 This parameter by default uses columns 'guideRNA' and 'Group' to impose
 additional restrictions on normalized events eg. only events created by the
-same 'guideRNA' in the same 'Group' will be normalized. Pass \\code{NULL}
+same 'guideRNA' in the same 'Group' will be normalized. Pass \code{NULL}
 to skip normalization entirely even when Control rows are present. Pass
-\\code{c()} to normalize globally with no group stratification.}
+\code{c()} to normalize globally with no group stratification.}
 
 \item{min_freq}{(numeric) All events below this frequency are treated as
 sequencing errors and rejected. This parameter is used during normalization

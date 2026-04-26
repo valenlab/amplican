@@ -234,13 +234,11 @@ amplicanOverlap <- function(aln, cfgT, cut_buffer = 5, relative = FALSE) {
 #' amplicanSummarize(aln, cfgT)
 #'
 amplicanSummarize <- function(aln, cfgT) {
-  seqnames <- read_id <- counts <- type <- readType <- width <- NULL
-  has_HDR <- has_Del <- has_In <- has_Edit <- is_FS <- NULL
-  i.HDR <- i.Reads_Del <- i.Reads_In <- i.Reads_Edited <- i.Reads_Frameshifted <- NULL
   
   data.table::setDT(aln)
   data.table::setDT(cfgT)
   
+  readType <- NULL
   # Vectorize net_width globally (avoids expensive ifelse inside grouping)
   aln[, net_width := 0L]
   aln[type == "deletion", net_width := -width]

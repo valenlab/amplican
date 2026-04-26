@@ -179,7 +179,7 @@ is_hdr <- function(reads, scores, amplicon, donor, type = "overlap",
   if (length(all_e_not_overlap) > 0) {
     all_e_not_overlap <- as.integer(names(all_e_not_overlap)[all_e_not_overlap])
   } else {
-    all_e_not_overlap <- NULL
+    all_e_not_overlap <- integer(0)
   }
 
   # tolerate some noise level
@@ -260,7 +260,6 @@ is_hdr_strict <- function(aln, cfgT, scoring_matrix,
                           donor_mismatch = Inf,
                           cut_buffer = 5) {
   setDT(aln)
-  . <- NULL
 
   for (i in seq_len(dim(cfgT)[1])) {
     amplicon <- get_seq(cfgT, cfgT$ID[i])
@@ -641,7 +640,6 @@ makeAlignment <- function(cfgT,
     data.table::setorder(unassignedTable, -Total)
     data.table::setDF(unassignedTable)
   } else {
-    unassignedTable <- NULL
   }
 
   aes <- methods::new("AlignmentsExperimentSet",

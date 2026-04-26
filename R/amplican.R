@@ -26,7 +26,6 @@
 #' @importFrom pwalign pairwiseAlignment writePairwiseAlignments pattern subject unaligned compareStrings
 #'
 "_PACKAGE"
-utils::globalVariables(c(".", "Forward", "ID", "Reverse", "Total", "consensus", "net_width", "originally", "readType", "read_counts", "read_id", "replacement"))
 .onAttach <- function(libname, pkgname) {
   packageStartupMessage(
     paste0(
@@ -267,7 +266,6 @@ amplicanPipe <- function(min_freq_default) {
       file.rename(logFileNameTemp, logFileName)
     }
 
-    seqnames <- read_id <- counts <- NULL
     data.table::setDT(cfgT)
     data.table::setDT(aln)
     if (nrow(aln) == 0) {
@@ -546,9 +544,9 @@ amplicanPipe <- function(min_freq_default) {
 #' found in 'Control' TRUE group will be removed in 'Control' FALSE group.
 #' This parameter by default uses columns 'guideRNA' and 'Group' to impose
 #' additional restrictions on normalized events eg. only events created by the
-#' same 'guideRNA' in the same 'Group' will be normalized. Pass \\code{NULL}
+#' same 'guideRNA' in the same 'Group' will be normalized. Pass \code{NULL}
 #' to skip normalization entirely even when Control rows are present. Pass
-#' \\code{c()} to normalize globally with no group stratification.
+#' \code{c()} to normalize globally with no group stratification.
 #' @param min_freq (numeric) All events below this frequency are treated as
 #' sequencing errors and rejected. This parameter is used during normalization
 #' through \code{\link{amplicanNormalize}}.

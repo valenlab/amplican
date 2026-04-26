@@ -25,7 +25,6 @@ range01 <- function(x){(x-min(x))/(max(x)-min(x))}
 findLQR <- function(aln) {
   data.table::setDT(aln)
   if (nrow(aln) < 1000) return(logical(nrow(aln)))
-  events <- NULL
 
   aln_n <- aln[, list(events = .N/max(end), score = max(score)),
                by = c("read_id", "strand", "seqnames")]
