@@ -1,0 +1,641 @@
+---
+title: "Tweaking amplican output"
+author: "Kornel Labun"
+date: "`r BiocStyle::doc_date()`"
+package: "`r pkg_ver('amplican')`"
+output: BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{tweaking output}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+This vignette covers the practical side of running amplican: how to launch the
+pipeline with your config, how to get a quick preview using subsampling, which
+parameters are most impactful, and how to interpret and iterate on results.
+It assumes you have already created a valid config file (see the vignette
+"Preparing amplican config from Excel with LLM assistance").
+
+# Prerequisites
+
+Before running the pipeline you need three things:
+
+1. **config.csv** -- your amplican configuration file, produced by the
+   transformation script from the LLM vignette. Validate it first with the
+   `validate_config()` function described there.
+
+2. **FASTQ files** -- the sequencing reads, either as `.fastq` or
+   `.fastq.gz`. The filenames in the config's Forward_Reads and Reverse_Reads
+   columns must match files in your fastq folder.
+
+3. **A writable results folder** -- an empty directory where amplican will
+   write all outputs.
+
+```{r}
+library(amplican)
+
+config <- "config.csv"
+fastq_folder <- "./fastq"
+results_folder <- "./results"
+```
+
+The `config` path must point to the CSV file itself. The `fastq_folder` must
+contain the FASTQ files referenced by name in the config. The
+`results_folder` will be created if it does not exist.
+
+# Quick test with subsampling
+
+Before committing to a full run (which can take hours for large datasets),
+use the `sample` parameter to process only a subset of reads. This gives you
+a representative preview in minutes.
+
+```{r}
+amplicanPipeline(
+  config,
+  fastq_folder,
+  results_folder = "./results_quicktest",
+  sample = 10000,       # only read 10000 reads per FASTQ file
+  seed = 42,            # reproducible sampling
+  knit_reports = TRUE   # knit reports so you can inspect them
+)
+```
+
+The `sample` parameter tells amplican to randomly draw only that many reads
+from each FASTQ file, rather than reading the entire file. The `seed`
+ensures the same reads are sampled each time, so results are reproducible
+between runs with the same parameters.
+
+**What subsampling is good for:**
+
+- Checking whether your primers assign reads correctly (look at
+  `barcode_reads_filters.csv` -- are most reads assigned?).
+- Tuning `primer_mismatch`, `fastqfiles`, `cut_buffer`, and normalization.
+- Getting a rough sense of editing rates and variant distributions.
+- Verifying that HDR detection works (if you have donors).
+
+**What subsampling is NOT good for:**
+
+- Final quantitative results (editing rates, frameshift rates). The absolute
+  numbers will be based on fewer reads and will be noisier.
+- Low-frequency event detection. Rare variants may not appear in a subsample.
+- Normalization decisions that depend on detecting low-frequency background
+  events in controls.
+
+A good workflow is: subsample to tune parameters, then run the full dataset
+with the chosen settings.
+
+# Running the full pipeline
+
+## Simple one-liner
+
+When you are happy with your parameters, run the full pipeline:
+
+```{r}
+amplicanPipeline(
+  config,
+  fastq_folder,
+  results_folder,
+  knit_reports = TRUE
+)
+```
+
+This uses default parameters, which work well for most standard CRISPR
+amplicon experiments.
+
+## With custom parameters
+
+For more control, pass the parameters you want to change:
+
+```{r}
+amplicanPipeline(
+  config,
+  fastq_folder,
+  results_folder = "./results_custom",
+  primer_mismatch = 0,         # strict primer matching
+  fastqfiles = 0.5,            # one primer sufficient (default)
+  cut_buffer = 0,              # no buffer (whole amplicon uppercased)
+  normalize = c("ID"),         # disable cross-sample normalization
+  PRIMER_DIMER = 20,           # stricter primer dimer detection
+  donor_strict = TRUE,         # strict HDR detection
+  donor_mismatch = 0,          # zero tolerance for donor noise
+  use_parallel = TRUE,         # enable multicore
+  knit_reports = TRUE
+)
+```
+
+## Parallel processing
+
+For large datasets, enable parallel processing by registering a multicore
+back-end before calling the pipeline:
+
+```{r}
+library(BiocParallel)
+register(MulticoreParam(workers = 8), default = TRUE)
+
+amplicanPipeline(
+  config,
+  fastq_folder,
+  results_folder,
+  use_parallel = TRUE
+)
+```
+
+Set `workers` to the number of CPU cores you want to use. This speeds up
+alignment and event extraction, which are the most time-consuming steps.
+Report knitting is not parallelised.
+
+# Output folder structure
+
+After a successful run, the results folder looks like this:
+
+```
+results/
+|-- RunParameters.txt              # all parameters used for this run
+|-- barcode_reads_filters.csv      # per-barcode read QC statistics
+|-- config_summary.csv             # extended config with editing statistics
+|-- alignments/
+|   |-- raw_events.csv             # all events, before any filtering
+|   |-- events_filtered_shifted.csv    # after EOP/PD/LQR filters, shifted to relative coords
+|   |-- events_filtered_shifted_normalized.csv  # after normalization + HDR
+|   |-- unassigned_reads.csv       # reads that could not be assigned to any experiment
+|   |-- temp/                      # per-barcode intermediate files (safe to delete)
+|-- reports/
+    |-- index.html                # main summary page with links
+    |-- id_report.html            # per-experiment details
+    |-- barcode_report.html       # per-barcode read statistics
+    |-- group_report.html         # per-group summaries
+    |-- guide_report.html         # per-guideRNA summaries
+    |-- amplicon_report.html      # per-amplicon summaries
+```
+
+**Key files to check first:**
+
+- **`RunParameters.txt`**: confirms exactly which parameters were used. Always
+  check this when comparing runs.
+- **`barcode_reads_filters.csv`**: shows how many reads were filtered at each
+  stage (bad quality, bad alphabet, unassigned, assigned). If most reads are
+  unassigned, your primers or `fastqfiles` setting may need adjustment.
+- **`config_summary.csv`**: the main results table. One row per experiment,
+  with columns for read counts, editing rates, frameshift rates, and HDR.
+
+# Reading and interpreting results
+
+## config_summary.csv
+
+This is the most important output file. Key columns:
+
+| Column | Meaning |
+|---|---|
+| `Reads` | Total reads assigned to this experiment |
+| `PRIMER_DIMER` | Reads classified as primer dimers |
+| `Low_Score` | Reads classified as off-target / low quality |
+| `Reads_Filtered` | Reads remaining after filtering (`Reads - PRIMER_DIMER - Low_Score`) |
+| `Reads_Del` | Reads with at least one deletion at the cut site |
+| `Reads_In` | Reads with at least one insertion at the cut site |
+| `Reads_Edited` | Reads with any edit (deletion or insertion) at the cut site |
+| `Reads_Frameshifted` | Reads where net indel length is not divisible by 3 |
+| `HDR` | Reads classified as HDR (only if donor was provided) |
+
+Load and inspect it in R:
+
+```{r}
+library(data.table)
+cfg <- fread("results/config_summary.csv")
+
+# Quick overview: editing rates per experiment
+cfg[, .(ID, Reads_Filtered, Reads_Edited,
+        percent_edited = round(Reads_Edited / Reads_Filtered * 100, 1))]
+```
+
+## barcode_reads_filters.csv
+
+Shows read-level QC per barcode:
+
+```{r}
+bdf <- fread("results/barcode_reads_filters.csv")
+bdf[, .(Barcode, read_count, bad_base_quality, bad_average_quality,
+        bad_alphabet, filtered_read_count, assigned_reads, unassigned_reads)]
+```
+
+If `unassigned_reads` is a large fraction of `read_count`, your primers may
+not be matching well. Try increasing `primer_mismatch` or changing
+`fastqfiles`.
+
+# Tweak: primer matching
+
+**Parameter:** `primer_mismatch` (default: 2 in `amplicanPipeline`)
+
+This controls how many mismatches are tolerated when searching for primers
+inside reads. It is one of the most impactful parameters for read assignment.
+
+**When to set it to 0:**
+
+- Your experiments have well-separated, distinct primers.
+- You want maximum specificity in read assignment.
+- You suspect cross-contamination between experiments with similar primers.
+
+**When to raise it (3 or higher):**
+
+- You have many unassigned reads and suspect sequencing errors in the primer
+  region are to blame.
+- Your primers are very dis-similar between experiments and you are intentionally
+  being lenient.
+
+**How to check:** run with different values and compare assigned read counts:
+
+```{r}
+# Run with primer_mismatch = 0
+amplicanPipeline(config, fastq_folder,
+                 results_folder = "./results_pm0",
+                 primer_mismatch = 0, sample = 10000, seed = 42,
+                 knit_reports = FALSE)
+
+# Run with primer_mismatch = 2
+amplicanPipeline(config, fastq_folder,
+                 results_folder = "./results_pm2",
+                 primer_mismatch = 2, sample = 10000, seed = 42,
+                 knit_reports = FALSE)
+
+# Compare
+pm0 <- fread("./results_pm0/barcode_reads_filters.csv")
+pm2 <- fread("./results_pm2/barcode_reads_filters.csv")
+cat("pm=0 assigned:", sum(pm0$assigned_reads), "\n")
+cat("pm=2 assigned:", sum(pm2$assigned_reads), "\n")
+```
+
+If the difference is small, use the stricter setting. If `pm=0` loses many
+reads, use `pm=2` or higher.
+
+# Tweak: which reads to use
+
+**Parameter:** `fastqfiles` (default: 0.5)
+
+This controls which primers must be found for a read to be assigned.
+
+| Value | Meaning | When to use |
+|---|---|---|
+| 0 | Both forward AND reverse primer required | Both reads have intact primers |
+| 0.5 | Either primer sufficient (default) | Reverse reads may be primer-trimmed |
+| 1 | Only forward primer, reverse reads ignored | No reverse reads, or reverse reads low quality |
+| 2 | Only reverse primer, forward reads ignored | No forward reads, or forward reads low quality |
+
+**How to decide:**
+
+- Start with the default (0.5). It is the most robust for paired-end data.
+- If your sequencing facility primer-trims the reads, 0.5 handles this
+  gracefully.
+- If you only have forward reads (single-end sequencing), use 1. You must
+  also leave the Reverse_Primer and Reverse_Reads columns empty in the config.
+- Switch to 0 only if you want maximum assignment stringency and both reads
+  have intact primers.
+
+**How to check:** look at the barcode report. It shows how many reads were
+assigned vs. unassigned. Also check `unassigned_reads.csv` to see what the
+unassigned reads look like.
+
+# Tweak: normalization
+
+**Parameters:** `normalize` (default: `c("guideRNA", "Group")`) and `min_freq`
+(default: 0.01)
+
+Normalization removes background events (SNPs, sequencing artifacts, index
+hopping) by comparing treatment samples against control samples. It is one of
+the most impactful settings for final editing rates.
+
+## When normalization helps
+
+- Your sequenced strain has natural SNPs relative to the reference amplicon.
+- You see consistent background peaks at specific positions in the mismatch
+  plots of control samples.
+- You suspect index hopping (cross-contamination between sequencing pools).
+
+## When to disable normalization
+
+- There is large mosaicism in your samples and you do not want to risk
+  removing real editing signal.
+- You have no control samples (the Control column is all 0).
+- The normalization is removing events that you believe are real (events near
+  the cut site disappear after normalization).
+
+**To disable normalization entirely:**
+
+```{r}
+# NULL skips normalization completely
+amplicanPipeline(config, fastq_folder, results_folder,
+                 normalize = NULL)
+```
+
+## How to check if normalization is working correctly
+
+**Step 1:** Run the pipeline with normalization enabled and with it disabled,
+using subsampling:
+
+```{r}
+amplicanPipeline(config, fastq_folder,
+                 results_folder = "./results_with_norm",
+                 normalize = c("guideRNA", "Group"),
+                 sample = 10000, seed = 42, knit_reports = TRUE)
+
+amplicanPipeline(config, fastq_folder,
+                 results_folder = "./results_no_norm",
+                 normalize = NULL,
+                 sample = 10000, seed = 42, knit_reports = TRUE)
+```
+
+**Step 2:** Open the ID report for the same experiment in both results
+folders. Compare the **variant plot** and the **mismatch plot**.
+
+- **If normalization is working correctly**: the background mismatches
+  (visible as bars at positions away from the cut site in the no-normalization
+  version) should largely disappear in the normalized version. The editing
+  signal at the cut site should remain.
+- **If normalization is too aggressive**: editing signal near the cut site
+  also disappears. This means the control has similar events to the treatment
+  (perhaps due to mosaicism or leaky editing in the control). Disable
+  normalization or raise `min_freq`.
+- **If normalization is too weak**: background peaks remain. Lower `min_freq`
+  (e.g., from 0.01 to 0.001) to catch rarer background events.
+
+**Step 3:** Compare editing rates:
+
+```{r}
+with_norm <- fread("./results_with_norm/config_summary.csv")
+no_norm   <- fread("./results_no_norm/config_summary.csv")
+
+comparison <- merge(
+  with_norm[, .(ID, Edited_norm = Reads_Edited)],
+  no_norm[, .(ID, Edited_no_norm = Reads_Edited)],
+  by = "ID")
+comparison[, diff_pct := round((Edited_norm - Edited_no_norm) /
+                                 Edited_no_norm * 100, 1)]
+comparison
+```
+
+If the difference is large (more than ~20% relative change), normalization is
+having a major effect. Inspect the reports to decide whether this is
+corrective (removing background) or harmful (removing real signal).
+
+## Adjusting the frequency threshold
+
+The `min_freq` parameter sets the minimum frequency at which a control event
+must appear to be considered real background (rather than sequencing error).
+
+| Scenario | Recommended `min_freq` |
+|---|---|
+| Default, good sequencing depth | 0.01 (1%) |
+| High precision needed, deep sequencing | 0.001 (0.1%) |
+| Low sequencing depth | 0.05-0.1 (5-10%) |
+| Suspected index hopping | 0.03-0.15 (3-15%) |
+
+You can inspect the mismatch plot of control samples to see the background
+noise level. The frequency of the tallest non-cut-site mismatch bar gives you
+a hint: set `min_freq` just above that level to remove noise without losing
+real signal.
+
+# Tweak: cut buffer
+
+**Parameter:** `cut_buffer` (default: 5)
+
+This controls how many bases are added on each side of the UPPER CASE region
+when checking whether events overlap the cut site. Its optimal value depends
+on how you cased your amplicon in the config.
+
+| Config casing strategy | Recommended `cut_buffer` | Total window |
+|---|---|---|
+| Guide + 10 bp buffer (typical) | 5 (default) | guide ± 15 bp |
+| Guide + 10 bp buffer (precise) | 0 | guide ± 10 bp |
+| Whole interior uppercased | 0 | entire interior |
+
+If you uppercased the whole interior (common for controls), `cut_buffer = 0`
+is essential -- otherwise the window extends beyond the amplicon boundaries.
+
+If you uppercased guide + 10 bp, `cut_buffer = 5` gives some extra tolerance
+for imprecise cutting. Use `cut_buffer = 0` if you want only events within
+your marked region.
+
+**How to check:** compare `Reads_Edited` counts with different `cut_buffer`
+values. A larger buffer will count more events as cut-site-overlapping.
+
+# Tweak: PRIMER_DIMER threshold
+
+**Parameter:** `PRIMER_DIMER` (default: 30)
+
+This sets the buffer for primer dimer detection. A read is classified as a
+primer dimer when it has a deletion larger than `amplicon_length - primer_lengths - PRIMER_DIMER`.
+
+Lower the value (e.g., 20) for shorter amplicons or when you want stricter
+detection. Raise it if legitimate reads are being misclassified.
+
+**How to check:** look at the `PRIMER_DIMER` column in `config_summary.csv`.
+If a large fraction of reads are classified as primer dimers, inspect the
+alignments to verify:
+
+```{r}
+aln <- readRDS("results/alignments/AlignmentsExperimentSet.rds")
+lookupAlignment(aln, ID = "ID_1")  # view the most frequent alignment
+```
+
+# Tweak: consensus strictness
+
+**Parameter:** `promiscuous_consensus` (default: TRUE)
+
+This only applies when using paired-end reads (`fastqfiles <= 0.5`).
+
+- **TRUE (default)**: indels detected on only one strand are accepted. More
+  sensitive, may include some artifacts.
+- **FALSE**: single-strand-only indels are rejected unless the other strand
+  is broken (EOP). More precise, may miss some real events.
+
+Use FALSE when you need high-confidence events only (e.g., for publication).
+Use TRUE for exploratory analysis where you do not want to miss anything.
+
+# HDR tweaking
+
+HDR detection is one of the most impactful and parameter-sensitive parts of
+amplican. The settings you choose can dramatically change the reported HDR
+rates. This section is dedicated to getting HDR right.
+
+## Two detection modes
+
+| Mode | Parameters | How it works | Speed | Precision |
+|---|---|---|---|---|
+| Permissive | `donor_strict = FALSE`, `donor_mismatch = 3` | Read aligns to donor at least as well as to amplicon + tolerates noise in donor region | Fast | Lower (score-based) |
+| Strict | `donor_strict = TRUE`, `donor_mismatch = Inf` or 0 | Every donor-specific event must be present verbatim in the read | Slower | Higher (event-presence) |
+
+## Decision tree
+
+**Start with the default (permissive mode)** if you are doing a first pass
+and want to see whether HDR is detectable at all:
+
+```{r}
+amplicanPipeline(config, fastq_folder,
+                 results_folder = "./results_hdr_permissive",
+                 donor_strict = FALSE,
+                 donor_mismatch = 3,
+                 sample = 10000, seed = 42, knit_reports = TRUE)
+```
+
+Check the `HDR` column in `config_summary.csv`. If HDR rates are reasonable
+(not 0, not 100%), and the donor is present in the config, this mode may be
+sufficient.
+
+**Switch to strict mode** when you need precise HDR quantification:
+
+```{r}
+amplicanPipeline(config, fastq_folder,
+                 results_folder = "./results_hdr_strict",
+                 donor_strict = TRUE,
+                 donor_mismatch = 0,
+                 sample = 10000, seed = 42, knit_reports = TRUE)
+```
+
+## donor_mismatch behaves differently in each mode
+
+This is a common source of confusion:
+
+**In permissive mode** (`donor_strict = FALSE`): `donor_mismatch` is the
+maximum number of single-base discrepancies allowed within the donor-vs-amplicon
+event window. Events elsewhere in the read are invisible to this threshold.
+Higher values = more reads called HDR.
+
+- `donor_mismatch = 0`: perfect match required in donor region (too strict
+  for most real data due to sequencing error).
+- `donor_mismatch = 3` (default): tolerates up to 3 single-base discrepancies.
+  Reasonable for most data.
+- `donor_mismatch = 10`: very permissive, most reads matching the donor
+  alignment score will be called HDR.
+
+**In strict mode** (`donor_strict = TRUE`): `donor_mismatch` counts extra
+consensus events within the amplicon's UPPER CASE window (expanded by
+`cut_buffer`). A read must contain ALL donor-specific events, plus at most
+`donor_mismatch` additional events in the window.
+
+- `donor_mismatch = Inf` (default for strict): additional events do not
+  disqualify a read. Only the absence of a required donor event does.
+- `donor_mismatch = 0`: no extra events allowed in the window. Maximum
+  precision but may reject reads with sequencing noise.
+
+## Interaction with cut_buffer
+
+In strict mode, `cut_buffer` defines the window within which extra events are
+counted toward the `donor_mismatch` threshold. With `cut_buffer = 0`, only
+events within the exact UPPER CASE region are counted. With `cut_buffer = 5`,
+events 5 bp outside the region also count.
+
+If you set `donor_mismatch = 0` and `cut_buffer = 5`, even a single mismatch
+within 5 bp of the UPPER CASE region disqualifies the read. This may be too
+strict. Consider `donor_mismatch = Inf` with `cut_buffer = 0` as an
+alternative: require all donor events, but ignore extra noise.
+
+## How to check HDR results
+
+Compare HDR rates across modes:
+
+```{r}
+permissive <- fread("./results_hdr_permissive/config_summary.csv")
+strict     <- fread("./results_hdr_strict/config_summary.csv")
+
+hdr_comparison <- merge(
+  permissive[, .(ID, HDR_perm = HDR, Reads_Filtered)],
+  strict[, .(ID, HDR_strict = HDR)],
+  by = "ID")
+
+hdr_comparison[, HDR_perm_pct := round(HDR_perm / Reads_Filtered * 100, 2)]
+hdr_comparison[, HDR_strict_pct := round(HDR_strict / Reads_Filtered * 100, 2)]
+hdr_comparison[, .(ID, HDR_perm_pct, HDR_strict_pct)]
+```
+
+If permissive mode reports very high HDR rates (>50%) and strict mode reports
+very low rates (<1%), the truth is likely somewhere in between. Consider
+relaxing strict mode (`donor_mismatch = Inf`) or tightening permissive mode
+(`donor_mismatch = 1`).
+
+## Adding a custom HDR percentage column
+
+The pipeline's `config_summary.csv` reports raw HDR read counts. You may want
+to add a percentage column:
+
+```{r}
+cfg <- fread("results/config_summary.csv")
+cfg[, HDR_per := round(HDR * 100 / Reads_Filtered, 2)]
+fwrite(cfg, "results/config_summary.csv")
+```
+
+# Iteration workflow
+
+Parameter tuning is iterative. A structured approach saves time and prevents
+confusion.
+
+## Name folders by parameters
+
+Encode the key non-default parameters in the results folder name. This makes
+it easy to compare runs:
+
+```{r}
+# Examples from a real project:
+# results_pm0_dsT_dm0_cb0/         - pm=0, donor_strict=T, dm=0, cb=0
+# results_pm0_dsT_dm0_cb0_noNorm/  - same, normalization disabled
+# results_pm1_dsT_dm3_cb0/         - pm=1, donor_strict=T, dm=3, cb=0
+```
+
+Use a consistent abbreviation scheme:
+
+| Abbreviation | Parameter |
+|---|---|
+| `pm` | `primer_mismatch` |
+| `cb` | `cut_buffer` |
+| `ds` | `donor_strict` (T/F) |
+| `dm` | `donor_mismatch` |
+| `noNorm` | normalization disabled |
+| `mf` | `min_freq` (if changed) |
+
+## Subsample first, then run full
+
+1. Run with `sample = 10000` and 2-3 parameter combinations.
+2. Inspect reports and `config_summary.csv` for each.
+3. Pick the best combination.
+4. Run the full dataset with `sample = 0` (default, reads everything).
+
+## Compare across runs
+
+```{r}
+# Load all config_summary.csv files from different runs
+runs <- list(
+  pm0 = fread("./results_pm0/config_summary.csv"),
+  pm2 = fread("./results_pm2/config_summary.csv")
+)
+
+# Compare editing rates
+comparison <- data.table(
+  ID = runs$pm0$ID,
+  Edited_pm0 = runs$pm0$Reads_Edited,
+  Edited_pm2 = runs$pm2$Reads_Edited,
+  Filtered_pm0 = runs$pm0$Reads_Filtered,
+  Filtered_pm2 = runs$pm2$Reads_Filtered
+)
+comparison
+```
+
+## Always check RunParameters.txt
+
+Each results folder contains a `RunParameters.txt` that records exactly which
+parameters were used. Always check this file when comparing runs to avoid
+confusion about what changed.
+
+# Quick reference: tweak decision tree
+
+| Problem | What to check | What to change |
+|---|---|---|
+| Too many unassigned reads | `barcode_reads_filters.csv`, `unassigned_reads.csv` | Increase `primer_mismatch`; check `fastqfiles` mode; verify primers in config |
+| Too many primer dimers | `config_summary.csv` PRIMER_DIMER column | Increase `PRIMER_DIMER` buffer; inspect alignments |
+| Editing rates too low | `config_summary.csv` Reads_Edited; ID report variant plot | Check `cut_buffer` (too small?); check amplicon casing; check `promiscuous_consensus` |
+| Background noise in mismatches | Mismatch plot in ID report; control samples | Enable normalization; lower `min_freq`; check `min_quality` |
+| Normalization removes real signal | Compare with/without normalization reports | Disable normalization (`normalize = NULL` or `c("ID")`); raise `min_freq` |
+| HDR rate is zero | `config_summary.csv` HDR column; Donor column in config | Check donor is not empty; try `donor_strict = FALSE`; increase `donor_mismatch` |
+| HDR rate suspiciously high | Same | Switch to `donor_strict = TRUE`; decrease `donor_mismatch` |
+| Few reads pass filters | `barcode_reads_filters.csv` | Lower `average_quality`; check `min_quality`; check `filter_n` |
+| No events at all | Error message or empty events file | Check primers are found in amplicon; check FASTQ file names match config |

@@ -1,0 +1,1088 @@
+---
+title: "ampliCan Code Explained"
+author: "Kornel Labun"
+date: "`r BiocStyle::doc_date()`"
+package: "`r pkg_ver('amplican')`"
+output: BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{code explained}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This vignette is a plain-English walkthrough of what the amplican code does,
+step by step, for readers who do not read code. Each section describes what
+happens inside the pipeline, which settings matter most, and which behaviours
+may be surprising. File and function names are mentioned so you can locate the
+relevant code, but no code is shown.
+
+# The big picture
+
+`amplican` takes raw sequencing reads (FASTQ files) and a configuration file
+describing your experiments, and produces a set of HTML reports with plots and
+tables summarising CRISPR editing outcomes. The entry point is a single
+function called `amplicanPipeline`, defined in `amplican.R`. Internally it
+calls a sequence of specialised functions, each living in its own file:
+
+1. **Read and validate** the configuration file (`helpers_warnings.R`).
+2. **Read and quality-filter** the FASTQ reads (`helpers_alignment.R`,
+   `helpers_filters.R`).
+3. **Assign** each read to an experiment by finding its primers
+   (`helpers_alignment.R`).
+4. **Align** each read to its amplicon using a global alignment algorithm
+   (`helpers_alignment.R`).
+5. **Detect HDR** events if a donor template is provided
+   (`helpers_alignment.R`).
+6. **Extract** individual mutations (deletions, insertions, mismatches) from
+   the alignments (`AlignmentsExperimentSet-class.R`, `helpers_general.R`).
+7. **Filter** out artifacts: primer-overlap deletions, primer dimers, and
+   off-target reads (`amplicanFilter.R`, `helpers_filters.R`).
+8. **Build consensus** between forward and reverse reads
+   (`amplicanSummarize.R`).
+9. **Normalize** against control samples to remove background noise
+   (`amplicanNormalize.R`).
+10. **Summarize** editing rates, frameshifts, and cut rates
+    (`amplicanSummarize.R`).
+11. **Generate reports** as knitted HTML pages (`amplicanReport.R`).
+
+A conceptual map of this flow is shown in the overview vignette.
+
+Throughout the pipeline, intermediate results are saved to disk using a
+temporary-file-and-rename pattern: each file is first written with a `.temp`
+extension and then atomically renamed to its final name. This means that if the
+process crashes midway, you will not see half-written files -- only `.temp`
+files that are cleaned up on the next run.
+
+# Step 1: Setup and validation
+
+**File:** `amplican.R` (`amplicanPipe` function)
+**Helper files:** `helpers_directory.R`, `helpers_warnings.R`
+
+## What happens
+
+When you call `amplicanPipeline`, the first thing it does is resolve all file
+paths to absolute paths and check that the output folder is writable (via
+`checkFileWriteAccess` in `helpers_directory.R`). If it is not, the pipeline
+stops immediately with an error.
+
+Next, it handles the `continue` setting. When `continue` is `TRUE` (the
+default), the pipeline looks for any leftover `.temp` files from a previous
+crashed run and deletes them, but otherwise tries to reuse existing results to
+avoid redundant computation. When `continue` is `FALSE`, the entire results
+folder is deleted and recreated from scratch.
+
+The configuration file is then read and validated by three functions in
+`helpers_warnings.R`:
+
+- **`checkConfigFile`** verifies that there are no duplicate experiment IDs,
+  that every combination of barcode, forward primer, and reverse primer is
+  unique, that no primer contains numeric characters (a common copy-paste
+  error), and that all referenced FASTQ files actually exist and are readable.
+- **`checkPrimers`** searches for the forward primer and the reverse
+  complement of the reverse primer inside each amplicon sequence, and records
+  their positions. If a primer cannot be found in its amplicon, the pipeline
+  stops.
+- **`checkTarget`** checks whether each guideRNA sequence can be found inside
+  its amplicon. If it cannot, a warning message is printed, but the pipeline
+  does **not** stop -- it simply marks that guide as not found and continues.
+  This is intentional, because you might be working with guides that have
+  mismatches or unusual architectures.
+
+## Key options and their impact
+
+- **`continue`** (default: TRUE): Set to FALSE when you want a completely
+  fresh run and are sure you do not need any previous intermediate files.
+- **`fastqfiles`** (default: 0.5): Controls how forward and reverse reads are
+  used. A value of 0 means both forward and reverse primers must be found in
+  each read pair. A value of 0.5 (the default) means only one of the two
+  primers needs to match -- this is useful when, for example, reverse reads
+  have been primer-trimmed by the sequencing facility. A value of 1 uses only
+  forward reads; 2 uses only reverse reads. This setting flows through the
+  entire pipeline and affects primer matching, consensus, and plotting.
+- **`sample`** and **`seed`** (defaults: 0): When `sample` is set above zero,
+  only that many reads are randomly sampled from each FASTQ file, rather than
+  reading the full file. This is useful for quick testing or parameter tuning.
+  The `seed` makes the sampling reproducible.
+
+## Quirks
+
+- The guideRNA not being found in the amplicon is a warning, not an error.
+  The analysis proceeds, but downstream plots and cut-site detection may not
+  work correctly for that experiment.
+- If `continue` is TRUE and a previous run completed alignment but not
+  reporting, the pipeline will skip alignment entirely and jump ahead, which
+  can be confusing if you changed alignment parameters expecting them to take
+  effect.
+
+# Step 2: Reading and quality filtering
+
+**Files:** `helpers_alignment.R` (`makeAlignment` function),
+`helpers_filters.R` (`goodBaseQuality`, `goodAvgQuality`, `alphabetQuality`)
+
+## What happens
+
+For each barcode (a group of experiments sharing the same sequencing pool),
+the `makeAlignment` function opens the corresponding FASTQ file(s) using a
+streaming reader. This means reads are loaded in manageable chunks rather than
+all at once, which keeps memory usage low even for very large files.
+
+Each chunk of reads passes through three quality filters:
+
+1. **`goodBaseQuality`** checks that every single nucleotide in a read has a
+   quality score at or above the `min_quality` threshold. If even one base is
+   below the threshold, the entire read is rejected.
+2. **`goodAvgQuality`** checks that the average quality score across all
+   nucleotides in a read meets the `average_quality` threshold. A read might
+   pass the per-base filter but still have an overall low average.
+3. **`alphabetQuality`** (only active when `filter_n` is TRUE) rejects any read
+   containing the letter "N", which represents a nucleotide that the
+   sequencer could not confidently identify.
+
+The function keeps a running tally of how many reads were rejected for each
+reason, and these counts end up in the `barcode_reads_filters.csv` output
+file.
+
+## Key options and their impact
+
+- **`average_quality`** (default: 30 in the pipeline): Lowering this value
+  keeps more reads but may include low-quality data that produces spurious
+  mismatches. Raising it makes filtering stricter. The scale depends on your
+  sequencing platform (Phred+33 for Illumina).
+- **`min_quality`** (default: **0** in `amplicanPipeline`, but **20** in the
+  standalone `amplicanAlign` function): This is the single most important
+  quality parameter. The pipeline default of 0 is very permissive -- it
+  effectively disables per-base quality filtering. If you are seeing a lot of
+  background mismatches in your reports, raising this to 15-20 can make a
+  large difference by removing reads with individual low-quality bases. See
+  the quirks section below for why this default differs.
+- **`filter_n`** (default: FALSE): Turn this on if your sequencing tends to
+  produce many N calls. Reads with N bases cannot be meaningfully aligned.
+- **`batch_size`** (default: 10 million in the pipeline): This controls how
+  many reads are loaded into memory at once. It has no effect on results --
+  it is purely a memory management parameter. Lower it if you are running on
+  a machine with limited RAM.
+
+## Quirks
+
+- The default `min_quality` differs between `amplicanPipeline` (0) and the
+  standalone `amplicanAlign` (20). This can be confusing. The pipeline
+  defaults were chosen to be permissive so that fewer reads are lost, but
+  for many datasets, a value of 15-20 for `min_quality` gives cleaner results.
+- All quality filtering happens **before** alignment. Reads that fail quality
+  checks are never aligned and never appear in any downstream analysis.
+
+# Step 3: Collapsing identical reads
+
+**File:** `helpers_alignment.R` (`makeAlignment` function)
+
+## What happens
+
+After quality filtering, each chunk of surviving reads is examined for
+duplicates. The function creates a table where each row is a unique
+combination of forward and reverse read sequences, along with a count of how
+many times that exact pair appeared. When all chunks have been processed, the
+per-chunk tables are merged and duplicate pairs across chunks are summed.
+
+This step is critical for performance: if the same read sequence appears ten
+thousand times, it is aligned only once, and the count is carried forward. All
+downstream statistics (editing rates, frameshift counts, etc.) weight each
+unique read by this count.
+
+## Key options
+
+This step has no adjustable parameters. It is always performed.
+
+## Quirks
+
+- "Unique reads" (the number after collapsing) is a useful heterogeneity
+  metric. A very low number of unique reads relative to total reads suggests
+  either no editing (most reads are wild-type) or very uniform editing. A very
+  high number of unique reads can indicate sequencing errors or mosaic
+  editing.
+- The collapsing treats forward and reverse reads as a pair. Two reads with
+  the same forward sequence but different reverse sequences count as two
+  separate unique reads.
+
+# Step 4: Assigning reads to experiments
+
+**Files:** `helpers_alignment.R` (`locate_pr_start` and `makeAlignment`),
+`helpers_general.R` (`comb_along`)
+
+## What happens
+
+Each unique read must be assigned to one of the experiments defined in the
+configuration file. Assignment is done by searching for the experiment's
+primers within the read.
+
+The `locate_pr_start` function searches for each primer inside each read using
+an overlap alignment (a variant of sequence alignment that allows the primer
+to be partially present at the beginning of the read). This handles the common
+situation where reads are slightly truncated at the 5' end and do not start
+exactly at the primer. The function accepts a certain number of mismatches
+(controlled by `primer_mismatch`) and requires a minimum overlap of
+approximately half the primer length.
+
+For each experiment (identified by its ID), the function checks whether the
+forward primer is found in the forward read and/or the reverse primer is found
+in the reverse read. Which primers must match depends on the `fastqfiles`
+setting:
+
+- `fastqfiles = 0`: both forward and reverse primers must be found.
+- `fastqfiles = 0.5` (default): either the forward or the reverse primer is
+  sufficient.
+- `fastqfiles = 1`: only the forward primer is checked (reverse reads not
+  used).
+- `fastqfiles = 2`: only the reverse primer is checked (forward reads not
+  used).
+
+Reads whose primers match a given experiment are assigned to it. Reads that
+do not match any experiment's primers are labelled "unassigned" and saved to
+`unassigned_reads.csv`. Their forward and reverse sequences can later be
+aligned against each other in the barcode report to diagnose what went wrong.
+
+## Key options and their impact
+
+- **`primer_mismatch`** (default: **2** in the pipeline, **0** in standalone
+  `amplicanAlign`): This controls how many mismatches are tolerated when
+  matching primers to reads. With the default of 2, the pipeline allows up to
+  2 positions in the primer to differ from the read, which helps recover reads
+  with sequencing errors in the primer region. Setting this to 0 is stricter
+  and will increase the number of unassigned reads, but eliminates any risk of
+  mis-assigning reads to the wrong experiment due to similar primers. If you
+  see a high unassigned rate, try increasing this value; if you suspect
+  cross-contamination between experiments with similar primers, decrease it.
+- **`fastqfiles`**: See Step 1. The most common reason to change this is when
+  your reverse reads have been trimmed of primers by the sequencing facility
+  (use 0.5 or 1), or when you only have forward reads (use 1, and leave
+  Reverse_Primer and Reverse_Reads_File empty in the config).
+
+## Quirks
+
+- The primer search allows partial primer matches at the start of the read
+  (5' truncation). This means a read that begins partway through the primer
+  can still be assigned. This is handled by the `min_overlap` parameter inside
+  `locate_pr_start`, which defaults to half the primer length.
+- Primer matching uses the cached result for identical primer sequences across
+  experiments sharing the same barcode, so it is efficient.
+- The default values for `primer_mismatch` differ between `amplicanPipeline`
+  (2) and `amplicanAlign` (0), for the same reason as `min_quality` -- the
+  pipeline is designed to be permissive by default.
+
+# Step 5: Aligning reads to amplicons
+
+**File:** `helpers_alignment.R` (`makeAlignment` function)
+
+## What happens
+
+Once reads are assigned to an experiment, each read is aligned against the
+amplicon sequence for that experiment. Before alignment, the read is trimmed
+so that it starts at the position where the forward primer was found (or, for
+reverse reads, the reverse primer position). The amplicon is likewise trimmed
+to the region between the two primers. This ensures that both the read and the
+amplicon start and end at comparable positions, which improves alignment
+quality.
+
+The alignment itself uses the Needleman-Wunsch global alignment algorithm, as
+implemented in the `pwalign` (formerly `Biostrings`) package. This algorithm
+finds the optimal way to line up two sequences by inserting gaps where needed.
+It uses a scoring matrix that rewards matching bases and penalises
+mismatches, plus penalties for opening and extending gaps.
+
+The alignment results -- the aligned read, the aligned amplicon, and a score
+representing alignment quality -- are stored in the `AlignmentsExperimentSet`
+object (described in Step 8).
+
+## Key options and their impact
+
+- **`scoring_matrix`** (default: match = +5, mismatch = -4): This matrix
+  determines how the alignment algorithm scores each position. Higher match
+  rewards and more negative mismatch penalties make the alignment stricter
+  about calling mismatches. The default works well for most CRISPR amplicon
+  data. You would rarely change this unless you have a specific reason, such
+  as aligning reads with unusual error profiles.
+- **`gap_opening`** (default: 25): This is the penalty for starting a new gap
+  in the alignment. A high value (like 25) means the algorithm will strongly
+  prefer to call mismatches rather than open a gap. **This is the single most
+  impactful alignment parameter**: lowering it will cause the aligner to call
+  more deletions and insertions (since gaps become cheaper), while raising it
+  will suppress indels in favour of mismatches. For CRISPR analysis where
+  indels are the primary signal, the default of 25 is a good balance.
+- **`gap_extension`** (default: 0): This is the additional penalty for each
+  position added to an existing gap. A value of 0 means that a long gap costs
+  the same as a short gap (only the opening penalty matters). This is
+  appropriate for CRISPR data where deletions can be large but should not be
+  penalised more for being longer.
+
+## Quirks
+
+- The alignment is performed against the amplicon sub-region between the
+  primers, not the full amplicon. This means that any sequence outside the
+  primer region in the read is ignored. If your amplicon is very long and
+  reads do not span the full length, the alignment covers only the overlapping
+  portion.
+- Alignment scores are stored with each event and are later used by the
+  consensus algorithm (Step 10) to decide between conflicting forward and
+  reverse reads.
+
+# Step 6: HDR detection
+
+**File:** `helpers_alignment.R` (`is_hdr` and `is_hdr_strict` functions)
+
+## What happens
+
+If you have filled in the **Donor** column in your configuration file
+(indicating a homology-directed repair template), amplican attempts to
+identify which reads represent successful HDR events. Two different algorithms
+are available:
+
+**Permissive mode** (`is_hdr`, used when `donor_strict = FALSE`): The donor
+template is first aligned against the amplicon to identify the positions where
+they differ. Each read is then aligned against the donor. A read is classified
+as HDR if two conditions are met: (1) it aligns to the donor at least as well
+as it aligns to the amplicon, and (2) the number of small events (single-base
+mismatches or indels) overlapping the donor-specific positions does not exceed
+the `donor_mismatch` threshold. This mode is fast and tolerant of sequencing
+noise.
+
+**Strict mode** (`is_hdr_strict`, used when `donor_strict = TRUE`): Instead of
+comparing alignment scores, the strict algorithm checks whether every single
+event that distinguishes the donor from the amplicon is present in the read,
+matched exactly by position, type, and sequence. A read must contain all
+donor-specific events to be counted as HDR. Additional events elsewhere in the
+read (noise) do not disqualify it, unless there are more than `donor_mismatch`
+extra events within the cut-site window.
+
+## Key options and their impact
+
+- **`donor_strict`** (default: FALSE): Switch to TRUE if you need very precise
+  HDR calling. The strict algorithm is more conservative -- it will not count
+  a read as HDR unless it carries every expected donor change. This reduces
+  false positives but may miss reads with partial HDR or sequencing errors in
+  the donor region. The strict algorithm is also significantly slower because
+  it requires event-by-event matching.
+- **`donor_mismatch`** (default: 3): In permissive mode, this is the maximum
+  number of single-base discrepancies allowed within the donor region. Lower
+  values are stricter; setting to 0 requires a perfect match to the donor in
+  that region (not recommended due to typical sequencing error rates of
+  ~0.1-1%). In strict mode with a finite value, this controls how many extra
+  consensus events (beyond the required donor events) are tolerated within the
+  cut-site window before a read is rejected.
+- **`cut_buffer`** (default: 5): In strict mode, this defines the window
+  around the cut site within which extra events are counted toward the
+  `donor_mismatch` threshold.
+
+## Quirks
+
+- In permissive mode, `donor_mismatch` only counts events that fall within the
+  donor-vs-amplicon event coordinate window. Mismatches or indels elsewhere in
+  the read are invisible to this threshold and never disqualify a read. This
+  is by design: the goal is to assess whether the donor-specific region looks
+  like HDR, not whether the entire read is perfect.
+- A read that aligns equally well to both the donor and the amplicon (a
+  perfect tie in scores) is treated as a candidate in permissive mode (the
+  comparison uses "greater than or equal").
+- If the donor and amplicon are identical (no differing positions), no HDR
+  calling is possible and the function returns without changes.
+
+# Step 7: The AlignmentsExperimentSet container
+
+**File:** `AlignmentsExperimentSet-class.R`
+
+## What happens
+
+All alignment results are stored in a structured data container called
+`AlignmentsExperimentSet`. This is an S4 class (a formal R object type with
+strict validation). It holds:
+
+- **Forward read alignments**: for each experiment ID, the aligned forward
+  reads and their alignment scores.
+- **Reverse read alignments**: the same for reverse reads.
+- **Read types**: for each read, whether it was classified as HDR (TRUE) or
+  not (FALSE).
+- **Read counts**: how many times each unique read sequence was observed
+  (remember the collapsing step).
+- **Unassigned reads**: reads that could not be matched to any experiment,
+  saved for diagnostic purposes.
+- **Experiment data**: the configuration file, extended with statistics that
+  accumulate during the pipeline.
+- **Barcode data**: per-barcode statistics such as total reads, filtered
+  reads, and unique reads.
+
+The class includes a validation method that enforces consistency: every
+experiment ID must be unique, the number of forward alignments must match
+the number of reverse alignments, read counts must not contain zeros, and so
+on. If any of these conditions are violated, an error is reported.
+
+The object supports subsetting (selecting individual experiments by index or
+name), combining multiple objects together, and a `lookupAlignment` method
+that prints a single alignment in a human-readable, BLAST-like format. The
+`writeAlignments` method can output all alignments to a file in FASTA or
+plain-text format.
+
+## Key options
+
+- **`write_alignments_format`** (default: "None"): Set to "fasta", "txt", or
+  both (by passing a vector like `c("fasta", "txt")`) to save human-readable
+  alignments to disk. This is useful for debugging or for sharing alignments
+  with collaborators. The default "None" skips this output to save disk space
+  and time.
+
+## Quirks
+
+- When you subset an `AlignmentsExperimentSet` (for example, by selecting one
+  experiment), the barcode-level and unassigned-read data are dropped. This
+  is because there is no reliable way to know which barcode-level statistics
+  belong to which experiment after subsetting.
+- In chunked processing mode (used by the pipeline for large datasets),
+  results are saved per-barcode as temporary RDS files inside the `temp`
+  subfolder. These are later merged. If you delete these files, the pipeline
+  will need to redo the alignments for those barcodes.
+- The `extractEvents` method (described next) is noted in the code comments as
+  being slow "despite vectorization." If you have a multi-core machine, pass
+  `use_parallel = TRUE` to speed it up.
+
+# Step 8: Extracting events
+
+**Files:** `AlignmentsExperimentSet-class.R` (`extractEvents` method),
+`helpers_general.R` (`getEventInfo`, `getEvents`, `defGR`)
+
+## What happens
+
+After alignment, each read is represented as a pair of aligned strings (the
+read and the amplicon, with gap characters inserted). The `extractEvents`
+method converts these aligned strings into a table of individual events.
+
+For each alignment, the `getEvents` function scans the aligned strings
+character by character and identifies three types of events:
+
+- **Deletions**: bases present in the amplicon but missing from the read
+  (gaps in the read).
+- **Insertions**: bases present in the read but not in the amplicon (gaps in
+  the amplicon).
+- **Mismatches**: positions where both the read and amplicon have a base, but
+  they differ.
+
+Each event is recorded with its start position, end position, width, the
+original amplicon base(s), the replacement read base(s), the type (deletion,
+insertion, or mismatch), a read identifier, the alignment score, and the
+strand (plus for forward reads, minus for reverse reads). The function also
+adds "artificial" deletion events at the ends of reads that do not span the
+full amplicon -- these represent the fact that the read ended early, and they
+are later used by the filtering step.
+
+The `getEventInfo` function is a wrapper that handles the coordinate shifts
+needed because the alignment may not start at position 1 of the amplicon (the
+amplicon was trimmed to the primer region). It also handles the asymmetry
+between forward and reverse strands: for forward reads, it checks whether the
+read extends to the end of the amplicon; for reverse reads, it checks whether
+the read starts at the beginning.
+
+## Key options
+
+- **`use_parallel`** (default: FALSE): Set to TRUE if you have registered a
+  multi-core back-end (via `BiocParallel::register`). This can significantly
+  speed up event extraction for large datasets, as each experiment is
+  processed independently.
+
+## Quirks
+
+- Insertion coordinates are adjusted by a cumulative sum of preceding
+  insertion widths. This is necessary because insertions are not present in
+  the amplicon coordinate system, so their positions must be shifted to avoid
+  overlapping with each other.
+- Multi-base mismatches (where several consecutive bases differ) are split
+  into individual single-base events. This ensures that each mismatch event
+  has a width of 1, which simplifies downstream processing and plotting.
+- The strand convention is important: "+" always means the event came from a
+  forward read, and "-" means it came from a reverse read. This is true even
+  for amplicons with `Direction = 1` (where the guide is reverse-complemented),
+  because `flipRanges` (called later) handles the coordinate reversal.
+
+# Step 9: Filtering artifacts
+
+**Files:** `amplicanFilter.R`, `helpers_filters.R` (`findEOP`, `findPD`,
+`findLQR`)
+
+## What happens
+
+Not all events extracted from alignments represent real biological mutations.
+Three types of artifacts are filtered out:
+
+**Events Overlapping Primers (EOP)** -- detected by `findEOP`: When a read is
+shorter than the amplicon and ends prematurely, the alignment may show what
+looks like a large deletion covering the end of the amplicon. But this is not
+a real deletion -- it is simply that the read ran out of sequence. The `findEOP`
+function identifies any deletion that touches or extends past the primer
+regions and marks it for removal. This also catches deletions that start
+before the forward primer ends. This filter operates in both absolute
+coordinates (before shifting) and relative coordinates (after shifting), and
+automatically adjusts based on whether the events have been shifted yet.
+
+**PRIMER DIMERS** -- detected by `findPD`: Primer dimers are PCR artifacts
+where the primers themselves amplify each other without any amplicon template,
+producing very short products. In sequencing, these appear as reads where the
+alignment shows a gap covering most of the amplicon. The `findPD` function
+calculates a cutoff: amplicon length minus the combined primer lengths minus a
+buffer. Any deletion wider than this cutoff is flagged as a primer dimer. All
+events from reads containing such a deletion are then removed.
+
+**Low-quality / off-target reads** -- detected by `findLQR`: Some reads may
+align to the amplicon but carry an unusually high number of events and a low
+alignment score, suggesting they originated from a different genomic locus
+(off-target) or are otherwise poor quality. The `findLQR` function uses a
+clustering approach (CLARA, a fast variant of k-medoids) on two dimensions:
+the normalized number of events per read and the normalized alignment score.
+It tries dividing reads into 2 or 3 clusters and uses the silhouette criterion
+to decide which is better. If 3 clusters fit better, the cluster with high
+event counts and low scores (top-left in a score-vs-events plot) is marked
+for removal. This filter only activates when there are at least 1000 events
+for the experiment -- below that threshold, it does nothing.
+
+After filtering, the `Reads_Filtered` column in the config summary is
+calculated as total reads minus PRIMER_DIMER reads minus low-score reads.
+
+## Key options and their impact
+
+- **`PRIMER_DIMER`** (default: 30): This is the buffer size added to the
+  primer lengths when computing the primer dimer cutoff. A larger value makes
+  the filter more lenient (fewer reads classified as primer dimers); a smaller
+  value makes it more aggressive. The default of 30 means that a read must
+  have a deletion covering more than `amplicon_length - primer_lengths - 30`
+  bases to be called a primer dimer. If you are seeing too many reads
+  classified as primer dimers, increase this value.
+- **`event_filter`** (default: TRUE): Set to FALSE to disable the off-target
+  detection (`findLQR`). This might be useful if you have a very unusual
+  editing pattern that is being incorrectly flagged, or if you want to see all
+  reads regardless of quality. In most cases, leave it on.
+
+## Quirks
+
+- The `findLQR` off-target filter requires at least 1000 events per
+  experiment to activate. For small datasets or pilot experiments, it silently
+  does nothing. This means that the same dataset analyzed with different
+  amounts of data could produce different filtering behavior at the boundary.
+- The clustering in `findLQR` uses CLARA with a sample size capped at 1000.
+  This means it is an approximation -- results may vary slightly between runs
+  if the random sampling differs. However, the silhouette-based decision
+  between 2 and 3 clusters tends to be stable.
+- Events overlapping primers are filtered even if they are insertions or
+  mismatches near the primer boundary, not just deletions. The exact rule
+  differs by event type: for insertions, the start position is checked against
+  the reverse primer position; for other events, the end position is checked.
+- The EOP filter correctly handles both absolute coordinates (events before
+  shifting to relative positions) and relative coordinates (events after
+  shifting). It detects which coordinate system is in use by checking for
+  negative values.
+
+# Step 10: Consensus from both strands
+
+**File:** `amplicanSummarize.R` (`amplicanConsensus` function)
+
+## What happens
+
+When you use both forward and reverse reads (i.e., `fastqfiles` is 0 or 0.5),
+each read pair provides two independent observations of the same DNA molecule.
+Ideally, both reads should agree on what mutations are present. The
+`amplicanConsensus` function compares events from the forward and reverse
+reads and decides which events to trust.
+
+The consensus logic follows these rules:
+
+1. **Full agreement**: If a forward event and a reverse event have the same
+   position, length, type, and replacement sequence, the event is confirmed.
+   The forward read's version is kept as the representative.
+
+2. **Partial disagreement**: If both reads have events in the same region but
+   they differ in details (e.g., same start but different end), the event from
+   whichever read has the higher alignment score is kept, **but only if both
+   reads overlap the expected cut site**. If neither overlaps the cut site,
+   both events are rejected.
+
+3. **One strand broken**: If one read has an event overlapping a primer
+   (indicating it is truncated or unreliable in that region) but the other
+   read covers that region cleanly, the clean read's event is trusted.
+
+4. **Single-strand-only events** (controlled by `promiscuous_consensus`):
+   When an event appears on only one strand and there is no conflicting
+   information from the other strand, the `promiscuous_consensus` setting
+   determines what happens. When TRUE (the default), these single-strand
+   events are accepted. When FALSE, they are rejected unless the other strand
+   is broken in that region (in which case the intact strand is trusted).
+
+The output is a boolean vector (TRUE/FALSE for each event) indicating which
+events represent the consensus.
+
+## Key options and their impact
+
+- **`promiscuous_consensus`** (default: TRUE): This is the key parameter for
+  consensus behavior. When TRUE, indels detected on only one strand are kept.
+  This is more sensitive but may include some artifacts. When FALSE
+  (strict mode), single-strand indels are rejected unless the other strand is
+  broken. Use FALSE when you want high-confidence events only, and TRUE when
+  you do not want to miss any real editing events. The trade-off is sensitivity
+  versus precision.
+- This step only applies when `fastqfiles <= 0.5` (i.e., both forward and
+  reverse reads are used). When using only forward or only reverse reads, all
+  events are automatically marked as consensus (TRUE), because there is no
+  second strand to compare against.
+
+## Quirks
+
+- The consensus rules are also documented with a visual diagram in the
+  overview vignette, which may be easier to follow than the text description.
+- The `amplicanConsensus` function requires that `amplicanOverlap` has already
+  been run (it needs to know which events overlap the cut site to apply rule
+  2). In the pipeline, overlap is always computed before consensus.
+- When both strands are "broken" (both have events overlapping primers in the
+  cut-site region), the events from both strands are removed. This is a
+  conservative choice: if neither strand can be trusted in that region, no
+  event is reported.
+
+# Step 11: Cut-site overlap detection
+
+**File:** `amplicanSummarize.R` (`amplicanOverlap` function)
+
+## What happens
+
+The `amplicanOverlap` function determines which events are likely caused by
+CRISPR editing, as opposed to being random sequencing errors or natural
+variants. It does this by checking whether each event overlaps the expected
+cut site.
+
+The expected cut site is specified by you in the configuration file: any
+UPPER CASE letters in the amplicon sequence are treated as the target region
+(typically the PAM sequence or the guide RNA binding site). The function
+detects these UPPER CASE groups using the `upperGroups` helper, which finds
+runs of capital letters in the amplicon string.
+
+Each detected cut-site region is then expanded by `cut_buffer` bases in both
+directions to create a window. Any event whose position overlaps this window
+is marked as overlapping the cut site (TRUE); all others are marked as not
+overlapping (FALSE).
+
+If an amplicon has no UPPER CASE letters at all, the function issues a warning
+and uses the entire amplicon as the cut-site region. This means all events
+will be marked as overlapping, which effectively disables the spatial
+filtering.
+
+## Key options and their impact
+
+- **`cut_buffer`** (default: 5): This controls how forgiving the spatial
+  filter is. With a buffer of 5, events up to 5 bases outside the uppercase
+  region are still counted as overlapping. Increasing the buffer captures
+  events from slightly imprecise cutting; decreasing it makes the filter
+  stricter. This parameter also flows through to reporting, where it
+  determines the highlighted region in plots. Note that CRISPR cut sites are
+  typically a few bases upstream of the PAM, so the buffer helps account for
+  this biological variability.
+
+## Quirks
+
+- If you forget to specify UPPER CASE letters in your amplicon, every event
+  will be treated as overlapping the cut site, and the spatial filtering that
+  separates real edits from background noise will not work. This is one of
+  the most common mistakes.
+- The cut site can consist of multiple disjoint UPPER CASE regions (for
+  example, if you have multiple guide RNAs targeting the same amplicon). All
+  regions are expanded by the buffer and checked independently.
+- The overlap check uses "any" overlap: even a single-base overlap between the
+  event and the expanded cut-site window counts.
+
+# Step 12: Shifting to relative coordinates
+
+**File:** `helpers_general.R` (`amplicanMap`, `flipRanges`, `upperGroups`)
+
+## What happens
+
+After filtering, events are re-encoded so that their coordinates are relative
+to the expected cut site rather than being absolute positions within the
+amplicon. This is done by the `amplicanMap` function.
+
+The "zero point" is defined as the first UPPER CASE letter in the amplicon.
+All event positions are shifted so that this zero point becomes position 0.
+Events that were upstream of the cut site get negative coordinates; events
+downstream get positive coordinates. This relative coordinate system is what
+makes it possible to create metaplots that overlay data from different
+amplicons of different lengths.
+
+For amplicons with `Direction = 1` (meaning the guide RNA needed to be
+reverse-complemented to match the amplicon), an additional transformation is
+applied by `flipRanges`: the strand labels are swapped (+ becomes -, and vice
+versa), coordinates are mirrored (reversed end-to-end relative to the
+amplicon length), and the original and replacement base sequences are
+reverse-complemented. This ensures that all events are reported from the
+perspective of the forward strand, regardless of the original guide direction.
+
+## Key options
+
+This step has no adjustable parameters.
+
+## Quirks
+
+- Events from amplicons that have **no UPPER CASE letters** are **filtered
+  out** entirely during this step, with a warning. This means that if you
+  forget to mark the cut site in your amplicon, you will lose all events. Do
+  not use `amplicanMap` if you have no expected cut sites specified, and do
+  not use the metaplot functions (which rely on relative coordinates) either.
+- The `flipRanges` function modifies the data in place for efficiency. This
+  means that after this step, the strand column no longer reflects which read
+  (forward or reverse) produced the event for Direction = 1 amplicons -- it
+  has been flipped to maintain the forward-strand perspective.
+
+# Step 13: Normalization against controls
+
+**File:** `amplicanNormalize.R`
+
+## What happens
+
+If your configuration file has any rows marked as controls (`Control = TRUE`
+or `Control = 1`), the `amplicanNormalize` function removes background events
+from the treatment (non-control) samples.
+
+The process works as follows:
+
+1. Events from control samples are grouped by the columns specified in the
+   `normalize` parameter (by default, guideRNA and Group). This means that a
+   control is only used to normalize treatments that share the same guideRNA
+   and Group.
+
+2. For each group, the frequency of each unique event (defined by its
+   position, type, width, original base, and replacement base) is calculated
+   relative to the total number of filtered reads in that control group.
+
+3. Events in the control group whose frequency falls below `min_freq` are
+   treated as sequencing errors and discarded -- they are too rare to be
+   considered real background.
+
+4. For each treatment event, the function checks whether an exact match
+   exists among the surviving control events (same position, type, width,
+   original base, replacement base, guideRNA, and Group). If it does, the
+   treatment event is removed, because it is indistinguishable from
+   background.
+
+5. All control events are kept (they are not removed).
+
+This step handles the common situation where the sequenced strain has natural
+sequence differences from the reference amplicon (SNPs), or where there is a
+low level of index hopping (cross-contamination between sequencing pools).
+
+Events containing the replacement base "N" are always removed before
+normalization, as they represent noise from poor sequencing.
+
+## Key options and their impact
+
+- **`min_freq`** (default: 0.01, i.e., 1%): This is the single most important
+  normalization parameter. It sets the frequency threshold below which
+  control events are considered noise and not used for filtering. Lowering it
+  (e.g., to 0.001) makes normalization more aggressive -- more events will be
+  removed from treatments. Raising it (e.g., to 0.1) makes normalization more
+  conservative. The default of 1% works well for most experiments with good
+  sequencing depth. If you suspect index hopping (where reads from one sample
+  contaminate another), raising this to 0.03-0.15 can help, because index
+  hopping typically introduces low-frequency spurious events. You can inspect
+  the mismatch plots in the control reports to see what the background noise
+  level looks like and choose an appropriate threshold.
+- **`normalize`** (default: c("guideRNA", "Group")): This specifies which
+  columns to use for matching controls to treatments. The default means that
+  only events from the same guideRNA in the same Group are normalized against
+  each other. You can change this to use fewer columns (e.g.,
+  `c("guideRNA")` to normalize by guide only, ignoring Group) or more columns.
+  Pass `NULL` to skip normalization entirely even when controls are present.
+  Pass an empty vector `c()` to normalize globally with no stratification
+  (all controls averaged together for all treatments).
+- **`cut_buffer`** affects only the strict HDR detection path, not
+  normalization directly.
+
+## Quirks
+
+- Normalization only activates when the Control column has at least one
+  TRUE/1 value. If all values are FALSE/0, the function prints a warning and
+  returns the events unchanged.
+- The frequency calculation in controls uses `Reads_Filtered` (total reads
+  after filtering), not `Reads` (total reads before filtering). This means
+  that primer dimers and low-quality reads are not counted in the denominator.
+- Events in the treatment that match control events are removed **entirely**
+  -- not just their frequency reduced. This is an all-or-nothing filter: if
+  an event looks like background in the control, it is removed from the
+  treatment, regardless of how frequent it is in the treatment.
+
+# Step 14: Summarization
+
+**File:** `amplicanSummarize.R` (`amplicanSummarize` function)
+
+## What happens
+
+The `amplicanSummarize` function computes per-experiment statistics from the
+filtered, normalized, and consensus-confirmed events. It adds five new
+columns to the configuration table:
+
+- **HDR**: the number of reads classified as homology-directed repair events
+  (only if a donor was provided).
+- **Reads_Del**: the number of reads containing at least one deletion that
+  overlaps the expected cut site.
+- **Reads_In**: the number of reads containing at least one insertion that
+  overlaps the expected cut site.
+- **Reads_Edited**: the number of reads with any edit (deletion, insertion,
+  or HDR) overlapping the cut site. This is not necessarily the sum of
+  Reads_Del and Reads_In, because a single read can have both a deletion and
+  an insertion -- it is counted once in each category but only once in
+  Reads_Edited.
+- **Reads_Frameshifted**: the number of reads where the net indel length
+  (total insertions minus total deletions) is not a multiple of 3. A net
+  indel length that is not divisible by 3 shifts the reading frame, which
+  typically disrupts protein function.
+
+The calculation proceeds in two passes. First, for each individual read, the
+function determines whether it has any deletions, insertions, HDR status, or
+frameshift. Then, these per-read results are aggregated to the experiment
+level by summing the read counts (remembering that each unique read carries a
+weight equal to how many times it was observed).
+
+Only events that are both consensus (confirmed by forward-reverse agreement,
+or accepted via promiscuous mode) and overlapping the cut site are included in
+these counts. This ensures that the statistics reflect high-confidence
+CRISPR-induced editing.
+
+## Key options
+
+This step has no direct parameters, but its results depend on all upstream
+choices: the quality filters (which reads survive), the alignment parameters
+(which events are called), the consensus mode (which events are confirmed),
+the cut-site buffer (which events overlap), and the normalization (which
+events are removed as background).
+
+## Quirks
+
+- `Reads_Edited` can be less than `Reads_Del + Reads_In` because a read with
+  both a deletion and an insertion is counted in both individual categories
+  but only once in the combined category. This is explained in the FAQ
+  vignette.
+- The frameshift calculation uses the **net** indel length across all events
+  in a read. A read with a 4-base deletion and a 1-base insertion has a net
+  indel of -3, which is divisible by 3 and therefore does **not** count as a
+  frameshift. This is biologically correct: the net effect on the reading
+  frame is what matters.
+- Experiments with no events at all get zeros for all five columns.
+
+# Step 15: Reporting
+
+**Files:** `amplicanReport.R`, `helpers_rmd.R`
+
+## What happens
+
+The final step generates a set of reports in R Markdown format. R Markdown
+files are templates that combine text, R code, and plotting instructions.
+When "knitted" (rendered), they produce polished HTML pages with tables and
+figures.
+
+The `amplicanReport` function creates six types of report:
+
+1. **ID report**: One section per experiment ID. Shows cut rates, deletions,
+   insertions, mismatches, and variants for each individual experiment. This
+   is the most detailed level.
+2. **Amplicon report**: Aggregates data by unique amplicon sequence. Useful
+   when multiple IDs share the same amplicon and you want to see the combined
+   editing picture.
+3. **Barcode report**: Grouped by barcode (sequencing pool). Shows read-level
+   statistics (total reads, filtered reads, assigned/unassigned) and the top
+   unassigned reads aligned against each other for diagnostics.
+4. **Group report**: Grouped by the user-defined Group column. Allows
+   comparison across experimental conditions, technicians, or any other
+   grouping.
+5. **Guide report**: Aggregates by unique guideRNA. Shows boxplots of cut
+   rates across all experiments using the same guide, helping assess guide
+   consistency.
+6. **Index report**: A summary page with links to all other reports and
+   overall statistics.
+
+Each report is generated from a template stored inside the package (in the
+`rmarkdown/templates` directory). The function injects the paths to the result
+files and relevant parameters into each template, then optionally knits them
+to HTML.
+
+## Key options and their impact
+
+- **`knit_reports`** (default: TRUE): When TRUE, all reports are automatically
+  rendered to HTML. This is the most time-consuming step because the reports
+  contain high-quality vector figures. When FALSE, the Rmd template files are
+  created but not rendered -- you can then open them in RStudio, customise the
+  text, colours, or layout, and knit them manually.
+- **`cut_buffer`** (default: 5): Passed through to the report templates and
+  used to highlight the expected cut-site region in plots.
+- **`top`** (default: 5): Controls how many of the most frequent unassigned
+  reads are shown in the barcode report. Each unassigned read is aligned
+  forward-against-reverse to help diagnose why it was not assigned (e.g., wrong
+  primers, primer dimers, contamination).
+
+## Quirks
+
+- The reports are always regenerated from scratch -- even if you only changed
+  a plotting colour, the entire reports folder is deleted and recreated. This
+  is why you might want to set `knit_reports = FALSE`, customise the Rmd
+  files, and knit them yourself.
+- The Rmd templates are fully editable R code. They demonstrate how to load
+  the result CSV files, filter events, and create each type of plot. You can
+  use them as starting points for your own custom analysis.
+- Report rendering can take significant time (minutes to tens of minutes)
+  depending on dataset size and the number of experiments. This is due to the
+  high-resolution figures (especially the arch plots for deletions and cuts).
+
+# Importing external alignments
+
+**File:** `helpers_general.R` (`cigarsToEvents`, `pairToEvents`)
+
+## What happens
+
+If you prefer to use an external alignment tool instead of amplican's
+built-in aligner, two functions allow you to import external alignment results
+and convert them into the same event table format that the pipeline uses
+internally. Once imported, the events can be filtered, normalised, summarised,
+and plotted using all the same downstream functions.
+
+**`cigarsToEvents`** accepts alignment results in CIGAR string format -- the
+standard way that alignment tools like BWA, minimap2, and Bowtie2 report
+alignments in SAM/BAM files. You provide the CIGAR strings, the alignment
+start positions, the query (read) sequences, the reference (amplicon)
+sequences, read IDs, mapping quality scores, sequence names, strands, and
+read counts. The function parses the CIGAR operations (M, I, D, X, N) and
+converts them into insertion, deletion, and mismatch events in the GRanges
+format. This function requires the `GenomicAlignments` package to be
+installed.
+
+**`pairToEvents`** accepts alignment results in the "pair" output format
+produced by EMBOSS needle (specifically `needleall`). This is a human-readable
+format that shows aligned sequences with match/mismatch/gap indicators. You
+provide the path to a pair-format file, and the function parses it into the
+same event table. It reads the alignment parameters (gap open, gap extend)
+and scores from the file header. Only the `needleall` "pair" format is
+supported -- other EMBOSS output formats will produce an error.
+
+## Key options
+
+These functions have no tunable parameters beyond the input data. They are
+designed to faithfully convert external alignment representations into
+amplican's internal format.
+
+## Quirks
+
+- `cigarsToEvents` handles extended CIGAR operations including "X" (mismatch)
+  and "N" (skip/ref_skip). If your aligner does not produce "X" operations
+  (some older aligners use "M" for both matches and mismatches), you will not
+  get mismatch events -- only insertions and deletions. You would need to
+  derive mismatches separately (e.g., from MD tags in the BAM file).
+- `pairToEvents` assumes that reads are not collapsed (each read has a count
+  of 1). If you have pre-collapsed your reads, you would need to adjust the
+  counts manually after import.
+- `pairToEvents` explicitly checks that the input file was produced by
+  `needleall` with the `-aformat3 pair` option. Files from `needle` or other
+  programs, or with different output formats, will be rejected with an error.
+- After importing with either function, you will need to run the downstream
+  steps (filtering, consensus, normalization, summarization) manually, since
+  these import functions bypass the `amplicanPipeline` wrapper.
+
+# Plotting and visualization
+
+**Files:** `helpers_plots.R`, `ggforce_bezier.R`, `src/bezier.cpp`
+
+## What happens
+
+amplican provides a rich set of plotting functions, all built on top of the
+`ggplot2` graphics library. These functions read the event tables produced by
+the pipeline and create publication-quality figures.
+
+The main plot types are:
+
+- **`plot_deletions`**: Draws each deletion as a smooth arch (bezier curve)
+  over the amplicon. The height of the arch represents the deletion's
+  frequency. Arches are coloured by whether the deletion overlaps the expected
+  cut site (pink for overlapping, blue for non-overlapping). This is the most
+  distinctive amplican plot type.
+- **`plot_cuts`**: Overlays deletion arches from multiple experiments on top
+  of each other, showing the distribution of cut sites across the amplicon.
+  Useful for comparing editing outcomes.
+- **`plot_insertions`**: Represents each insertion as a triangle over the
+  amplicon, with height proportional to frequency.
+- **`plot_mismatches`**: Shows mismatches as stacked bars at each position
+  along the amplicon, coloured by the replacement nucleotide (red for A, blue
+  for C, yellow for G, green for T). The top panel shows forward reads; the
+  bottom panel shows reverse reads.
+- **`plot_variants`**: Shows the most frequent mutated sequences (variants)
+  with their frequency, frameshift status, and codon-level information. Each
+  variant is annotated with the amino acid changes it would cause.
+- **`plot_heterogeneity`**: Shows the cumulative share of reads accounted for
+  by each unique sequence, sorted from most to least frequent. A steep curve
+  indicates low heterogeneity (a few dominant sequences); a flat curve
+  indicates high heterogeneity (many different sequences at similar
+  frequencies).
+- **`waffle`**: Creates a grid-of-squares chart (like a pie chart but with
+  discrete squares), used in the index report to show the proportion of good
+  vs. filtered reads.
+
+There are also "meta" versions of some plots (`metaplot_deletions`,
+`metaplot_insertions`, `metaplot_mismatches`) that aggregate data across
+multiple amplicons by using relative coordinates. These are used in the group,
+guide, and amplicon reports.
+
+The smooth arches in deletion and cut plots are rendered using custom bezier
+curve mathematics implemented in C++ (in `src/bezier.cpp`) and exposed to R
+through Rcpp (in `ggforce_bezier.R`). The C++ code computes quadratic and
+cubic bezier paths -- the same mathematical curves used in vector graphics
+software. The arch height is set to approximately 4/3 of the deletion
+frequency, following a geometric formula that makes the arch shape visually
+proportional.
+
+## Key options
+
+- Most plotting functions accept a `cut_buffer` parameter that determines
+  which region is highlighted as the expected cut site.
+- Plotting functions are designed to work with the event tables as produced by
+  the pipeline. If you modify the tables, ensure that the expected columns
+  (seqnames, start, end, width, type, counts, strand, overlaps, consensus,
+  replacement, originally) are still present.
+
+## Quirks
+
+- The plots use a consistent colour scheme: A = red, C = blue, G = yellow,
+  T = green for nucleotides; pink for cut-site-overlapping events, blue for
+  non-overlapping. Ambiguous IUPAC codes (M, R, W, S, Y, K, etc.) and N are
+  shown in grey.
+- The arch plots can become visually crowded when there are many different
+  deletions. In the reports, the figure height is automatically calculated
+  based on the number of elements to display (via the `plot_height` helper),
+  so the HTML pages may be very tall.
+- The plotting functions are exported and documented, so you can call them
+  directly on your own data subsets to create custom figures outside the
+  report framework.
+
+# Quick reference: parameter summary
+
+| Parameter | Default | Where | Effect when increased | Effect when decreased |
+|---|---|---|---|---|
+| `average_quality` | 30 | Quality filter | Fewer reads pass (stricter) | More reads pass (looser) |
+| `min_quality` | 0 | Quality filter | Fewer reads pass (stricter) | More reads pass (looser) |
+| `filter_n` | FALSE | Quality filter | Reads with N bases removed | No N filtering |
+| `primer_mismatch` | 2 | Read assignment | More reads assigned (risk misassignment) | Fewer reads assigned (more unassigned) |
+| `gap_opening` | 25 | Alignment | Fewer gaps, more mismatches | More gaps, fewer mismatches |
+| `PRIMER_DIMER` | 30 | Artifact filter | Fewer reads called primer dimer | More reads called primer dimer |
+| `cut_buffer` | 5 | Overlap detection | More events count as cut-site | Fewer events count as cut-site |
+| `promiscuous_consensus` | TRUE | Consensus | Single-strand indels kept | Single-strand indels rejected |
+| `min_freq` | 0.01 | Normalization | More control events used (more aggressive removal) | Fewer control events used (gentler removal) |
+| `donor_mismatch` | 3 | HDR detection | More reads called HDR (looser) | Fewer reads called HDR (stricter) |
+| `event_filter` | TRUE | Artifact filter | Off-target detection active | Off-target detection disabled |
+
+# Quick reference: pipeline default differences
+
+The standalone `amplicanAlign` function has different defaults from
+`amplicanPipeline` for several parameters. This is by design: the pipeline is
+tuned for convenience and permissiveness, while the standalone function gives
+you more control.
+
+| Parameter | `amplicanPipeline` | `amplicanAlign` |
+|---|---|---|
+| `min_quality` | 0 | 20 |
+| `primer_mismatch` | 2 | 0 |
+| `batch_size` | 10,000,000 | 1,000,000 |
+
+If you call `amplicanAlign` directly and then feed its results into the rest
+of the pipeline manually, be aware that these stricter defaults may produce
+different filtering behavior than the all-in-one `amplicanPipeline`.
