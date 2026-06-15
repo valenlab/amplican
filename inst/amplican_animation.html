@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>amplican — the road from FASTQ to quantification</title>
+<style>
+  :root{
+    --bg:#f8fafc; --panel:#ffffff; --ink:#0f172a; --muted:#64748b;
+    --line:#e2e8f0; --accent:#6d28d9;
+    --primer:#10b981; --cut:#f59e0b; --cutwin:#fde68a;
+    --del:#ef4444; --ins:#8b5cf6; --hdr:#0ea5e9; --pink:#ec4899;
+    --A:#ef4444; --C:#3b82f6; --G:#eab308; --T:#22c55e; --N:#94a3b8;
+    --shadow:0 1px 2px rgba(15,23,42,.06), 0 8px 24px rgba(15,23,42,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  header{display:flex;align-items:center;gap:16px;padding:14px 20px;
+    background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+  .brand{font-weight:700;letter-spacing:-.01em;font-size:15px}
+  .brand small{color:var(--muted);font-weight:500;font-size:12px;margin-left:6px}
+  .controls{margin-left:auto;display:flex;align-items:center;gap:8px}
+  .controls button{font:inherit;font-size:13px;padding:7px 12px;border:1px solid var(--line);
+    background:#fff;color:var(--ink);border-radius:8px;cursor:pointer;transition:.15s}
+  .controls button:hover{border-color:#cbd5e1;background:#f8fafc}
+  .controls button:disabled{opacity:.4;cursor:not-allowed}
+  #sceneTitle{font-size:13px;color:var(--muted);min-width:120px;text-align:center}
+  #progress{height:3px;background:var(--line);position:relative;overflow:hidden}
+  #progress::after{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--p,0%);
+    background:linear-gradient(90deg,var(--accent),#a855f7);transition:width .35s ease}
+  .stage{display:grid;grid-template-columns:1fr 320px;gap:0;align-items:stretch}
+  @media (max-width:880px){.stage{grid-template-columns:1fr}}
+  .stage-left{display:flex;flex-direction:column;min-width:0}
+  #canvasWrap{background:var(--panel);padding:8px;overflow:hidden}
+  #canvas{width:100%;height:auto;display:block;background:#fff}
+  #figurePane{background:var(--panel);padding:0 8px 12px;min-height:0}
+  #figurePane:empty{padding:0}
+  #figurePane .fig{margin-top:8px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff}
+  #figurePane .fig img{display:block;width:100%;height:auto}
+  #figurePane .fig .fcap{padding:5px 10px;font-size:11px;color:var(--muted);border-top:1px solid var(--line)}
+  #canvas text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:12px;fill:#0f172a}
+  #canvas code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  aside.caption{padding:20px 22px;border-left:1px solid var(--line);background:var(--panel)}
+  aside.caption h2{margin:.1em 0 .5em;font-size:16px;letter-spacing:-.01em}
+  aside.caption p{margin:0 0 .8em;font-size:13px;line-height:1.55;color:#334155}
+  aside.caption code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;background:#f1f5f9;border:1px solid var(--line);padding:1px 5px;border-radius:4px;color:#0f172a}
+  aside.caption .tag{display:inline-block;font-size:11px;font-weight:600;color:var(--accent);
+    background:#f5f3ff;border:1px solid #ddd6fe;padding:2px 8px;border-radius:999px;margin-bottom:10px}
+  aside.caption .stepno{color:var(--muted);font-weight:600;font-size:11px}
+  .hint{font-size:11px;color:var(--muted);margin-top:14px;border-top:1px dashed var(--line);padding-top:10px}
+  .hint kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10px;
+    background:#f1f5f9;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 5px}
+  nav#chapters{display:flex;flex-wrap:wrap;gap:6px;padding:12px 20px;background:var(--panel);
+    border-top:1px solid var(--line)}
+  nav#chapters button{font:inherit;font-size:11px;padding:5px 9px;border:1px solid var(--line);
+    background:#fff;color:var(--muted);border-radius:999px;cursor:pointer;transition:.15s;white-space:nowrap}
+  nav#chapters button:hover{border-color:#cbd5e1;color:var(--ink)}
+  nav#chapters button.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  footer{padding:10px 20px;font-size:11px;color:var(--muted);border-top:1px solid var(--line);background:var(--bg)}
+  .legend{font-size:11px;color:var(--muted);display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">amplican <small>the road from FASTQ to quantification</small></div>
+  <div class="controls">
+    <button id="prev" title="Previous (←)">◀ Prev</button>
+    <span id="sceneTitle">—</span>
+    <button id="next" title="Next (→)">Next ▶</button>
+    <button id="replay" title="Replay scene (R)">↺</button>
+  </div>
+</header>
+<div id="progress"></div>
+
+<div class="stage">
+  <div class="stage-left">
+    <div id="canvasWrap">
+      <svg id="canvas" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"></path>
+          </marker>
+          <marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#ec4899"></path>
+          </marker>
+          <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect width="6" height="6" fill="transparent"></rect>
+            <line x1="0" y1="0" x2="0" y2="6" stroke="#cbd5e1" stroke-width="1.5"></line>
+          </pattern>
+        </defs>
+      </svg>
+    </div>
+    <div id="figurePane" aria-hidden="true"></div>
+  </div>
+  <aside class="caption">
+    <div class="stepno" id="stepNo">Step 1 / 13</div>
+    <div class="tag" id="capTag">inputs</div>
+    <h2 id="capTitle">Loading…</h2>
+    <p id="capBody"></p>
+    <div class="hint">
+      Navigate with <kbd>←</kbd> <kbd>→</kbd>, <kbd>Space</kbd> for next,
+      <kbd>R</kbd> to replay, <kbd>Home</kbd>/<kbd>End</kbd> for first/last.
+    </div>
+  </aside>
+</div>
+
+<nav id="chapters"></nav>
+<footer>
+  <div class="legend">
+    <span><i style="background:#10b981"></i>primer</span>
+    <span><i style="background:#f59e0b"></i>guide / cut site (UPPERCASE)</span>
+    <span><i style="background:#fde68a"></i>cut window (+buffer)</span>
+    <span><i style="background:#ef4444"></i>deletion</span>
+    <span><i style="background:#8b5cf6"></i>insertion</span>
+    <span><i style="background:#0ea5e9"></i>HDR</span>
+    <span>mismatch:</span>
+    <span><i style="background:#ef4444"></i>A</span>
+    <span><i style="background:#3b82f6"></i>C</span>
+    <span><i style="background:#eab308"></i>G</span>
+    <span><i style="background:#22c55e"></i>T</span>
+  </div>
+</footer>
+
+<script src="amplican_animation.js"></script>
+</body>
+</html>
