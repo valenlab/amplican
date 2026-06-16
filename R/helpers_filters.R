@@ -8,8 +8,18 @@ range01 <- function(x){(x-min(x))/(max(x)-min(x))}
 #' criterion) cluster with high event count and low alignment score will be
 #' marked for filtering. When there is less than 1000
 #' scores in \code{aln} it will filter nothing.
+#'
+#' As a safety cap, if the candidate cluster would remove more than
+#' \code{max_remove_filterLQR} fraction of reads (e.g. at high CRISPR editing
+#' rates the edited majority can be mistaken for off-targets), filtering is
+#' disabled and a warning is issued. CLARA is seeded with \code{seed} for
+#' reproducibility.
 #' @param aln (data.frame) Should contain events from alignments in GRanges
 #' style with columns eg. seqnames, width, start, end, score.
+#' @param seed (numeric) Seed fed to \code{set.seed()} before each CLARA run so
+#' results are reproducible.
+#' @param max_remove_filterLQR (numeric) Fraction of reads (0-1) above which the
+#' off-target filter is disabled with a warning. Defaults to 0.25.
 #' @return (logical vector) where TRUE indicates events that are
 #' potential off-targets or low quality alignments.
 #' @export
@@ -22,14 +32,16 @@ range01 <- function(x){(x-min(x))/(max(x)-min(x))}
 #' aln <- aln[seqnames == "ID_1"] # for first experiment
 #' findLQR(aln)
 #'
-findLQR <- function(aln) {
+findLQR <- function(aln, seed = 0, max_remove_filterLQR = 0.25) {
   data.table::setDT(aln)
   if (nrow(aln) < 1000) return(logical(nrow(aln)))
 
-  aln_n <- aln[, list(events = .N/max(end), score = max(score)),
+  aln_n <- aln[, list(events = .N/max(end), score = max(score),
+                      counts = max(counts)),
                by = c("read_id", "strand", "seqnames")]
   aln_n <- aln_n[, list(events = events/length(unique(strand)),
-                        score = score/length(unique(strand))),
+                        score = score/length(unique(strand)),
+                        counts = max(counts)),
                  by = c("read_id", "seqnames")]
 
   x <- cbind(range01(aln_n$score), range01(aln_n$events))
@@ -39,10 +51,12 @@ findLQR <- function(aln) {
   # Minimum practical size for clustering to be effective.
   if (sampsize < 100) return(logical(nrow(aln)))
 
+  set.seed(seed)
   k2 <- cluster::clara(x, 2, samples = 500, sampsize = sampsize)
   # silhouette criterion is
   k2s <- mean(cluster::silhouette(k2)[, "sil_width"])
   if (!is.finite(k2s)) return(logical(nrow(aln)))
+  set.seed(seed)
   k3 <- cluster::clara(x, 3, samples = 500, sampsize = sampsize)
   k3s <-  mean(cluster::silhouette(k3)[, "sil_width"])
   if (!is.finite(k3s)) return(logical(nrow(aln)))
@@ -55,6 +69,16 @@ findLQR <- function(aln) {
                      function(x) sqrt((x[1] - 1) ^ 2 + x[2] ^ 2))
     rows_to_filter <- k3$clustering == which.max(centers)
     bs <- aln_n[rows_to_filter, ]
+    # Safety cap: refuse to cull when the candidate cluster is a large fraction
+    # of reads (e.g. the edited majority at high CRISPR rates).
+    if (sum(bs$counts) / sum(aln_n$counts) > max_remove_filterLQR) {
+      warning(
+        "Our off-target detection algorithm would remove more than ",
+        round(max_remove_filterLQR * 100), "% of your reads in sample ",
+        aln_n$seqnames[1], ", therefore it is disabled."
+      )
+      return(logical(nrow(aln)))
+    }
     return(aln$seqnames %in% bs$seqnames & aln$read_id %in% bs$read_id)
   }
 }

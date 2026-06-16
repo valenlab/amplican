@@ -1,0 +1,11 @@
+{
+  "source": "benchmark: 270mut_30wt_4freq_150readlen / ID=nlgn4a",
+  "editing_rate_truth": 90,
+  "pipeline_low_score": 1890,
+  "description": "bug also fires for large deletions -> editing-fraction driven",
+  "desired": {
+    "should_filter": false,
+    "reason": "same root cause as case 01"
+  },
+  "current_filtered_counts": 1890
+}

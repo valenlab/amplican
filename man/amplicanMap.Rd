@@ -36,15 +36,15 @@ amplicanMap(events, config)
 
 }
 \seealso{
-Other analysis steps: 
-\code{\link{amplicanAlign}()},
-\code{\link{amplicanConsensus}()},
-\code{\link{amplicanFilter}()},
-\code{\link{amplicanNormalize}()},
-\code{\link{amplicanOverlap}()},
-\code{\link{amplicanPipeline}()},
-\code{\link{amplicanPipelineConservative}()},
-\code{\link{amplicanReport}()},
-\code{\link{amplicanSummarize}()}
+Other analysis steps:
+\code{\link[=amplicanAlign]{amplicanAlign()}},
+\code{\link[=amplicanConsensus]{amplicanConsensus()}},
+\code{\link[=amplicanFilter]{amplicanFilter()}},
+\code{\link[=amplicanNormalize]{amplicanNormalize()}},
+\code{\link[=amplicanOverlap]{amplicanOverlap()}},
+\code{\link[=amplicanPipeline]{amplicanPipeline()}},
+\code{\link[=amplicanPipelineConservative]{amplicanPipelineConservative()}},
+\code{\link[=amplicanReport]{amplicanReport()}},
+\code{\link[=amplicanSummarize]{amplicanSummarize()}}
 }
 \concept{analysis steps}

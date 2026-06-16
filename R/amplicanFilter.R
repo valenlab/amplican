@@ -19,6 +19,11 @@
 #' detection. For a given read it will be recognized as PRIMER DIMER when
 #' alignment will introduce gap of size bigger than: \cr
 #' \code{length of amplicon - (lengths of PRIMERS + PRIMER_DIMER value)}
+#' @param seed (numeric) Seed fed to \code{set.seed()} before each CLARA run in
+#' \code{\link{findLQR}} so results are reproducible.
+#' @param max_remove_filterLQR (numeric) Fraction of reads (0-1) above which the
+#' off-target filter (\code{\link{findLQR}}) disables itself with a warning.
+#' Defaults to 0.25.
 #' @return (aln) Reduced by events classified as PRIMER DIMER or overlapping
 #' primers.
 #' @export
@@ -34,7 +39,8 @@
 #'               package = "amplican"))
 #' amplicanFilter(aln, cfgT, 30)
 #'
-amplicanFilter <- function(aln, cfgT, PRIMER_DIMER) {
+amplicanFilter <- function(aln, cfgT, PRIMER_DIMER, seed = 0,
+                           max_remove_filterLQR = 0.25) {
 
   eOP <- findEOP(aln, cfgT)
   aln <- aln[!eOP, ]
@@ -52,7 +58,8 @@ amplicanFilter <- function(aln, cfgT, PRIMER_DIMER) {
   bad_reads_list <- lapply(seq_len(nrow(cfgT)), function(i) {
     aln_id <- aln[.(cfgT$ID[i]), on = "seqnames", nomatch = NULL]
     if (nrow(aln_id) == 0) return(NULL)
-    onlyBR <- aln_id[findLQR(aln_id), ]
+    onlyBR <- aln_id[findLQR(aln_id, seed = seed,
+                             max_remove_filterLQR = max_remove_filterLQR), ]
     onlyBR <- unique(onlyBR, by = "read_id")
     if (nrow(onlyBR) > 0) return(onlyBR[, c("seqnames", "read_id"), with = FALSE])
     return(NULL)

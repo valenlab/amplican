@@ -1,0 +1,11 @@
+{
+  "source": "benchmark: 0mut_300wt_1freq_150readlen / ID=nlgn4a",
+  "editing_rate_truth": 0,
+  "pipeline_low_score": 0,
+  "description": "WT only: nothing to filter",
+  "desired": {
+    "should_filter": false,
+    "reason": "regression guard"
+  },
+  "current_filtered_counts": 0
+}

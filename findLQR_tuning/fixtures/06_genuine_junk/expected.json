@@ -1,0 +1,11 @@
+{
+  "source": "hand-built: WT majority + edited minority + junk minority",
+  "editing_rate_truth": null,
+  "description": "low-score/high-event junk minority; today findLQR correctly removes it",
+  "desired": {
+    "should_filter": true,
+    "target_cluster": "junk",
+    "reason": "minority junk must still be removed; the fix must not over-correct"
+  },
+  "current_filtered_counts": 120
+}

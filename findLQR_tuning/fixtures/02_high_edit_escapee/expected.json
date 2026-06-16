@@ -1,0 +1,11 @@
+{
+  "source": "benchmark: 270mut_30wt_1freq_150readlen / ID=cnsta",
+  "editing_rate_truth": 90,
+  "pipeline_low_score": 0,
+  "description": "borderline: k2 happens to beat k3 so nothing filtered",
+  "desired": {
+    "should_filter": false,
+    "reason": "same population as case 01; fix must make ALL 90% samples behave like this"
+  },
+  "current_filtered_counts": 0
+}

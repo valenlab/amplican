@@ -25,6 +25,7 @@ amplicanPipeline(
   donor_strict = FALSE,
   PRIMER_DIMER = 30,
   event_filter = TRUE,
+  max_remove_filterLQR = 0.25,
   cut_buffer = 5,
   promiscuous_consensus = TRUE,
   normalize = c("guideRNA", "Group"),
@@ -146,7 +147,12 @@ alignment will introduce gap of size bigger than: \cr
 \code{length of amplicon - (lengths of PRIMERS + PRIMER_DIMER value)}}
 
 \item{event_filter}{(logical) Whether detection of offtarget reads,
-should be enabled.}
+should be enabled. Defaults to \code{FALSE} since at high editing rates the
+unsupervised detector can mistake the edited majority for off-targets.}
+
+\item{max_remove_filterLQR}{(numeric) Fraction of reads (0-1) above which the
+off-target filter (\code{\link{findLQR}}) disables itself with a warning.
+Only relevant when \code{event_filter = TRUE}.}
 
 \item{cut_buffer}{The number of bases by which extend expected cut sites
 (specified as UPPER case letters in the amplicon) in 5' and 3' directions.}
@@ -198,15 +204,15 @@ amplicanPipeline(config, fastq_folder, results_folder, knit_reports = FALSE)
 
 }
 \seealso{
-Other analysis steps: 
-\code{\link{amplicanAlign}()},
-\code{\link{amplicanConsensus}()},
-\code{\link{amplicanFilter}()},
-\code{\link{amplicanMap}()},
-\code{\link{amplicanNormalize}()},
-\code{\link{amplicanOverlap}()},
-\code{\link{amplicanPipelineConservative}()},
-\code{\link{amplicanReport}()},
-\code{\link{amplicanSummarize}()}
+Other analysis steps:
+\code{\link[=amplicanAlign]{amplicanAlign()}},
+\code{\link[=amplicanConsensus]{amplicanConsensus()}},
+\code{\link[=amplicanFilter]{amplicanFilter()}},
+\code{\link[=amplicanMap]{amplicanMap()}},
+\code{\link[=amplicanNormalize]{amplicanNormalize()}},
+\code{\link[=amplicanOverlap]{amplicanOverlap()}},
+\code{\link[=amplicanPipelineConservative]{amplicanPipelineConservative()}},
+\code{\link[=amplicanReport]{amplicanReport()}},
+\code{\link[=amplicanSummarize]{amplicanSummarize()}}
 }
 \concept{analysis steps}

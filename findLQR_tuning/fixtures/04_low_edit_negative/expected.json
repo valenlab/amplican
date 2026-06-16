@@ -1,0 +1,11 @@
+{
+  "source": "benchmark: 100mut_200wt_1freq_150readlen / ID=nlgn4a",
+  "editing_rate_truth": 33.3,
+  "pipeline_low_score": 0,
+  "description": "33.3% editing: correctly not filtered",
+  "desired": {
+    "should_filter": false,
+    "reason": "regression guard"
+  },
+  "current_filtered_counts": 0
+}

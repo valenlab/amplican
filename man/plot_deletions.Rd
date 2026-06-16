@@ -54,14 +54,14 @@ p <- plot_deletions(alignments[alignments$consensus, ],
 
 }
 \seealso{
-Other specialized plots: 
-\code{\link{metaplot_deletions}()},
-\code{\link{metaplot_insertions}()},
-\code{\link{metaplot_mismatches}()},
-\code{\link{plot_cuts}()},
-\code{\link{plot_heterogeneity}()},
-\code{\link{plot_insertions}()},
-\code{\link{plot_mismatches}()},
-\code{\link{plot_variants}()}
+Other specialized plots:
+\code{\link[=metaplot_deletions]{metaplot_deletions()}},
+\code{\link[=metaplot_insertions]{metaplot_insertions()}},
+\code{\link[=metaplot_mismatches]{metaplot_mismatches()}},
+\code{\link[=plot_cuts]{plot_cuts()}},
+\code{\link[=plot_heterogeneity]{plot_heterogeneity()}},
+\code{\link[=plot_insertions]{plot_insertions()}},
+\code{\link[=plot_mismatches]{plot_mismatches()}},
+\code{\link[=plot_variants]{plot_variants()}}
 }
 \concept{specialized plots}

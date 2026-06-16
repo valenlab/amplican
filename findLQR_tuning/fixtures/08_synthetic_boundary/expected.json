@@ -1,0 +1,11 @@
+{
+  "source": "hand-built: edited majority + WT minority + junk minority",
+  "editing_rate_truth": null,
+  "description": "under high editing findLQR currently culls NOTHING, i.e. it misses genuine junk (false-negative) -- the complement of the over-culling bug. Desired: cull only junk.",
+  "desired": {
+    "should_filter": true,
+    "target_cluster": "junk",
+    "reason": "remove the small low-score junk cluster; the edited majority must survive"
+  },
+  "current_filtered_counts": 0
+}

@@ -51,7 +51,7 @@ amplicanPipe <- function(min_freq_default) {
     primer_mismatch = 2,
     donor_mismatch = 3, donor_strict = FALSE,
     PRIMER_DIMER = 30,
-    event_filter = TRUE, cut_buffer = 5,
+    event_filter = TRUE, max_remove_filterLQR = 0.25, cut_buffer = 5,
     promiscuous_consensus = TRUE, normalize = c("guideRNA", "Group"),
     min_freq = min_freq_default,
     continue = TRUE, sample = 0, seed = 0
@@ -258,6 +258,8 @@ amplicanPipe <- function(min_freq_default) {
         paste("Consensus:          ", promiscuous_consensus),
         paste("Normalize:          ", toString(normalize)),
         paste("PRIMER DIMER buffer:", PRIMER_DIMER),
+        paste("Event filter:       ", event_filter),
+        paste("Max remove filterLQR:", max_remove_filterLQR),
         paste("Cut buffer:", cut_buffer),
         "Scoring Matrix:"
       ), logFileConn)
@@ -312,7 +314,8 @@ amplicanPipe <- function(min_freq_default) {
           if (nrow(aln_id) == 0 || cfgT$Donor[i] != "") {
             return(NULL)
           }
-          onlyBR <- aln_id[findLQR(aln_id), ]
+          onlyBR <- aln_id[findLQR(aln_id, seed = seed,
+                                   max_remove_filterLQR = max_remove_filterLQR), ]
           onlyBR <- unique(onlyBR, by = "read_id")
 
           if (nrow(onlyBR) > 0) {
@@ -532,7 +535,11 @@ amplicanPipe <- function(min_freq_default) {
 #' alignment will introduce gap of size bigger than: \cr
 #' \code{length of amplicon - (lengths of PRIMERS + PRIMER_DIMER value)}
 #' @param event_filter (logical) Whether detection of offtarget reads,
-#' should be enabled.
+#' should be enabled. Defaults to \code{FALSE} since at high editing rates the
+#' unsupervised detector can mistake the edited majority for off-targets.
+#' @param max_remove_filterLQR (numeric) Fraction of reads (0-1) above which the
+#' off-target filter (\code{\link{findLQR}}) disables itself with a warning.
+#' Only relevant when \code{event_filter = TRUE}.
 #' @param cut_buffer The number of bases by which extend expected cut sites
 #' (specified as UPPER case letters in the amplicon) in 5' and 3' directions.
 #' @param promiscuous_consensus (boolean) Whether rules of
@@ -584,7 +591,8 @@ amplicanPipe <- function(min_freq_default) {
 # gap_extension = 0
 # fastqfiles = 0.5
 # PRIMER_DIMER = 30
-# event_filter = TRUE
+# event_filter = FALSE
+# max_remove_filterLQR = 0.25
 # cut_buffer = 5
 # primer_mismatch = 1
 # promiscuous_consensus = TRUE

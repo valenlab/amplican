@@ -42,15 +42,15 @@ amplicanSummarize(aln, cfgT)
 
 }
 \seealso{
-Other analysis steps: 
-\code{\link{amplicanAlign}()},
-\code{\link{amplicanConsensus}()},
-\code{\link{amplicanFilter}()},
-\code{\link{amplicanMap}()},
-\code{\link{amplicanNormalize}()},
-\code{\link{amplicanOverlap}()},
-\code{\link{amplicanPipeline}()},
-\code{\link{amplicanPipelineConservative}()},
-\code{\link{amplicanReport}()}
+Other analysis steps:
+\code{\link[=amplicanAlign]{amplicanAlign()}},
+\code{\link[=amplicanConsensus]{amplicanConsensus()}},
+\code{\link[=amplicanFilter]{amplicanFilter()}},
+\code{\link[=amplicanMap]{amplicanMap()}},
+\code{\link[=amplicanNormalize]{amplicanNormalize()}},
+\code{\link[=amplicanOverlap]{amplicanOverlap()}},
+\code{\link[=amplicanPipeline]{amplicanPipeline()}},
+\code{\link[=amplicanPipelineConservative]{amplicanPipelineConservative()}},
+\code{\link[=amplicanReport]{amplicanReport()}}
 }
 \concept{analysis steps}

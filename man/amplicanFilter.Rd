@@ -5,7 +5,7 @@
 \title{Filter Events Overlapping Primers, PRIMER DIMERS and Low Alignment Score
 Events.}
 \usage{
-amplicanFilter(aln, cfgT, PRIMER_DIMER)
+amplicanFilter(aln, cfgT, PRIMER_DIMER, seed = 0, max_remove_filterLQR = 0.25)
 }
 \arguments{
 \item{aln}{(data.frame) Should contain events from alignments in GRanges
@@ -18,6 +18,13 @@ Amplicon.}
 detection. For a given read it will be recognized as PRIMER DIMER when
 alignment will introduce gap of size bigger than: \cr
 \code{length of amplicon - (lengths of PRIMERS + PRIMER_DIMER value)}}
+
+\item{seed}{(numeric) Seed fed to \code{set.seed()} before each CLARA run in
+\code{\link{findLQR}} so results are reproducible.}
+
+\item{max_remove_filterLQR}{(numeric) Fraction of reads (0-1) above which the
+off-target filter (\code{\link{findLQR}}) disables itself with a warning.
+Defaults to 0.25.}
 }
 \value{
 (aln) Reduced by events classified as PRIMER DIMER or overlapping
@@ -48,15 +55,15 @@ amplicanFilter(aln, cfgT, 30)
 \seealso{
 \code{\link{findPD}} and \code{\link{findEOP}}
 
-Other analysis steps: 
-\code{\link{amplicanAlign}()},
-\code{\link{amplicanConsensus}()},
-\code{\link{amplicanMap}()},
-\code{\link{amplicanNormalize}()},
-\code{\link{amplicanOverlap}()},
-\code{\link{amplicanPipeline}()},
-\code{\link{amplicanPipelineConservative}()},
-\code{\link{amplicanReport}()},
-\code{\link{amplicanSummarize}()}
+Other analysis steps:
+\code{\link[=amplicanAlign]{amplicanAlign()}},
+\code{\link[=amplicanConsensus]{amplicanConsensus()}},
+\code{\link[=amplicanMap]{amplicanMap()}},
+\code{\link[=amplicanNormalize]{amplicanNormalize()}},
+\code{\link[=amplicanOverlap]{amplicanOverlap()}},
+\code{\link[=amplicanPipeline]{amplicanPipeline()}},
+\code{\link[=amplicanPipelineConservative]{amplicanPipelineConservative()}},
+\code{\link[=amplicanReport]{amplicanReport()}},
+\code{\link[=amplicanSummarize]{amplicanSummarize()}}
 }
 \concept{analysis steps}

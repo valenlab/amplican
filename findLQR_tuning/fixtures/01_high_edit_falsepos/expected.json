@@ -1,0 +1,11 @@
+{
+  "source": "benchmark: 270mut_30wt_1freq_150readlen / ID=nlgn4a",
+  "editing_rate_truth": 90,
+  "pipeline_low_score": 1866,
+  "description": "THE BUG: 90% editing, edited reads culled as 'junk'",
+  "desired": {
+    "should_filter": false,
+    "reason": "edited reads are the majority; culling them is the failure"
+  },
+  "current_filtered_counts": 1866
+}

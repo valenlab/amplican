@@ -37,8 +37,8 @@ findPD(aln, cfgT)
 \seealso{
 \code{\link{findEOP}} \code{\link{findLQR}}
 
-Other filters: 
-\code{\link{findEOP}()},
-\code{\link{findLQR}()}
+Other filters:
+\code{\link[=findEOP]{findEOP()}},
+\code{\link[=findLQR]{findLQR()}}
 }
 \concept{filters}

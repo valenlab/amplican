@@ -4,11 +4,17 @@
 \alias{findLQR}
 \title{Find Off-targets and Fragmented alignments from reads.}
 \usage{
-findLQR(aln)
+findLQR(aln, seed = 0, max_remove_filterLQR = 0.25)
 }
 \arguments{
 \item{aln}{(data.frame) Should contain events from alignments in GRanges
 style with columns eg. seqnames, width, start, end, score.}
+
+\item{seed}{(numeric) Seed fed to \code{set.seed()} before each CLARA run so
+results are reproducible.}
+
+\item{max_remove_filterLQR}{(numeric) Fraction of reads (0-1) above which the
+off-target filter is disabled with a warning. Defaults to 0.25.}
 }
 \value{
 (logical vector) where TRUE indicates events that are
@@ -22,6 +28,13 @@ criterion) cluster with high event count and low alignment score will be
 marked for filtering. When there is less than 1000
 scores in \code{aln} it will filter nothing.
 }
+\details{
+As a safety cap, if the candidate cluster would remove more than
+\code{max_remove_filterLQR} fraction of reads (e.g. at high CRISPR editing
+rates the edited majority can be mistaken for off-targets), filtering is
+disabled and a warning is issued. CLARA is seeded with \code{seed} for
+reproducibility.
+}
 \examples{
 file_path <- system.file("extdata", "results", "alignments",
                          "raw_events.csv", package = "amplican")
@@ -33,8 +46,8 @@ findLQR(aln)
 \seealso{
 \code{\link{findPD}} \code{\link{findEOP}}
 
-Other filters: 
-\code{\link{findEOP}()},
-\code{\link{findPD}()}
+Other filters:
+\code{\link[=findEOP]{findEOP()}},
+\code{\link[=findPD]{findPD()}}
 }
 \concept{filters}
