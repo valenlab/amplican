@@ -46,8 +46,8 @@ inspect_case <- function(aln, case_name) {
     return(invisible(out))
   }
   ss <- min(1000, nrow(an))
-  k2 <- clara(cbind(an$nscore, an$nevents), 2, samples = 500, sampsize = ss)
-  k3 <- clara(cbind(an$nscore, an$nevents), 3, samples = 500, sampsize = ss)
+  k2 <- clara(cbind(an$nscore, an$nevents), 2, samples = 50, sampsize = ss, rngR = TRUE)
+  k3 <- clara(cbind(an$nscore, an$nevents), 3, samples = 50, sampsize = ss, rngR = TRUE)
   k2s <- mean(silhouette(k2)[, 3]); k3s <- mean(silhouette(k3)[, 3])
   fires <- k3s > k2s
   centers <- apply(k3$medoids, 1, function(z) sqrt((z[1] - 1) ^ 2 + z[2] ^ 2))

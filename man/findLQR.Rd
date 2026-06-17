@@ -32,8 +32,8 @@ scores in \code{aln} it will filter nothing.
 As a safety cap, if the candidate cluster would remove more than
 \code{max_remove_filterLQR} fraction of reads (e.g. at high CRISPR editing
 rates the edited majority can be mistaken for off-targets), filtering is
-disabled and a warning is issued. CLARA is seeded with \code{seed} for
-reproducibility.
+disabled and a warning is issued. CLARA is run with \code{rngR = TRUE} and
+seeded with \code{seed} before each run, so results are reproducible.
 }
 \examples{
 file_path <- system.file("extdata", "results", "alignments",

@@ -12,8 +12,8 @@ range01 <- function(x){(x-min(x))/(max(x)-min(x))}
 #' As a safety cap, if the candidate cluster would remove more than
 #' \code{max_remove_filterLQR} fraction of reads (e.g. at high CRISPR editing
 #' rates the edited majority can be mistaken for off-targets), filtering is
-#' disabled and a warning is issued. CLARA is seeded with \code{seed} for
-#' reproducibility.
+#' disabled and a warning is issued. CLARA is run with \code{rngR = TRUE} and
+#' seeded with \code{seed} before each run, so results are reproducible.
 #' @param aln (data.frame) Should contain events from alignments in GRanges
 #' style with columns eg. seqnames, width, start, end, score.
 #' @param seed (numeric) Seed fed to \code{set.seed()} before each CLARA run so
@@ -52,12 +52,12 @@ findLQR <- function(aln, seed = 0, max_remove_filterLQR = 0.25) {
   if (sampsize < 100) return(logical(nrow(aln)))
 
   set.seed(seed)
-  k2 <- cluster::clara(x, 2, samples = 500, sampsize = sampsize)
+  k2 <- cluster::clara(x, 2, samples = 50, sampsize = sampsize, rngR = TRUE)
   # silhouette criterion is
   k2s <- mean(cluster::silhouette(k2)[, "sil_width"])
   if (!is.finite(k2s)) return(logical(nrow(aln)))
   set.seed(seed)
-  k3 <- cluster::clara(x, 3, samples = 500, sampsize = sampsize)
+  k3 <- cluster::clara(x, 3, samples = 50, sampsize = sampsize, rngR = TRUE)
   k3s <-  mean(cluster::silhouette(k3)[, "sil_width"])
   if (!is.finite(k3s)) return(logical(nrow(aln)))
   if (k2s >= k3s) return(logical(nrow(aln))) else {
