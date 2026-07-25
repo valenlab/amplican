@@ -264,7 +264,7 @@ is_hdr_strict <- function(aln, cfgT, scoring_matrix,
   for (i in seq_len(dim(cfgT)[1])) {
     amplicon <- get_seq(cfgT, cfgT$ID[i])
     donor <- get_seq(cfgT, cfgT$ID[i], "Donor")
-    aln_id <- aln$seqnames == cfgT$ID[i]
+    aln_id <- !is.na(aln$seqnames) & aln$seqnames == cfgT$ID[i]
 
     if (!any(aln_id) | donor == "") next()
 
@@ -280,7 +280,7 @@ is_hdr_strict <- function(aln, cfgT, scoring_matrix,
     # extract events we want to find to quantify read as fully HDR
     hdr_events <- amplican::getEvents(pat, subj,
       scores = score(d_a_aln),
-      ID = aln$seqnames[aln_id][1], strand_info = "+",
+      ID = cfgT$ID[i], strand_info = "+",
       ampl_start = start(subj)
     )
     if (length(hdr_events) == 0) next()

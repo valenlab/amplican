@@ -227,14 +227,14 @@ amplicanPipe <- function(min_freq_default) {
         file.rename(cfgT_temp_file_writing, cfgT_temp_file)
 
         message("Saving complete events - unfiltered...")
-        aln <- data.table::rbindlist(lapply(chunk_results, function(x) data.table::fread(x$events_file)), fill = TRUE)
+        aln <- data.table::rbindlist(lapply(chunk_results, function(x) data.table::fread(x$events_file, na.strings = "")), fill = TRUE)
         re_file_temp <- paste0(re_file, ".temp")
         data.table::fwrite(aln, re_file_temp)
         file.rename(re_file_temp, re_file)
         message("Saved complete events - unfiltered.")
       } else {
         message("Reading complete events - unfiltered.")
-        aln <- data.table::fread(re_file)
+        aln <- data.table::fread(re_file, na.strings = "")
         cfgT <- readRDS(cfgT_temp_file)
       }
     }
@@ -348,7 +348,7 @@ amplicanPipe <- function(min_freq_default) {
       file.rename(cs_file_temp, cs_file)
     } else {
       message("Reading shifted events - filtered.")
-      aln <- fread(efs_file)
+      aln <- fread(efs_file, na.strings = "")
       cfgT <- fread(cs_file)
     }
 
@@ -359,7 +359,7 @@ amplicanPipe <- function(min_freq_default) {
     if (!file.exists(efsn_file)) {
       message("Normalizing events...")
       # we remove all N as they are just noise from poor sequencing
-      aln <- aln[aln$replacement != "N", ]
+      aln <- aln[!is.na(aln$replacement) & aln$replacement != "N", ]
       aln <- amplicanNormalize(aln, cfgT, min_freq = min_freq, add = normalize)
       message("Saving normalized events...")
       efsn_file_temp <- paste0(efsn_file, ".temp")
@@ -368,7 +368,7 @@ amplicanPipe <- function(min_freq_default) {
       message("Saved normalized events.")
     } else {
       message("Reading normalized events.")
-      aln <- fread(efsn_file)
+      aln <- fread(efsn_file, na.strings = "")
     }
 
     if (donor_strict) {
