@@ -1,3 +1,19 @@
+amplican 1.35.6
+-----------------------
+    o Handle missing forward-primer offsets when extracting reverse-only reads.
+    o Preserve valid empty results when assembling fully filtered alignments.
+    o Extend upstream truth tests and mutation checks for assignment, orientation,
+      read multiplicities, batching, sampling, resume, and parallel execution.
+    o Clarify that primer matching uses the best overlap alignment.
+    o Count paired control evidence once per read/event during normalization.
+      The control-frequency threshold remains strictly greater than min_freq.
+    o Correct relative cut-site overlap when a nonzero cut buffer is used.
+    o Recognize zero-start relative events in primer-overlap filtering.
+    o Resolve disagreements between two clipped reads without strand bias.
+    o Aggregate off-target features and safety-cap counts once per read.
+      Cached filtered/normalized event tables and summaries require regeneration.
+    o Extend core decision tests and the developer mutation audit.
+
 amplican 1.35.5
 -----------------------
     o Correct mismatch reference and replacement labels around insertions,

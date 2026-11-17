@@ -45,7 +45,7 @@ Imports:
     cluster (>= 2.1.4),
     rlang (>= 1.2.0)
 Suggests:
-    testthat,
+    testthat (>= 3.2.0),
     BiocStyle,
     GenomicAlignments
 Collate: 
@@ -68,4 +68,4 @@ Collate:
     'helpers_plots.R'
 VignetteBuilder: knitr
 Encoding: UTF-8
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.1

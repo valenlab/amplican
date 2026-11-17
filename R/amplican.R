@@ -39,6 +39,33 @@
   )
 }
 
+extractAlignmentChunk <- function(path, write_alignments_format) {
+  chunk_aln <- readRDS(path)
+  csv_file <- gsub("_aln.rds", "_events.csv", path)
+
+  if (!file.exists(csv_file)) {
+    if (!"None" %in% write_alignments_format) {
+      for (frmt in write_alignments_format) {
+        frmt_file <- paste0(path, ".", frmt)
+        frmt_temp <- paste0(frmt_file, ".temp")
+        writeAlignments(chunk_aln, frmt_temp, frmt)
+        file.rename(frmt_temp, frmt_file)
+      }
+    }
+    chunk_events <- extractEvents(chunk_aln, use_parallel = FALSE)
+    csv_file_temp <- paste0(csv_file, ".temp")
+    data.table::fwrite(chunk_events, csv_file_temp)
+    file.rename(csv_file_temp, csv_file)
+  }
+
+  return(list(
+    events_file = csv_file,
+    unData = unassignedData(chunk_aln),
+    bdData = barcodeData(chunk_aln),
+    cfgT = experimentData(chunk_aln)
+  ))
+}
+
 amplicanPipe <- function(min_freq_default) {
   function(
     config, fastq_folder, results_folder, knit_reports = TRUE,
@@ -161,32 +188,9 @@ amplicanPipe <- function(min_freq_default) {
         message("Extracting events and compiling statistics...")
         p <- if (!use_parallel) BiocParallel::SerialParam() else BiocParallel::bpparam()
 
-        chunk_results <- BiocParallel::bplapply(aln_paths, function(path) {
-          chunk_aln <- readRDS(path)
-          csv_file <- gsub("_aln.rds", "_events.csv", path)
-
-          if (!file.exists(csv_file)) {
-            if (!"None" %in% write_alignments_format) {
-              for (frmt in write_alignments_format) {
-                frmt_file <- paste0(path, ".", frmt)
-                frmt_temp <- paste0(frmt_file, ".temp")
-                writeAlignments(chunk_aln, frmt_temp, frmt)
-                file.rename(frmt_temp, frmt_file)
-              }
-            }
-            chunk_events <- extractEvents(chunk_aln, use_parallel = FALSE)
-            csv_file_temp <- paste0(csv_file, ".temp")
-            data.table::fwrite(chunk_events, csv_file_temp)
-            file.rename(csv_file_temp, csv_file)
-          }
-
-          return(list(
-            events_file = csv_file,
-            unData = unassignedData(chunk_aln),
-            bdData = barcodeData(chunk_aln),
-            cfgT = experimentData(chunk_aln)
-          ))
-        }, BPPARAM = p)
+        chunk_results <- BiocParallel::bplapply(
+          aln_paths, FUN = extractAlignmentChunk,
+          write_alignments_format = write_alignments_format, BPPARAM = p)
 
         if (!"None" %in% write_alignments_format) {
           for (frmt in write_alignments_format) {

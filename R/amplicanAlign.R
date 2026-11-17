@@ -116,13 +116,14 @@ amplicanAlign <- function(
   }
 
   # Replace memory-exhaustive Reduce approach with flat unlist mapping
+  unassigned <- data.table::rbindlist(lapply(finalAES, unassignedData), fill = TRUE)
   finalAES <- methods::new("AlignmentsExperimentSet",
                fwdReads = unlist(unname(lapply(finalAES, fwdReads)), recursive = FALSE),
                rveReads = unlist(unname(lapply(finalAES, rveReads)), recursive = FALSE),
                fwdReadsType = unlist(unname(lapply(finalAES, fwdReadsType)), recursive = FALSE),
                rveReadsType = unlist(unname(lapply(finalAES, rveReadsType)), recursive = FALSE),
                readCounts = unlist(unname(lapply(finalAES, readCounts)), recursive = FALSE),
-               unassignedData = as.data.frame(data.table::rbindlist(lapply(finalAES, unassignedData), fill=TRUE)),
+               unassignedData = if (ncol(unassigned)) as.data.frame(unassigned) else NULL,
                experimentData = as.data.frame(data.table::rbindlist(lapply(finalAES, experimentData), fill=TRUE)),
                barcodeData = as.data.frame(data.table::rbindlist(lapply(finalAES, barcodeData), fill=TRUE)))
 

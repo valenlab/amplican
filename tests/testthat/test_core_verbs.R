@@ -30,9 +30,9 @@ test_that("amplicanFilter correctly removes EOP and PD from real data", {
   
   # Inject PD (Primer Dimer) - large deletion spanning almost the whole amplicon
   pd_event <- aln_test[1, ]
-  pd_event$start <- 1
-  pd_event$end <- 150 
-  pd_event$width <- 150
+  pd_event$start <- 10
+  pd_event$end <- 180
+  pd_event$width <- 171
   pd_event$type <- "deletion"
   pd_event$read_id <- 8888
   
@@ -98,37 +98,29 @@ test_that("amplicanNormalize successfully scrubs events found in controls", {
   expect_true(5555 %in% norm_aln$read_id)
 })
 
-test_that("amplicanSummarize correctly logs frameshifts and edits", {
-  # It takes a data.table and cfgT, counting frameshifts.
-  aln_test <- data.table::copy(aln)
-  cfgT_test <- data.table::copy(cfgT)
-  
-  # Add known frameshift (width indivisible by 3) and known edit
-  fs_event <- aln_test[1, ]
-  fs_event$seqnames <- "ID_1"
-  fs_event$width <- 4 # 4 indivisible by 3
-  fs_event$type <- "deletion"
-  fs_event$read_id <- 1111
-  fs_event$starts_in_guide <- TRUE
-  fs_event$overlaps <- TRUE
-  fs_event$consensus <- TRUE
-  fs_event$counts <- 1
-  
-  inframe_event <- aln_test[1, ]
-  inframe_event$seqnames <- "ID_2"
-  inframe_event$width <- 3 # 3 divisible by 3 -> not frameshift, but edited
-  inframe_event$type <- "insertion"
-  inframe_event$read_id <- 2222
-  inframe_event$starts_in_guide <- TRUE
-  inframe_event$overlaps <- TRUE
-  inframe_event$consensus <- TRUE
-  inframe_event$counts <- 1
-  
-  aln_test <- data.table::rbindlist(list(aln_test, fs_event, inframe_event), fill=TRUE)
-  
-  # Check if amplicanSummarize acts as expected on this object
-  res <- amplicanSummarize(aln_test, cfgT_test)
-  
-  expect_true("Reads_Frameshifted" %in% colnames(res))
-  expect_true("Reads_Edited" %in% colnames(res))
+test_that("amplicanSummarize counts weighted reads and net frameshifts exactly", {
+  events <- data.frame(
+    seqnames = c(rep("A", 10), "B", "B"),
+    read_id = c(1, 1, 2, 3, 3, 4, 4, 5, 6, 6, 1, 2),
+    type = c("deletion", "deletion", "insertion", "deletion", "insertion",
+             "mismatch", "mismatch", "mismatch", "deletion", "insertion",
+             "insertion", "deletion"),
+    width = c(1, 2, 4, 2, 2, 1, 1, 1, 1, 2, 3, 2),
+    counts = c(2, 2, 3, 5, 5, 7, 7, 11, 13, 13, 17, 19),
+    readType = c(rep(FALSE, 5), TRUE, rep(FALSE, 5), TRUE),
+    stringsAsFactors = FALSE)
+  # A: reads 1 and 3 are in-frame; read 6 has net +1; read 4 is HDR.
+  # B reuses read IDs from A, and "empty" has no events.
+  expected <- data.frame(
+    ID = c("B", "A", "empty"), HDR = c(19, 7, 0),
+    Reads_Del = c(19, 20, 0), Reads_In = c(17, 21, 0),
+    Reads_Edited = c(36, 30, 0), Reads_Frameshifted = c(19, 16, 0),
+    stringsAsFactors = FALSE)
+  summarize <- function(x) {
+    amplicanSummarize(data.table::copy(x), data.frame(ID = expected$ID,
+                                                   stringsAsFactors = FALSE))
+  }
+
+  expect_equal(summarize(events), expected)
+  expect_equal(summarize(events[rev(seq_len(nrow(events))), ]), expected)
 })

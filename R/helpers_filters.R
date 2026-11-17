@@ -39,8 +39,8 @@ findLQR <- function(aln, seed = 0, max_remove_filterLQR = 0.25) {
   aln_n <- aln[, list(events = .N/max(end), score = max(score),
                       counts = max(counts)),
                by = c("read_id", "strand", "seqnames")]
-  aln_n <- aln_n[, list(events = events/length(unique(strand)),
-                        score = score/length(unique(strand)),
+  aln_n <- aln_n[, list(events = sum(events)/length(unique(strand)),
+                        score = sum(score)/length(unique(strand)),
                         counts = max(counts)),
                  by = c("read_id", "seqnames")]
 
@@ -115,7 +115,7 @@ findEOP <- function(aln, cfgT) {
   cfgT$fwdPrPosEnd[is.na(cfgT$fwdPrPosEnd)] <- 1
   cfgT$rvePrPos[is.na(cfgT$rvePrPos)] <- nchar(cfgT$Amplicon[is.na(cfgT$rvePrPos)])
 
-  if (any(aln$start < 0 | aln$end < 0)) { # if events are relative
+  if (any(aln$start <= 0 | aln$end < 0)) { # non-positive starts identify relative events
     for (i in seq_along(cfgT$ID)) {
       amplicon <- get_seq(cfgT, cfgT$ID[i], row = i)
       zero_point <- upperGroups(amplicon)

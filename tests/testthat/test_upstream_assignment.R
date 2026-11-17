@@ -1,0 +1,123 @@
+library(amplican)
+library(testthat)
+
+test_that("FASTQ modes apply their primer rules and retain pair multiplicities", {
+  folder <- tempfile("assignment-"); dir.create(folder)
+  on.exit(unlink(folder, recursive = TRUE))
+  fixture <- up_fixture(folder)
+  fixture$cfg <- fixture$cfg[1, ]
+  write.csv(fixture$cfg, fixture$config, row.names = FALSE)
+  forward <- fixture$reference
+  reverse <- as.character(Biostrings::reverseComplement(Biostrings::DNAString(forward)))
+  f <- rep(c(forward, forward, substr(forward, 21, 100), substr(forward, 21, 100)), c(2, 3, 5, 7))
+  r <- rep(c(reverse, substr(reverse, 21, 100), reverse, substr(reverse, 21, 100)), c(2, 3, 5, 7))
+  up_fastq(file.path(folder, "T_1.fastq"), paste0("GGAA", f))
+  up_fastq(file.path(folder, "T_2.fastq"), paste0("TTCC", r))
+  for (mode in c(0, 0.5, 1, 2)) {
+    object <- up_align(fixture, fastqfiles = mode, batch_size = 2)
+    expected <- c(`0` = 2, `0.5` = 10, `1` = 5, `2` = 7)[as.character(mode)]
+    expect_equal(experimentData(object)$Reads, unname(expected), info = paste("mode", mode))
+    expect_equal(sum(readCounts(object)$T), unname(expected))
+    bd <- barcodeData(object)
+    expect_equal(bd$read_count, 17)
+    expect_equal(bd$filtered_read_count, 17)
+    expect_equal(bd$unique_reads, if (mode < 1) 4 else 2)
+    expect_equal(bd$assigned_reads, if (mode == 0.5) 3 else 1)
+    expect_equal(bd$unassigned_reads, if (mode == 0) 3 else 1)
+    expect_equal(sum(unassignedData(object)$Total), c(`0` = 15, `0.5` = 7, `1` = 12, `2` = 10)[[as.character(mode)]])
+    if (mode != 2) {
+      seqs <- as.character(pwalign::unaligned(pwalign::pattern(fwdReads(object)$T)))
+      expect_false(any(startsWith(seqs, "GGAAACGTCAGTACGATCGTACGA")))
+    }
+    if (mode != 1) {
+      seqs <- as.character(pwalign::unaligned(pwalign::pattern(rveReads(object)$T)))
+      expect_false(any(endsWith(seqs, "GATCCGTAGCTAGCATCGACGGAA")))
+    }
+  }
+  one_edit <- up_change(forward, 6, "T")
+  two_edits <- up_change(one_edit, 14, "A")
+  up_fastq(file.path(folder, "T_1.fastq"), c(one_edit, two_edits))
+  up_fastq(file.path(folder, "T_2.fastq"), rep(up_change(reverse, 6, "A"), 2))
+  expect_equal(experimentData(up_align(fixture, primer_mismatch = 0))$Reads, 0)
+  accepted <- up_align(fixture, primer_mismatch = 1)
+  expect_equal(experimentData(accepted)$Reads, 1)
+  expect_equal(readCounts(accepted)$T, 1L)
+})
+
+test_that("quality filters reject either mate and count overlapping failures separately", {
+  folder <- tempfile("quality-truth-"); dir.create(folder)
+  on.exit(unlink(folder, recursive = TRUE))
+  fixture <- up_fixture(folder)
+  write.csv(fixture$cfg[1, ], fixture$config, row.names = FALSE)
+  forward <- rep(fixture$reference, 6)
+  forward[5] <- up_change(forward[5], 48, "N")
+  reverse <- rep(as.character(Biostrings::reverseComplement(Biostrings::DNAString(fixture$reference))), 6)
+  fq <- rep(strrep("I", 100), 6); rq <- fq
+  fq[3] <- paste0("!", strrep("I", 99))
+  rq[4] <- strrep("5", 100)
+  fq[6] <- strrep("!", 100)
+  up_fastq(file.path(folder, "T_1.fastq"), forward, fq)
+  up_fastq(file.path(folder, "T_2.fastq"), reverse, rq)
+  object <- up_align(fixture, min_quality = 20, average_quality = 30, filter_n = TRUE, batch_size = 2)
+  expected <- data.frame(read_count = 6, bad_base_quality = 2, bad_average_quality = 2,
+    bad_alphabet = 1, filtered_read_count = 2, unique_reads = 1, assigned_reads = 1, unassigned_reads = 0)
+  expect_equal(up_rows(barcodeData(object), names(expected)), expected)
+  expect_equal(experimentData(object)$Reads, 2)
+  expect_equal(readCounts(object)$T, 2L)
+  up_fastq(file.path(folder, "T_1.fastq"), forward, rep(strrep("!", 100), 6))
+  empty <- up_align(fixture, min_quality = 20, filter_n = TRUE)
+  expect_equal(experimentData(empty)$Reads, 0)
+  expect_equal(barcodeData(empty)$filtered_read_count, 0)
+  expect_equal(barcodeData(empty)$unique_reads, 0)
+  expect_null(readCounts(empty)$T)
+  up_fastq(file.path(folder, "T_1.fastq"), character())
+  up_fastq(file.path(folder, "T_2.fastq"), character())
+  empty <- up_align(fixture)
+  expect_equal(barcodeData(empty)$read_count, 0)
+  expect_equal(experimentData(empty)$Reads, 0)
+})
+
+test_that("matching multiple experiments remains intentional and independent of row order", {
+  folder <- tempfile("shared-primer-"); dir.create(folder)
+  on.exit(unlink(folder, recursive = TRUE))
+  fixture <- up_fixture(folder)
+  cfg <- fixture$cfg[c(1, 4), ]
+  cfg$Forward_Primer[2] <- cfg$Forward_Primer[1]
+  substr(cfg$Amplicon[2], 1, 20) <- tolower(cfg$Forward_Primer[1])
+  write.csv(cfg, fixture$config, row.names = FALSE)
+  both <- up_align(fixture, fastqfiles = 1)
+  expect_identical(names(both), c("T", "E"))
+  expect_equal(experimentData(both)$Reads, c(23, 23))
+  expect_equal(vapply(readCounts(both), sum, 0), c(T = 23, E = 23))
+  expect_equal(barcodeData(both)$assigned_reads, 6)
+  expect_equal(barcodeData(both)$read_count, 23)
+  write.csv(cfg[2:1, ], fixture$config, row.names = FALSE)
+  reordered <- up_align(fixture, fastqfiles = 1)
+  expect_identical(names(reordered), c("E", "T"))
+  expect_equal(up_rows(experimentData(reordered)), up_rows(experimentData(both)))
+  expect_equal(readCounts(reordered)[c("T", "E")], readCounts(both))
+  strict <- up_align(fixture, fastqfiles = 0)
+  expect_equal(experimentData(strict)$Reads, c(0, 23))
+})
+
+test_that("seeded sampling is repeatable and keeps forward and reverse mates together", {
+  folder <- tempfile("sample-pairs-"); dir.create(folder)
+  on.exit(unlink(folder, recursive = TRUE))
+  fixture <- up_fixture(folder)
+  full <- up_align(fixture)
+  expect_identical(names(full), fixture$cfg$ID)
+  expect_identical(experimentData(full)$ID, fixture$cfg$ID)
+  expect_identical(names(readCounts(full)), fixture$cfg$ID)
+  expect_equal(experimentData(full)$Reads, c(23, 17, 10, 0))
+  first <- up_align(fixture, sample = 7, seed = 123)
+  second <- up_align(fixture, sample = 7, seed = 123)
+  expect_equal(experimentData(first)$Reads, c(7, 7, 7, 0))
+  expect_identical(readCounts(first), readCounts(second))
+  for (id in c("T", "R", "C")) {
+    forward <- as.character(pwalign::unaligned(pwalign::pattern(fwdReads(first)[[id]])))
+    reverse <- as.character(pwalign::unaligned(pwalign::pattern(rveReads(first)[[id]])))
+    expect_identical(forward, reverse, info = id)
+    expect_identical(forward, as.character(pwalign::unaligned(pwalign::pattern(fwdReads(second)[[id]]))))
+    expect_equal(sum(readCounts(first)[[id]]), 7)
+  }
+})

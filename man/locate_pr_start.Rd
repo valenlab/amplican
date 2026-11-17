@@ -17,7 +17,7 @@ locate_pr_start(reads, primer, m = 3, min_overlap = ceiling(nchar(primer)/2))
 with the read. A good value is often around half the primer length.}
 }
 \value{
-A numeric vector of the EARLIEST start position for a valid match,
+A numeric vector of start positions from the best overlap alignment,
   with NA for no match.
 }
 \description{

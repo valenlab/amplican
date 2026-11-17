@@ -43,7 +43,7 @@ comb_along <- function(seq, m = 2, letters = c("A", "C", "T", "G")) {
 #' @param m The maximum number of allowed mismatches.
 #' @param min_overlap The minimum number of base pairs the primer must overlap
 #'   with the read. A good value is often around half the primer length.
-#' @return A numeric vector of the EARLIEST start position for a valid match,
+#' @return A numeric vector of start positions from the best overlap alignment,
 #'   with NA for no match.
 locate_pr_start <- function(reads, primer,
                             m = 3,
@@ -62,7 +62,7 @@ locate_pr_start <- function(reads, primer,
     substitutionMatrix = pwalign::nucleotideSubstitutionMatrix(
       match = 1, mismatch = -1, baseOnly = FALSE, type = "DNA"
     ),
-    gapOpening = 1, # Disallow indels
+    gapOpening = 1,
     gapExtension = 1
   )
 

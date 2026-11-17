@@ -903,7 +903,7 @@ setMethod("extractEvents", "AlignmentsExperimentSet", function(
   finalGR <- BiocParallel::bplapply(seq_along(obj_names), function(i) {
     ID <- obj_names[i]
     cfg <- exp_data[exp_data$ID == ID, , drop = FALSE]
-    fwdPrPos <- if (is.null(cfg$fwdPrPos)) 1 else cfg$fwdPrPos
+    fwdPrPos <- if (is.null(cfg$fwdPrPos) || is.na(cfg$fwdPrPos)) 1 else cfg$fwdPrPos
 
     tempGR <- c(getEventInfo(fwd_reads[[ID]], ID, fwdPrPos, "+"),
                 getEventInfo(rve_reads[[ID]], ID, fwdPrPos, "-"))

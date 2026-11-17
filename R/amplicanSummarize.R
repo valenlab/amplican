@@ -96,8 +96,9 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
   b_fwd <- eop_fwd[eop_fwd$overlaps, ]
   if (nrow(b_rve) + nrow(b_fwd) > 0) {
     # both strands are broken — remove reads that appear in the other strand
+    only_b_fwd <- b_fwd[!b_rve, on = .(seqnames, read_id)]
     b_rve <- b_rve[!b_fwd, on = .(seqnames, read_id)]
-    b_fwd <- b_fwd[!b_rve, on = .(seqnames, read_id)]
+    b_fwd <- only_b_fwd
     # filter out events from those broken IDs
     aln_rve <- aln_rve[!b_rve, on = .(seqnames, read_id)]
     aln_fwd <- aln_fwd[!b_fwd, on = .(seqnames, read_id)]
@@ -173,7 +174,7 @@ amplicanConsensus <- function(aln, cfgT, overlaps = "overlaps",
 amplicanOverlap <- function(aln, cfgT, cut_buffer = 5, relative = FALSE) {
   if (nrow(aln) == 0) return(logical(0))
   cutSites <- lapply(seq_along(cfgT$ID), function(i) {
-    upperGroups(get_seq(cfgT, cfgT$ID[i], row = i)) + cut_buffer})
+    upperGroups(get_seq(cfgT, cfgT$ID[i], row = i))})
   cutSitesCheck <- sapply(cutSites, length) == 0
   if (any(cutSitesCheck)) {
     message("Warning: Config file row without upper case groups (guideRNA): ",
@@ -183,9 +184,11 @@ amplicanOverlap <- function(aln, cfgT, cut_buffer = 5, relative = FALSE) {
                        width = cfgT$ampl_len[cutSitesCheck]),
       1))
   }
+  origins <- vapply(cutSites, function(x) IRanges::start(x)[1], integer(1))
+  cutSites[!cutSitesCheck] <- lapply(cutSites[!cutSitesCheck], function(x) x + cut_buffer)
   if (relative) {
-    cutSites <- lapply(cutSites, function(x) {
-      IRanges::shift(x, -1 * IRanges::start(x)[1])
+    cutSites <- lapply(seq_along(cutSites), function(i) {
+      IRanges::shift(cutSites[[i]], -origins[i])
     })
   }
 

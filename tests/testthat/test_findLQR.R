@@ -13,12 +13,13 @@ n_culled <- function(l, aln) {
   as.integer(sum(unique(as.data.table(aln)[l, ], by = "read_id")$counts))
 }
 
-test_that("findLQR disables itself at high editing (>25% candidate cull)", {
-  # nlgn4a @ 90% editing: the edited majority is ~51% of reads, so the
-  # candidate cluster trips the 25% safety cap and nothing is removed.
+test_that("findLQR preserves the high-editing majority", {
+  # A two-cluster decision or the safety cap must preserve these genuine edits.
   aln <- fix("01_high_edit_falsepos")
-  expect_warning(out <- findLQR(aln),
-                 regexp = "off-target detection algorithm would remove")
+  out <- withCallingHandlers(findLQR(aln), warning = function(w) {
+    expect_match(conditionMessage(w), "off-target detection algorithm would remove")
+    invokeRestart("muffleWarning")
+  })
   expect_false(any(out))
   expect_equal(n_culled(out, aln), 0L)
 })

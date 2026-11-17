@@ -5,8 +5,9 @@
 #' was sequenced. Events from the control are grouped by \code{add} and
 #' their frequencies are calculated in respect to number of total reads in that
 #' groups. In next step events from the control are filtered according to
-#' \code{min_freq}, all events below are treated as sequencing errors and
-#' rejected. Finally, all events that can be found in treatment group that find
+#' \code{min_freq}; only events strictly above the threshold participate.
+#' When read IDs are available, paired-strand evidence for the same read/event
+#' contributes once. Finally, all events that can be found in treatment group that find
 #' their exact match (by non skipped columns) in control group are removed.
 #' All events from control group are returned back.
 #' @param aln (data.frame) Contains events from alignments.
@@ -18,8 +19,8 @@
 #' normalization entirely, even when Control rows are present. Pass \code{c()}
 #' to normalize globally without any group stratification.
 #' @param skip (character vector) Specifies which columns of aln to skip.
-#' @param min_freq (numeric) All events from control group below this frequency
-#' will be not included in filtering. Use this to filter out background noise
+#' @param min_freq (numeric) Only control events strictly above this frequency
+#' participate in filtering. Use this to filter out background noise
 #' and sequencing errors.
 #' @return (data.frame) Same as aln, but events are normalized. Events from
 #' Control are not changed. Additionally columns from add are added to the
@@ -74,7 +75,11 @@ amplicanNormalize <- function(aln, cfgT,
                           by = c(add, "Control")]
   cfgT_total_reads <- cfgT_total_reads[cfgT_total_reads$Control, ]
 
-  aln_ctr_freq <- aln_ctr[, list(counts = sum(counts)), by = cols]
+  # Forward and reverse evidence for the same read is one background observation.
+  aln_ctr_counts <- if ("read_id" %in% names(aln_ctr)) {
+    unique(aln_ctr, by = unique(c(cols, "seqnames", "read_id")))
+  } else aln_ctr
+  aln_ctr_freq <- aln_ctr_counts[, list(counts = sum(counts)), by = cols]
   if (length(add) > 0) {
     aln_ctr_freq <- merge(aln_ctr_freq, cfgT_total_reads, all = TRUE, by = add)
   } else {

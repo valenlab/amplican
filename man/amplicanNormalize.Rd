@@ -26,8 +26,8 @@ to normalize globally without any group stratification.}
 
 \item{skip}{(character vector) Specifies which columns of aln to skip.}
 
-\item{min_freq}{(numeric) All events from control group below this frequency
-will be not included in filtering. Use this to filter out background noise
+\item{min_freq}{(numeric) Only control events strictly above this frequency
+participate in filtering. Use this to filter out background noise
 and sequencing errors.}
 }
 \value{
@@ -41,8 +41,9 @@ known annotations (amplicon sequences) and real DNA of the strain that
 was sequenced. Events from the control are grouped by \code{add} and
 their frequencies are calculated in respect to number of total reads in that
 groups. In next step events from the control are filtered according to
-\code{min_freq}, all events below are treated as sequencing errors and
-rejected. Finally, all events that can be found in treatment group that find
+\code{min_freq}; only events strictly above the threshold participate.
+When read IDs are available, paired-strand evidence for the same read/event
+contributes once. Finally, all events that can be found in treatment group that find
 their exact match (by non skipped columns) in control group are removed.
 All events from control group are returned back.
 }
